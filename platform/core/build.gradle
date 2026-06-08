@@ -1,0 +1,3 @@
+dependencies {
+    implementation include('org.yaml:snakeyaml:2.2')
+}

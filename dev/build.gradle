@@ -1,0 +1,46 @@
+dependencies {
+    implementation(project(path: ':platform:core', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+
+    [
+            ':addons:titles',
+            ':addons:communities',
+            ':addons:names',
+            ':addons:contributions',
+            ':addons:portals',
+            ':addons:jail',
+            ':addons:underworld',
+            ':addons:worlds',
+            ':addons:voicechat-hooks',
+            ':addons:tablist',
+            ':addons:government',
+            ':addons:newspapers'
+    ].each { addonPath ->
+        implementation(project(path: addonPath, configuration: 'namedElements')) {
+            exclude group: 'net.fabricmc.fabric-api'
+        }
+    }
+
+    runtimeOnly 'org.yaml:snakeyaml:2.2'
+}
+
+loom {
+    runs {
+        clientOne {
+            client()
+            name = 'Elarion Client 1'
+            runDir = 'run/client-one'
+            programArg '--username'
+            programArg 'ElarionAdmin'
+        }
+
+        clientTwo {
+            client()
+            name = 'Elarion Client 2'
+            runDir = 'run/client-two'
+            programArg '--username'
+            programArg 'ElarionPlayer1'
+        }
+    }
+}

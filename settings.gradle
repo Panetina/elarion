@@ -1,0 +1,24 @@
+pluginManagement {
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'elarion'
+
+include 'dev'
+include 'platform:core'
+include 'addons:titles'
+include 'addons:communities'
+include 'addons:names'
+include 'addons:contributions'
+include 'addons:portals'
+include 'addons:jail'
+include 'addons:underworld'
+include 'addons:worlds'
+include 'addons:voicechat-hooks'
+include 'addons:tablist'
+include 'addons:government'
+include 'addons:newspapers'

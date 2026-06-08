@@ -1,0 +1,84 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}" apply false
+}
+
+allprojects {
+    group = project.maven_group
+    version = project.mod_version + '+mc.' + project.jar_mc_version
+}
+
+def modProjects = subprojects.findAll { it.path != ':platform' && it.path != ':addons' }
+
+configure(modProjects) {
+    apply plugin: 'fabric-loom'
+    apply plugin: 'maven-publish'
+
+    repositories {
+        mavenCentral()
+    }
+
+    base {
+        archivesName = project.name
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${minecraft_version}"
+        mappings "net.fabricmc:yarn:${yarn_mappings}:v2"
+        modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    }
+
+    processResources {
+        inputs.property 'version', project.version
+        filesMatching('fabric.mod.json') {
+            expand 'version': project.version
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = 'UTF-8'
+        it.options.release = 21
+    }
+
+    java {
+        withSourcesJar()
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    if (project.path != ':dev') {
+        tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
+            enabled = false
+        }
+    }
+}
+
+configure(modProjects.findAll { it.path.startsWith(':addons:') }) {
+    dependencies {
+        runtimeOnly 'org.yaml:snakeyaml:2.2'
+    }
+}
+
+tasks.register('runClient') {
+    group = 'fabric'
+    description = 'Runs Elarion Core with every addon in one development client.'
+    dependsOn ':dev:runClient'
+}
+
+tasks.register('runClientOne') {
+    group = 'fabric'
+    description = 'Runs the first Elarion development client.'
+    dependsOn ':dev:runClientOne'
+}
+
+tasks.register('runClientTwo') {
+    group = 'fabric'
+    description = 'Runs the second Elarion development client.'
+    dependsOn ':dev:runClientTwo'
+}
+
+tasks.register('runServer') {
+    group = 'fabric'
+    description = 'Runs Elarion Core with every addon in one development server.'
+    dependsOn ':dev:runServer'
+}

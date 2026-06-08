@@ -1,0 +1,5 @@
+dependencies {
+    implementation(project(path: ':platform:core', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+}
