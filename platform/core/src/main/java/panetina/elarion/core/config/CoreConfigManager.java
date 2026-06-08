@@ -128,6 +128,8 @@ public final class CoreConfigManager {
     private Map<String, List<RewardAction>> rewards = Map.of();
     private String defaultTitleId = "citizen";
     private String communityChatFormat = "[%community_short%] %player% \u00bb %message%";
+    private boolean nicknamesEnabled = true;
+    private int nicknameMaxLength = 32;
 
     public CoreConfigManager(Logger logger) {
         this.logger = logger;
@@ -144,6 +146,11 @@ public final class CoreConfigManager {
 
         Map<String, Object> chat = loadMap("chat.yml");
         communityChatFormat = string(map(chat.get("community-chat")).get("format"), communityChatFormat);
+
+        Map<String, Object> identity = loadMap("identity.yml");
+        Map<String, Object> nickname = map(identity.get("nickname"));
+        nicknamesEnabled = bool(nickname.get("enabled"), true);
+        nicknameMaxLength = number(nickname.get("max-length"), 32).intValue();
         logger.info("Loaded {} communities, {} titles, and {} reward definitions",
                 communities.size(), titles.size(), rewards.size());
     }
@@ -153,6 +160,8 @@ public final class CoreConfigManager {
     public Map<String, List<RewardAction>> rewards() { return rewards; }
     public String defaultTitleId() { return defaultTitleId; }
     public String communityChatFormat() { return communityChatFormat; }
+    public boolean nicknamesEnabled() { return nicknamesEnabled; }
+    public int nicknameMaxLength() { return nicknameMaxLength; }
     public Path coreConfigDir() { return coreConfigDir; }
 
     private void writeDefaults() {

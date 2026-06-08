@@ -4,8 +4,11 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.core.api.ElarionAddon;
@@ -19,9 +22,12 @@ import panetina.elarion.core.service.ChatService;
 import panetina.elarion.core.service.CitizenService;
 import panetina.elarion.core.service.CommunityService;
 import panetina.elarion.core.service.IdentityService;
+import panetina.elarion.core.service.IdentitySyncService;
 import panetina.elarion.core.service.RewardActionService;
 import panetina.elarion.core.service.TitleService;
 import panetina.elarion.core.storage.CitizenStorage;
+import panetina.elarion.core.network.IdentitySyncRequestPayload;
+import panetina.elarion.core.network.IdentitySyncPayload;
 
 public final class ElarionCoreMod implements ModInitializer {
     public static final String MOD_ID = "elarion_core";
@@ -29,6 +35,9 @@ public final class ElarionCoreMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        PayloadTypeRegistry.playS2C().register(IdentitySyncPayload.ID, IdentitySyncPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(IdentitySyncRequestPayload.ID, IdentitySyncRequestPayload.CODEC);
+
         CoreConfigManager config = new CoreConfigManager(LOGGER);
         config.load();
 
@@ -39,13 +48,23 @@ public final class ElarionCoreMod implements ModInitializer {
         AbilityService abilities = new AbilityService(titles);
         config.titles().values().forEach(title -> title.abilities().forEach(abilities::register));
         IdentityService identities = new IdentityService(citizens, communities, titles);
+        IdentitySyncService identitySync = new IdentitySyncService(citizens, communities, titles, identities);
+        ServerPlayNetworking.registerGlobalReceiver(IdentitySyncRequestPayload.ID, (payload, context) -> {
+            if (payload.requested()) {
+                context.server().execute(() -> identitySync.syncAll(context.server()));
+            }
+        });
         ChatService chat = new ChatService(config, citizens, communities, identities);
         RewardActionService rewards = new RewardActionService(config, citizens, titles, abilities, events);
         ElarionCommandRegistry commands = new ElarionCommandRegistry();
         ElarionApi api = new ElarionApi(
-                citizens, communities, titles, abilities, identities, chat, rewards, events, commands);
+                citizens, communities, titles, abilities, identities, identitySync, chat, rewards, events, commands);
 
         initializeAddons(api);
+        events.onCitizenChanged(event -> {
+            MinecraftServer server = citizens.server();
+            if (server != null) identitySync.syncAll(server);
+        });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             citizens.bind(server);
@@ -56,6 +75,7 @@ public final class ElarionCoreMod implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             citizens.getOrCreate(handler.getPlayer());
             communities.applyCurrentScoreboardTeam(handler.getPlayer());
+            identitySync.syncAll(server);
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->

@@ -37,7 +37,7 @@ public final class ElarionCommands {
         LiteralArgumentBuilder<ServerCommandSource> root = literal("e")
                 .requires(source -> source.hasPermissionLevel(4))
                 .then(communityCommands(api))
-                .then(citizenCommands(api))
+                .then(citizenCommands(api, config))
                 .then(titleCommands(api))
                 .then(abilityCommands(api))
                 .then(rewardCommands(api))
@@ -48,6 +48,7 @@ public final class ElarionCommands {
                     for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
                         api.communities().applyCurrentScoreboardTeam(player);
                     }
+                    api.identitySync().syncAll(context.getSource().getServer());
                     context.getSource().sendFeedback(() -> Text.literal("Elarion configuration reloaded."), true);
                     return 1;
                 }));
@@ -98,7 +99,10 @@ public final class ElarionCommands {
                 }));
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> citizenCommands(ElarionApi api) {
+    private static LiteralArgumentBuilder<ServerCommandSource> citizenCommands(
+            ElarionApi api,
+            CoreConfigManager config
+    ) {
         return literal("citizen")
                 .then(literal("info")
                         .then(argument("player", EntityArgumentType.player())
@@ -120,6 +124,22 @@ public final class ElarionCommands {
                                                 .executes(context -> {
                                                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                                     String nickname = StringArgumentType.getString(context, "nickname").trim();
+                                                    if (!config.nicknamesEnabled()) {
+                                                        context.getSource().sendError(Text.literal("Nicknames are disabled."));
+                                                        return 0;
+                                                    }
+                                                    if (nickname.isBlank()) {
+                                                        context.getSource().sendError(Text.literal("Nickname cannot be empty."));
+                                                        return 0;
+                                                    }
+                                                    if (config.nicknameMaxLength() > 0
+                                                            && nickname.length() > config.nicknameMaxLength()) {
+                                                        context.getSource().sendError(Text.literal(
+                                                                "Nickname cannot exceed "
+                                                                        + config.nicknameMaxLength()
+                                                                        + " characters."));
+                                                        return 0;
+                                                    }
                                                     api.citizens().update(player, "nickname-set", citizen -> citizen.setNickname(nickname));
                                                     context.getSource().sendFeedback(
                                                             () -> Text.literal("Set nickname for " + player.getGameProfile().getName()), true);

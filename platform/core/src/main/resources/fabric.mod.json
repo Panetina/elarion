@@ -8,8 +8,10 @@
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
-    "main": ["panetina.elarion.core.ElarionCoreMod"]
+    "main": ["panetina.elarion.core.ElarionCoreMod"],
+    "client": ["panetina.elarion.core.ElarionCoreClient"]
   },
+  "mixins": ["elarion_core.mixins.json"],
   "depends": {
     "fabricloader": ">=0.16.14",
     "minecraft": "~1.21.1",

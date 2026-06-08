@@ -2,6 +2,10 @@
 
 Elarion is a Fabric 1.21.1 platform mod organized as one canonical Core plus optional addons.
 
+The durable product goals, architectural rules, legacy-mod findings, current
+status, and roadmap are maintained in [PLAN.md](PLAN.md). Read it before making
+architectural or gameplay changes.
+
 ## Modules
 
 - `platform/core`: communities, citizens, titles, abilities, identity, `/cc`, rewards, storage, and addon APIs.

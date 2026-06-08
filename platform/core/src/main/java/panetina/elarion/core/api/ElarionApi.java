@@ -6,6 +6,7 @@ import panetina.elarion.core.service.ChatService;
 import panetina.elarion.core.service.CitizenService;
 import panetina.elarion.core.service.CommunityService;
 import panetina.elarion.core.service.IdentityService;
+import panetina.elarion.core.service.IdentitySyncService;
 import panetina.elarion.core.service.RewardActionService;
 import panetina.elarion.core.service.TitleService;
 
@@ -17,6 +18,7 @@ public final class ElarionApi {
     private final TitleService titles;
     private final AbilityService abilities;
     private final IdentityService identities;
+    private final IdentitySyncService identitySync;
     private final ChatService chat;
     private final RewardActionService rewards;
     private final ElarionEventBus events;
@@ -28,6 +30,7 @@ public final class ElarionApi {
             TitleService titles,
             AbilityService abilities,
             IdentityService identities,
+            IdentitySyncService identitySync,
             ChatService chat,
             RewardActionService rewards,
             ElarionEventBus events,
@@ -39,6 +42,7 @@ public final class ElarionApi {
         this.titles = titles;
         this.abilities = abilities;
         this.identities = identities;
+        this.identitySync = identitySync;
         this.chat = chat;
         this.rewards = rewards;
         this.events = events;
@@ -56,6 +60,7 @@ public final class ElarionApi {
     public TitleService titles() { return titles; }
     public AbilityService abilities() { return abilities; }
     public IdentityService identities() { return identities; }
+    public IdentitySyncService identitySync() { return identitySync; }
     public ChatService chat() { return chat; }
     public RewardActionService rewards() { return rewards; }
     public ElarionEventBus events() { return events; }

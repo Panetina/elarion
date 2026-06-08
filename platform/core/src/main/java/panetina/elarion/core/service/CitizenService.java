@@ -31,6 +31,10 @@ public final class CitizenService {
         cache.clear();
     }
 
+    public MinecraftServer server() {
+        return server;
+    }
+
     public CitizenRecord getOrCreate(ServerPlayerEntity player) {
         return getOrCreate(player.getUuid(), player.getGameProfile().getName());
     }
