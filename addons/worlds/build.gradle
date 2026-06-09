@@ -2,4 +2,18 @@ dependencies {
     implementation(project(path: ':platform:core', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
+
+    modImplementation include('xyz.nucleoid:fantasy:0.6.3+1.21')
+    implementation 'org.yaml:snakeyaml:2.2'
+    testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    from('NOTICE.md') {
+        rename { 'NOTICE-ELARION-WORLDS.md' }
+    }
 }

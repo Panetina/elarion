@@ -2,6 +2,10 @@ dependencies {
     modImplementation(project(':platform:core')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
+    modImplementation(project(':addons:worlds')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    modRuntimeOnly 'xyz.nucleoid:fantasy:0.6.3+1.21'
     runtimeOnly 'org.yaml:snakeyaml:2.2'
 }
 

@@ -23,6 +23,7 @@ dependencies {
     }
 
     runtimeOnly 'org.yaml:snakeyaml:2.2'
+    modRuntimeOnly 'xyz.nucleoid:fantasy:0.6.3+1.21'
 }
 
 loom {

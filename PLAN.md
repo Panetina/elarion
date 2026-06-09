@@ -558,7 +558,8 @@ planned, partial, config-only, or addon shells.
 - [x] Render the community tag only in `/cc`
 - [ ] Replace global vanilla chat with configurable local/proximity chat
 - [ ] Add scoped join/leave notices
-- [ ] Implement community spawn and respawn behavior
+- [ ] Implement community spawn and respawn behavior (respawning in their community's world and at that location) + adding hierarchy to spawning: 1. Bed 2. Spawnpoint in community world, 3. Default (all 3 overriden if the player is in the jail or underworld or future events)
+- [ ] Teleport player in spawn point when added to a community
 - [ ] Implement alliances and relationships
 - [ ] Implement optional community borders
 - [ ] Add community-wide rewards with offline delivery
@@ -626,6 +627,8 @@ planned, partial, config-only, or addon shells.
 - [x] Filter tab entries, nametags, suggestions, and player targeting
 - [x] Implement `COMMUNITY`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN`
 - [x] Preserve OP level 4 administrative visibility
+- [ ] Implement the filter to /list too
+- [ ] Add a comment in the visibility.yml with current "`COMMUNITY`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN`"
 - [ ] Implement alliance-aware `ALLIES` visibility
 - [ ] Apply visibility to maps, trackers, rosters, menus, and join/leave notices
 - [ ] Add title, ability, portal, event, and shared-space visibility exceptions
@@ -653,8 +656,18 @@ planned, partial, config-only, or addon shells.
 
 ### Portals and Worlds
 
-- [ ] Create and manage addon-owned worlds
-- [ ] Resolve configured world IDs and spawn points
+- [x] Create and manage persistent addon-owned worlds through Elarion Worlds
+- [x] Resolve configured world IDs and spawn points through `ElarionWorldsApi`
+- [x] Add strict modular `worlds.yml` definitions for seeds, templates,
+  difficulty, gamerules, spawn points, and per-world borders
+- [ ] Add the default world in "/e world tp" or another better way to return to that world. Same for the nether, end, jail, etc in the future
+- [ ] Fix per-world borders, currently /worldborder set affects all worlds. Make different world-border configurable for every world (nether, community worlds, end, jail, etc)
+- [ ] Make the default world as simple and small as possible for performance issues, that will just host the players until they just their community in the future GUI
+- [x] Add deterministic per-world block and mob abundance controls for future
+  trade/resource specialization
+- [x] Synchronize independent world borders only to players in that world
+- [x] Add `/e world list|reload|load|unload|tp|info`
+- [ ] Connect community membership to managed world spawn and respawn policy
 - [ ] Implement portal definitions and physical portal travel
 - [ ] Implement dormant, active, open, locked, restoring, and disabled states
 - [ ] Gate portal use through progression and abilities

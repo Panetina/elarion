@@ -3,6 +3,7 @@ package panetina.elarion.tests;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
+import panetina.elarion.addons.worlds.api.ElarionWorldsApi;
 import panetina.elarion.core.api.ElarionApi;
 
 import java.util.Map;
@@ -33,6 +34,16 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         context.assertTrue(!events.isEmpty(), "Expected the recorded history event");
         context.assertEquals("history-roundtrip", events.getFirst().type(),
                 "History event type did not round-trip");
+
+        ElarionWorldsApi worlds = ElarionWorldsApi.get();
+        context.assertEquals(3, worlds.definitions().size(),
+                "Expected three default managed world definitions");
+        context.assertTrue(worlds.resolve("community_world_1") != null,
+                "community_world_1 should be loaded");
+        context.assertTrue(worlds.resolve("community_world_2") != null,
+                "community_world_2 should be loaded");
+        context.assertTrue(worlds.resolve("community_world_3") != null,
+                "community_world_3 should be loaded");
         context.complete();
     }
 }
