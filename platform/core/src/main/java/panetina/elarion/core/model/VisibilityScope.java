@@ -1,7 +1,7 @@
 package panetina.elarion.core.model;
 
 public enum VisibilityScope {
-    COMMUNITY,
+    REALM,
     ALLIES,
     GLOBAL,
     ADMIN_ONLY,

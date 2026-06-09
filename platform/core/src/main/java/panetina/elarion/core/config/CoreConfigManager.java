@@ -3,7 +3,7 @@ package panetina.elarion.core.config;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.yaml.snakeyaml.Yaml;
-import panetina.elarion.core.model.CommunityDefinition;
+import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RewardAction;
 import panetina.elarion.core.model.SpawnPoint;
 import panetina.elarion.core.model.TitleDefinition;
@@ -31,23 +31,23 @@ public final class CoreConfigManager {
             "gold", "gray", "dark_gray", "blue", "green", "aqua", "red",
             "light_purple", "yellow", "white");
     private static final Map<String, String> DEFAULT_FILES = Map.ofEntries(
-            Map.entry("communities.yml", """
+            Map.entry("realms.yml", """
                     config-version: 1
 
-                    # Supported community colors:
+                    # Supported realm colors:
                     # black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple
                     # gold, gray, dark_gray, blue, green, aqua, red
                     # light_purple, yellow, white
                     #
                     # Invalid color names fall back to white.
 
-                    communities:
+                    realms:
                       oak:
                         display-name: "Kingdom of Oak"
                         short-name: "OAK"
                         prefix: "[OAK]"
                         color: "green"
-                        visibility-scope: "COMMUNITY"
+                        visibility-scope: "REALM"
                         spawn:
                           world: "minecraft:overworld"
                           x: 0
@@ -92,7 +92,7 @@ public final class CoreConfigManager {
                       elarion.newspaper.publish:
                         description: "Publish and manage newspapers."
                       elarion.portal.foreign_access:
-                        description: "Use portals belonging to another community."
+                        description: "Use portals belonging to another realm."
                     """),
             Map.entry("identity.yml", """
                     config-version: 1
@@ -118,7 +118,7 @@ public final class CoreConfigManager {
                         - "elarion"
                     nickname-protection:
                       enabled: true
-                      protect-community-presentation: true
+                      protect-realm-presentation: true
                       protect-title-presentation: true
                       reject-containing-protected-name: true
                     title:
@@ -127,15 +127,15 @@ public final class CoreConfigManager {
             Map.entry("chat.yml", """
                     config-version: 1
 
-                    community-chat:
-                      command: "cc"
-                      format: "[%community_short%] %player% \u00bb %message%"
+                    realm-chat:
+                      command: "rc"
+                      format: "[%realm_short%] %player% \u00bb %message%"
                     """),
             Map.entry("visibility.yml", """
                     config-version: 1
 
                     defaults:
-                      scope: "COMMUNITY"
+                      scope: "REALM"
                       operators-visible: true
                     """),
             Map.entry("rewards.yml", """
@@ -153,7 +153,7 @@ public final class CoreConfigManager {
                     commands:
                       admin-root: "e"
                       admin-permission-level: 4
-                      community-chat-root: "cc"
+                      realm-chat-root: "rc"
                     """),
             Map.entry("citizens-defaults.yml", """
                     config-version: 1
@@ -168,18 +168,18 @@ public final class CoreConfigManager {
     private final Logger logger;
     private final Yaml yaml = new Yaml();
     private final Path coreConfigDir;
-    private Map<String, CommunityDefinition> communities = Map.of();
+    private Map<String, RealmDefinition> realms = Map.of();
     private Map<String, TitleDefinition> titles = Map.of();
     private Map<String, List<RewardAction>> rewards = Map.of();
     private String defaultTitleId = "citizen";
-    private String communityChatFormat = "[%community_short%] %player% \u00bb %message%";
+    private String realmChatFormat = "[%realm_short%] %player% \u00bb %message%";
     private boolean nicknamesEnabled = true;
     private int nicknameMaxLength = 32;
     private boolean nicknameUnique = true;
     private boolean nicknameReservePlayerUsernames = true;
     private Set<String> nicknameReservedNames = Set.of();
     private boolean nicknameProtectionEnabled = true;
-    private boolean nicknameProtectCommunityPresentation = true;
+    private boolean nicknameProtectRealmPresentation = true;
     private boolean nicknameProtectTitlePresentation = true;
     private boolean nicknameRejectContainingProtectedName = true;
 
@@ -197,7 +197,7 @@ public final class CoreConfigManager {
         migrateConfigs();
         validateConfigs();
 
-        Map<String, CommunityDefinition> loadedCommunities = loadCommunities();
+        Map<String, RealmDefinition> loadedRealms = loadRealms();
         Map<String, TitleDefinition> loadedTitles = loadTitles();
         Map<String, List<RewardAction>> loadedRewards = loadRewards();
 
@@ -205,8 +205,8 @@ public final class CoreConfigManager {
         String loadedDefaultTitleId = string(map(defaults.get("defaults")).get("title"), "citizen");
 
         Map<String, Object> chat = loadMap("chat.yml");
-        String loadedCommunityChatFormat =
-                string(map(chat.get("community-chat")).get("format"), communityChatFormat);
+        String loadedRealmChatFormat =
+                string(map(chat.get("realm-chat")).get("format"), realmChatFormat);
 
         Map<String, Object> identity = loadMap("identity.yml");
         Map<String, Object> nickname = map(identity.get("nickname"));
@@ -219,43 +219,43 @@ public final class CoreConfigManager {
         Set<String> loadedNicknameReservedNames = stringSet(nicknamePolicy.get("reserved-names"));
         Map<String, Object> nicknameProtection = map(identity.get("nickname-protection"));
         boolean loadedNicknameProtectionEnabled = bool(nicknameProtection.get("enabled"), true);
-        boolean loadedNicknameProtectCommunityPresentation =
-                bool(nicknameProtection.get("protect-community-presentation"), true);
+        boolean loadedNicknameProtectRealmPresentation =
+                bool(nicknameProtection.get("protect-realm-presentation"), true);
         boolean loadedNicknameProtectTitlePresentation =
                 bool(nicknameProtection.get("protect-title-presentation"), true);
         boolean loadedNicknameRejectContainingProtectedName =
                 bool(nicknameProtection.get("reject-containing-protected-name"), true);
 
-        communities = loadedCommunities;
+        realms = loadedRealms;
         titles = loadedTitles;
         rewards = loadedRewards;
         defaultTitleId = loadedDefaultTitleId;
-        communityChatFormat = loadedCommunityChatFormat;
+        realmChatFormat = loadedRealmChatFormat;
         nicknamesEnabled = loadedNicknamesEnabled;
         nicknameMaxLength = loadedNicknameMaxLength;
         nicknameUnique = loadedNicknameUnique;
         nicknameReservePlayerUsernames = loadedNicknameReservePlayerUsernames;
         nicknameReservedNames = loadedNicknameReservedNames;
         nicknameProtectionEnabled = loadedNicknameProtectionEnabled;
-        nicknameProtectCommunityPresentation = loadedNicknameProtectCommunityPresentation;
+        nicknameProtectRealmPresentation = loadedNicknameProtectRealmPresentation;
         nicknameProtectTitlePresentation = loadedNicknameProtectTitlePresentation;
         nicknameRejectContainingProtectedName = loadedNicknameRejectContainingProtectedName;
-        logger.info("Loaded {} communities, {} titles, and {} reward definitions",
-                communities.size(), titles.size(), rewards.size());
+        logger.info("Loaded {} realms, {} titles, and {} reward definitions",
+                realms.size(), titles.size(), rewards.size());
     }
 
-    public Map<String, CommunityDefinition> communities() { return communities; }
+    public Map<String, RealmDefinition> realms() { return realms; }
     public Map<String, TitleDefinition> titles() { return titles; }
     public Map<String, List<RewardAction>> rewards() { return rewards; }
     public String defaultTitleId() { return defaultTitleId; }
-    public String communityChatFormat() { return communityChatFormat; }
+    public String realmChatFormat() { return realmChatFormat; }
     public boolean nicknamesEnabled() { return nicknamesEnabled; }
     public int nicknameMaxLength() { return nicknameMaxLength; }
     public boolean nicknameUnique() { return nicknameUnique; }
     public boolean nicknameReservePlayerUsernames() { return nicknameReservePlayerUsernames; }
     public Set<String> nicknameReservedNames() { return nicknameReservedNames; }
     public boolean nicknameProtectionEnabled() { return nicknameProtectionEnabled; }
-    public boolean nicknameProtectCommunityPresentation() { return nicknameProtectCommunityPresentation; }
+    public boolean nicknameProtectRealmPresentation() { return nicknameProtectRealmPresentation; }
     public boolean nicknameProtectTitlePresentation() { return nicknameProtectTitlePresentation; }
     public boolean nicknameRejectContainingProtectedName() { return nicknameRejectContainingProtectedName; }
     public Path coreConfigDir() { return coreConfigDir; }
@@ -304,7 +304,7 @@ public final class CoreConfigManager {
 
     private void validateConfigs() {
         List<String> errors = new ArrayList<>();
-        validateCommunities(loadMap("communities.yml"), errors);
+        validateRealms(loadMap("realms.yml"), errors);
         validateTitles(loadMap("titles.yml"), errors);
         validateRewards(loadMap("rewards.yml"), errors);
         validateIdentity(loadMap("identity.yml"), errors);
@@ -312,13 +312,13 @@ public final class CoreConfigManager {
         if (!errors.isEmpty()) throw new ConfigValidationException(errors);
     }
 
-    private void validateCommunities(Map<String, Object> root, List<String> errors) {
-        checkKeys("communities.yml", root, Set.of("config-version", "communities"), errors);
-        checkVersion("communities.yml", root, errors);
-        Map<String, Object> definitions = requiredMap("communities.yml.communities", root.get("communities"), errors);
-        if (definitions.isEmpty()) errors.add("communities.yml.communities: at least one community is required");
+    private void validateRealms(Map<String, Object> root, List<String> errors) {
+        checkKeys("realms.yml", root, Set.of("config-version", "realms"), errors);
+        checkVersion("realms.yml", root, errors);
+        Map<String, Object> definitions = requiredMap("realms.yml.realms", root.get("realms"), errors);
+        if (definitions.isEmpty()) errors.add("realms.yml.realms: at least one realm is required");
         definitions.forEach((id, raw) -> {
-            String path = "communities.yml.communities." + id;
+            String path = "realms.yml.realms." + id;
             Map<String, Object> data = requiredMap(path, raw, errors);
             checkKeys(path, data, Set.of("display-name", "short-name", "prefix", "color",
                     "visibility-scope", "spawn", "flags"), errors);
@@ -403,7 +403,7 @@ public final class CoreConfigManager {
         Map<String, Object> protection = requiredMap(
                 "identity.yml.nickname-protection", root.get("nickname-protection"), errors);
         checkKeys("identity.yml.nickname-protection", protection, Set.of("enabled",
-                "protect-community-presentation", "protect-title-presentation",
+                "protect-realm-presentation", "protect-title-presentation",
                 "reject-containing-protected-name"), errors);
         for (String key : protection.keySet()) {
             requireBoolean("identity.yml.nickname-protection." + key, protection.get(key), errors);
@@ -429,13 +429,13 @@ public final class CoreConfigManager {
         requireStringCollection("citizens-defaults.yml.defaults.flags", defaultValues.get("flags"), errors);
 
         Map<String, Object> chat = loadMap("chat.yml");
-        checkKeys("chat.yml", chat, Set.of("config-version", "community-chat"), errors);
+        checkKeys("chat.yml", chat, Set.of("config-version", "realm-chat"), errors);
         checkVersion("chat.yml", chat, errors);
-        Map<String, Object> communityChat =
-                requiredMap("chat.yml.community-chat", chat.get("community-chat"), errors);
-        checkKeys("chat.yml.community-chat", communityChat, Set.of("command", "format"), errors);
-        requireString("chat.yml.community-chat.command", communityChat.get("command"), false, errors);
-        requireString("chat.yml.community-chat.format", communityChat.get("format"), false, errors);
+        Map<String, Object> realmChat =
+                requiredMap("chat.yml.realm-chat", chat.get("realm-chat"), errors);
+        checkKeys("chat.yml.realm-chat", realmChat, Set.of("command", "format"), errors);
+        requireString("chat.yml.realm-chat.command", realmChat.get("command"), false, errors);
+        requireString("chat.yml.realm-chat.format", realmChat.get("format"), false, errors);
 
         Map<String, Object> abilities = loadMap("abilities.yml");
         checkKeys("abilities.yml", abilities, Set.of("config-version", "abilities"), errors);
@@ -454,15 +454,15 @@ public final class CoreConfigManager {
         Map<String, Object> commandValues =
                 requiredMap("commands.yml.commands", commands.get("commands"), errors);
         checkKeys("commands.yml.commands", commandValues,
-                Set.of("admin-root", "admin-permission-level", "community-chat-root"), errors);
+                Set.of("admin-root", "admin-permission-level", "realm-chat-root"), errors);
         requireString("commands.yml.commands.admin-root", commandValues.get("admin-root"), false, errors);
         Number permission = requireNumber("commands.yml.commands.admin-permission-level",
                 commandValues.get("admin-permission-level"), errors);
         if (permission != null && (permission.intValue() < 0 || permission.intValue() > 4)) {
             errors.add("commands.yml.commands.admin-permission-level: must be between 0 and 4");
         }
-        requireString("commands.yml.commands.community-chat-root",
-                commandValues.get("community-chat-root"), false, errors);
+        requireString("commands.yml.commands.realm-chat-root",
+                commandValues.get("realm-chat-root"), false, errors);
 
         Map<String, Object> visibility = loadMap("visibility.yml");
         checkKeys("visibility.yml", visibility, Set.of("config-version", "defaults"), errors);
@@ -576,20 +576,20 @@ public final class CoreConfigManager {
         Files.writeString(path, """
 
                 nickname-protection:
-                  # Prevent impersonation of staff, system messages, communities,
+                  # Prevent impersonation of staff, system messages, realms,
                   # and official titles. Common lookalike Unicode letters are
                   # compared as their Latin equivalents.
                   enabled: true
-                  protect-community-presentation: true
+                  protect-realm-presentation: true
                   protect-title-presentation: true
                   reject-containing-protected-name: true
                 """, StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND);
     }
 
-    private Map<String, CommunityDefinition> loadCommunities() {
-        Map<String, CommunityDefinition> result = new LinkedHashMap<>();
-        Map<String, Object> root = loadMap("communities.yml");
-        for (Map.Entry<String, Object> entry : map(root.get("communities")).entrySet()) {
+    private Map<String, RealmDefinition> loadRealms() {
+        Map<String, RealmDefinition> result = new LinkedHashMap<>();
+        Map<String, Object> root = loadMap("realms.yml");
+        for (Map.Entry<String, Object> entry : map(root.get("realms")).entrySet()) {
             String id = normalizeId(entry.getKey());
             Map<String, Object> data = map(entry.getValue());
             Map<String, Object> spawn = map(data.get("spawn"));
@@ -601,14 +601,14 @@ public final class CoreConfigManager {
                     number(spawn.get("yaw"), 0).floatValue(),
                     number(spawn.get("pitch"), 0).floatValue()
             );
-            result.put(id, new CommunityDefinition(
+            result.put(id, new RealmDefinition(
                     id,
                     string(data.get("display-name"), id),
                     string(data.get("short-name"), id.toUpperCase(Locale.ROOT)),
                     string(data.get("prefix"), ""),
                     string(data.get("color"), "white"),
                     spawnPoint,
-                    enumValue(VisibilityScope.class, data.get("visibility-scope"), VisibilityScope.COMMUNITY),
+                    enumValue(VisibilityScope.class, data.get("visibility-scope"), VisibilityScope.REALM),
                     stringSet(data.get("flags"))
             ));
         }

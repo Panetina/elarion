@@ -1,1 +1,27 @@
-{"schemaVersion":1,"id":"elarion_voicechat_hooks","version":"${version}","name":"Elarion Voice Chat Hooks","description":"Voice chat integration shell backed by Elarion Core status and visibility.","authors":["Panyel"],"license":"MIT","environment":"*","entrypoints":{"elarion:addon":["panetina.elarion.addons.voicechat.ElarionVoicechatHooksAddon"]},"depends":{"fabricloader":">=0.16.14","minecraft":"~1.21.1","java":">=21","fabric-api":"*","elarion_core":"*"}}
+{
+    "schemaVersion":  1,
+    "id":  "elarion_voicechat_hooks",
+    "version":  "${version}",
+    "name":  "Elarion Voice Chat Hooks",
+    "description":  "Voice chat integration shell backed by Elarion Core status and visibility.",
+    "authors":  [
+                    "Panyel"
+                ],
+    "license":  "MIT",
+    "environment":  "*",
+    "entrypoints":  {
+                        "elarion:addon":  [
+                                              "panetina.elarion.addons.voicechat.ElarionVoicechatHooksAddon"
+                                          ]
+                    },
+    "depends":  {
+                    "fabricloader":  "\u003e=0.16.14",
+                    "minecraft":  "~1.21.1",
+                    "java":  "\u003e=21",
+                    "fabric-api":  "*",
+                    "elarion_core":  "*"
+                },
+    "contributors":  [
+                         "Panetina Team"
+                     ]
+}

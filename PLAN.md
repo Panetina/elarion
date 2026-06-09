@@ -2,6 +2,10 @@
 
 Last reviewed: 2026-06-09
 
+Author: Panyel
+
+Team: Panetina Team
+
 This file is the durable project brief for Elarion. Read it before making
 architectural or gameplay changes. It records the intended experience, the
 technical rules, lessons from the four legacy mods, the current implementation
@@ -13,15 +17,14 @@ state, and the planned build order.
 - Legacy Teams mod: https://github.com/Panetina/teams
 - Legacy Namer mod: https://github.com/Panetina/namer-1.21-1.21.1
 - Legacy Player Title mod: https://github.com/Panetina/player_title
-- Legacy Community Contribution mod:
-  https://github.com/Panetina/community_contribution
+- Legacy Contributions mod
 
 The legacy mods are behavioral references, not codebases that should be merged
 unchanged. Their useful features should be rebuilt around Elarion Core.
 
 ## Vision
 
-Elarion is a Fabric 1.21.1 platform for a controlled, community-driven Minecraft
+Elarion is a Fabric 1.21.1 platform for a controlled, realm-driven Minecraft
 world. It is not meant to become a pile of independent mods that each maintain
 their own player, team, name, title, or progression data.
 
@@ -36,15 +39,24 @@ The intended structure is:
 - The server owner should be able to add mechanics without repeatedly rewriting
   Core.
 
-`Community` is the neutral internal term. It may represent a nation, kingdom,
-faction, settlement, or another concept later without requiring an
-architectural rename.
+`Realm` is the canonical gameplay term. It may represent a nation, kingdom,
+faction, settlement, or another organized society without changing the
+architecture.
+
+### Worldheart
+
+Elarion contains multiple Realms. Ancient Portal Gates will eventually open
+inside each Realm and connect to **Worldheart**.
+
+Worldheart is the canonical name for the separate, neutral world where all
+Realms converge. It is an ancient, lore-significant meeting place and the
+destination of every Ancient Portal Gate.
 
 ## Product Goals
 
-### Communities
+### Realms
 
-Each citizen may belong to a community. A community can define:
+Each citizen may belong to a realm. A realm can define:
 
 - Stable ID
 - Display name and short name
@@ -56,7 +68,7 @@ Each citizen may belong to a community. A community can define:
 - Portal and travel relationships
 - Future alliances, government rules, and borders
 
-Community definitions belong in YAML. Citizen membership belongs in mutable
+Realm definitions belong in YAML. Citizen membership belongs in mutable
 world storage.
 
 ### Identity
@@ -64,7 +76,7 @@ world storage.
 Core must derive one `PlayerIdentity` from:
 
 ```text
-Citizen -> Community -> Title -> Status -> Abilities -> Visibility -> Output
+Citizen -> Realm -> Title -> Status -> Abilities -> Visibility -> Output
 ```
 
 That identity should eventually be used consistently for:
@@ -72,7 +84,7 @@ That identity should eventually be used consistently for:
 - Overhead nametag
 - Title rendered below the username
 - Tab-list name and ordering
-- Local and community chat
+- Local and realm chat
 - Command suggestions and player targeting
 - Placeholders used by addons
 - Tracking interfaces and visibility-sensitive menus
@@ -96,7 +108,7 @@ Examples:
 - A News Reporter may be the only role allowed to publish newspapers, use
   newspaper commands, craft related items, or interact with newsroom blocks.
 - A Diplomat may be the only ordinary citizen allowed through another
-  community's portal.
+  realm's portal.
 
 The exact abilities will evolve. The architecture must allow new checks without
 adding hard-coded title names throughout the codebase. Addons ask
@@ -104,30 +116,29 @@ adding hard-coded title names throughout the codebase. Addons ask
 
 ### Chat
 
-- `/cc <message>` is the community chat command.
-- `/cc` is the only non-OP Elarion command unless explicitly decided otherwise.
-- Community chat is visible only to online citizens of the same community.
-- Community chat automatically applies the community tag and color.
+- `/rc <message>` is the Realm Chat command.
+- `/rc`, `/w`, `/r`, and `/help` are player-facing commands.
+- Realm chat is visible only to online citizens of the same realm.
+- Realm chat automatically applies the realm tag and color.
 - The long-term design has no unrestricted, long-range global player chat.
 - Normal conversation should eventually be local/proximity chat.
 - System and administrative communication remain separate channels.
 
-The original PDF used `/nc`; the final command is `/cc` because the group may
-not ultimately be called a nation.
+The original PDF used `/nc`; the canonical command is `/rc` for Realm Chat.
 
 ### Visibility
 
 Visibility is information control, not automatic physical invisibility.
 
-For `visibility-scope: COMMUNITY`, the intended default behavior is:
+For `visibility-scope: REALM`, the intended default behavior is:
 
-- Citizens see their own community members in the tab list.
+- Citizens see their own realm members in the tab list.
 - Foreign names and nametags may be hidden until rules permit them.
 - Command suggestions and ordinary player targeting do not reveal hidden
   foreign citizens.
-- Community rosters, maps, compasses, and tracking tools expose only permitted
+- Realm rosters, maps, compasses, and tracking tools expose only permitted
   citizens.
-- Join/leave notices may be scoped to the community.
+- Join/leave notices may be scoped to the realm.
 - OPs retain administrative visibility.
 - Titles, abilities, alliances, portals, events, or shared spaces may grant
   exceptions.
@@ -137,7 +148,7 @@ would be confusing and exploitable.
 
 Supported scopes currently modeled by Core:
 
-- `COMMUNITY`
+- `REALM`
 - `ALLIES`
 - `GLOBAL`
 - `ADMIN_ONLY`
@@ -175,12 +186,12 @@ Core reward actions currently include:
 - History/progression event
 
 Addons can register action types such as portal state changes or contribution
-events. Future actions should include community unlocks and other durable state
+events. Future actions should include realm unlocks and other durable state
 changes.
 
 ## Command Policy
 
-- `/cc <message>` is available to ordinary players.
+- `/rc <message>` is available to ordinary players.
 - Every `/e ...` command requires OP permission level 4 by default.
 - An addon command must register under `/e` unless it has been deliberately
   approved as player-facing.
@@ -190,7 +201,7 @@ changes.
 Administrative namespaces:
 
 ```text
-/e community ...
+/e realm ...
 /e citizen ...
 /e title ...
 /e ability ...
@@ -208,13 +219,13 @@ Administrative namespaces:
 
 These are non-negotiable unless this plan is deliberately revised:
 
-1. `platform/core` is the only canonical owner of citizens, community
+1. `platform/core` is the only canonical owner of citizens, realm
    membership, titles, nicknames, status, granted abilities, and derived
    identity.
 2. Addons depend on Core. Core must not depend on gameplay addons.
 3. Addons use `ElarionApi`, Core events, registered ability keys, reward action
    handlers, and Core command registration.
-4. Addons do not duplicate citizen/community/title truth.
+4. Addons do not duplicate citizen/realm/title truth.
 5. Editable definitions use YAML under `config/elarion/`.
 6. Mutable state belongs under the active world save, not inside editable
    configuration.
@@ -226,7 +237,7 @@ These are non-negotiable unless this plan is deliberately revised:
     likely to change their values, rewards, restrictions, or progression.
 11. Mixins should adapt Minecraft rendering/targeting to Core services, not
     become alternate state owners.
-12. Avoid hard-coding a specific community or title into general-purpose
+12. Avoid hard-coding a specific realm or title into general-purpose
     services.
 
 ## Configuration Layout
@@ -234,7 +245,7 @@ These are non-negotiable unless this plan is deliberately revised:
 ```text
 config/elarion/
   core/
-    communities.yml
+    realms.yml
     citizens-defaults.yml
     titles.yml
     abilities.yml
@@ -287,17 +298,17 @@ The old Teams mod combined many responsibilities:
 
 What to preserve:
 
-- Community-only long-range chat
+- Realm-only long-range chat
 - Standard color propagation through scoreboard teams
-- Community spawn/respawn behavior
+- Realm spawn/respawn behavior
 - Configurable actions on membership or progression
-- Community-wide rewards, including eventual offline delivery
-- Community-specific borders if they still fit the world design
+- Realm-wide rewards, including eventual offline delivery
+- Realm-specific borders if they still fit the world design
 - Administrative messaging and event control
 
 What to replace:
 
-- Community member UUIDs must not live inside editable community definitions.
+- Realm member UUIDs must not live inside editable realm definitions.
 - Teams must not own a second player identity database.
 - Chat, names, tab rendering, rewards, borders, and membership should not be
   tightly coupled in one singleton.
@@ -308,8 +319,8 @@ What to replace:
 New homes:
 
 - Membership, colors, identity, chat, spawn references -> Core
-- Borders/world mechanics -> worlds or communities addon
-- Community item delivery -> reusable reward action/addon service
+- Borders/world mechanics -> worlds or realms addon
+- Realm item delivery -> reusable reward action/addon service
 - Tab rendering -> tablist addon consuming Core identity
 
 ### `Panetina/namer-1.21-1.21.1`
@@ -342,7 +353,7 @@ What to replace:
 - The lookup order must remain unambiguous and fall back safely to the canonical
   username.
 - Nickname formatting must not be allowed to spoof trusted system, admin,
-  community, or title presentation.
+  realm, or title presentation.
 
 New home:
 
@@ -383,9 +394,9 @@ New homes:
 - Title definitions, assignment, abilities, and derived text -> Core
 - Client rendering and synchronization -> titles addon using Core data
 
-### `Panetina/community_contribution`
+### Legacy Contributions Mod
 
-The old Community Contribution mod used:
+The old Contributions mod used:
 
 - An unbreakable custom contribution block and block entity
 - A custom screen and screen handler
@@ -401,7 +412,7 @@ The old Community Contribution mod used:
 
 What to preserve:
 
-- A physical community project block/interface
+- A physical realm project block/interface
 - Configurable project title, currency, levels, descriptions, and rewards
 - Donation validation and inventory consumption
 - Visible progress and recent contribution history
@@ -414,9 +425,9 @@ What to replace:
 - Runtime project state belongs under `world/elarion/addon-state/contributions/`.
 - Contributors use real player UUIDs, not name-derived UUIDs.
 - Milestones call Core reward actions instead of relying only on raw commands.
-- Projects may be owned/scoped by community and enforce visibility/permissions.
+- Projects may be owned/scoped by realm and enforce visibility/permissions.
 - Breaking/replacing project blocks must have explicit safe lifecycle rules.
-- The addon consumes Core citizen/community identity and emits Core progression
+- The addon consumes Core citizen/realm identity and emits Core progression
   and history events.
 
 New home:
@@ -429,7 +440,7 @@ New home:
 ```text
 platform/core
 addons/titles
-addons/communities
+addons/realms
 addons/names
 addons/contributions
 addons/portals
@@ -455,11 +466,11 @@ The following are implemented:
 - Core/addon bootstrap through `ElarionAddon` and `ElarionApi`
 - Generated YAML defaults
 - UUID-based citizen JSON storage in the world save
-- Community assignment/removal
-- Community color teams using vanilla scoreboard teams
-- `/cc` community-isolated messaging
-- Community tag and player-name coloring in `/cc`
-- Nickname persistence and use in derived identity and `/cc`
+- Realm assignment/removal
+- Realm color teams using vanilla scoreboard teams
+- `/rc` realm-isolated messaging
+- Realm tag and player-name coloring in `/rc`
+- Nickname persistence and use in derived identity and `/rc`
 - Nicknames applied to client display names, overhead nametags, and tab names
 - Derived identity applied to ordinary vanilla chat sender names
 - Nickname-aware direct player command suggestions and targeting
@@ -468,7 +479,7 @@ The following are implemented:
 - Titles synchronized and rendered beneath visible player usernames
 - Title-provided and explicitly granted ability checks
 - Per-viewer identity synchronization
-- `COMMUNITY`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN` visibility enforcement for
+- `REALM`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN` visibility enforcement for
   tab entries, nametags, command suggestions, and direct player targeting
 - OP level 4 visibility override
 - Configured reward execution
@@ -479,11 +490,14 @@ The following are implemented:
 Current commands:
 
 ```text
-/cc <message>
+/rc <message>
+/w <player> <message>
+/r <message>
+/help [command]
 
-/e community add <player> <community>
-/e community remove <player>
-/e community list
+/e realm add <player> <realm>
+/e realm remove <player>
+/e realm list
 /e citizen info <player>
 /e citizen nickname set <player> <nickname>
 /e citizen nickname clear <player>
@@ -496,10 +510,21 @@ Current commands:
 /e reward run <reward> <player>
 /e history recent [limit]
 /e history player <player> [limit]
-/e history community <community> [limit]
+/e history realm <realm> [limit]
 /e history category <category> [limit]
 /e reload
 ```
+
+Command policy:
+
+- `/msg`, `/tell`, `/teammsg`, `/tm`, and `/me` are removed.
+- `/w` may target only members of Realms with `visibility-scope: GLOBAL`.
+- `/r` replies to the last online player who sent the caller a `/w`.
+- `/list` requires permission level 4.
+- `/seed` requires permission level 4 and `show-seed=true` in
+  `server.properties`.
+- `/help` lists only commands available to the caller and includes syntax
+  explanations.
 
 ## Project To-Do List
 
@@ -512,29 +537,29 @@ planned, partial, config-only, or addon shells.
 - [x] Core API and addon entrypoint system
 - [x] UUID-based citizen storage under the world save
 - [x] YAML default generation and Core reload command
-- [x] Citizen, community, title, status, ability, identity, and reward models
+- [x] Citizen, realm, title, status, ability, identity, and reward models
 - [x] Citizen-change events and addon-facing service access
 - [x] Validate every YAML field with clear startup/reload errors
 - [x] Preserve comments and migrate versioned configs with pre-migration backups
 - [x] Add modular durable history storage and history query commands
 - [x] Add automated unit, integration, and server GameTest foundations
-- [ ] Add gameplay-specific GameTests as community, portal, title, and
+- [ ] Add gameplay-specific GameTests as realm, portal, title, and
   contribution mechanics are implemented
 
 ### Names and Identity
 
 - [x] Persist nicknames in Core citizen records
 - [x] Configure nickname enablement and maximum length
-- [x] Show nicknames in normal chat, `/cc`, tab, and overhead nametags
-- [x] Keep community color on chat, tab, and overhead names
-- [x] Keep community tags out of normal chat, tab, and overhead names
+- [x] Show nicknames in normal chat, `/rc`, tab, and overhead nametags
+- [x] Keep realm color on chat, tab, and overhead names
+- [x] Keep realm tags out of normal chat, tab, and overhead names
 - [x] Synchronize nickname, title, prefix, and suffix data on join and live changes
 - [x] Suggest nickname aliases while completing canonical usernames
 - [x] Support nickname suggestions containing whitespace
 - [x] Place the cursor after the completed username when nickname and username
   lengths differ
 - [x] Resolve visible players by username or unambiguous nickname
-- [x] Reject nicknames that spoof protected staff, admin, system, community,
+- [x] Reject nicknames that spoof protected staff, admin, system, realm,
   or title presentation
 - [x] Add configurable nickname uniqueness and reserved-name rules
 - [x] Treat nickname capitalization, whitespace, and common-separator variants
@@ -542,28 +567,28 @@ planned, partial, config-only, or addon shells.
 - [x] Allow only letters, spaces, apostrophes, and hyphens in submitted
   nicknames
 - [x] Automatically title-case every nickname segment for roleplay presentation
-- [x] Reserve configured community and title presentation automatically
+- [x] Reserve configured realm and title presentation automatically
 - [x] Detect common Cyrillic and Greek lookalike characters in protected names
 - [x] Reject protected-name extensions such as `Server Notice` or
   `Government Official`
 - [x] Move optional presentation-specific behavior into the Names addon while
   keeping canonical nickname state in Core
 
-### Communities and Chat
+### Realms and Chat
 
-- [x] Load community definitions from YAML
-- [x] Assign and remove community membership
-- [x] Create and update vanilla scoreboard teams for community colors
-- [x] Provide community-isolated `/cc`
-- [x] Render the community tag only in `/cc`
+- [x] Load realm definitions from YAML
+- [x] Assign and remove realm membership
+- [x] Create and update vanilla scoreboard teams for realm colors
+- [x] Provide realm-isolated `/rc`
+- [x] Render the realm tag only in `/rc`
 - [ ] Replace global vanilla chat with configurable local/proximity chat
 - [ ] Add scoped join/leave notices
-- [ ] Implement community spawn and respawn behavior (respawning in their community's world and at that location) + adding hierarchy to spawning: 1. Bed 2. Spawnpoint in community world, 3. Default (all 3 overriden if the player is in the jail or underworld or future events)
-- [ ] Teleport player in spawn point when added to a community
+- [ ] Implement realm spawn and respawn behavior (respawning in their realm's world and at that location) + adding hierarchy to spawning: 1. Bed 2. Spawnpoint in realm world, 3. Default (all 3 overriden if the player is in the jail or underworld or future events)
+- [ ] Teleport player in spawn point when added to a realm
 - [ ] Implement alliances and relationships
-- [ ] Implement optional community borders
-- [ ] Add community-wide rewards with offline delivery
-- [ ] Add community mail and administrative announcements
+- [ ] Implement optional realm borders
+- [ ] Add realm-wide rewards with offline delivery
+- [ ] Add realm mail and administrative announcements
 
 ### Titles and Abilities
 
@@ -625,10 +650,10 @@ planned, partial, config-only, or addon shells.
 ### Visibility
 
 - [x] Filter tab entries, nametags, suggestions, and player targeting
-- [x] Implement `COMMUNITY`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN`
+- [x] Implement `REALM`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN`
 - [x] Preserve OP level 4 administrative visibility
-- [ ] Implement the filter to /list too
-- [ ] Add a comment in the visibility.yml with current "`COMMUNITY`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN`"
+- [x] Restrict `/list` to permission level 4
+- [ ] Add a comment in the visibility.yml with current "`REALM`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN`"
 - [ ] Implement alliance-aware `ALLIES` visibility
 - [ ] Apply visibility to maps, trackers, rosters, menus, and join/leave notices
 - [ ] Add title, ability, portal, event, and shared-space visibility exceptions
@@ -637,7 +662,7 @@ planned, partial, config-only, or addon shells.
 
 - [x] Execute configured messages, broadcasts, commands, status changes, title
   grants, ability grants, and history events
-- [ ] Add durable community unlock actions
+- [ ] Add durable realm unlock actions
 - [ ] Add portal state actions
 - [ ] Add configurable progression conditions and milestones
 - [ ] Add offline and delayed reward delivery
@@ -651,7 +676,7 @@ planned, partial, config-only, or addon shells.
 - [ ] Store project progress and donation history in world addon state
 - [ ] Consume currency safely and use real contributor UUIDs
 - [ ] Execute Core reward actions at milestones
-- [ ] Add community ownership, visibility, and permission rules
+- [ ] Add realm ownership, visibility, and permission rules
 - [ ] Define safe project-block break, move, and deletion behavior
 
 ### Portals and Worlds
@@ -669,12 +694,13 @@ planned, partial, config-only, or addon shells.
 - [x] Make `/worldborder` target the command source's current world and configure
   and persist independent borders for addon-managed worlds
 - [x] Add a tiny one-block VOID lobby with no spawn chunks or mob spawning for
-  players waiting to choose a community and as the no-bed world-spawn fallback
+  players waiting to choose a realm and as the no-bed world-spawn fallback
 - [x] Add deterministic per-world block and mob abundance controls for future
   trade/resource specialization
 - [x] Synchronize independent world borders only to players in that world
 - [x] Add `/e world list|reload|load|unload|tp|info`
-- [ ] Connect community membership to managed world spawn and respawn policy
+- [ ] Make sure that If I delete the world (the folder) - rebuilt it (useful for clean resets of everything/or new server/or regeneration with new ore/mobs rules after editing the config)
+- [ ] Connect realm membership to managed world spawn and respawn policy
 - [ ] Implement portal definitions and physical portal travel
 - [ ] Implement dormant, active, open, locked, restoring, and disabled states
 - [ ] Gate portal use through progression and abilities
@@ -713,11 +739,11 @@ do not yet produce their final gameplay effect:
 - Title abilities are not yet enforced by crafting, portal, newspaper, or other
   gameplay hooks.
 - Normal vanilla chat remains global; local-by-default chat is not implemented.
-- `ALLIES` visibility currently behaves like `COMMUNITY` until alliance data is
+- `ALLIES` visibility currently behaves like `REALM` until alliance data is
   implemented.
 - Visibility is not yet applied to future maps, trackers, rosters, join/leave
   notices, or addon interfaces.
-- Community spawn/world/flags are loaded but do not yet drive teleport,
+- Realm spawn/world/flags are loaded but do not yet drive teleport,
   respawn, world, or border mechanics.
 - Status changes persist but do not yet impose movement, chat, voice, portal,
   death, or rendering restrictions.
@@ -745,12 +771,12 @@ do not yet produce their final gameplay effect:
 - Add visibility-aware Brigadier suggestions.
 - Prevent spoofing of protected prefixes and admin/system presentation.
 
-### Communities
+### Realms
 
-- Community lifecycle and future alliance rules.
+- Realm lifecycle and future alliance rules.
 - Spawn/respawn integration.
 - Optional border rules if retained.
-- Community-wide actions and offline rewards.
+- Realm-wide actions and offline rewards.
 
 ### Contributions
 
@@ -760,7 +786,7 @@ do not yet produce their final gameplay effect:
 - Use actual UUIDs and Core identity.
 - Execute Core reward actions at configured milestones.
 - Emit history/progression events.
-- Support community ownership, permissions, and visibility.
+- Support realm ownership, permissions, and visibility.
 
 ### Portals
 
@@ -781,7 +807,7 @@ Rules:
 - Locked portals are visible but unusable.
 - Restoring portals expose progress feedback.
 - Disabled portals are administratively shut down.
-- Foreign-community access checks
+- Foreign-realm access checks
   `elarion.portal.foreign_access`.
 
 Planned commands:
@@ -835,7 +861,7 @@ Planned commands:
 
 ### Government
 
-- Consume community/citizen/title/ability state.
+- Consume realm/citizen/title/ability state.
 - Keep roles, decisions, elections, laws, and progression modular.
 - Trigger configured rewards and history events.
 
@@ -854,7 +880,7 @@ Planned commands:
 2. Implement title rendering below usernames through the titles addon.
 3. Enforce visibility for tab list, nametags, suggestions, and targeting.
 4. Replace unrestricted vanilla player chat with local chat while retaining
-   `/cc` as community long-range chat.
+   `/rc` as realm long-range chat.
 5. Implement worlds/spawn resolution needed by travel and respawn features.
 6. Implement portals and progression-controlled visibility/travel.
 7. Rebuild contributions using Core rewards and world-state storage.
@@ -885,7 +911,7 @@ It is complete when:
 - `gradlew build` passes.
 - The working/placeholder sections of this file are updated.
 
-## Instructions for Future Codex Sessions
+## Instructions for Future Development Sessions
 
 When opening this repository:
 
@@ -894,9 +920,9 @@ When opening this repository:
 3. Treat `initial plan.pdf` and the linked legacy repositories as design and
    behavior references.
 4. Preserve useful legacy behavior, but rebuild it through Core services.
-5. Do not introduce duplicate citizen, community, title, nickname, status, or
+5. Do not introduce duplicate citizen, realm, title, nickname, status, or
    ability storage in addons.
-6. Keep `/cc` player-facing and keep all other Elarion commands OP level 4
-   unless this file is explicitly changed.
+6. Keep `/rc`, `/w`, `/r`, and `/help` player-facing. Keep administrative
+   Elarion commands OP level 4 unless this file is explicitly changed.
 7. Update this file when a design decision changes or a placeholder becomes a
    working feature.

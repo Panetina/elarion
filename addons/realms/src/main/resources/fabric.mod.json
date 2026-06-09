@@ -1,9 +1,9 @@
 {
     "schemaVersion":  1,
-    "id":  "elarion_tablist",
+    "id":  "elarion_realms",
     "version":  "${version}",
-    "name":  "Elarion Tablist",
-    "description":  "Tab list rendering shell backed by Elarion Core identity and visibility.",
+    "name":  "Elarion Realms",
+    "description":  "Realm addon shell backed by Elarion Core realm state.",
     "authors":  [
                     "Panyel"
                 ],
@@ -11,7 +11,7 @@
     "environment":  "*",
     "entrypoints":  {
                         "elarion:addon":  [
-                                              "panetina.elarion.addons.tablist.ElarionTablistAddon"
+                                              "panetina.elarion.addons.realms.ElarionRealmsAddon"
                                           ]
                     },
     "depends":  {

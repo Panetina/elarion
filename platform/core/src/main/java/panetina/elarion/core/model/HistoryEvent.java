@@ -12,7 +12,7 @@ public record HistoryEvent(
         UUID actorId,
         String subjectType,
         String subjectId,
-        String communityId,
+        String realmId,
         Map<String, String> metadata
 ) {
     public HistoryEvent {
@@ -22,7 +22,7 @@ public record HistoryEvent(
         type = clean(type, "event");
         subjectType = clean(subjectType, "");
         subjectId = clean(subjectId, "");
-        communityId = clean(communityId, "");
+        realmId = clean(realmId, "");
         metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
     }
 
@@ -32,11 +32,11 @@ public record HistoryEvent(
             UUID actorId,
             String subjectType,
             String subjectId,
-            String communityId,
+            String realmId,
             Map<String, String> metadata
     ) {
         return new HistoryEvent(null, 0, category, type, actorId, subjectType,
-                subjectId, communityId, metadata);
+                subjectId, realmId, metadata);
     }
 
     private static String clean(String value, String fallback) {

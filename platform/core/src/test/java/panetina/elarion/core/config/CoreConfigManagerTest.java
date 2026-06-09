@@ -21,7 +21,7 @@ final class CoreConfigManagerTest {
         CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
         config.load();
 
-        assertEquals(1, config.communities().size());
+        assertEquals(1, config.realms().size());
         try (var files = Files.list(tempDir)) {
             for (Path file : files.filter(path -> path.toString().endsWith(".yml")).toList()) {
                 assertTrue(Files.readString(file).contains("config-version: 1"), file.toString());
@@ -33,17 +33,17 @@ final class CoreConfigManagerTest {
     void rejectsInvalidFieldWithPrecisePathAndKeepsPreviousSnapshot() throws Exception {
         CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
         config.load();
-        int previousCommunityCount = config.communities().size();
-        Path communities = tempDir.resolve("communities.yml");
-        String content = Files.readString(communities, StandardCharsets.UTF_8)
+        int previousRealmCount = config.realms().size();
+        Path realms = tempDir.resolve("realms.yml");
+        String content = Files.readString(realms, StandardCharsets.UTF_8)
                 .replace("color: \"green\"", "color: \"gren\"");
-        Files.writeString(communities, content, StandardCharsets.UTF_8);
+        Files.writeString(realms, content, StandardCharsets.UTF_8);
 
         ConfigValidationException exception =
                 assertThrows(ConfigValidationException.class, config::load);
 
         assertTrue(exception.errors().stream()
-                .anyMatch(error -> error.contains("communities.yml.communities.oak.color")));
-        assertEquals(previousCommunityCount, config.communities().size());
+                .anyMatch(error -> error.contains("realms.yml.realms.oak.color")));
+        assertEquals(previousRealmCount, config.realms().size());
     }
 }

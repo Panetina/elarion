@@ -39,11 +39,11 @@ public final class HistoryService {
             UUID actorId,
             String subjectType,
             String subjectId,
-            String communityId,
+            String realmId,
             Map<String, String> metadata
     ) {
         return record(HistoryEvent.create(
-                category, type, actorId, subjectType, subjectId, communityId, metadata));
+                category, type, actorId, subjectType, subjectId, realmId, metadata));
     }
 
     public List<HistoryEvent> recent(int limit) {
@@ -56,8 +56,8 @@ public final class HistoryService {
                 || event.subjectType().equals("player") && event.subjectId().equals(id), limit);
     }
 
-    public List<HistoryEvent> forCommunity(String communityId, int limit) {
-        return query(event -> event.communityId().equalsIgnoreCase(communityId), limit);
+    public List<HistoryEvent> forRealm(String realmId, int limit) {
+        return query(event -> event.realmId().equalsIgnoreCase(realmId), limit);
     }
 
     public List<HistoryEvent> forCategory(String category, int limit) {
@@ -79,7 +79,7 @@ public final class HistoryService {
         put(metadata, "title", citizen.titleId());
         put(metadata, "status", citizen.status().name());
         record("citizen", normalize(event.reason()), null, "player",
-                event.citizenId().toString(), citizen.communityId(), metadata);
+                event.citizenId().toString(), citizen.realmId(), metadata);
     }
 
     private void recordProgression(ElarionEventBus.ProgressionEvent event) {

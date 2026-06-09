@@ -15,7 +15,7 @@ public final class ElarionPortalsAddon implements ElarionAddon {
                 portals:
                   ancient_gate:
                     state: "DORMANT"
-                    owning-community: "oak"
+                    owning-realm: "oak"
                     foreign-access-ability: "elarion.portal.foreign_access"
                 """);
         api.abilities().register("elarion.portal.foreign_access");

@@ -14,7 +14,7 @@ public final class ElarionContributionsAddon implements ElarionAddon {
         AddonConfigFiles.writeDefault("contributions", "projects.yml", """
                 projects:
                   example_project:
-                    title: "Example Community Project"
+                    title: "Example Realm Project"
                     currency: "minecraft:diamond"
                     levels:
                       - required: 100

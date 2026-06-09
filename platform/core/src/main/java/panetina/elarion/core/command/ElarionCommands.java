@@ -14,7 +14,7 @@ import panetina.elarion.core.config.CoreConfigManager;
 import panetina.elarion.core.config.ConfigValidationException;
 import panetina.elarion.core.model.HistoryEvent;
 import panetina.elarion.core.model.CitizenRecord;
-import panetina.elarion.core.model.CommunityDefinition;
+import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.service.NicknameService;
 
@@ -22,6 +22,8 @@ import java.util.function.Supplier;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -36,15 +38,39 @@ public final class ElarionCommands {
             CoreConfigManager config,
             ElarionCommandRegistry extensions
     ) {
-        dispatcher.register(literal("cc")
+        CommandPolicy.applyVanillaPolicy(dispatcher);
+        extensions.registerHelpDescription("help",
+                "/help [command] - Show commands available to you.");
+        extensions.registerHelpDescription("rc",
+                "/rc <message> - Send a message to members of your Realm.");
+        extensions.registerHelpDescription("r",
+                "/r <message> - Reply to the last player who whispered to you.");
+        extensions.registerHelpDescription("w",
+                "/w <player> <message> - Whisper to a member of a GLOBAL Realm.");
+
+        dispatcher.register(literal("rc")
                 .then(argument("message", StringArgumentType.greedyString())
-                        .executes(context -> api.chat().sendCommunityMessage(
+                        .executes(context -> api.chat().sendRealmMessage(
+                                context.getSource().getPlayerOrThrow(),
+                                StringArgumentType.getString(context, "message")) ? 1 : 0)));
+
+        dispatcher.register(literal("w")
+                .then(argument("player", EntityArgumentType.player())
+                        .then(argument("message", StringArgumentType.greedyString())
+                                .executes(context -> api.privateMessages().whisper(
+                                        context.getSource().getPlayerOrThrow(),
+                                        EntityArgumentType.getPlayer(context, "player"),
+                                        StringArgumentType.getString(context, "message")) ? 1 : 0))));
+
+        dispatcher.register(literal("r")
+                .then(argument("message", StringArgumentType.greedyString())
+                        .executes(context -> api.privateMessages().reply(
                                 context.getSource().getPlayerOrThrow(),
                                 StringArgumentType.getString(context, "message")) ? 1 : 0)));
 
         LiteralArgumentBuilder<ServerCommandSource> root = literal("e")
                 .requires(source -> source.hasPermissionLevel(4))
-                .then(communityCommands(api))
+                .then(realmCommands(api))
                 .then(citizenCommands(api, config))
                 .then(titleCommands(api))
                 .then(abilityCommands(api))
@@ -61,9 +87,9 @@ public final class ElarionCommands {
                         return 0;
                     }
                     api.titles().all().forEach(title -> title.abilities().forEach(api.abilities()::register));
-                    api.communities().initializeScoreboardTeams(context.getSource().getServer());
+                    api.realms().initializeScoreboardTeams(context.getSource().getServer());
                     for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
-                        api.communities().applyCurrentScoreboardTeam(player);
+                        api.realms().applyCurrentScoreboardTeam(player);
                     }
                     api.identitySync().syncAll(context.getSource().getServer());
                     context.getSource().sendFeedback(() -> Text.literal("Elarion configuration reloaded."), true);
@@ -74,22 +100,73 @@ public final class ElarionCommands {
             root.then(extension.get());
         }
         dispatcher.register(root);
+        registerHelp(dispatcher, extensions);
     }
 
-    private static LiteralArgumentBuilder<ServerCommandSource> communityCommands(ElarionApi api) {
-        return literal("community")
+    private static void registerHelp(
+            CommandDispatcher<ServerCommandSource> dispatcher,
+            ElarionCommandRegistry extensions
+    ) {
+        dispatcher.register(literal("help")
+                .executes(context -> {
+                    ServerCommandSource source = context.getSource();
+                    List<String> commands = new ArrayList<>();
+                    dispatcher.getRoot().getChildren().stream()
+                            .filter(node -> node.canUse(source))
+                            .map(node -> node.getName())
+                            .filter(name -> !name.contains(":"))
+                            .distinct()
+                            .sorted()
+                            .forEach(commands::add);
+                    source.sendFeedback(() -> Text.literal("Commands available to you:"), false);
+                    commands.forEach(command -> source.sendFeedback(
+                            () -> Text.literal(extensions.helpDescription(command)
+                                    .orElseGet(() -> CommandPolicy.description(command))), false));
+                    return commands.size();
+                })
+                .then(argument("command", StringArgumentType.word())
+                        .suggests((context, builder) -> {
+                            dispatcher.getRoot().getChildren().stream()
+                                    .filter(node -> node.canUse(context.getSource()))
+                                    .map(node -> node.getName())
+                                    .filter(name -> !name.contains(":"))
+                                    .sorted()
+                                    .forEach(builder::suggest);
+                            return builder.buildFuture();
+                        })
+                        .executes(context -> {
+                            ServerCommandSource source = context.getSource();
+                            String name = StringArgumentType.getString(context, "command");
+                            var node = dispatcher.getRoot().getChild(name);
+                            if (node == null || !node.canUse(source)) {
+                                source.sendError(Text.literal("Unknown or unavailable command: /" + name));
+                                return 0;
+                            }
+                            source.sendFeedback(
+                                    () -> Text.literal(extensions.helpDescription(name)
+                                            .orElseGet(() -> CommandPolicy.description(name))), false);
+                            dispatcher.getSmartUsage(node, source).values().stream()
+                                    .sorted(Comparator.naturalOrder())
+                                    .forEach(usage -> source.sendFeedback(
+                                            () -> Text.literal("/" + name + " " + usage), false));
+                            return 1;
+                        })));
+    }
+
+    private static LiteralArgumentBuilder<ServerCommandSource> realmCommands(ElarionApi api) {
+        return literal("realm")
                 .then(literal("add")
                         .then(argument("player", EntityArgumentType.player())
-                                .then(argument("community", StringArgumentType.word())
+                                .then(argument("realm", StringArgumentType.word())
                                         .suggests((context, builder) -> {
-                                            api.communities().all().forEach(value -> builder.suggest(value.id()));
+                                            api.realms().all().forEach(value -> builder.suggest(value.id()));
                                             return builder.buildFuture();
                                         })
                                         .executes(context -> {
                                             ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                                            String id = StringArgumentType.getString(context, "community");
-                                            if (!api.communities().assign(player, id)) {
-                                                context.getSource().sendError(Text.literal("Unknown community: " + id));
+                                            String id = StringArgumentType.getString(context, "realm");
+                                            if (!api.realms().assign(player, id)) {
+                                                context.getSource().sendError(Text.literal("Unknown realm: " + id));
                                                 return 0;
                                             }
                                             context.getSource().sendFeedback(
@@ -100,18 +177,18 @@ public final class ElarionCommands {
                         .then(argument("player", EntityArgumentType.player())
                                 .executes(context -> {
                                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                                    api.communities().remove(player);
+                                    api.realms().remove(player);
                                     context.getSource().sendFeedback(
-                                            () -> Text.literal("Removed " + player.getGameProfile().getName() + " from their community"), true);
+                                            () -> Text.literal("Removed " + player.getGameProfile().getName() + " from their realm"), true);
                                     return 1;
                                 })))
                 .then(literal("list").executes(context -> {
-                    String values = api.communities().all().stream()
-                            .map(CommunityDefinition::id)
+                    String values = api.realms().all().stream()
+                            .map(RealmDefinition::id)
                             .sorted()
                             .reduce((left, right) -> left + ", " + right)
                             .orElse("(none)");
-                    context.getSource().sendFeedback(() -> Text.literal("Communities: " + values), false);
+                    context.getSource().sendFeedback(() -> Text.literal("Realms: " + values), false);
                     return 1;
                 }));
     }
@@ -127,7 +204,7 @@ public final class ElarionCommands {
                                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                     CitizenRecord citizen = api.citizens().getOrCreate(player);
                                     String info = "Citizen " + player.getGameProfile().getName()
-                                            + " | community=" + value(citizen.communityId())
+                                            + " | realm=" + value(citizen.realmId())
                                             + " | title=" + value(citizen.titleId())
                                             + " | nickname=" + value(citizen.nickname())
                                             + " | status=" + citizen.status();
@@ -277,21 +354,21 @@ public final class ElarionCommands {
                                                 api.history().forPlayer(
                                                         EntityArgumentType.getPlayer(context, "player").getUuid(),
                                                         IntegerArgumentType.getInteger(context, "limit")))))))
-                .then(literal("community")
-                        .then(argument("community", StringArgumentType.word())
+                .then(literal("realm")
+                        .then(argument("realm", StringArgumentType.word())
                                 .suggests((context, builder) -> {
-                                    api.communities().all().forEach(value -> builder.suggest(value.id()));
+                                    api.realms().all().forEach(value -> builder.suggest(value.id()));
                                     return builder.buildFuture();
                                 })
                                 .executes(context -> sendHistory(
                                         context.getSource(),
-                                        api.history().forCommunity(
-                                                StringArgumentType.getString(context, "community"), 10)))
+                                        api.history().forRealm(
+                                                StringArgumentType.getString(context, "realm"), 10)))
                                 .then(argument("limit", IntegerArgumentType.integer(1, 100))
                                         .executes(context -> sendHistory(
                                                 context.getSource(),
-                                                api.history().forCommunity(
-                                                        StringArgumentType.getString(context, "community"),
+                                                api.history().forRealm(
+                                                        StringArgumentType.getString(context, "realm"),
                                                         IntegerArgumentType.getInteger(context, "limit")))))))
                 .then(literal("category")
                         .then(argument("category", StringArgumentType.word())
@@ -327,11 +404,11 @@ public final class ElarionCommands {
         String subject = event.subjectType().isBlank()
                 ? "-"
                 : event.subjectType() + ":" + event.subjectId();
-        String community = event.communityId().isBlank() ? "-" : event.communityId();
+        String realm = event.realmId().isBlank() ? "-" : event.realmId();
         String metadata = event.metadata().isEmpty() ? "" : " " + event.metadata();
         return "[" + time + "] " + event.category() + "/" + event.type()
                 + " actor=" + actor + " subject=" + subject
-                + " community=" + community + metadata;
+                + " realm=" + realm + metadata;
     }
 
     private static String value(String value) {

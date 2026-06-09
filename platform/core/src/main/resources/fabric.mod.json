@@ -1,21 +1,32 @@
 {
-  "schemaVersion": 1,
-  "id": "elarion_core",
-  "version": "${version}",
-  "name": "Elarion Core",
-  "description": "Canonical platform core for Elarion communities, citizens, identities, abilities, chat, and progression hooks.",
-  "authors": ["Panyel"],
-  "license": "MIT",
-  "environment": "*",
-  "entrypoints": {
-    "main": ["panetina.elarion.core.ElarionCoreMod"],
-    "client": ["panetina.elarion.core.ElarionCoreClient"]
-  },
-  "mixins": ["elarion_core.mixins.json"],
-  "depends": {
-    "fabricloader": ">=0.16.14",
-    "minecraft": "~1.21.1",
-    "java": ">=21",
-    "fabric-api": "*"
-  }
+    "schemaVersion":  1,
+    "id":  "elarion_core",
+    "version":  "${version}",
+    "name":  "Elarion Core",
+    "description":  "Canonical platform core for Elarion realms, citizens, identities, abilities, chat, and progression hooks.",
+    "authors":  [
+                    "Panyel"
+                ],
+    "license":  "MIT",
+    "environment":  "*",
+    "entrypoints":  {
+                        "main":  [
+                                     "panetina.elarion.core.ElarionCoreMod"
+                                 ],
+                        "client":  [
+                                       "panetina.elarion.core.ElarionCoreClient"
+                                   ]
+                    },
+    "mixins":  [
+                   "elarion_core.mixins.json"
+               ],
+    "depends":  {
+                    "fabricloader":  "\u003e=0.16.14",
+                    "minecraft":  "~1.21.1",
+                    "java":  "\u003e=21",
+                    "fabric-api":  "*"
+                },
+    "contributors":  [
+                         "Panetina Team"
+                     ]
 }

@@ -95,12 +95,12 @@ public final class NicknameService {
     private Set<String> protectedNames() {
         Set<String> names = new LinkedHashSet<>(BUILT_IN_PROTECTED_NAMES);
         names.addAll(config.nicknameReservedNames());
-        if (config.nicknameProtectCommunityPresentation()) {
-            config.communities().forEach((id, community) -> {
+        if (config.nicknameProtectRealmPresentation()) {
+            config.realms().forEach((id, realm) -> {
                 names.add(id);
-                names.add(community.displayName());
-                names.add(community.shortName());
-                names.add(community.prefix());
+                names.add(realm.displayName());
+                names.add(realm.shortName());
+                names.add(realm.prefix());
             });
         }
         if (config.nicknameProtectTitlePresentation()) {

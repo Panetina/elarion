@@ -20,13 +20,14 @@ import panetina.elarion.core.event.ElarionEventBus;
 import panetina.elarion.core.service.AbilityService;
 import panetina.elarion.core.service.ChatService;
 import panetina.elarion.core.service.CitizenService;
-import panetina.elarion.core.service.CommunityService;
+import panetina.elarion.core.service.RealmService;
 import panetina.elarion.core.service.IdentityService;
 import panetina.elarion.core.service.IdentitySyncService;
 import panetina.elarion.core.service.NicknameService;
 import panetina.elarion.core.service.HistoryService;
 import panetina.elarion.core.service.RewardActionService;
 import panetina.elarion.core.service.TitleService;
+import panetina.elarion.core.service.PrivateMessageService;
 import panetina.elarion.core.storage.CitizenStorage;
 import panetina.elarion.core.storage.HistoryStorage;
 import panetina.elarion.core.network.IdentitySyncRequestPayload;
@@ -46,24 +47,25 @@ public final class ElarionCoreMod implements ModInitializer {
 
         ElarionEventBus events = new ElarionEventBus();
         CitizenService citizens = new CitizenService(new CitizenStorage(LOGGER), config, events);
-        CommunityService communities = new CommunityService(config, citizens);
+        RealmService realms = new RealmService(config, citizens);
         TitleService titles = new TitleService(config, citizens);
         AbilityService abilities = new AbilityService(titles);
         config.titles().values().forEach(title -> title.abilities().forEach(abilities::register));
-        IdentityService identities = new IdentityService(citizens, communities, titles);
-        IdentitySyncService identitySync = new IdentitySyncService(citizens, communities, titles, identities);
+        IdentityService identities = new IdentityService(citizens, realms, titles);
+        IdentitySyncService identitySync = new IdentitySyncService(citizens, realms, titles, identities);
         NicknameService nicknames = new NicknameService(config, citizens);
         HistoryService history = new HistoryService(new HistoryStorage(LOGGER), events);
+        PrivateMessageService privateMessages = new PrivateMessageService(realms, citizens, identities);
         ServerPlayNetworking.registerGlobalReceiver(IdentitySyncRequestPayload.ID, (payload, context) -> {
             if (payload.requested()) {
                 context.server().execute(() -> identitySync.syncAll(context.server()));
             }
         });
-        ChatService chat = new ChatService(config, citizens, communities, identities);
+        ChatService chat = new ChatService(config, citizens, realms, identities);
         RewardActionService rewards = new RewardActionService(config, citizens, titles, abilities, events);
         ElarionCommandRegistry commands = new ElarionCommandRegistry();
         ElarionApi api = new ElarionApi(
-                citizens, communities, titles, abilities, identities, identitySync, nicknames, history,
+                citizens, realms, titles, abilities, identities, identitySync, nicknames, history, privateMessages,
                 chat, rewards, events, commands);
 
         initializeAddons(api);
@@ -75,13 +77,13 @@ public final class ElarionCoreMod implements ModInitializer {
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             citizens.bind(server);
             history.bind(server);
-            communities.initializeScoreboardTeams(server);
+            realms.initializeScoreboardTeams(server);
             LOGGER.info("Elarion Core bound to server {}", server.getServerMotd());
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             citizens.getOrCreate(handler.getPlayer());
-            communities.applyCurrentScoreboardTeam(handler.getPlayer());
+            realms.applyCurrentScoreboardTeam(handler.getPlayer());
             identitySync.syncAll(server);
         });
 

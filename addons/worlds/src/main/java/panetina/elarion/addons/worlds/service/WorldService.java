@@ -324,7 +324,7 @@ public final class WorldService {
         ServerWorld lobby = config.enforceLobby() ? resolveWorld(config.lobbyDestination()) : null;
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             if (lobby != null && player.getServerWorld() != lobby && !player.hasPermissionLevel(4)
-                    && api.citizens().getOrCreate(player).communityId().isBlank()) {
+                    && api.citizens().getOrCreate(player).realmId().isBlank()) {
                 teleport(player, config.lobbyDestination());
             }
             RegistryKey<World> current = player.getServerWorld().getRegistryKey();

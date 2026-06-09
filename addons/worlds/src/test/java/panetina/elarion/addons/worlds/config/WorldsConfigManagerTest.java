@@ -25,7 +25,7 @@ final class WorldsConfigManagerTest {
 
         assertEquals(4, config.worlds().size());
         assertEquals(WorldType.VOID, config.worlds().get("lobby").type());
-        assertEquals(0.25, config.worlds().get("community_world_1")
+        assertEquals(0.25, config.worlds().get("realm_world_1")
                 .blockRules().getFirst().retainChance());
         assertTrue(Files.exists(config.path()));
     }
@@ -53,12 +53,12 @@ final class WorldsConfigManagerTest {
         config.load();
         WorldBorderDefinition border = new WorldBorderDefinition(12, 34, 567, 6, 0.4, 8, 9);
 
-        config.updateBorder("elarion:community_world_1", border);
+        config.updateBorder("elarion:realm_world_1", border);
 
         WorldsConfigManager reloaded = new WorldsConfigManager(
                 LoggerFactory.getLogger("worlds-config-test"), temp.resolve("worlds.yml"));
         reloaded.load();
-        assertEquals(border, reloaded.worlds().get("community_world_1").border());
+        assertEquals(border, reloaded.worlds().get("realm_world_1").border());
         assertTrue(!Files.readString(config.path()).contains("*id"));
     }
 

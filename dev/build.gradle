@@ -5,7 +5,7 @@ dependencies {
 
     [
             ':addons:titles',
-            ':addons:communities',
+            ':addons:realms',
             ':addons:names',
             ':addons:contributions',
             ':addons:portals',

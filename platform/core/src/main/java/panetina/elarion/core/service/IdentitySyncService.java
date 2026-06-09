@@ -4,25 +4,25 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import panetina.elarion.core.model.CitizenRecord;
-import panetina.elarion.core.model.CommunityDefinition;
+import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.PlayerIdentity;
 import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.network.IdentitySyncPayload;
 
 public final class IdentitySyncService {
     private final CitizenService citizens;
-    private final CommunityService communities;
+    private final RealmService realms;
     private final TitleService titles;
     private final IdentityService identities;
 
     public IdentitySyncService(
             CitizenService citizens,
-            CommunityService communities,
+            RealmService realms,
             TitleService titles,
             IdentityService identities
     ) {
         this.citizens = citizens;
-        this.communities = communities;
+        this.realms = realms;
         this.titles = titles;
         this.identities = identities;
     }
@@ -46,7 +46,7 @@ public final class IdentitySyncService {
     private void sync(ServerPlayerEntity viewer, ServerPlayerEntity subject) {
         CitizenRecord citizen = citizens.getOrCreate(subject);
         PlayerIdentity identity = identities.resolve(subject);
-        CommunityDefinition community = communities.forCitizen(citizen).orElse(null);
+        RealmDefinition realm = realms.forCitizen(citizen).orElse(null);
         TitleDefinition title = titles.forCitizen(citizen).orElse(null);
         boolean visible = identities.canSee(viewer, subject);
 
@@ -58,7 +58,7 @@ public final class IdentitySyncService {
                 visible ? identity.suffix() : "",
                 visible && title != null && title.visibleUnderUsername() ? title.displayName() : "",
                 visible ? identity.color().getName() : "white",
-                visible && community != null ? community.id() : "",
+                visible && realm != null ? realm.id() : "",
                 visible));
     }
 }

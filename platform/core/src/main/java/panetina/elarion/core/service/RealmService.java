@@ -8,66 +8,66 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import panetina.elarion.core.config.CoreConfigManager;
 import panetina.elarion.core.model.CitizenRecord;
-import panetina.elarion.core.model.CommunityDefinition;
+import panetina.elarion.core.model.RealmDefinition;
 
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Optional;
 
-public final class CommunityService {
+public final class RealmService {
     private static final String TEAM_PREFIX = "elarion_";
     private final CoreConfigManager config;
     private final CitizenService citizens;
 
-    public CommunityService(CoreConfigManager config, CitizenService citizens) {
+    public RealmService(CoreConfigManager config, CitizenService citizens) {
         this.config = config;
         this.citizens = citizens;
     }
 
-    public Collection<CommunityDefinition> all() {
-        return config.communities().values();
+    public Collection<RealmDefinition> all() {
+        return config.realms().values();
     }
 
-    public Optional<CommunityDefinition> find(String id) {
+    public Optional<RealmDefinition> find(String id) {
         if (id == null) return Optional.empty();
-        return Optional.ofNullable(config.communities().get(id.toLowerCase(Locale.ROOT)));
+        return Optional.ofNullable(config.realms().get(id.toLowerCase(Locale.ROOT)));
     }
 
-    public Optional<CommunityDefinition> forCitizen(CitizenRecord citizen) {
-        return find(citizen.communityId());
+    public Optional<RealmDefinition> forCitizen(CitizenRecord citizen) {
+        return find(citizen.realmId());
     }
 
-    public boolean assign(ServerPlayerEntity player, String communityId) {
-        Optional<CommunityDefinition> community = find(communityId);
-        if (community.isEmpty()) return false;
-        citizens.update(player, "community-assigned", citizen -> citizen.setCommunityId(community.get().id()));
-        applyScoreboardTeam(player, community.get());
+    public boolean assign(ServerPlayerEntity player, String realmId) {
+        Optional<RealmDefinition> realm = find(realmId);
+        if (realm.isEmpty()) return false;
+        citizens.update(player, "realm-assigned", citizen -> citizen.setRealmId(realm.get().id()));
+        applyScoreboardTeam(player, realm.get());
         return true;
     }
 
     public void remove(ServerPlayerEntity player) {
-        citizens.update(player, "community-removed", citizen -> citizen.setCommunityId(null));
+        citizens.update(player, "realm-removed", citizen -> citizen.setRealmId(null));
         removeElarionTeam(player);
     }
 
     public void applyCurrentScoreboardTeam(ServerPlayerEntity player) {
         CitizenRecord citizen = citizens.getOrCreate(player);
         forCitizen(citizen).ifPresentOrElse(
-                community -> applyScoreboardTeam(player, community),
+                realm -> applyScoreboardTeam(player, realm),
                 () -> removeElarionTeam(player)
         );
     }
 
     public void initializeScoreboardTeams(MinecraftServer server) {
-        for (CommunityDefinition community : all()) {
-            getOrCreateColorTeam(server.getScoreboard(), community.color());
+        for (RealmDefinition realm : all()) {
+            getOrCreateColorTeam(server.getScoreboard(), realm.color());
         }
     }
 
-    private void applyScoreboardTeam(ServerPlayerEntity player, CommunityDefinition community) {
+    private void applyScoreboardTeam(ServerPlayerEntity player, RealmDefinition realm) {
         Scoreboard scoreboard = player.getServer().getScoreboard();
         removeElarionTeam(player);
-        Team team = getOrCreateColorTeam(scoreboard, community.color());
+        Team team = getOrCreateColorTeam(scoreboard, realm.color());
         scoreboard.addScoreHolderToTeam(player.getGameProfile().getName(), team);
     }
 

@@ -3,7 +3,7 @@ package panetina.elarion.core.model;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public record CommunityDefinition(
+public record RealmDefinition(
         String id,
         String displayName,
         String shortName,
@@ -13,7 +13,7 @@ public record CommunityDefinition(
         VisibilityScope visibilityScope,
         Set<String> flags
 ) {
-    public CommunityDefinition {
+    public RealmDefinition {
         flags = flags == null ? Set.of() : Set.copyOf(new LinkedHashSet<>(flags));
     }
 }

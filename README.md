@@ -2,23 +2,35 @@
 
 Elarion is a Fabric 1.21.1 platform mod organized as one canonical Core plus optional addons.
 
+Author: Panyel
+
+Team: Panetina Team
+
 The durable product goals, architectural rules, legacy-mod findings, current
 status, and roadmap are maintained in [PLAN.md](PLAN.md). Read it before making
 architectural or gameplay changes.
 
 ## Modules
 
-- `platform/core`: communities, citizens, titles, abilities, identity, `/cc`, rewards, storage, and addon APIs.
+- `platform/core`: realms, citizens, titles, abilities, identity, `/rc`, rewards, storage, and addon APIs.
 - `addons/*`: feature modules that consume Core state and never duplicate canonical citizen identity.
 
 ## Commands
 
-- `/cc <message>`: community chat; available to regular players.
+- `/rc <message>`: Realm Chat; available to regular players.
+- `/w <player> <message>`: whisper to a member of a `GLOBAL` Realm.
+- `/r <message>`: reply to the last player who whispered to you.
+- `/help [command]`: show commands currently available to you with explanations.
 - `/e ...`: administration root; permission level 4 is required.
+- `/list`: permission level 4 only.
+- `/seed`: permission level 4 only and available only when `show-seed=true`
+  exists in `server.properties`.
+
+The vanilla `/msg`, `/tell`, `/teammsg`, `/tm`, and `/me` commands are removed.
 
 Initial administration commands include:
 
-- `/e community add|remove|list`
+- `/e realm add|remove|list`
 - `/e citizen info`
 - `/e citizen nickname set|clear`
 - `/e title set|clear|list`

@@ -14,7 +14,7 @@ public record ClientIdentity(
         String suffix,
         String title,
         Formatting color,
-        String communityId,
+        String realmId,
         boolean visible
 ) {
     public Text displayName() {

@@ -4,6 +4,7 @@
   "package": "panetina.elarion.core.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "CommandNodeAccessor",
     "EntitySelectorMixin",
     "EntityArgumentTypeSuggestionMixin",
     "ServerCommandSourceMixin",

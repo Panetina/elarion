@@ -68,9 +68,9 @@ public final class WorldsConfigManager {
                 gamerules: { doMobSpawning: false, doDaylightCycle: false, spawnChunkRadius: 0 }
                 block-abundance: {}
                 mob-abundance: {}
-              community_world_1:
+              realm_world_1:
                 enabled: true
-                id: "elarion:community_world_1"
+                id: "elarion:realm_world_1"
                 type: "OVERWORLD"
                 seed: 11001
                 spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
@@ -79,9 +79,9 @@ public final class WorldsConfigManager {
                   minecraft:deepslate_iron_ore: { retain-chance: 0.25, replace-with: "minecraft:deepslate" }
                 mob-abundance: {}
                 gamerules: {}
-              community_world_2:
+              realm_world_2:
                 enabled: true
-                id: "elarion:community_world_2"
+                id: "elarion:realm_world_2"
                 type: "OVERWORLD"
                 seed: 22002
                 spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
@@ -89,9 +89,9 @@ public final class WorldsConfigManager {
                   minecraft:sugar_cane: { retain-chance: 0.0, replace-with: "minecraft:air" }
                 mob-abundance: {}
                 gamerules: {}
-              community_world_3:
+              realm_world_3:
                 enabled: true
-                id: "elarion:community_world_3"
+                id: "elarion:realm_world_3"
                 type: "OVERWORLD"
                 seed: 33003
                 spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
@@ -676,7 +676,7 @@ public final class WorldsConfigManager {
 
     private static void identifier(String field, String value, List<String> errors) {
         if (!value.matches("[a-z0-9_.-]+:[a-z0-9/._-]+")) {
-            errors.add(field + ": expected a namespaced identifier such as elarion:community_world_1");
+            errors.add(field + ": expected a namespaced identifier such as elarion:realm_world_1");
         }
     }
 

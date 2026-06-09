@@ -15,7 +15,7 @@ public record IdentitySyncPayload(
         String suffix,
         String title,
         String color,
-        String communityId,
+        String realmId,
         boolean visible
 ) implements CustomPayload {
     public static final Id<IdentitySyncPayload> ID =
@@ -30,7 +30,7 @@ public record IdentitySyncPayload(
                 buffer.writeString(payload.suffix());
                 buffer.writeString(payload.title());
                 buffer.writeString(payload.color());
-                buffer.writeString(payload.communityId());
+                buffer.writeString(payload.realmId());
                 buffer.writeBoolean(payload.visible());
             },
             buffer -> new IdentitySyncPayload(

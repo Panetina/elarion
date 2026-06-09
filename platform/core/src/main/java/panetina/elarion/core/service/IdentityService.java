@@ -6,7 +6,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import panetina.elarion.core.model.CitizenRecord;
-import panetina.elarion.core.model.CommunityDefinition;
+import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.PlayerIdentity;
 import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.model.VisibilityScope;
@@ -17,24 +17,24 @@ import java.util.Optional;
 
 public final class IdentityService {
     private final CitizenService citizens;
-    private final CommunityService communities;
+    private final RealmService realms;
     private final TitleService titles;
 
-    public IdentityService(CitizenService citizens, CommunityService communities, TitleService titles) {
+    public IdentityService(CitizenService citizens, RealmService realms, TitleService titles) {
         this.citizens = citizens;
-        this.communities = communities;
+        this.realms = realms;
         this.titles = titles;
     }
 
     public PlayerIdentity resolve(ServerPlayerEntity player) {
         CitizenRecord citizen = citizens.getOrCreate(player);
-        CommunityDefinition community = communities.forCitizen(citizen).orElse(null);
+        RealmDefinition realm = realms.forCitizen(citizen).orElse(null);
         TitleDefinition title = titles.forCitizen(citizen).orElse(null);
-        Formatting color = community == null ? Formatting.WHITE : color(community.color());
+        Formatting color = realm == null ? Formatting.WHITE : color(realm.color());
         String baseName = citizen.nickname() == null || citizen.nickname().isBlank()
                 ? player.getGameProfile().getName()
                 : citizen.nickname();
-        String prefix = community == null ? "" : community.prefix();
+        String prefix = realm == null ? "" : realm.prefix();
         String suffix = title == null ? "" : title.suffix();
         MutableText display = Text.literal(baseName).formatted(color);
         if (!suffix.isBlank()) display.append(Text.literal(" " + suffix));
@@ -43,7 +43,7 @@ public final class IdentityService {
         Text titleText = title != null && title.visibleUnderUsername()
                 ? Text.literal(title.displayName())
                 : Text.empty();
-        VisibilityScope scope = community == null ? VisibilityScope.COMMUNITY : community.visibilityScope();
+        VisibilityScope scope = realm == null ? VisibilityScope.REALM : realm.visibilityScope();
         return new PlayerIdentity(display, chatName, display.copy(), titleText, prefix, suffix, color, scope);
     }
 
@@ -52,11 +52,11 @@ public final class IdentityService {
 
         CitizenRecord viewerCitizen = citizens.getOrCreate(viewer);
         CitizenRecord subjectCitizen = citizens.getOrCreate(subject);
-        if (viewerCitizen.communityId() == null || subjectCitizen.communityId() == null) return true;
+        if (viewerCitizen.realmId() == null || subjectCitizen.realmId() == null) return true;
 
         return switch (resolve(subject).visibilityScope()) {
             case GLOBAL -> true;
-            case COMMUNITY, ALLIES -> subjectCitizen.communityId().equals(viewerCitizen.communityId());
+            case REALM, ALLIES -> subjectCitizen.realmId().equals(viewerCitizen.realmId());
             case ADMIN_ONLY, HIDDEN -> false;
         };
     }

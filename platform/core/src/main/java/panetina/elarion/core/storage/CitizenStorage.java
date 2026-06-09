@@ -81,7 +81,7 @@ public final class CitizenStorage {
 
     private static final class StoredCitizen {
         String lastKnownUsername;
-        String communityId;
+        String realmId;
         String titleId;
         String nickname;
         String status;
@@ -92,7 +92,7 @@ public final class CitizenStorage {
         static StoredCitizen from(CitizenRecord citizen) {
             StoredCitizen stored = new StoredCitizen();
             stored.lastKnownUsername = citizen.lastKnownUsername();
-            stored.communityId = citizen.communityId();
+            stored.realmId = citizen.realmId();
             stored.titleId = citizen.titleId();
             stored.nickname = citizen.nickname();
             stored.status = citizen.status().name();
@@ -104,7 +104,7 @@ public final class CitizenStorage {
 
         CitizenRecord toRecord(UUID uuid) {
             CitizenRecord record = new CitizenRecord(uuid, lastKnownUsername == null ? uuid.toString() : lastKnownUsername);
-            record.setCommunityId(communityId);
+            record.setRealmId(realmId);
             record.setTitleId(titleId);
             record.setNickname(nickname);
             record.setJoinedAt(joinedAt);

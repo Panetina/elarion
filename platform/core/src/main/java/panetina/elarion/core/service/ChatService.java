@@ -6,41 +6,41 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import panetina.elarion.core.config.CoreConfigManager;
 import panetina.elarion.core.model.CitizenRecord;
-import panetina.elarion.core.model.CommunityDefinition;
+import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.PlayerIdentity;
 
 public final class ChatService {
     private final CoreConfigManager config;
     private final CitizenService citizens;
-    private final CommunityService communities;
+    private final RealmService realms;
     private final IdentityService identities;
 
     public ChatService(
             CoreConfigManager config,
             CitizenService citizens,
-            CommunityService communities,
+            RealmService realms,
             IdentityService identities
     ) {
         this.config = config;
         this.citizens = citizens;
-        this.communities = communities;
+        this.realms = realms;
         this.identities = identities;
     }
 
-    public boolean sendCommunityMessage(ServerPlayerEntity sender, String message) {
+    public boolean sendRealmMessage(ServerPlayerEntity sender, String message) {
         CitizenRecord senderCitizen = citizens.getOrCreate(sender);
-        CommunityDefinition community = communities.forCitizen(senderCitizen).orElse(null);
-        if (community == null) {
-            sender.sendMessage(Text.literal("You are not assigned to a community."), false);
+        RealmDefinition realm = realms.forCitizen(senderCitizen).orElse(null);
+        if (realm == null) {
+            sender.sendMessage(Text.literal("You are not assigned to a realm."), false);
             return false;
         }
 
         PlayerIdentity identity = identities.resolve(sender);
-        Text output = renderMessage(config.communityChatFormat(), community, identity, message);
+        Text output = renderMessage(config.realmChatFormat(), realm, identity, message);
         MinecraftServer server = sender.getServer();
         for (ServerPlayerEntity recipient : server.getPlayerManager().getPlayerList()) {
             CitizenRecord recipientCitizen = citizens.getOrCreate(recipient);
-            if (community.id().equals(recipientCitizen.communityId())) {
+            if (realm.id().equals(recipientCitizen.realmId())) {
                 recipient.sendMessage(output, false);
             }
         }
@@ -49,7 +49,7 @@ public final class ChatService {
 
     private static Text renderMessage(
             String format,
-            CommunityDefinition community,
+            RealmDefinition realm,
             PlayerIdentity identity,
             String message
     ) {
@@ -74,10 +74,10 @@ public final class ChatService {
 
             String token = format.substring(tokenStart, tokenEnd + 1);
             switch (token) {
-                case "%community_short%" ->
-                        output.append(Text.literal(community.shortName()).formatted(identity.color()));
-                case "%community%" ->
-                        output.append(Text.literal(community.displayName()).formatted(identity.color()));
+                case "%realm_short%" ->
+                        output.append(Text.literal(realm.shortName()).formatted(identity.color()));
+                case "%realm%" ->
+                        output.append(Text.literal(realm.displayName()).formatted(identity.color()));
                 case "%player%" -> output.append(identity.chatName());
                 case "%message%" -> output.append(Text.literal(message));
                 default -> output.append(Text.literal(token));

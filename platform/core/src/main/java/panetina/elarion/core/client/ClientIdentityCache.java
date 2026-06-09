@@ -24,7 +24,7 @@ public final class ClientIdentityCache {
                 payload.suffix(),
                 payload.title(),
                 color == null ? Formatting.WHITE : color,
-                payload.communityId(),
+                payload.realmId(),
                 payload.visible()));
     }
 

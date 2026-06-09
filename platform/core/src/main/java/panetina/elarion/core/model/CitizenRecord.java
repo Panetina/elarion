@@ -8,7 +8,7 @@ import java.util.UUID;
 public final class CitizenRecord {
     private final UUID uuid;
     private String lastKnownUsername;
-    private String communityId;
+    private String realmId;
     private String titleId;
     private String nickname;
     private CitizenStatus status;
@@ -27,7 +27,7 @@ public final class CitizenRecord {
 
     public UUID uuid() { return uuid; }
     public String lastKnownUsername() { return lastKnownUsername; }
-    public String communityId() { return communityId; }
+    public String realmId() { return realmId; }
     public String titleId() { return titleId; }
     public String nickname() { return nickname; }
     public CitizenStatus status() { return status; }
@@ -36,7 +36,7 @@ public final class CitizenRecord {
     public Set<String> grantedAbilities() { return grantedAbilities; }
 
     public void setLastKnownUsername(String value) { this.lastKnownUsername = value; }
-    public void setCommunityId(String value) { this.communityId = value; }
+    public void setRealmId(String value) { this.realmId = value; }
     public void setTitleId(String value) { this.titleId = value; }
     public void setNickname(String value) { this.nickname = value; }
     public void setStatus(CitizenStatus value) { this.status = value; }
