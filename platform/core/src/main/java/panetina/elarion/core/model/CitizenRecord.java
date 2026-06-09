@@ -27,7 +27,7 @@ public final class CitizenRecord {
 
     public UUID uuid() { return uuid; }
     public String lastKnownUsername() { return lastKnownUsername; }
-    public String realmId() { return realmId; }
+    public String realmId() { return realmId == null ? "" : realmId; }
     public String titleId() { return titleId; }
     public String nickname() { return nickname; }
     public CitizenStatus status() { return status; }
@@ -36,7 +36,7 @@ public final class CitizenRecord {
     public Set<String> grantedAbilities() { return grantedAbilities; }
 
     public void setLastKnownUsername(String value) { this.lastKnownUsername = value; }
-    public void setRealmId(String value) { this.realmId = value; }
+    public void setRealmId(String value) { this.realmId = value == null ? "" : value; }
     public void setTitleId(String value) { this.titleId = value; }
     public void setNickname(String value) { this.nickname = value; }
     public void setStatus(CitizenStatus value) { this.status = value; }

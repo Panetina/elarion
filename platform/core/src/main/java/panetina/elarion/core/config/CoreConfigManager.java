@@ -56,6 +56,34 @@ public final class CoreConfigManager {
                           yaw: 0
                           pitch: 0
                         flags: []
+                      sky:
+                        display-name: "Kingdom of Sky"
+                        short-name: "SKY"
+                        prefix: "[SKY]"
+                        color: "blue"
+                        visibility-scope: "REALM"
+                        spawn:
+                          world: "elarion:realm_world_2"
+                          x: 0
+                          y: 64
+                          z: 0
+                          yaw: 0
+                          pitch: 0
+                        flags: [ ]
+                      earth:
+                        display-name: "Kingdom of Earth"
+                        short-name: "EARTH"
+                        prefix: "[EARTH]"
+                        color: "gold"
+                        visibility-scope: "REALM"
+                        spawn:
+                          world: "elarion:realm_world_3"
+                          x: 0
+                          y: 64
+                          z: 0
+                          yaw: 0
+                          pitch: 0
+                        flags: [ ]
                     """),
             Map.entry("titles.yml", """
                     config-version: 1

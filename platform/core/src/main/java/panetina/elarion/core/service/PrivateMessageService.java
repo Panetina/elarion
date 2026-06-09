@@ -27,13 +27,19 @@ public final class PrivateMessageService {
     }
 
     public boolean whisper(ServerPlayerEntity sender, ServerPlayerEntity recipient, String message) {
+        if (message == null || message.isBlank()) return false;
+
+        String senderRealmId = citizens.getOrCreate(sender).realmId();
+        String recipientRealmId = citizens.getOrCreate(recipient).realmId();
         RealmDefinition recipientRealm = realms.forCitizen(citizens.getOrCreate(recipient)).orElse(null);
-        if (recipientRealm == null || recipientRealm.visibilityScope() != VisibilityScope.GLOBAL) {
+        boolean sameRealm = !senderRealmId.isBlank() && senderRealmId.equals(recipientRealmId);
+        boolean recipientIsGlobal = recipientRealm != null && recipientRealm.visibilityScope() == VisibilityScope.GLOBAL;
+        if (!sameRealm && !recipientIsGlobal) {
             sender.sendMessage(Text.literal(
-                    "You may only whisper to members of a GLOBAL Realm.").formatted(Formatting.RED), false);
+                    "You may only message citizens in your Realm or members of a GLOBAL Realm.")
+                    .formatted(Formatting.RED), false);
             return false;
         }
-        if (message == null || message.isBlank()) return false;
 
         Text senderName = identities.resolve(sender).chatName();
         Text recipientName = identities.resolve(recipient).chatName();
@@ -50,7 +56,7 @@ public final class PrivateMessageService {
     public boolean reply(ServerPlayerEntity sender, String message) {
         UUID recipientId = lastWhisperSender.get(sender.getUuid());
         if (recipientId == null) {
-            sender.sendMessage(Text.literal("Nobody has whispered to you yet.").formatted(Formatting.RED), false);
+            sender.sendMessage(Text.literal("Nobody has messaged you yet.").formatted(Formatting.RED), false);
             return false;
         }
         ServerPlayerEntity recipient = sender.getServer().getPlayerManager().getPlayer(recipientId);

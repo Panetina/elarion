@@ -21,7 +21,7 @@ final class CoreConfigManagerTest {
         CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
         config.load();
 
-        assertEquals(1, config.realms().size());
+        assertTrue(config.realms().containsKey("oak"));
         try (var files = Files.list(tempDir)) {
             for (Path file : files.filter(path -> path.toString().endsWith(".yml")).toList()) {
                 assertTrue(Files.readString(file).contains("config-version: 1"), file.toString());

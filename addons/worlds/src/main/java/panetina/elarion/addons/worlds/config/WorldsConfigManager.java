@@ -45,7 +45,7 @@ public final class WorldsConfigManager {
               template: "minecraft:overworld"
               biome: "minecraft:plains"
               platform-block: "minecraft:stone"
-              platform-radius: 0
+              platform-radius: 5
               difficulty: "NORMAL"
               tick-time: true
               border:

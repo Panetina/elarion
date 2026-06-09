@@ -44,9 +44,9 @@ public final class ElarionCommands {
         extensions.registerHelpDescription("rc",
                 "/rc <message> - Send a message to members of your Realm.");
         extensions.registerHelpDescription("r",
-                "/r <message> - Reply to the last player who whispered to you.");
+                "/r <message> - Reply to the last player who messaged to you.");
         extensions.registerHelpDescription("w",
-                "/w <player> <message> - Whisper to a member of a GLOBAL Realm.");
+                "/w <player> <message> - Message a citizen in your Realm or a GLOBAL Realm.");
 
         dispatcher.register(literal("rc")
                 .then(argument("message", StringArgumentType.greedyString())
