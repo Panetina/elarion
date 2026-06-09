@@ -94,16 +94,24 @@ The intended realm lifecycle includes:
 
 #### Realm Leadership
 
-Each Realm should have exactly one leader. The leader's displayed role name
-must be configurable globally or per Realm so it can appear as King, Governor,
-Chief, or another lore-appropriate title without changing the underlying
-system.
+Each Realm should have exactly one leader. Leader state belongs on the Core
+citizen record as leader data, not as a normal managed title such as Citizen,
+Diplomat, News Reporter, or future unique discoverable titles. The leader's
+displayed role name must be configurable globally or per Realm so it can appear
+as King, Governor, Chief, or another lore-appropriate presentation label without
+changing the underlying system.
 
-Leader authority should still come from Core citizen, Realm, title, and ability
-truth. The leader role must not become a separate ownership database. A future
-custom Realm decision block will let the leader propose diplomacy and visibility
-actions such as declaring war, ending war, proposing an alliance, declaring an
-embargo, returning to neutral, or going into hiding.
+Leader authority should still come from Core citizen and Realm truth, plus
+future ability checks where useful. The leader role must not become a separate
+ownership database. A future custom Realm decision block will let the leader
+propose diplomacy and visibility actions such as declaring war, ending war,
+proposing an alliance, declaring an embargo, returning to neutral, or going into
+hiding.
+
+Diplomatic decisions that involve two Realms should require both Realm leaders
+to be physically present together at the future decision block or decision room
+before the proposal can begin. This creates an in-world negotiation moment where
+leaders can talk before citizens are asked to vote.
 
 #### Realm Relationships
 
@@ -157,6 +165,8 @@ Voting rules:
 
 - A proposal opens a pop-up or future GUI notification for citizens of the
   declaring Realm and, where applicable, the receiving Realm.
+- Two-Realm proposals require both Realm leaders to be present together at the
+  future decision block or decision room before the proposal is created.
 - Offline citizens receive a pending vote prompt when they next join during the
   active voting window.
 - A proposal succeeds only if the leader approves and at least 51% of all
@@ -214,8 +224,11 @@ adding hard-coded title names throughout the codebase. Addons ask
 ### Chat
 
 - `/rc <message>` is the Realm Chat command.
-- `/rc`, `/w`, `/r`, and `/help` are player-facing commands.
+- `/ac <message>` is the Alliance Chat command.
+- `/rc`, `/ac`, `/w`, `/r`, and `/help` are player-facing commands.
 - Realm chat is visible only to online citizens of the same realm.
+- Alliance chat is visible only to citizens in the sender's Realm and Realms
+  currently allied with it.
 - Realm chat automatically applies the realm tag and color.
 - The long-term design has no unrestricted, long-range global player chat.
 - Normal conversation should eventually be local/proximity chat.
@@ -283,6 +296,7 @@ reward actions rather than embedding server-specific rewards in Java.
 Core reward actions currently include:
 
 - Player message
+- Item grant
 - Broadcast
 - Server command
 - Player command
@@ -294,6 +308,32 @@ Core reward actions currently include:
 Addons can register action types such as portal state changes or contribution
 events. Future actions should include realm unlocks and other durable state
 changes.
+
+Configured rewards are reusable bundles from `config/elarion/core/rewards.yml`
+and are run by commands such as `/e realm reward <realm> <rewardId>`. Direct
+testing and administrative grants can use `/e realm give <realm> <item> <count>`
+for item autocomplete and quantity selection without first creating a named
+reward bundle.
+
+### Notifications
+
+Notifications should become a modular client-facing surface shared by rewards,
+mail, gifts, newspapers, Realm votes, war/alliance decisions, hiding proposals,
+and future addons.
+
+The intended layout is a left-side notification area with separate categories:
+
+- Personal notifications: rewards, gifts, mail, newspapers, and similar player
+  items.
+- Realm notifications: war, alliance, embargo, hiding, leadership, and other
+  Realm decisions.
+
+Each category should support at least two states: all read and new/unread
+content. The future panel should open like a compact notification drawer, with
+cards such as `New reward` plus a `Receive` button, `News`, `New mail`, or Realm
+decision cards such as `War with Kingdom of Oak` with `Agree` and `Disagree`
+buttons. The panel design should be reusable so addons can register new card
+types without duplicating UI code.
 
 ## Command Policy
 
@@ -574,8 +614,18 @@ The following are implemented:
 - UUID-based citizen JSON storage in the world save
 - Realm assignment/removal
 - Realm color teams using vanilla scoreboard teams
+- Configurable local/proximity chat replacing unrestricted vanilla player chat
 - `/rc` realm-isolated messaging
 - Realm tag and player-name coloring in `/rc`
+- Scoped join/leave notices for Realm members and OP level 4 admins
+- Realm spawn fallback on respawn and Realm-spawn teleport after assignment
+- Durable Realm leader, relationship, and pending decision groundwork with
+  history events
+- Realm-wide reward delivery with offline pending delivery
+- Configured reward ID autocomplete and item reward actions
+- Direct realm item grants with `/e realm give <realm> <item> <count>` and item
+  ID autocomplete
+- Realm mail and administrative announcements with offline pending delivery
 - Nickname persistence and use in derived identity and `/rc`
 - Nicknames applied to client display names, overhead nametags, and tab names
 - Derived identity applied to ordinary vanilla chat sender names
@@ -583,6 +633,11 @@ The following are implemented:
 - Nickname enable/max-length settings enforced from `identity.yml`
 - Configured title assignment and persistence
 - Titles synchronized and rendered beneath visible player usernames
+- Realm leaders stored as citizen leader data, not as managed titles
+- Realm leader crown rendered before the leader name in `/rc`, `/ac`, and tab,
+  with a separate overhead leader label above the name
+- Placeholder left-side notification icons for personal and Realm notifications
+  with read/unread visual states and click feedback
 - Title-provided and explicitly granted ability checks
 - Per-viewer identity synchronization
 - `REALM`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN` visibility enforcement for
@@ -597,6 +652,7 @@ Current commands:
 
 ```text
 /rc <message>
+/ac <message>
 /w <player> <message>
 /r <message>
 /help [command]
@@ -604,6 +660,16 @@ Current commands:
 /e realm add <player> <realm>
 /e realm remove <player>
 /e realm list
+/e realm reward <realm> <reward>
+/e realm give <realm> <item> <count>
+/e realm announce <realm> <message>
+/e realm mail <realm> <message>
+/e realm leader set <realm> <player>
+/e realm leader get <realm>
+/e realm relationship get <first> <second>
+/e realm relationship set <first> <second> <relationship>
+/e realm relationship decision list
+/e realm relationship decision propose <type> <declaring> <receiving>
 /e citizen info <player>
 /e citizen nickname set <player> <nickname>
 /e citizen nickname clear <player>
@@ -624,6 +690,7 @@ Current commands:
 Command policy:
 
 - `/msg`, `/tell`, `/teammsg`, `/tm`, and `/me` are removed.
+- `/ac` sends alliance chat to the sender's Realm and allied Realms.
 - `/w` may target citizens in the sender's own Realm, plus members of Realms
   with `visibility-scope: GLOBAL`.
 - `/r` replies to the last online player who sent the caller a `/w`.
@@ -688,58 +755,86 @@ planned, partial, config-only, or addon shells.
 - [x] Create and update vanilla scoreboard teams for realm colors
 - [x] Provide realm-isolated `/rc`
 - [x] Render the realm tag only in `/rc`
-- [ ] Replace global vanilla chat with configurable local/proximity chat:
+- [x] Replace global vanilla chat with configurable local/proximity chat:
   configurable block radius, same-world requirement, formatting, admin/social
   spy behavior, status restrictions, and optional event/shared-space overrides
-- [ ] Keep `/rc` as realm long-range chat and make it coexist cleanly with
+- [x] Keep `/rc` as realm long-range chat and make it coexist cleanly with
   local chat without leaking hidden citizens
+- [x] Add `/ac` alliance chat for the sender's Realm and allied Realms
 - [x] Let `/w` and `/r` message citizens in the sender's own realm, while
   allowing foreign whispers only to citizens in `GLOBAL` visibility realms
-- [ ] Add scoped join/leave notices:
+- [x] Add scoped join/leave notices:
   realm notices for realm members, admin notices for OP level 4, optional global
   notices only for public/shared spaces such as Worldheart or explicitly
   `GLOBAL` visibility realms, and no identity leak for hidden citizens
-- [ ] Implement realm spawn and respawn behavior:
+- [x] Implement realm spawn and respawn behavior:
   bed or explicit vanilla spawnpoint first, configured realm spawn second,
   lobby/default spawn third
 - [ ] Allow jail, underworld, death events, and future event states to override
   bed, realm spawn, and default spawn behavior through a modular spawn policy
   chain
-- [ ] Teleport a citizen to the configured realm spawn when added to a realm,
+- [x] Teleport a citizen to the configured realm spawn when added to a realm,
   with config flags for whether this happens automatically, only on first join,
   or only through an admin command
 - [ ] Run configurable realm-join actions when a citizen is added to a realm:
   messages, broadcasts scoped to the realm, commands, starter rewards, history
   events, spawn teleport, and future GUI/tutorial hooks
-- [ ] Implement alliances and relationships:
+- [x] Implement alliance/relationship state storage and OP administration:
   `ALLY`, `NEUTRAL`, `HOSTILE`, `EMBARGOED`, `HIDDEN`, and future
   addon-defined relationship states
-- [ ] Apply realm relationships to visibility, `/w`, `/r`, `/rc`, local chat
-  exceptions, portals, maps, rosters, tab list, nameplates, tracking tools, and
-  future government/newspaper rules by having those systems ask the shared
-  relationship layer before exposing information or allowing cross-realm
-  actions
-- [ ] Add exactly one leader per realm, with configurable leader-title
-  presentation such as King, Governor, or Chief
-- [ ] Automatically render a crown for each Realm leader, overriding helmet
-  appearance as a temporary placeholder until the final leader model exists
+- [x] Add exactly one leader per realm, stored on the Core citizen record with
+  configurable leader presentation such as King, Governor, or Chief
+- [x] Render a crown for each Realm leader in Realm Chat, Alliance Chat, tab,
+  and as a separate overhead label above the player name
 - [ ] Add a custom Realm decision block for leader-started diplomacy,
   relationship, war, neutral-return, embargo, and hiding proposals
-- [ ] Add a three-day vote lifecycle with pop-up or future GUI prompts, offline
-  vote delivery, leader approval, 51% all-citizen approval, expiration, cleanup,
-  and history events
-- [ ] Apply relationship effects to portals, visibility, PvP, interaction
-  permissions, trade, private messaging, mail, diplomacy, and history
-- [ ] Add non-griefing war protection so hostile players can use configured
-  doors, chests, traps, portals, and PvP without breaking blocks, destroying
-  bases, or using TNT/explosions for permanent base damage
+- [ ] Require both leaders of involved Realms to be physically present together
+  at the future decision block or decision room before two-Realm diplomatic
+  proposals can begin
+- [x] Add durable pending decision groundwork with three-day expiration,
+  leader approval tracking, 51% all-citizen approval, cleanup, and history
+  events; citizen pop-up/GUI voting remains future work
 - [ ] Implement optional realm borders
-- [ ] Add realm-wide rewards with offline delivery:
+- [x] Add realm-wide rewards with offline delivery:
   online members receive immediately, offline members receive pending rewards on
   next login, and all delivery attempts are recorded in history
-- [ ] Add realm mail and administrative announcements:
-  persistent realm-scoped messages, OP-authored announcements, optional read
-  tracking, expiration, and history/audit entries
+- [x] Add direct OP-level realm item delivery with item and count arguments
+- [x] Add basic realm mail and administrative announcements with online delivery,
+  offline delivery, and history/audit entries
+- [ ] Add optional read tracking and expiration for realm mail and announcements
+
+### Realm Access and Protection
+
+- [ ] Resolve the owning Realm of every Realm world from canonical Realm spawn
+  world IDs
+- [ ] Reset old-Realm leadership and Realm-scoped citizen state when a citizen
+  changes or leaves their Realm
+- [ ] Disable PvP by default in Realm worlds, Worldheart, and the lobby
+- [ ] Prevent creeper and TNT explosions from damaging blocks while preserving
+  entity damage
+- [ ] Let citizens freely place, break, and interact with blocks inside their
+  own Realm world
+- [ ] Prevent neutral, embargoed, hidden, and unrelated foreign citizens from
+  placing, breaking, or interacting with blocks in another Realm world
+- [ ] Let allied visitors use non-container interaction blocks such as doors,
+  trapdoors, buttons, levers, gates, and similar mechanisms, while preventing
+  container access, block placement, block breaking, PvP, and attacks on animals
+- [ ] Let hostile visitors use Realm portals, interact with containers and
+  mechanisms, attack players and animals, and place ladders only, while still
+  preventing all other block placement, block breaking, and explosion griefing
+- [ ] Keep neutral and embargoed visitors on the default restricted foreign
+  policy, with embargo additionally restricting trade, whispers, mail, and
+  diplomatic conveniences
+- [ ] Let Diplomats bypass foreign portal restrictions through
+  `elarion.portal.foreign_access`; portal implementation remains in the Portals
+  addon
+- [ ] Route every future map, roster, tab, nameplate, tracking, government,
+  newspaper, portal, trade, mail, and chat exception through the shared
+  relationship/access policy instead of duplicating relationship checks
+- [ ] Add clear denial feedback with rate limiting so protection rules do not
+  spam chat
+- [ ] Add unit and GameTests for own-Realm, ally, hostile, neutral, embargoed,
+  hidden, lobby, Worldheart, PvP, PvE, ladder, container, and explosion rules
 
 ### Titles and Abilities
 
@@ -805,19 +900,39 @@ planned, partial, config-only, or addon shells.
 - [x] Preserve OP level 4 administrative visibility
 - [x] Restrict `/list` to permission level 4
 - [ ] Add a comment in the visibility.yml with current "`REALM`, `GLOBAL`, `ADMIN_ONLY`, and `HIDDEN`"
-- [ ] Implement alliance-aware `ALLIES` visibility
+- [x] Implement alliance-aware `ALLIES` visibility
 - [ ] Apply visibility to maps, trackers, rosters, menus, and join/leave notices
 - [ ] Add title, ability, portal, event, and shared-space visibility exceptions
 
 ### Progression and Rewards
 
-- [x] Execute configured messages, broadcasts, commands, status changes, title
-  grants, ability grants, and history events
+- [x] Execute configured messages, item grants, broadcasts, commands, status
+  changes, title grants, ability grants, and history events
+- [x] Autocomplete configured reward IDs for reward bundle commands
+- [x] Autocomplete item IDs for direct realm item grants
 - [ ] Add durable realm unlock actions
 - [ ] Add portal state actions
 - [ ] Add configurable progression conditions and milestones
 - [ ] Add offline and delayed reward delivery
 - [ ] Add audit/history views for reward execution
+
+### Notifications UI
+
+- [x] Add placeholder personal and Realm notification icons on the left side of
+  the in-game HUD
+- [x] Give placeholder notification icons read/unread visual states and
+  click-to-chat feedback
+- [ ] Replace placeholder icon rendering with final textures and animation
+- [ ] Add a modular notification registry for addon-provided categories and
+  card types
+- [ ] Build the personal notification drawer with cards for rewards, gifts,
+  mail, newspapers, and future addon messages
+- [ ] Build the Realm notification drawer with cards for war, alliance,
+  embargo, neutral return, hiding, leadership, and future Realm decisions
+- [ ] Add action buttons such as `Receive`, `Agree`, `Disagree`, `Open`, and
+  `Dismiss`, with server validation for every action
+- [ ] Add unread counts, read tracking, expiration, and offline delivery
+  integration
 
 ### Contributions
 
@@ -851,11 +966,12 @@ planned, partial, config-only, or addon shells.
 - [x] Synchronize independent world borders only to players in that world
 - [x] Add `/e world list|reload|load|unload|tp|info`
 - [ ] Make sure that If I delete the world (the folder) - rebuilt it (useful for clean resets of everything/or new server/or regeneration with new ore/mobs rules after editing the config)
-- [ ] Connect realm membership to managed world spawn and respawn policy
+- [x] Connect realm membership to managed world spawn and respawn policy
 - [ ] Implement portal definitions and physical portal travel
 - [ ] Implement dormant, active, open, locked, restoring, and disabled states
 - [ ] Gate portal use through progression and abilities
-- [ ] Enforce Diplomat or `elarion.portal.foreign_access` for foreign portals
+- [ ] Enforce Realm relationship access plus Diplomat or
+  `elarion.portal.foreign_access` exceptions for foreign portals
 - [ ] Add portal administration commands and feedback
 - [ ] Delete End Portal generation/ stronghold generation/ nether portal creation/ both portals functioning
 - [ ] Add custom portals for end and nether for progression and to place them in the center of Worldheart.
@@ -882,20 +998,19 @@ planned, partial, config-only, or addon shells.
 These exist as models, configuration, ability registrations, or addon shells but
 do not yet produce their final gameplay effect:
 
-- Ordinary vanilla chat now displays derived identity, but it remains global
-  until the planned local/proximity chat system replaces it.
+- Ordinary vanilla chat is intercepted and routed as configurable
+  local/proximity chat.
 - Nickname suggestions resolve to canonical usernames because vanilla entity
   arguments cannot safely accept a nickname containing spaces as the actual
   selector value.
 - Title abilities are not yet enforced by crafting, portal, newspaper, or other
   gameplay hooks.
-- Normal vanilla chat remains global; local-by-default chat is not implemented.
-- `ALLIES` visibility currently behaves like `REALM` until alliance data is
-  implemented.
+- Relationship state exists and `ALLIES` visibility can expand to allied
+  Realms, but future maps, portals, rosters, and gameplay systems still need to
+  consume the same relationship layer.
 - Visibility is not yet applied to future maps, trackers, rosters, join/leave
   notices, or addon interfaces.
-- Realm spawn/world/flags are loaded but do not yet drive teleport,
-  respawn, world, or border mechanics.
+- Realm flags are loaded but do not yet drive border mechanics.
 - Status changes persist but do not yet impose movement, chat, voice, portal,
   death, or rendering restrictions.
 - Portal states are config/event placeholders with no portal block or travel.
