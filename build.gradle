@@ -7,7 +7,8 @@ allprojects {
     version = project.mod_version + '+mc.' + project.jar_mc_version
 }
 
-def modProjects = subprojects.findAll { it.path != ':platform' && it.path != ':addons' }
+def structuralProjects = [':platform', ':addons', ':tests']
+def modProjects = subprojects.findAll { !structuralProjects.contains(it.path) }
 
 configure(modProjects) {
     apply plugin: 'fabric-loom'
@@ -81,4 +82,10 @@ tasks.register('runServer') {
     group = 'fabric'
     description = 'Runs Elarion Core with every addon in one development server.'
     dependsOn ':dev:runServer'
+}
+
+tasks.register('runGameTests') {
+    group = 'verification'
+    description = 'Runs Elarion server GameTests in a headless Minecraft test server.'
+    dependsOn ':tests:gametest:runGameTestServer'
 }

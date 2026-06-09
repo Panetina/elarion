@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "panetina.elarion.addons.names.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerEntityIdentityMixin"
+  ],
+  "client": [
+    "ChatInputSuggestorSuggestionWindowMixin",
+    "PlayerEntityMixin",
+    "PlayerListHudMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

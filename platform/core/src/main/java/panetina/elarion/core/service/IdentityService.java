@@ -13,7 +13,6 @@ import panetina.elarion.core.model.VisibilityScope;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 public final class IdentityService {
@@ -37,9 +36,7 @@ public final class IdentityService {
                 : citizen.nickname();
         String prefix = community == null ? "" : community.prefix();
         String suffix = title == null ? "" : title.suffix();
-        MutableText display = Text.empty();
-        if (!prefix.isBlank()) display.append(Text.literal(prefix + " ").formatted(color));
-        display.append(Text.literal(baseName).formatted(color));
+        MutableText display = Text.literal(baseName).formatted(color);
         if (!suffix.isBlank()) display.append(Text.literal(" " + suffix));
         MutableText chatName = Text.literal(baseName).formatted(color);
         if (!suffix.isBlank()) chatName.append(Text.literal(" " + suffix));
@@ -73,16 +70,17 @@ public final class IdentityService {
         ServerPlayerEntity canonical = source.getServer().getPlayerManager().getPlayer(input);
         if (canonical != null && canSee(source, canonical)) return Optional.of(canonical);
 
-        String normalized = input.toLowerCase(Locale.ROOT);
+        String normalized = NicknameService.comparisonKey(input);
         List<ServerPlayerEntity> matches = new ArrayList<>();
         for (ServerPlayerEntity player : source.getServer().getPlayerManager().getPlayerList()) {
             if (!canSee(source, player)) continue;
             CitizenRecord citizen = citizens.getOrCreate(player);
-            if (citizen.nickname() != null && citizen.nickname().toLowerCase(Locale.ROOT).equals(normalized)) {
+            if (citizen.nickname() != null
+                    && NicknameService.comparisonKey(citizen.nickname()).equals(normalized)) {
                 matches.add(player);
                 continue;
             }
-            if (resolve(player).displayName().getString().toLowerCase(Locale.ROOT).equals(normalized)) {
+            if (NicknameService.comparisonKey(resolve(player).displayName().getString()).equals(normalized)) {
                 matches.add(player);
             }
         }

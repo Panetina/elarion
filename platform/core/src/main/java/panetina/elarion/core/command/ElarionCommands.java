@@ -2,6 +2,7 @@ package panetina.elarion.core.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
@@ -10,11 +11,18 @@ import net.minecraft.text.Text;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.api.ElarionCommandRegistry;
 import panetina.elarion.core.config.CoreConfigManager;
+import panetina.elarion.core.config.ConfigValidationException;
+import panetina.elarion.core.model.HistoryEvent;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.CommunityDefinition;
 import panetina.elarion.core.model.TitleDefinition;
+import panetina.elarion.core.service.NicknameService;
 
 import java.util.function.Supplier;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -41,8 +49,17 @@ public final class ElarionCommands {
                 .then(titleCommands(api))
                 .then(abilityCommands(api))
                 .then(rewardCommands(api))
+                .then(historyCommands(api))
                 .then(literal("reload").executes(context -> {
-                    config.load();
+                    try {
+                        config.load();
+                    } catch (ConfigValidationException exception) {
+                        exception.errors().forEach(error ->
+                                context.getSource().sendError(Text.literal(error)));
+                        context.getSource().sendError(Text.literal(
+                                "Reload rejected; the previous valid configuration remains active."));
+                        return 0;
+                    }
                     api.titles().all().forEach(title -> title.abilities().forEach(api.abilities()::register));
                     api.communities().initializeScoreboardTeams(context.getSource().getServer());
                     for (ServerPlayerEntity player : context.getSource().getServer().getPlayerManager().getPlayerList()) {
@@ -123,24 +140,15 @@ public final class ElarionCommands {
                                         .then(argument("nickname", StringArgumentType.greedyString())
                                                 .executes(context -> {
                                                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                                                    String nickname = StringArgumentType.getString(context, "nickname").trim();
-                                                    if (!config.nicknamesEnabled()) {
-                                                        context.getSource().sendError(Text.literal("Nicknames are disabled."));
+                                                    String input = StringArgumentType.getString(context, "nickname");
+                                                    NicknameService.Validation validation =
+                                                            api.nicknames().validate(player.getUuid(), input);
+                                                    if (!validation.valid()) {
+                                                        context.getSource().sendError(Text.literal(validation.error()));
                                                         return 0;
                                                     }
-                                                    if (nickname.isBlank()) {
-                                                        context.getSource().sendError(Text.literal("Nickname cannot be empty."));
-                                                        return 0;
-                                                    }
-                                                    if (config.nicknameMaxLength() > 0
-                                                            && nickname.length() > config.nicknameMaxLength()) {
-                                                        context.getSource().sendError(Text.literal(
-                                                                "Nickname cannot exceed "
-                                                                        + config.nicknameMaxLength()
-                                                                        + " characters."));
-                                                        return 0;
-                                                    }
-                                                    api.citizens().update(player, "nickname-set", citizen -> citizen.setNickname(nickname));
+                                                    api.citizens().update(player, "nickname-set",
+                                                            citizen -> citizen.setNickname(validation.nickname()));
                                                     context.getSource().sendFeedback(
                                                             () -> Text.literal("Set nickname for " + player.getGameProfile().getName()), true);
                                                     return 1;
@@ -247,6 +255,83 @@ public final class ElarionCommands {
                                             context.getSource().sendFeedback(() -> Text.literal("Executed reward " + reward), true);
                                             return 1;
                                         }))));
+    }
+
+    private static LiteralArgumentBuilder<ServerCommandSource> historyCommands(ElarionApi api) {
+        return literal("history")
+                .then(literal("recent")
+                        .executes(context -> sendHistory(
+                                context.getSource(), api.history().recent(10)))
+                        .then(argument("limit", IntegerArgumentType.integer(1, 100))
+                                .executes(context -> sendHistory(context.getSource(), api.history().recent(
+                                        IntegerArgumentType.getInteger(context, "limit"))))))
+                .then(literal("player")
+                        .then(argument("player", EntityArgumentType.player())
+                                .executes(context -> sendHistory(
+                                        context.getSource(),
+                                        api.history().forPlayer(
+                                                EntityArgumentType.getPlayer(context, "player").getUuid(), 10)))
+                                .then(argument("limit", IntegerArgumentType.integer(1, 100))
+                                        .executes(context -> sendHistory(
+                                                context.getSource(),
+                                                api.history().forPlayer(
+                                                        EntityArgumentType.getPlayer(context, "player").getUuid(),
+                                                        IntegerArgumentType.getInteger(context, "limit")))))))
+                .then(literal("community")
+                        .then(argument("community", StringArgumentType.word())
+                                .suggests((context, builder) -> {
+                                    api.communities().all().forEach(value -> builder.suggest(value.id()));
+                                    return builder.buildFuture();
+                                })
+                                .executes(context -> sendHistory(
+                                        context.getSource(),
+                                        api.history().forCommunity(
+                                                StringArgumentType.getString(context, "community"), 10)))
+                                .then(argument("limit", IntegerArgumentType.integer(1, 100))
+                                        .executes(context -> sendHistory(
+                                                context.getSource(),
+                                                api.history().forCommunity(
+                                                        StringArgumentType.getString(context, "community"),
+                                                        IntegerArgumentType.getInteger(context, "limit")))))))
+                .then(literal("category")
+                        .then(argument("category", StringArgumentType.word())
+                                .executes(context -> sendHistory(
+                                        context.getSource(),
+                                        api.history().forCategory(
+                                                StringArgumentType.getString(context, "category"), 10)))
+                                .then(argument("limit", IntegerArgumentType.integer(1, 100))
+                                        .executes(context -> sendHistory(
+                                                context.getSource(),
+                                                api.history().forCategory(
+                                                        StringArgumentType.getString(context, "category"),
+                                                        IntegerArgumentType.getInteger(context, "limit")))))));
+    }
+
+    private static int sendHistory(ServerCommandSource source, List<HistoryEvent> events) {
+        if (events.isEmpty()) {
+            source.sendFeedback(() -> Text.literal("No matching Elarion history events."), false);
+            return 0;
+        }
+        source.sendFeedback(() -> Text.literal("Elarion history (" + events.size() + "):"), false);
+        for (HistoryEvent event : events) {
+            source.sendFeedback(() -> Text.literal(formatHistory(event)), false);
+        }
+        return events.size();
+    }
+
+    private static String formatHistory(HistoryEvent event) {
+        String time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.systemDefault())
+                .format(Instant.ofEpochMilli(event.timestamp()));
+        String actor = event.actorId() == null ? "-" : event.actorId().toString();
+        String subject = event.subjectType().isBlank()
+                ? "-"
+                : event.subjectType() + ":" + event.subjectId();
+        String community = event.communityId().isBlank() ? "-" : event.communityId();
+        String metadata = event.metadata().isEmpty() ? "" : " " + event.metadata();
+        return "[" + time + "] " + event.category() + "/" + event.type()
+                + " actor=" + actor + " subject=" + subject
+                + " community=" + community + metadata;
     }
 
     private static String value(String value) {

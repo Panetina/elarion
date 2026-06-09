@@ -7,6 +7,8 @@ import panetina.elarion.core.service.CitizenService;
 import panetina.elarion.core.service.CommunityService;
 import panetina.elarion.core.service.IdentityService;
 import panetina.elarion.core.service.IdentitySyncService;
+import panetina.elarion.core.service.NicknameService;
+import panetina.elarion.core.service.HistoryService;
 import panetina.elarion.core.service.RewardActionService;
 import panetina.elarion.core.service.TitleService;
 
@@ -19,6 +21,8 @@ public final class ElarionApi {
     private final AbilityService abilities;
     private final IdentityService identities;
     private final IdentitySyncService identitySync;
+    private final NicknameService nicknames;
+    private final HistoryService history;
     private final ChatService chat;
     private final RewardActionService rewards;
     private final ElarionEventBus events;
@@ -31,6 +35,8 @@ public final class ElarionApi {
             AbilityService abilities,
             IdentityService identities,
             IdentitySyncService identitySync,
+            NicknameService nicknames,
+            HistoryService history,
             ChatService chat,
             RewardActionService rewards,
             ElarionEventBus events,
@@ -43,6 +49,8 @@ public final class ElarionApi {
         this.abilities = abilities;
         this.identities = identities;
         this.identitySync = identitySync;
+        this.nicknames = nicknames;
+        this.history = history;
         this.chat = chat;
         this.rewards = rewards;
         this.events = events;
@@ -61,6 +69,8 @@ public final class ElarionApi {
     public AbilityService abilities() { return abilities; }
     public IdentityService identities() { return identities; }
     public IdentitySyncService identitySync() { return identitySync; }
+    public NicknameService nicknames() { return nicknames; }
+    public HistoryService history() { return history; }
     public ChatService chat() { return chat; }
     public RewardActionService rewards() { return rewards; }
     public ElarionEventBus events() { return events; }

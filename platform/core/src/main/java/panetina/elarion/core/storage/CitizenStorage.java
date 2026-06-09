@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public final class CitizenStorage {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -49,6 +50,29 @@ public final class CitizenStorage {
         } catch (IOException exception) {
             logger.error("Failed to save citizen {}", citizen.uuid(), exception);
         }
+    }
+
+    public List<CitizenRecord> loadAll(MinecraftServer server) {
+        Path directory = citizenDir(server);
+        if (Files.notExists(directory)) return List.of();
+
+        List<CitizenRecord> citizens = new ArrayList<>();
+        try (Stream<Path> files = Files.list(directory)) {
+            files.filter(path -> path.getFileName().toString().endsWith(".json"))
+                    .forEach(path -> {
+                        String fileName = path.getFileName().toString();
+                        try {
+                            UUID uuid = UUID.fromString(fileName.substring(0, fileName.length() - 5));
+                            CitizenRecord citizen = load(server, uuid);
+                            if (citizen != null) citizens.add(citizen);
+                        } catch (IllegalArgumentException exception) {
+                            logger.warn("Ignoring citizen file with invalid UUID name: {}", path);
+                        }
+                    });
+        } catch (IOException exception) {
+            logger.error("Failed to list citizens in {}", directory, exception);
+        }
+        return List.copyOf(citizens);
     }
 
     private static Path citizenDir(MinecraftServer server) {

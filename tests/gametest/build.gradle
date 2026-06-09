@@ -1,0 +1,18 @@
+dependencies {
+    modImplementation(project(':platform:core')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    runtimeOnly 'org.yaml:snakeyaml:2.2'
+}
+
+loom {
+    runs {
+        gameTestServer {
+            server()
+            name = 'Elarion Game Test Server'
+            runDir = 'run/gametest'
+            vmArg '-Dfabric-api.gametest'
+            vmArg "-Dfabric-api.gametest.report-file=${project.layout.buildDirectory.file('test-results/gametest.xml').get().asFile.absolutePath}"
+        }
+    }
+}

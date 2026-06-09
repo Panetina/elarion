@@ -1,0 +1,38 @@
+package panetina.elarion.tests;
+
+import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.minecraft.test.GameTest;
+import net.minecraft.test.TestContext;
+import panetina.elarion.core.api.ElarionApi;
+
+import java.util.Map;
+
+public final class ElarionCoreGameTest implements FabricGameTest {
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
+    public void coreApiLoadsInsideMinecraftServer(TestContext context) {
+        ElarionApi api = ElarionApi.get();
+
+        context.assertTrue(api.communities().all().iterator().hasNext(),
+                "Elarion Core should load configured communities in a game-test server");
+        context.assertTrue(api.nicknames() != null,
+                "Nickname policy API should be available");
+        context.assertTrue(api.history() != null,
+                "History API should be available");
+
+        api.history().record(
+                "gametest",
+                "history-roundtrip",
+                null,
+                "test",
+                "core-services",
+                "",
+                Map.of("source", "fabric-gametest")
+        );
+
+        var events = api.history().forCategory("gametest", 1);
+        context.assertTrue(!events.isEmpty(), "Expected the recorded history event");
+        context.assertEquals("history-roundtrip", events.getFirst().type(),
+                "History event type did not round-trip");
+        context.complete();
+    }
+}

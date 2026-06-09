@@ -8,6 +8,9 @@ import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.storage.CitizenStorage;
 
 import java.util.Map;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,6 +66,14 @@ public final class CitizenService {
         CitizenRecord loaded = storage.load(server, uuid);
         if (loaded != null) cache.put(uuid, loaded);
         return Optional.ofNullable(loaded);
+    }
+
+    public Collection<CitizenRecord> all() {
+        requireServer();
+        Map<UUID, CitizenRecord> citizens = new LinkedHashMap<>();
+        storage.loadAll(server).forEach(citizen -> citizens.put(citizen.uuid(), citizen));
+        citizens.putAll(cache);
+        return List.copyOf(citizens.values());
     }
 
     public CitizenRecord update(ServerPlayerEntity player, String reason, Consumer<CitizenRecord> mutation) {

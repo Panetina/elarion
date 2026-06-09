@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "panetina.elarion.core.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "EntitySelectorMixin",
+    "EntityArgumentTypeSuggestionMixin",
+    "ServerCommandSourceMixin",
+    "SuggestionsBuilderAccessor"
+  ],
+  "client": [
+    "client.ClientCommandSourceMixin",
+    "client.PlayerEntityRendererVisibilityMixin",
+    "client.PlayerListHudMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -23,9 +23,12 @@ import panetina.elarion.core.service.CitizenService;
 import panetina.elarion.core.service.CommunityService;
 import panetina.elarion.core.service.IdentityService;
 import panetina.elarion.core.service.IdentitySyncService;
+import panetina.elarion.core.service.NicknameService;
+import panetina.elarion.core.service.HistoryService;
 import panetina.elarion.core.service.RewardActionService;
 import panetina.elarion.core.service.TitleService;
 import panetina.elarion.core.storage.CitizenStorage;
+import panetina.elarion.core.storage.HistoryStorage;
 import panetina.elarion.core.network.IdentitySyncRequestPayload;
 import panetina.elarion.core.network.IdentitySyncPayload;
 
@@ -49,6 +52,8 @@ public final class ElarionCoreMod implements ModInitializer {
         config.titles().values().forEach(title -> title.abilities().forEach(abilities::register));
         IdentityService identities = new IdentityService(citizens, communities, titles);
         IdentitySyncService identitySync = new IdentitySyncService(citizens, communities, titles, identities);
+        NicknameService nicknames = new NicknameService(config, citizens);
+        HistoryService history = new HistoryService(new HistoryStorage(LOGGER), events);
         ServerPlayNetworking.registerGlobalReceiver(IdentitySyncRequestPayload.ID, (payload, context) -> {
             if (payload.requested()) {
                 context.server().execute(() -> identitySync.syncAll(context.server()));
@@ -58,7 +63,8 @@ public final class ElarionCoreMod implements ModInitializer {
         RewardActionService rewards = new RewardActionService(config, citizens, titles, abilities, events);
         ElarionCommandRegistry commands = new ElarionCommandRegistry();
         ElarionApi api = new ElarionApi(
-                citizens, communities, titles, abilities, identities, identitySync, chat, rewards, events, commands);
+                citizens, communities, titles, abilities, identities, identitySync, nicknames, history,
+                chat, rewards, events, commands);
 
         initializeAddons(api);
         events.onCitizenChanged(event -> {
@@ -68,6 +74,7 @@ public final class ElarionCoreMod implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             citizens.bind(server);
+            history.bind(server);
             communities.initializeScoreboardTeams(server);
             LOGGER.info("Elarion Core bound to server {}", server.getServerMotd());
         });

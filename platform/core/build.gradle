@@ -1,3 +1,8 @@
 dependencies {
     implementation include('org.yaml:snakeyaml:2.2')
+    testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+}
+
+test {
+    useJUnitPlatform()
 }
