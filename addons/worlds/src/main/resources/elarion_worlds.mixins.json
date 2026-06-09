@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "panetina.elarion.addons.worlds.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MinecraftServerBorderMixin",
+    "WorldBorderCommandMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

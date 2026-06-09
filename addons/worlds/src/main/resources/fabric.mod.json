@@ -16,6 +16,9 @@
       "panetina.elarion.addons.worlds.ElarionWorldsAddon"
     ]
   },
+  "mixins": [
+    "elarion_worlds.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.16.14",
     "minecraft": "~1.21.1",

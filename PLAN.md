@@ -660,9 +660,16 @@ planned, partial, config-only, or addon shells.
 - [x] Resolve configured world IDs and spawn points through `ElarionWorldsApi`
 - [x] Add strict modular `worlds.yml` definitions for seeds, templates,
   difficulty, gamerules, spawn points, and per-world borders
-- [ ] Add the default world in "/e world tp" or another better way to return to that world. Same for the nether, end, jail, etc in the future
-- [ ] Fix per-world borders, currently /worldborder set affects all worlds. Make different world-border configurable for every world (nether, community worlds, end, jail, etc)
-- [ ] Make the default world as simple and small as possible for performance issues, that will just host the players until they just their community in the future GUI
+- [x] Add modular `VOID`, `FLAT`, `OVERWORLD`, `NETHER`, `END`, `CAVE`, and
+  `CUSTOM` world types, plus confirmed `/e world create|remove`
+- [x] Keep configured and command-created worlds together in the canonical
+  `worlds.yml`
+- [x] Add configurable real teleport destinations, starting with `lobby` and
+  ready for future `jail`, `underworld`, `nether`, or `end` destinations
+- [x] Make `/worldborder` target the command source's current world and configure
+  and persist independent borders for addon-managed worlds
+- [x] Add a tiny one-block VOID lobby with no spawn chunks or mob spawning for
+  players waiting to choose a community and as the no-bed world-spawn fallback
 - [x] Add deterministic per-world block and mob abundance controls for future
   trade/resource specialization
 - [x] Synchronize independent world borders only to players in that world
@@ -673,6 +680,8 @@ planned, partial, config-only, or addon shells.
 - [ ] Gate portal use through progression and abilities
 - [ ] Enforce Diplomat or `elarion.portal.foreign_access` for foreign portals
 - [ ] Add portal administration commands and feedback
+- [ ] Delete End Portal generation/ stronghold generation/ nether portal creation/ both portals functioning
+- [ ] Add custom portals for end and nether for progression and to place them in the center of all comunities.
 
 ### Jail, Death, and Underworld
 

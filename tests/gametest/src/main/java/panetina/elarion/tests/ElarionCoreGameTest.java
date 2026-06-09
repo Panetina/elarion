@@ -36,14 +36,30 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "History event type did not round-trip");
 
         ElarionWorldsApi worlds = ElarionWorldsApi.get();
-        context.assertEquals(3, worlds.definitions().size(),
-                "Expected three default managed world definitions");
+        context.assertEquals(worlds.definitions().size(), 4,
+                "Expected the lobby and three default managed world definitions");
+        context.assertTrue(worlds.resolve("lobby") != null,
+                "lobby destination should resolve");
         context.assertTrue(worlds.resolve("community_world_1") != null,
                 "community_world_1 should be loaded");
         context.assertTrue(worlds.resolve("community_world_2") != null,
                 "community_world_2 should be loaded");
         context.assertTrue(worlds.resolve("community_world_3") != null,
                 "community_world_3 should be loaded");
+
+        var server = context.getWorld().getServer();
+        var lobby = worlds.resolve("lobby");
+        var communityWorld = worlds.resolve("community_world_1");
+        double lobbySize = lobby.getWorldBorder().getSize();
+        double communitySize = communityWorld.getWorldBorder().getSize();
+        server.getCommandManager().executeWithPrefix(
+                server.getCommandSource().withWorld(communityWorld).withLevel(4),
+                "worldborder set 321");
+        context.assertEquals(communityWorld.getWorldBorder().getSize(), 321.0,
+                "The command should change the source world's border");
+        context.assertEquals(lobby.getWorldBorder().getSize(), lobbySize,
+                "Changing a community border must not change the lobby border");
+        communityWorld.getWorldBorder().setSize(communitySize);
         context.complete();
     }
 }

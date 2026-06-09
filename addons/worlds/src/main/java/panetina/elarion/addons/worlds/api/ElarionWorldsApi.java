@@ -31,8 +31,7 @@ public final class ElarionWorldsApi {
     }
 
     public ServerWorld resolve(String nameOrId) {
-        ManagedWorldDefinition definition = worlds.findDefinition(nameOrId);
-        return definition == null ? worlds.getWorld(nameOrId) : worlds.getWorld(definition.id());
+        return worlds.resolveWorld(nameOrId);
     }
 
     public ServerWorld open(String nameOrId) {
