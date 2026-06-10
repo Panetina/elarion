@@ -8,6 +8,7 @@ public record PlayerIdentity(
         Text chatName,
         Text tabName,
         Text titleText,
+        Text leaderText,
         String prefix,
         String suffix,
         Formatting color,

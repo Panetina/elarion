@@ -22,6 +22,10 @@ public final class ElarionWorldsApi {
         return instance;
     }
 
+    public static boolean isManaged(ServerWorld world) {
+        return instance != null && instance.worlds.definition(world) != null;
+    }
+
     public Map<String, ManagedWorldDefinition> definitions() {
         return worlds.definitions();
     }

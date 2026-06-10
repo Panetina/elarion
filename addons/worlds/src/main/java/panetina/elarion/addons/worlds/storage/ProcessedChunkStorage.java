@@ -4,12 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.WorldSavePath;
 import org.slf4j.Logger;
+import panetina.elarion.core.storage.JsonStateStorage;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -47,18 +46,10 @@ public final class ProcessedChunkStorage {
         Path file = path(server);
         Map<String, List<Long>> stored = new HashMap<>();
         processed.forEach((world, chunks) -> stored.put(world, chunks.stream().sorted().toList()));
-        try {
-            Files.createDirectories(file.getParent());
-            try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
-                GSON.toJson(stored, FILE_TYPE, writer);
-            }
-        } catch (IOException exception) {
-            logger.error("Unable to save processed world chunks to {}", file, exception);
-        }
+        JsonStateStorage.writeAtomic(file, GSON, stored, logger, "processed Elarion world chunks");
     }
 
     private static Path path(MinecraftServer server) {
-        return server.getSavePath(WorldSavePath.ROOT)
-                .resolve("elarion/addon-state/worlds/processed-chunks.json");
+        return JsonStateStorage.addonStateRoot(server, "worlds").resolve("processed-chunks.json");
     }
 }

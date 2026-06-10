@@ -12,12 +12,16 @@ import panetina.elarion.core.model.RealmDefinition;
 
 import java.util.Collection;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class RealmService {
     private static final String TEAM_PREFIX = "elarion_";
     private final CoreConfigManager config;
     private final CitizenService citizens;
+    private final Map<String, Optional<RealmDefinition>> worldOwnerCache = new ConcurrentHashMap<>();
+    private Map<String, RealmDefinition> cachedRealmSource = Map.of();
 
     public RealmService(CoreConfigManager config, CitizenService citizens) {
         this.config = config;
@@ -37,16 +41,33 @@ public final class RealmService {
         return find(citizen.realmId());
     }
 
+    public Optional<RealmDefinition> ownerForWorld(String worldId) {
+        if (worldId == null || worldId.isBlank()) return Optional.empty();
+        Map<String, RealmDefinition> current = config.realms();
+        if (cachedRealmSource != current) {
+            worldOwnerCache.clear();
+            cachedRealmSource = current;
+        }
+        return worldOwnerCache.computeIfAbsent(worldId, id -> all().stream()
+                .filter(realm -> realm.spawn() != null && id.equals(realm.spawn().worldId()))
+                .findFirst());
+    }
+
     public boolean assign(ServerPlayerEntity player, String realmId) {
         Optional<RealmDefinition> realm = find(realmId);
         if (realm.isEmpty()) return false;
-        citizens.update(player, "realm-assigned", citizen -> citizen.setRealmId(realm.get().id()));
+        citizens.update(player, "realm-assigned", citizen -> {
+            if (!realm.get().id().equals(citizen.realmId())) {
+                citizen.clearRealmAffiliation();
+            }
+            citizen.setRealmId(realm.get().id());
+        });
         applyScoreboardTeam(player, realm.get());
         return true;
     }
 
     public void remove(ServerPlayerEntity player) {
-        citizens.update(player, "realm-removed", citizen -> citizen.setRealmId(null));
+        citizens.update(player, "realm-removed", CitizenRecord::clearRealmAffiliation);
         removeElarionTeam(player);
     }
 

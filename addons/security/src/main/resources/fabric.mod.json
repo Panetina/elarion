@@ -1,0 +1,27 @@
+{
+    "schemaVersion": 1,
+    "id": "elarion_security",
+    "version": "${version}",
+    "name": "Elarion Security",
+    "description": "Security, anti-cheat, and anti-AFK farm protection foundation for Elarion.",
+    "authors": [
+        "Panyel"
+    ],
+    "contributors": [
+        "Panetina Team"
+    ],
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "elarion:addon": [
+            "panetina.elarion.addons.security.ElarionSecurityAddon"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.16.14",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*",
+        "elarion_core": "*"
+    }
+}

@@ -19,22 +19,30 @@ import panetina.elarion.addons.worlds.model.BlockAbundanceRule;
 import panetina.elarion.addons.worlds.model.ManagedWorldDefinition;
 import panetina.elarion.addons.worlds.model.MobAbundanceRule;
 import panetina.elarion.addons.worlds.storage.ProcessedChunkStorage;
+import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.service.ElarionPerformanceMonitor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class WorldRuleService {
     private final Logger logger;
+    private final ElarionApi api;
     private final ProcessedChunkStorage storage;
     private final WorldService worlds;
     private Map<String, Set<Long>> processedChunks = new HashMap<>();
+    private final Map<String, Map<Block, ResolvedBlockRule>> resolvedBlockRuleCache = new ConcurrentHashMap<>();
+    private final Map<String, ChunkSliceProgress> pendingBlockRuleChunks = new ConcurrentHashMap<>();
     private MinecraftServer server;
     private boolean dirty;
     private int saveCountdown = 200;
 
-    public WorldRuleService(Logger logger, WorldService worlds) {
+    public WorldRuleService(Logger logger, ElarionApi api, WorldService worlds) {
         this.logger = logger;
+        this.api = api;
         this.worlds = worlds;
         this.storage = new ProcessedChunkStorage(logger);
     }
@@ -64,17 +72,94 @@ public final class WorldRuleService {
         String worldId = world.getRegistryKey().getValue().toString();
         Set<Long> processed = processedChunks.computeIfAbsent(worldId, ignored -> new java.util.HashSet<>());
         long chunkKey = chunk.getPos().toLong();
-        if (!processed.add(chunkKey)) return;
+        String pendingKey = worldId + ":" + chunkKey;
+        if (processed.contains(chunkKey) || pendingBlockRuleChunks.containsKey(pendingKey)) return;
+
+        Map<Block, ResolvedBlockRule> rules = resolvedBlockRules(definition);
+        if (rules.isEmpty()) {
+            processed.add(chunkKey);
+            dirty = true;
+            return;
+        }
+
+        java.util.List<ChunkSlice> slices = slices(world);
+        ChunkSliceProgress progress = new ChunkSliceProgress(slices.size());
+        pendingBlockRuleChunks.put(pendingKey, progress);
+        for (ChunkSlice slice : slices) {
+            if (!api.system().tasks().enqueueServer("world-block-rules:" + worldId + ":" + chunkKey + ":" + slice.minY(),
+                    () -> applyBlockRuleSlice(world, chunk, definition, rules, slice, pendingKey, chunkKey))) {
+                pendingBlockRuleChunks.remove(pendingKey);
+                ElarionPerformanceMonitor.record("world-block-rules-queue-full", 0L);
+                logger.warn("Skipped queued scarcity replacement for {} chunk {} because server queue is full",
+                        worldId, chunk.getPos());
+                return;
+            }
+        }
+    }
+
+    private java.util.List<ChunkSlice> slices(ServerWorld world) {
+        return slices(world.getBottomY(), world.getTopY());
+    }
+
+    static java.util.List<ChunkSlice> slices(int bottomY, int topY) {
+        java.util.List<ChunkSlice> slices = new java.util.ArrayList<>();
+        for (int y = bottomY; y < topY; y += 16) {
+            slices.add(new ChunkSlice(y, Math.min(topY, y + 16)));
+        }
+        return slices;
+    }
+
+    private void applyBlockRuleSlice(
+            ServerWorld world,
+            WorldChunk chunk,
+            ManagedWorldDefinition definition,
+            Map<Block, ResolvedBlockRule> rules,
+            ChunkSlice slice,
+            String pendingKey,
+            long chunkKey
+    ) {
+        long started = System.nanoTime();
+        try {
+            int replacements = applyBlockRules(world, chunk, definition, rules, slice);
+            if (replacements > 0) {
+                chunk.setNeedsSaving(true);
+                ChunkSliceProgress progress = pendingBlockRuleChunks.get(pendingKey);
+                if (progress != null) progress.replacements.addAndGet(replacements);
+            }
+            ElarionPerformanceMonitor.record("world-block-rules-slice-completed", System.nanoTime() - started);
+            finishSlice(world, chunk, pendingKey, chunkKey);
+        } catch (RuntimeException exception) {
+            pendingBlockRuleChunks.remove(pendingKey);
+            ElarionPerformanceMonitor.record("world-block-rules-slice-failed", System.nanoTime() - started);
+            throw exception;
+        }
+    }
+
+    private void finishSlice(ServerWorld world, WorldChunk chunk, String pendingKey, long chunkKey) {
+        ChunkSliceProgress progress = pendingBlockRuleChunks.get(pendingKey);
+        if (progress == null || progress.remaining.decrementAndGet() > 0) return;
+        pendingBlockRuleChunks.remove(pendingKey);
+        String worldId = world.getRegistryKey().getValue().toString();
+        processedChunks.computeIfAbsent(worldId, ignored -> new java.util.HashSet<>()).add(chunkKey);
         dirty = true;
+        if (progress.replacements.get() > 0) {
+            logger.debug("Applied {} scarcity replacements in {} chunk {}",
+                    progress.replacements.get(), worldId, chunk.getPos());
+        }
+    }
 
-        Map<Block, ResolvedBlockRule> rules = resolveBlockRules(definition);
-        if (rules.isEmpty()) return;
-
+    private int applyBlockRules(
+            ServerWorld world,
+            WorldChunk chunk,
+            ManagedWorldDefinition definition,
+            Map<Block, ResolvedBlockRule> rules,
+            ChunkSlice slice
+    ) {
         int startX = chunk.getPos().getStartX();
         int startZ = chunk.getPos().getStartZ();
         BlockPos.Mutable pos = new BlockPos.Mutable();
         int replacements = 0;
-        for (int y = world.getBottomY(); y < world.getTopY(); y++) {
+        for (int y = slice.minY(); y < slice.maxY(); y++) {
             for (int localZ = 0; localZ < 16; localZ++) {
                 for (int localX = 0; localX < 16; localX++) {
                     pos.set(startX + localX, y, startZ + localZ);
@@ -87,10 +172,12 @@ public final class WorldRuleService {
                 }
             }
         }
-        if (replacements > 0) {
-            chunk.setNeedsSaving(true);
-            logger.debug("Applied {} scarcity replacements in {} chunk {}", replacements, worldId, chunk.getPos());
-        }
+        return replacements;
+    }
+
+    private Map<Block, ResolvedBlockRule> resolvedBlockRules(ManagedWorldDefinition definition) {
+        String cacheKey = definition.id() + "#" + definition.blockRules().hashCode();
+        return resolvedBlockRuleCache.computeIfAbsent(cacheKey, ignored -> resolveBlockRules(definition));
     }
 
     private Map<Block, ResolvedBlockRule> resolveBlockRules(ManagedWorldDefinition definition) {
@@ -126,5 +213,17 @@ public final class WorldRuleService {
     }
 
     private record ResolvedBlockRule(double chance, BlockState replacement, int salt) {
+    }
+
+    record ChunkSlice(int minY, int maxY) {
+    }
+
+    private static final class ChunkSliceProgress {
+        private final AtomicInteger remaining;
+        private final AtomicInteger replacements = new AtomicInteger();
+
+        private ChunkSliceProgress(int slices) {
+            this.remaining = new AtomicInteger(slices);
+        }
     }
 }

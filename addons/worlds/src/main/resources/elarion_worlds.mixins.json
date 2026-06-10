@@ -3,6 +3,7 @@
   "package": "panetina.elarion.addons.worlds.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ManagedWorldSpawnProtectionMixin",
     "MinecraftServerBorderMixin",
     "WorldBorderCommandMixin"
   ],

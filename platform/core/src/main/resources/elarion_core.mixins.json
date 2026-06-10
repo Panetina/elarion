@@ -7,11 +7,14 @@
     "CommandNodeAccessor",
     "EntitySelectorMixin",
     "EntityArgumentTypeSuggestionMixin",
+    "CraftingResultSlotMixin",
+    "PlayerAdvancementTrackerMixin",
     "ServerCommandSourceMixin",
     "SuggestionsBuilderAccessor"
   ],
   "client": [
     "client.ClientCommandSourceMixin",
+    "client.MouseNotificationIconMixin",
     "client.PlayerEntityRendererVisibilityMixin",
     "client.PlayerListHudMixin"
   ],

@@ -8,6 +8,7 @@ dependencies {
             ':addons:realms',
             ':addons:names',
             ':addons:contributions',
+            ':addons:economy',
             ':addons:portals',
             ':addons:jail',
             ':addons:underworld',
@@ -15,7 +16,9 @@ dependencies {
             ':addons:voicechat-hooks',
             ':addons:tablist',
             ':addons:government',
-            ':addons:newspapers'
+            ':addons:newspapers',
+            ':addons:security',
+            ':addons:optimization'
     ].each { addonPath ->
         implementation(project(path: addonPath, configuration: 'namedElements')) {
             exclude group: 'net.fabricmc.fabric-api'

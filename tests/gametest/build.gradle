@@ -1,8 +1,14 @@
 dependencies {
-    modImplementation(project(':platform:core')) {
+    implementation(project(path: ':platform:core', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
-    modImplementation(project(':addons:worlds')) {
+    implementation(project(path: ':addons:worlds', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    implementation(project(path: ':addons:realms', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    implementation(project(path: ':addons:economy', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
     modRuntimeOnly 'xyz.nucleoid:fantasy:0.6.3+1.21'

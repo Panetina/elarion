@@ -5,9 +5,10 @@ import org.slf4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RewardAction;
-import panetina.elarion.core.model.SpawnPoint;
 import panetina.elarion.core.model.TitleDefinition;
-import panetina.elarion.core.model.VisibilityScope;
+import panetina.elarion.core.model.TitleUnlockRule;
+import panetina.elarion.core.model.ProgressionRegion;
+import panetina.elarion.core.model.HistoryRecordingPolicy;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -15,12 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,177 +28,32 @@ public final class CoreConfigManager {
             "black", "dark_blue", "dark_green", "dark_aqua", "dark_red", "dark_purple",
             "gold", "gray", "dark_gray", "blue", "green", "aqua", "red",
             "light_purple", "yellow", "white");
-    private static final Map<String, String> DEFAULT_FILES = Map.ofEntries(
-            Map.entry("realms.yml", """
-                    config-version: 1
-
-                    # Supported realm colors:
-                    # black, dark_blue, dark_green, dark_aqua, dark_red, dark_purple
-                    # gold, gray, dark_gray, blue, green, aqua, red
-                    # light_purple, yellow, white
-                    #
-                    # Invalid color names fall back to white.
-
-                    realms:
-                      oak:
-                        display-name: "Kingdom of Oak"
-                        short-name: "OAK"
-                        prefix: "[OAK]"
-                        color: "green"
-                        visibility-scope: "REALM"
-                        spawn:
-                          world: "minecraft:overworld"
-                          x: 0
-                          y: 64
-                          z: 0
-                          yaw: 0
-                          pitch: 0
-                        flags: []
-                      sky:
-                        display-name: "Kingdom of Sky"
-                        short-name: "SKY"
-                        prefix: "[SKY]"
-                        color: "blue"
-                        visibility-scope: "REALM"
-                        spawn:
-                          world: "elarion:realm_world_2"
-                          x: 0
-                          y: 64
-                          z: 0
-                          yaw: 0
-                          pitch: 0
-                        flags: [ ]
-                      earth:
-                        display-name: "Kingdom of Earth"
-                        short-name: "EARTH"
-                        prefix: "[EARTH]"
-                        color: "gold"
-                        visibility-scope: "REALM"
-                        spawn:
-                          world: "elarion:realm_world_3"
-                          x: 0
-                          y: 64
-                          z: 0
-                          yaw: 0
-                          pitch: 0
-                        flags: [ ]
-                    """),
-            Map.entry("titles.yml", """
-                    config-version: 1
-
-                    titles:
-                      citizen:
-                        display-name: "Citizen"
-                        prefix: ""
-                        suffix: ""
-                        priority: 0
-                        visible-under-username: true
-                        abilities: []
-                      news_reporter:
-                        display-name: "News Reporter"
-                        prefix: ""
-                        suffix: ""
-                        priority: 20
-                        visible-under-username: true
-                        abilities:
-                          - "elarion.newspaper.publish"
-                      diplomat:
-                        display-name: "Diplomat"
-                        prefix: ""
-                        suffix: ""
-                        priority: 30
-                        visible-under-username: true
-                        abilities:
-                          - "elarion.portal.foreign_access"
-                    """),
-            Map.entry("abilities.yml", """
-                    config-version: 1
-
-                    abilities:
-                      elarion.newspaper.publish:
-                        description: "Publish and manage newspapers."
-                      elarion.portal.foreign_access:
-                        description: "Use portals belonging to another realm."
-                    """),
-            Map.entry("identity.yml", """
-                    config-version: 1
-
-                    nickname:
-                      enabled: true
-                      max-length: 32
-                    nickname-policy:
-                      # Comparison always ignores capitalization, whitespace, and
-                      # common separators. Submitted nicknames may contain only
-                      # letters, spaces, apostrophes, and hyphens. Every name
-                      # segment is title-cased.
-                      unique: true
-                      reserve-player-usernames: true
-                      reserved-names:
-                        - "admin"
-                        - "administrator"
-                        - "server"
-                        - "system"
-                        - "console"
-                        - "operator"
-                        - "moderator"
-                        - "elarion"
-                    nickname-protection:
-                      enabled: true
-                      protect-realm-presentation: true
-                      protect-title-presentation: true
-                      reject-containing-protected-name: true
-                    title:
-                      render-under-username: true
-                    """),
-            Map.entry("chat.yml", """
-                    config-version: 1
-
-                    realm-chat:
-                      command: "rc"
-                      format: "[%realm_short%] %player% \u00bb %message%"
-                    """),
-            Map.entry("visibility.yml", """
-                    config-version: 1
-
-                    defaults:
-                      scope: "REALM"
-                      operators-visible: true
-                    """),
-            Map.entry("rewards.yml", """
-                    config-version: 1
-
-                    rewards:
-                      welcome:
-                        actions:
-                          - type: "message"
-                            text: "Welcome to Elarion."
-                    """),
-            Map.entry("commands.yml", """
-                    config-version: 1
-
-                    commands:
-                      admin-root: "e"
-                      admin-permission-level: 4
-                      realm-chat-root: "rc"
-                    """),
-            Map.entry("citizens-defaults.yml", """
-                    config-version: 1
-
-                    defaults:
-                      status: "ACTIVE"
-                      title: "citizen"
-                      flags: []
-                    """)
-    );
+    private static final Map<String, String> DEFAULT_FILES = CoreConfigDefaultFiles.FILES;
 
     private final Logger logger;
     private final Yaml yaml = new Yaml();
     private final Path coreConfigDir;
     private Map<String, RealmDefinition> realms = Map.of();
     private Map<String, TitleDefinition> titles = Map.of();
+    private Map<String, TitleUnlockRule> titleUnlockRules = Map.of();
+    private Map<String, ProgressionRegion> progressionRegions = Map.of();
     private Map<String, List<RewardAction>> rewards = Map.of();
     private String defaultTitleId = "citizen";
-    private String realmChatFormat = "[%realm_short%] %player% \u00bb %message%";
+    private boolean localChatEnabled = true;
+    private int localChatRadius = 64;
+    private boolean localChatSameWorldOnly = true;
+    private boolean localChatAdminSpy = true;
+    private String localChatFormat = "[Local] %player% \u00bb %message%";
+    private int whisperChatRadius = 4;
+    private String whisperChatFormat = "[Local] %player% whispers: %message%";
+    private int yellChatRadius = 128;
+    private int yellChatCooldownSeconds = 300;
+    private String yellChatFormat = "[Local] %player% yells: %message%";
+    private String realmChatFormat = "[Realm] %player% \u00bb %message%";
+    private String allianceChatFormat = "[Alliance:%realm_short%] %player% \u00bb %message%";
+    private boolean scopedJoinLeaveNotices = true;
+    private String realmNoticeFormat = "%player% joined your Realm.";
+    private String adminNoticeFormat = "%player% joined realm %realm%.";
     private boolean nicknamesEnabled = true;
     private int nicknameMaxLength = 32;
     private boolean nicknameUnique = true;
@@ -210,6 +63,15 @@ public final class CoreConfigManager {
     private boolean nicknameProtectRealmPresentation = true;
     private boolean nicknameProtectTitlePresentation = true;
     private boolean nicknameRejectContainingProtectedName = true;
+    private HistoryRecordingPolicy historyRecordingPolicy = HistoryRecordingPolicy.defaults();
+    private int historyQueryMaxMonths = 3;
+    private int historyCommandLimitMax = 100;
+    private boolean historyArchiveEnabled = true;
+    private int historyArchiveMaxCompletedWeeks = 8;
+    private Set<String> historyChronicleCategories = CoreConfigHistorySupport.DEFAULT_CHRONICLE_CATEGORIES;
+    private int publicHistoryDefaultWeeks = 8;
+    private int publicHistoryDefaultLimit = 50;
+    private int publicHistoryMaxLimit = 200;
 
     public CoreConfigManager(Logger logger) {
         this(logger, FabricLoader.getInstance().getConfigDir().resolve("elarion/core"));
@@ -223,18 +85,41 @@ public final class CoreConfigManager {
     public void load() {
         writeDefaults();
         migrateConfigs();
-        validateConfigs();
+        new CoreConfigValidator(this::loadMap, CONFIG_VERSION, FORMATTING_COLORS).validateConfigs();
 
-        Map<String, RealmDefinition> loadedRealms = loadRealms();
-        Map<String, TitleDefinition> loadedTitles = loadTitles();
-        Map<String, List<RewardAction>> loadedRewards = loadRewards();
+        CoreConfigParser parser = new CoreConfigParser(logger, yaml, coreConfigDir, defaultTitleId);
+        Map<String, RealmDefinition> loadedRealms = parser.loadRealms();
+        Map<String, TitleDefinition> loadedTitles = parser.loadTitles();
+        Map<String, ProgressionRegion> loadedProgressionRegions = parser.loadProgressionRegions();
+        Map<String, TitleUnlockRule> loadedTitleUnlockRules = parser.loadTitleUnlockRules();
+        Map<String, List<RewardAction>> loadedRewards = parser.loadRewards();
 
         Map<String, Object> defaults = loadMap("citizens-defaults.yml");
         String loadedDefaultTitleId = string(map(defaults.get("defaults")).get("title"), "citizen");
 
         Map<String, Object> chat = loadMap("chat.yml");
+        Map<String, Object> localChat = map(chat.get("local-chat"));
+        boolean loadedLocalChatEnabled = bool(localChat.get("enabled"), true);
+        int loadedLocalChatRadius = number(localChat.get("radius"), 64).intValue();
+        boolean loadedLocalChatSameWorldOnly = bool(localChat.get("same-world-only"), true);
+        boolean loadedLocalChatAdminSpy = bool(localChat.get("admin-spy"), true);
+        String loadedLocalChatFormat = string(localChat.get("format"), localChatFormat);
+        Map<String, Object> whisperChat = map(chat.get("whisper-chat"));
+        int loadedWhisperChatRadius = number(whisperChat.get("radius"), 4).intValue();
+        String loadedWhisperChatFormat = string(whisperChat.get("format"), whisperChatFormat);
+        Map<String, Object> yellChat = map(chat.get("yell-chat"));
+        int loadedYellChatRadius = number(yellChat.get("radius"), 128).intValue();
+        int loadedYellChatCooldownSeconds =
+                number(yellChat.get("cooldown-seconds"), 300).intValue();
+        String loadedYellChatFormat = string(yellChat.get("format"), yellChatFormat);
         String loadedRealmChatFormat =
                 string(map(chat.get("realm-chat")).get("format"), realmChatFormat);
+        String loadedAllianceChatFormat =
+                string(map(chat.get("alliance-chat")).get("format"), allianceChatFormat);
+        Map<String, Object> notices = map(chat.get("notices"));
+        boolean loadedScopedJoinLeaveNotices = bool(notices.get("scoped-join-leave"), true);
+        String loadedRealmNoticeFormat = string(notices.get("realm-format"), realmNoticeFormat);
+        String loadedAdminNoticeFormat = string(notices.get("admin-format"), adminNoticeFormat);
 
         Map<String, Object> identity = loadMap("identity.yml");
         Map<String, Object> nickname = map(identity.get("nickname"));
@@ -253,12 +138,30 @@ public final class CoreConfigManager {
                 bool(nicknameProtection.get("protect-title-presentation"), true);
         boolean loadedNicknameRejectContainingProtectedName =
                 bool(nicknameProtection.get("reject-containing-protected-name"), true);
+        CoreConfigHistorySupport.Settings loadedHistory = CoreConfigHistorySupport.load(
+                loadMap("history.yml"), historyChronicleCategories);
 
         realms = loadedRealms;
         titles = loadedTitles;
+        titleUnlockRules = loadedTitleUnlockRules;
+        progressionRegions = loadedProgressionRegions;
         rewards = loadedRewards;
         defaultTitleId = loadedDefaultTitleId;
+        localChatEnabled = loadedLocalChatEnabled;
+        localChatRadius = loadedLocalChatRadius;
+        localChatSameWorldOnly = loadedLocalChatSameWorldOnly;
+        localChatAdminSpy = loadedLocalChatAdminSpy;
+        localChatFormat = loadedLocalChatFormat;
+        whisperChatRadius = loadedWhisperChatRadius;
+        whisperChatFormat = loadedWhisperChatFormat;
+        yellChatRadius = loadedYellChatRadius;
+        yellChatCooldownSeconds = loadedYellChatCooldownSeconds;
+        yellChatFormat = loadedYellChatFormat;
         realmChatFormat = loadedRealmChatFormat;
+        allianceChatFormat = loadedAllianceChatFormat;
+        scopedJoinLeaveNotices = loadedScopedJoinLeaveNotices;
+        realmNoticeFormat = loadedRealmNoticeFormat;
+        adminNoticeFormat = loadedAdminNoticeFormat;
         nicknamesEnabled = loadedNicknamesEnabled;
         nicknameMaxLength = loadedNicknameMaxLength;
         nicknameUnique = loadedNicknameUnique;
@@ -268,15 +171,40 @@ public final class CoreConfigManager {
         nicknameProtectRealmPresentation = loadedNicknameProtectRealmPresentation;
         nicknameProtectTitlePresentation = loadedNicknameProtectTitlePresentation;
         nicknameRejectContainingProtectedName = loadedNicknameRejectContainingProtectedName;
-        logger.info("Loaded {} realms, {} titles, and {} reward definitions",
-                realms.size(), titles.size(), rewards.size());
+        historyRecordingPolicy = loadedHistory.recordingPolicy();
+        historyQueryMaxMonths = loadedHistory.queryMaxMonths();
+        historyCommandLimitMax = loadedHistory.commandLimitMax();
+        historyArchiveEnabled = loadedHistory.archiveEnabled();
+        historyArchiveMaxCompletedWeeks = loadedHistory.archiveMaxCompletedWeeks();
+        historyChronicleCategories = loadedHistory.chronicleCategories();
+        publicHistoryDefaultWeeks = loadedHistory.publicDefaultWeeks();
+        publicHistoryDefaultLimit = loadedHistory.publicDefaultLimit();
+        publicHistoryMaxLimit = loadedHistory.publicMaxLimit();
+        logger.info("Loaded {} realms, {} titles, {} title progression rules, and {} reward definitions",
+                realms.size(), titles.size(), titleUnlockRules.size(), rewards.size());
     }
 
     public Map<String, RealmDefinition> realms() { return realms; }
     public Map<String, TitleDefinition> titles() { return titles; }
+    public Map<String, TitleUnlockRule> titleUnlockRules() { return titleUnlockRules; }
+    public Map<String, ProgressionRegion> progressionRegions() { return progressionRegions; }
     public Map<String, List<RewardAction>> rewards() { return rewards; }
     public String defaultTitleId() { return defaultTitleId; }
+    public boolean localChatEnabled() { return localChatEnabled; }
+    public int localChatRadius() { return localChatRadius; }
+    public boolean localChatSameWorldOnly() { return localChatSameWorldOnly; }
+    public boolean localChatAdminSpy() { return localChatAdminSpy; }
+    public String localChatFormat() { return localChatFormat; }
+    public int whisperChatRadius() { return whisperChatRadius; }
+    public String whisperChatFormat() { return whisperChatFormat; }
+    public int yellChatRadius() { return yellChatRadius; }
+    public int yellChatCooldownSeconds() { return yellChatCooldownSeconds; }
+    public String yellChatFormat() { return yellChatFormat; }
     public String realmChatFormat() { return realmChatFormat; }
+    public String allianceChatFormat() { return allianceChatFormat; }
+    public boolean scopedJoinLeaveNotices() { return scopedJoinLeaveNotices; }
+    public String realmNoticeFormat() { return realmNoticeFormat; }
+    public String adminNoticeFormat() { return adminNoticeFormat; }
     public boolean nicknamesEnabled() { return nicknamesEnabled; }
     public int nicknameMaxLength() { return nicknameMaxLength; }
     public boolean nicknameUnique() { return nicknameUnique; }
@@ -286,19 +214,23 @@ public final class CoreConfigManager {
     public boolean nicknameProtectRealmPresentation() { return nicknameProtectRealmPresentation; }
     public boolean nicknameProtectTitlePresentation() { return nicknameProtectTitlePresentation; }
     public boolean nicknameRejectContainingProtectedName() { return nicknameRejectContainingProtectedName; }
+    public HistoryRecordingPolicy historyRecordingPolicy() { return historyRecordingPolicy; }
+    public int historyQueryMaxMonths() { return historyQueryMaxMonths; }
+    public int historyCommandLimitMax() { return historyCommandLimitMax; }
+    public boolean historyArchiveEnabled() { return historyArchiveEnabled; }
+    public int historyArchiveMaxCompletedWeeks() { return historyArchiveMaxCompletedWeeks; }
+    public Set<String> historyChronicleCategories() { return historyChronicleCategories; }
+    public int publicHistoryDefaultWeeks() { return publicHistoryDefaultWeeks; }
+    public int publicHistoryDefaultLimit() { return publicHistoryDefaultLimit; }
+    public int publicHistoryMaxLimit() { return publicHistoryMaxLimit; }
     public Path coreConfigDir() { return coreConfigDir; }
 
     private void writeDefaults() {
         try {
-            Files.createDirectories(coreConfigDir);
-            for (Map.Entry<String, String> entry : DEFAULT_FILES.entrySet()) {
-                Path path = coreConfigDir.resolve(entry.getKey());
-                if (Files.notExists(path)) {
-                    Files.writeString(path, entry.getValue(), StandardCharsets.UTF_8);
-                }
-            }
+            CoreConfigDefaults.write(coreConfigDir, DEFAULT_FILES);
             appendNicknamePolicyDefaults(coreConfigDir.resolve("identity.yml"));
             appendNicknameProtectionDefaults(coreConfigDir.resolve("identity.yml"));
+            CoreConfigHistorySupport.appendDefaults(coreConfigDir.resolve("history.yml"));
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to create Elarion configuration", exception);
         }
@@ -328,247 +260,95 @@ public final class CoreConfigManager {
                 throw new IllegalStateException("Unable to migrate " + path, exception);
             }
         }
+        migrateChatConfig();
+        migrateIdentityConfig();
+        migrateHistoryConfig();
     }
 
-    private void validateConfigs() {
-        List<String> errors = new ArrayList<>();
-        validateRealms(loadMap("realms.yml"), errors);
-        validateTitles(loadMap("titles.yml"), errors);
-        validateRewards(loadMap("rewards.yml"), errors);
-        validateIdentity(loadMap("identity.yml"), errors);
-        validateSimpleFiles(errors);
-        if (!errors.isEmpty()) throw new ConfigValidationException(errors);
-    }
-
-    private void validateRealms(Map<String, Object> root, List<String> errors) {
-        checkKeys("realms.yml", root, Set.of("config-version", "realms"), errors);
-        checkVersion("realms.yml", root, errors);
-        Map<String, Object> definitions = requiredMap("realms.yml.realms", root.get("realms"), errors);
-        if (definitions.isEmpty()) errors.add("realms.yml.realms: at least one realm is required");
-        definitions.forEach((id, raw) -> {
-            String path = "realms.yml.realms." + id;
-            Map<String, Object> data = requiredMap(path, raw, errors);
-            checkKeys(path, data, Set.of("display-name", "short-name", "prefix", "color",
-                    "visibility-scope", "spawn", "flags"), errors);
-            requireString(path + ".display-name", data.get("display-name"), false, errors);
-            requireString(path + ".short-name", data.get("short-name"), false, errors);
-            requireString(path + ".prefix", data.get("prefix"), true, errors);
-            String color = requireString(path + ".color", data.get("color"), false, errors);
-            if (color != null && !FORMATTING_COLORS.contains(color.toLowerCase(Locale.ROOT))) {
-                errors.add(path + ".color: unsupported color '" + color + "'");
-            }
-            requireEnum(path + ".visibility-scope", data.get("visibility-scope"), VisibilityScope.class, errors);
-            requireStringCollection(path + ".flags", data.get("flags"), errors);
-            Map<String, Object> spawn = requiredMap(path + ".spawn", data.get("spawn"), errors);
-            checkKeys(path + ".spawn", spawn, Set.of("world", "x", "y", "z", "yaw", "pitch"), errors);
-            requireString(path + ".spawn.world", spawn.get("world"), false, errors);
-            for (String coordinate : List.of("x", "y", "z", "yaw", "pitch")) {
-                requireNumber(path + ".spawn." + coordinate, spawn.get(coordinate), errors);
-            }
-        });
-    }
-
-    private void validateTitles(Map<String, Object> root, List<String> errors) {
-        checkKeys("titles.yml", root, Set.of("config-version", "titles"), errors);
-        checkVersion("titles.yml", root, errors);
-        Map<String, Object> definitions = requiredMap("titles.yml.titles", root.get("titles"), errors);
-        definitions.forEach((id, raw) -> {
-            String path = "titles.yml.titles." + id;
-            Map<String, Object> data = requiredMap(path, raw, errors);
-            checkKeys(path, data, Set.of("display-name", "prefix", "suffix", "priority",
-                    "visible-under-username", "abilities"), errors);
-            requireString(path + ".display-name", data.get("display-name"), false, errors);
-            requireString(path + ".prefix", data.get("prefix"), true, errors);
-            requireString(path + ".suffix", data.get("suffix"), true, errors);
-            requireNumber(path + ".priority", data.get("priority"), errors);
-            requireBoolean(path + ".visible-under-username", data.get("visible-under-username"), errors);
-            requireStringCollection(path + ".abilities", data.get("abilities"), errors);
-        });
-    }
-
-    private void validateRewards(Map<String, Object> root, List<String> errors) {
-        checkKeys("rewards.yml", root, Set.of("config-version", "rewards"), errors);
-        checkVersion("rewards.yml", root, errors);
-        Map<String, Object> definitions = requiredMap("rewards.yml.rewards", root.get("rewards"), errors);
-        definitions.forEach((id, raw) -> {
-            String path = "rewards.yml.rewards." + id;
-            Map<String, Object> reward = requiredMap(path, raw, errors);
-            checkKeys(path, reward, Set.of("actions"), errors);
-            Object actions = reward.get("actions");
-            if (!(actions instanceof Collection<?> collection)) {
-                errors.add(path + ".actions: expected a list");
-                return;
-            }
-            int index = 0;
-            for (Object action : collection) {
-                Map<String, Object> data = requiredMap(path + ".actions[" + index + "]", action, errors);
-                requireString(path + ".actions[" + index + "].type", data.get("type"), false, errors);
-                index++;
-            }
-        });
-    }
-
-    private void validateIdentity(Map<String, Object> root, List<String> errors) {
-        checkKeys("identity.yml", root, Set.of("config-version", "nickname", "nickname-policy",
-                "nickname-protection", "title"), errors);
-        checkVersion("identity.yml", root, errors);
-        Map<String, Object> nickname = requiredMap("identity.yml.nickname", root.get("nickname"), errors);
-        checkKeys("identity.yml.nickname", nickname, Set.of("enabled", "max-length"), errors);
-        requireBoolean("identity.yml.nickname.enabled", nickname.get("enabled"), errors);
-        Number maxLength = requireNumber("identity.yml.nickname.max-length", nickname.get("max-length"), errors);
-        if (maxLength != null && maxLength.intValue() < 1) {
-            errors.add("identity.yml.nickname.max-length: must be at least 1");
-        }
-        Map<String, Object> policy = requiredMap(
-                "identity.yml.nickname-policy", root.get("nickname-policy"), errors);
-        checkKeys("identity.yml.nickname-policy", policy,
-                Set.of("unique", "reserve-player-usernames", "reserved-names"), errors);
-        requireBoolean("identity.yml.nickname-policy.unique", policy.get("unique"), errors);
-        requireBoolean("identity.yml.nickname-policy.reserve-player-usernames",
-                policy.get("reserve-player-usernames"), errors);
-        requireStringCollection("identity.yml.nickname-policy.reserved-names",
-                policy.get("reserved-names"), errors);
-        Map<String, Object> protection = requiredMap(
-                "identity.yml.nickname-protection", root.get("nickname-protection"), errors);
-        checkKeys("identity.yml.nickname-protection", protection, Set.of("enabled",
-                "protect-realm-presentation", "protect-title-presentation",
-                "reject-containing-protected-name"), errors);
-        for (String key : protection.keySet()) {
-            requireBoolean("identity.yml.nickname-protection." + key, protection.get(key), errors);
-        }
-        Map<String, Object> title = requiredMap("identity.yml.title", root.get("title"), errors);
-        checkKeys("identity.yml.title", title, Set.of("render-under-username"), errors);
-        requireBoolean("identity.yml.title.render-under-username",
-                title.get("render-under-username"), errors);
-    }
-
-    private void validateSimpleFiles(List<String> errors) {
-        Map<String, Object> defaults = loadMap("citizens-defaults.yml");
-        checkKeys("citizens-defaults.yml", defaults, Set.of("config-version", "defaults"), errors);
-        checkVersion("citizens-defaults.yml", defaults, errors);
-        Map<String, Object> defaultValues =
-                requiredMap("citizens-defaults.yml.defaults", defaults.get("defaults"), errors);
-        checkKeys("citizens-defaults.yml.defaults", defaultValues,
-                Set.of("status", "title", "flags"), errors);
-        requireString("citizens-defaults.yml.defaults.status", defaultValues.get("status"), false, errors);
-        requireEnum("citizens-defaults.yml.defaults.status",
-                defaultValues.get("status"), panetina.elarion.core.model.CitizenStatus.class, errors);
-        requireString("citizens-defaults.yml.defaults.title", defaultValues.get("title"), false, errors);
-        requireStringCollection("citizens-defaults.yml.defaults.flags", defaultValues.get("flags"), errors);
-
-        Map<String, Object> chat = loadMap("chat.yml");
-        checkKeys("chat.yml", chat, Set.of("config-version", "realm-chat"), errors);
-        checkVersion("chat.yml", chat, errors);
-        Map<String, Object> realmChat =
-                requiredMap("chat.yml.realm-chat", chat.get("realm-chat"), errors);
-        checkKeys("chat.yml.realm-chat", realmChat, Set.of("command", "format"), errors);
-        requireString("chat.yml.realm-chat.command", realmChat.get("command"), false, errors);
-        requireString("chat.yml.realm-chat.format", realmChat.get("format"), false, errors);
-
-        Map<String, Object> abilities = loadMap("abilities.yml");
-        checkKeys("abilities.yml", abilities, Set.of("config-version", "abilities"), errors);
-        checkVersion("abilities.yml", abilities, errors);
-        requiredMap("abilities.yml.abilities", abilities.get("abilities"), errors)
-                .forEach((id, raw) -> {
-                    String path = "abilities.yml.abilities." + id;
-                    Map<String, Object> value = requiredMap(path, raw, errors);
-                    checkKeys(path, value, Set.of("description"), errors);
-                    requireString(path + ".description", value.get("description"), false, errors);
-                });
-
-        Map<String, Object> commands = loadMap("commands.yml");
-        checkKeys("commands.yml", commands, Set.of("config-version", "commands"), errors);
-        checkVersion("commands.yml", commands, errors);
-        Map<String, Object> commandValues =
-                requiredMap("commands.yml.commands", commands.get("commands"), errors);
-        checkKeys("commands.yml.commands", commandValues,
-                Set.of("admin-root", "admin-permission-level", "realm-chat-root"), errors);
-        requireString("commands.yml.commands.admin-root", commandValues.get("admin-root"), false, errors);
-        Number permission = requireNumber("commands.yml.commands.admin-permission-level",
-                commandValues.get("admin-permission-level"), errors);
-        if (permission != null && (permission.intValue() < 0 || permission.intValue() > 4)) {
-            errors.add("commands.yml.commands.admin-permission-level: must be between 0 and 4");
-        }
-        requireString("commands.yml.commands.realm-chat-root",
-                commandValues.get("realm-chat-root"), false, errors);
-
-        Map<String, Object> visibility = loadMap("visibility.yml");
-        checkKeys("visibility.yml", visibility, Set.of("config-version", "defaults"), errors);
-        checkVersion("visibility.yml", visibility, errors);
-        Map<String, Object> visibilityDefaults =
-                requiredMap("visibility.yml.defaults", visibility.get("defaults"), errors);
-        checkKeys("visibility.yml.defaults", visibilityDefaults,
-                Set.of("scope", "operators-visible"), errors);
-        requireEnum("visibility.yml.defaults.scope",
-                visibilityDefaults.get("scope"), VisibilityScope.class, errors);
-        requireBoolean("visibility.yml.defaults.operators-visible",
-                visibilityDefaults.get("operators-visible"), errors);
-    }
-
-    private void checkVersion(String file, Map<String, Object> root, List<String> errors) {
-        Number version = requireNumber(file + ".config-version", root.get("config-version"), errors);
-        if (version != null && version.intValue() != CONFIG_VERSION) {
-            errors.add(file + ".config-version: expected " + CONFIG_VERSION + " but found " + version);
-        }
-    }
-
-    private static void checkKeys(
-            String path, Map<String, Object> values, Set<String> allowed, List<String> errors
-    ) {
-        values.keySet().stream()
-                .filter(key -> !allowed.contains(key))
-                .forEach(key -> errors.add(path + "." + key + ": unknown field"));
-    }
-
-    private static Map<String, Object> requiredMap(String path, Object value, List<String> errors) {
-        if (value instanceof Map<?, ?>) return map(value);
-        errors.add(path + ": expected a mapping");
-        return Map.of();
-    }
-
-    private static String requireString(
-            String path, Object value, boolean allowBlank, List<String> errors
-    ) {
-        if (!(value instanceof String text)) {
-            errors.add(path + ": expected a string");
-            return null;
-        }
-        if (!allowBlank && text.isBlank()) errors.add(path + ": must not be blank");
-        return text;
-    }
-
-    private static Number requireNumber(String path, Object value, List<String> errors) {
-        if (value instanceof Number number) return number;
-        errors.add(path + ": expected a number");
-        return null;
-    }
-
-    private static void requireBoolean(String path, Object value, List<String> errors) {
-        if (!(value instanceof Boolean)) errors.add(path + ": expected true or false");
-    }
-
-    private static void requireStringCollection(String path, Object value, List<String> errors) {
-        if (!(value instanceof Collection<?> collection)) {
-            errors.add(path + ": expected a list of strings");
-            return;
-        }
-        if (collection.stream().anyMatch(item -> !(item instanceof String))) {
-            errors.add(path + ": every list item must be a string");
-        }
-    }
-
-    private static <T extends Enum<T>> void requireEnum(
-            String path, Object value, Class<T> type, List<String> errors
-    ) {
-        if (!(value instanceof String text)) {
-            errors.add(path + ": expected one of " + List.of(type.getEnumConstants()));
-            return;
-        }
+    private void migrateChatConfig() {
+        Path path = coreConfigDir.resolve("chat.yml");
         try {
-            Enum.valueOf(type, text.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            errors.add(path + ": unknown value '" + text + "', expected one of "
-                    + List.of(type.getEnumConstants()));
+            String content = Files.readString(path, StandardCharsets.UTF_8);
+            String migrated = content.replace("[%realm_short%]", "[Realm]");
+            if (!migrated.equals(content)) {
+                Files.writeString(path, migrated, StandardCharsets.UTF_8);
+                content = migrated;
+            }
+            StringBuilder addition = new StringBuilder();
+            if (content.lines().noneMatch(line -> line.trim().equals("local-chat:"))) {
+                addition.append("""
+
+                        local-chat:
+                          enabled: true
+                          radius: 64
+                          same-world-only: true
+                          # Enables the OP-only /spy chat toggle. OPs do not spy
+                          # automatically.
+                          admin-spy: true
+                          format: "[Local] %player% \u00bb %message%"
+                        """);
+            }
+            if (content.lines().noneMatch(line -> line.trim().equals("whisper-chat:"))) {
+                addition.append("""
+
+                        whisper-chat:
+                          command: "w"
+                          radius: 4
+                          format: "[Local] %player% whispers: %message%"
+                        """);
+            }
+            if (content.lines().noneMatch(line -> line.trim().equals("yell-chat:"))) {
+                addition.append("""
+
+                        yell-chat:
+                          command: "yell"
+                          radius: 128
+                          cooldown-seconds: 300
+                          format: "[Local] %player% yells: %message%"
+                        """);
+            }
+            if (content.lines().noneMatch(line -> line.trim().equals("notices:"))) {
+                addition.append("""
+
+                        notices:
+                          scoped-join-leave: true
+                          realm-format: "%player% joined your Realm."
+                          admin-format: "%player% joined realm %realm%."
+                        """);
+            }
+            if (content.lines().noneMatch(line -> line.trim().equals("alliance-chat:"))) {
+                addition.append("""
+
+                        alliance-chat:
+                          command: "ac"
+                          format: "[Alliance:%realm_short%] %player% \u00bb %message%"
+                        """);
+            }
+            if (!addition.isEmpty()) {
+                Files.writeString(path, addition.toString(), StandardCharsets.UTF_8,
+                        java.nio.file.StandardOpenOption.APPEND);
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to migrate " + path, exception);
+        }
+    }
+
+    private void migrateIdentityConfig() {
+        Path path = coreConfigDir.resolve("identity.yml");
+        try {
+            appendNicknamePolicyDefaults(path);
+            appendNicknameProtectionDefaults(path);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to migrate " + path, exception);
+        }
+    }
+
+    private void migrateHistoryConfig() {
+        Path path = coreConfigDir.resolve("history.yml");
+        try {
+            CoreConfigHistorySupport.appendDefaults(path);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to migrate " + path, exception);
         }
     }
 
@@ -614,76 +394,6 @@ public final class CoreConfigManager {
                 """, StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND);
     }
 
-    private Map<String, RealmDefinition> loadRealms() {
-        Map<String, RealmDefinition> result = new LinkedHashMap<>();
-        Map<String, Object> root = loadMap("realms.yml");
-        for (Map.Entry<String, Object> entry : map(root.get("realms")).entrySet()) {
-            String id = normalizeId(entry.getKey());
-            Map<String, Object> data = map(entry.getValue());
-            Map<String, Object> spawn = map(data.get("spawn"));
-            SpawnPoint spawnPoint = new SpawnPoint(
-                    string(spawn.get("world"), "minecraft:overworld"),
-                    number(spawn.get("x"), 0).doubleValue(),
-                    number(spawn.get("y"), 64).doubleValue(),
-                    number(spawn.get("z"), 0).doubleValue(),
-                    number(spawn.get("yaw"), 0).floatValue(),
-                    number(spawn.get("pitch"), 0).floatValue()
-            );
-            result.put(id, new RealmDefinition(
-                    id,
-                    string(data.get("display-name"), id),
-                    string(data.get("short-name"), id.toUpperCase(Locale.ROOT)),
-                    string(data.get("prefix"), ""),
-                    string(data.get("color"), "white"),
-                    spawnPoint,
-                    enumValue(VisibilityScope.class, data.get("visibility-scope"), VisibilityScope.REALM),
-                    stringSet(data.get("flags"))
-            ));
-        }
-        return Map.copyOf(result);
-    }
-
-    private Map<String, TitleDefinition> loadTitles() {
-        Map<String, TitleDefinition> result = new LinkedHashMap<>();
-        Map<String, Object> root = loadMap("titles.yml");
-        for (Map.Entry<String, Object> entry : map(root.get("titles")).entrySet()) {
-            String id = normalizeId(entry.getKey());
-            Map<String, Object> data = map(entry.getValue());
-            result.put(id, new TitleDefinition(
-                    id,
-                    string(data.get("display-name"), id),
-                    string(data.get("prefix"), ""),
-                    string(data.get("suffix"), ""),
-                    number(data.get("priority"), 0).intValue(),
-                    bool(data.get("visible-under-username"), true),
-                    stringSet(data.get("abilities"))
-            ));
-        }
-        return Map.copyOf(result);
-    }
-
-    private Map<String, List<RewardAction>> loadRewards() {
-        Map<String, List<RewardAction>> result = new LinkedHashMap<>();
-        Map<String, Object> root = loadMap("rewards.yml");
-        for (Map.Entry<String, Object> entry : map(root.get("rewards")).entrySet()) {
-            List<RewardAction> actions = new ArrayList<>();
-            Object rawActions = map(entry.getValue()).get("actions");
-            if (rawActions instanceof Collection<?> collection) {
-                for (Object item : collection) {
-                    Map<String, Object> raw = map(item);
-                    String type = string(raw.get("type"), "");
-                    Map<String, String> parameters = new LinkedHashMap<>();
-                    raw.forEach((key, value) -> {
-                        if (!key.equals("type")) parameters.put(key, String.valueOf(value));
-                    });
-                    if (!type.isBlank()) actions.add(new RewardAction(type, parameters));
-                }
-            }
-            result.put(normalizeId(entry.getKey()), List.copyOf(actions));
-        }
-        return Map.copyOf(result);
-    }
-
     @SuppressWarnings("unchecked")
     private Map<String, Object> loadMap(String fileName) {
         Path path = coreConfigDir.resolve(fileName);
@@ -699,10 +409,6 @@ public final class CoreConfigManager {
     @SuppressWarnings("unchecked")
     private static Map<String, Object> map(Object value) {
         return value instanceof Map<?, ?> result ? (Map<String, Object>) result : Map.of();
-    }
-
-    private static String normalizeId(String value) {
-        return value.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 
     private static String string(Object value, String fallback) {
@@ -724,12 +430,4 @@ public final class CoreConfigManager {
         return result;
     }
 
-    private static <T extends Enum<T>> T enumValue(Class<T> type, Object value, T fallback) {
-        if (value == null) return fallback;
-        try {
-            return Enum.valueOf(type, String.valueOf(value).toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ignored) {
-            return fallback;
-        }
-    }
 }

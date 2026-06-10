@@ -4,6 +4,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import panetina.elarion.core.model.RealmDefinition;
+import panetina.elarion.core.model.RealmRelationship;
 import panetina.elarion.core.model.VisibilityScope;
 
 import java.util.Map;
@@ -14,19 +15,28 @@ public final class PrivateMessageService {
     private final RealmService realms;
     private final CitizenService citizens;
     private final IdentityService identities;
-    private final Map<UUID, UUID> lastWhisperSender = new ConcurrentHashMap<>();
+    private final RealmGovernanceService governance;
+    private final HistoryService history;
+    private final ChatService chat;
+    private final Map<UUID, UUID> lastPrivateMessageSender = new ConcurrentHashMap<>();
 
     public PrivateMessageService(
             RealmService realms,
             CitizenService citizens,
-            IdentityService identities
+            IdentityService identities,
+            RealmGovernanceService governance,
+            HistoryService history,
+            ChatService chat
     ) {
         this.realms = realms;
         this.citizens = citizens;
         this.identities = identities;
+        this.governance = governance;
+        this.history = history;
+        this.chat = chat;
     }
 
-    public boolean whisper(ServerPlayerEntity sender, ServerPlayerEntity recipient, String message) {
+    public boolean privateMessage(ServerPlayerEntity sender, ServerPlayerEntity recipient, String message) {
         if (message == null || message.isBlank()) return false;
 
         String senderRealmId = citizens.getOrCreate(sender).realmId();
@@ -34,9 +44,12 @@ public final class PrivateMessageService {
         RealmDefinition recipientRealm = realms.forCitizen(citizens.getOrCreate(recipient)).orElse(null);
         boolean sameRealm = !senderRealmId.isBlank() && senderRealmId.equals(recipientRealmId);
         boolean recipientIsGlobal = recipientRealm != null && recipientRealm.visibilityScope() == VisibilityScope.GLOBAL;
-        if (!sameRealm && !recipientIsGlobal) {
+        RealmRelationship relationship = governance.relationship(senderRealmId, recipientRealmId);
+        boolean relationshipAllowsForeignMessage =
+                relationship == RealmRelationship.ALLY || relationship == RealmRelationship.NEUTRAL;
+        if (!sameRealm && (!recipientIsGlobal || !relationshipAllowsForeignMessage)) {
             sender.sendMessage(Text.literal(
-                    "You may only message citizens in your Realm or members of a GLOBAL Realm.")
+                    "You may only message citizens in your Realm or reachable members of a GLOBAL Realm.")
                     .formatted(Formatting.RED), false);
             return false;
         }
@@ -49,12 +62,18 @@ public final class PrivateMessageService {
         recipient.sendMessage(Text.literal("[")
                 .append(senderName)
                 .append(Text.literal(" -> You] " + message).formatted(Formatting.GRAY)), false);
-        lastWhisperSender.put(recipient.getUuid(), sender.getUuid());
+        chat.spyPrivateMessage(sender, recipient, message);
+        lastPrivateMessageSender.put(recipient.getUuid(), sender.getUuid());
+        history.record("chat", "private-message", sender.getUuid(), "player",
+                recipient.getUuidAsString(), senderRealmId, Map.of(
+                        "channel", "private-message",
+                        "recipientRealm", recipientRealmId
+                ));
         return true;
     }
 
     public boolean reply(ServerPlayerEntity sender, String message) {
-        UUID recipientId = lastWhisperSender.get(sender.getUuid());
+        UUID recipientId = lastPrivateMessageSender.get(sender.getUuid());
         if (recipientId == null) {
             sender.sendMessage(Text.literal("Nobody has messaged you yet.").formatted(Formatting.RED), false);
             return false;
@@ -64,6 +83,6 @@ public final class PrivateMessageService {
             sender.sendMessage(Text.literal("That player is no longer online.").formatted(Formatting.RED), false);
             return false;
         }
-        return whisper(sender, recipient, message);
+        return privateMessage(sender, recipient, message);
     }
 }

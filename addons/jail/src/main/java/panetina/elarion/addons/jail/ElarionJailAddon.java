@@ -17,7 +17,7 @@ public final class ElarionJailAddon implements ElarionAddon {
                   block-voice-chat: true
                 cells: {}
                 """);
-        api.abilities().register("elarion.jail.manage");
+        api.system().abilities().register("elarion.jail.manage");
         LOGGER.info("Elarion Jail addon shell initialized");
     }
 }

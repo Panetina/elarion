@@ -3,20 +3,20 @@ package panetina.elarion.core.storage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.WorldSavePath;
 import org.slf4j.Logger;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.CitizenStatus;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -41,15 +41,12 @@ public final class CitizenStorage {
     }
 
     public void save(MinecraftServer server, CitizenRecord citizen) {
-        Path directory = citizenDir(server);
-        try {
-            Files.createDirectories(directory);
-            try (Writer writer = Files.newBufferedWriter(directory.resolve(citizen.uuid() + ".json"), StandardCharsets.UTF_8)) {
-                GSON.toJson(StoredCitizen.from(citizen), writer);
-            }
-        } catch (IOException exception) {
-            logger.error("Failed to save citizen {}", citizen.uuid(), exception);
-        }
+        JsonStateStorage.writeAtomic(
+                citizenDir(server).resolve(citizen.uuid() + ".json"),
+                GSON,
+                StoredCitizen.from(citizen),
+                logger,
+                "citizen " + citizen.uuid());
     }
 
     public List<CitizenRecord> loadAll(MinecraftServer server) {
@@ -76,36 +73,55 @@ public final class CitizenStorage {
     }
 
     private static Path citizenDir(MinecraftServer server) {
-        return server.getSavePath(WorldSavePath.ROOT).resolve("elarion/citizens");
+        return JsonStateStorage.elarionRoot(server).resolve("citizens");
     }
 
     private static final class StoredCitizen {
         String lastKnownUsername;
         String realmId;
+        String leaderRealmId;
         String titleId;
+        String activeTitleId;
         String nickname;
         String status;
         long joinedAt;
         List<String> flags = new ArrayList<>();
         List<String> grantedAbilities = new ArrayList<>();
+        List<String> unlockedTitleIds = new ArrayList<>();
+        Map<String, Long> titleUnlockTimes = new LinkedHashMap<>();
 
         static StoredCitizen from(CitizenRecord citizen) {
             StoredCitizen stored = new StoredCitizen();
             stored.lastKnownUsername = citizen.lastKnownUsername();
             stored.realmId = citizen.realmId();
-            stored.titleId = citizen.titleId();
+            stored.leaderRealmId = citizen.leaderRealmId();
+            stored.activeTitleId = citizen.activeTitleId();
             stored.nickname = citizen.nickname();
             stored.status = citizen.status().name();
             stored.joinedAt = citizen.joinedAt();
             stored.flags = new ArrayList<>(citizen.flags());
             stored.grantedAbilities = new ArrayList<>(citizen.grantedAbilities());
+            stored.unlockedTitleIds = new ArrayList<>(citizen.unlockedTitleIds());
+            stored.titleUnlockTimes = new LinkedHashMap<>(citizen.titleUnlockTimes());
             return stored;
         }
 
         CitizenRecord toRecord(UUID uuid) {
             CitizenRecord record = new CitizenRecord(uuid, lastKnownUsername == null ? uuid.toString() : lastKnownUsername);
             record.setRealmId(realmId);
-            record.setTitleId(titleId);
+            record.setLeaderRealmId(leaderRealmId);
+            if (unlockedTitleIds != null) {
+                for (String title : unlockedTitleIds) {
+                    long unlockedAt = titleUnlockTimes == null
+                            ? joinedAt
+                            : titleUnlockTimes.getOrDefault(title, joinedAt);
+                    record.unlockTitle(title, unlockedAt);
+                }
+            }
+            String loadedActiveTitle = activeTitleId == null || activeTitleId.isBlank()
+                    ? titleId
+                    : activeTitleId;
+            record.setActiveTitleId(loadedActiveTitle);
             record.setNickname(nickname);
             record.setJoinedAt(joinedAt);
             try {

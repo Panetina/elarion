@@ -5,3 +5,9 @@ run/
 .idea/
 *.iml
 *.log
+*.log.gz
+logs/
+**/logs/
+dev/run/
+dev/client1/
+dev/client2/

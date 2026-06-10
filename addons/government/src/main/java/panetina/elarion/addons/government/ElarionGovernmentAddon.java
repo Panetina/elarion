@@ -10,7 +10,7 @@ public final class ElarionGovernmentAddon implements ElarionAddon {
 
     @Override
     public void initialize(ElarionApi api) {
-        api.abilities().register("elarion.government.manage");
+        api.system().abilities().register("elarion.government.manage");
         LOGGER.info("Elarion Government addon shell initialized");
     }
 }

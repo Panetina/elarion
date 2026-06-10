@@ -1,8 +1,6 @@
 package panetina.elarion.addons.worlds.config;
 
 import org.slf4j.Logger;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
 import panetina.elarion.addons.worlds.model.BlockAbundanceRule;
 import panetina.elarion.addons.worlds.model.ManagedWorldDefinition;
 import panetina.elarion.addons.worlds.model.MobAbundanceRule;
@@ -12,12 +10,9 @@ import panetina.elarion.addons.worlds.model.WorldType;
 import panetina.elarion.core.api.AddonConfigFiles;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -28,77 +23,6 @@ import java.util.Set;
 
 public final class WorldsConfigManager {
     public static final int CONFIG_VERSION = 4;
-    private static final WorldSpawn DEFAULT_SPAWN = new WorldSpawn(0.5, 80, 0.5, 0, 0);
-    private static final WorldBorderDefinition DEFAULT_BORDER =
-            new WorldBorderDefinition(0, 0, 10_000, 5, 0.2, 5, 15);
-    private static final String DEFAULT_CONFIG = """
-            # Elarion Worlds desired-state configuration.
-            # Types: VOID, FLAT, OVERWORLD, NETHER, END, CAVE, CUSTOM.
-            # VOID creates only the configured spawn platform. CAVE is a Nether-style enclosed cave.
-            # retain-chance is 0.0 (none) through 1.0 (vanilla amount).
-            config-version: 4
-            lobby:
-              destination: "lobby"
-              enforce-for-unassigned: true
-            defaults:
-              type: "OVERWORLD"
-              template: "minecraft:overworld"
-              biome: "minecraft:plains"
-              platform-block: "minecraft:stone"
-              platform-radius: 5
-              difficulty: "NORMAL"
-              tick-time: true
-              border:
-                center-x: 0.0
-                center-z: 0.0
-                size: 10000.0
-                safe-zone: 5.0
-                damage-per-block: 0.2
-                warning-blocks: 5
-                warning-time: 15
-            worlds:
-              lobby:
-                enabled: true
-                id: "elarion:lobby"
-                type: "VOID"
-                difficulty: "PEACEFUL"
-                tick-time: false
-                spawn: { x: 0.5, y: 65.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
-                border: { center-x: 0.5, center-z: 0.5, size: 32.0 }
-                gamerules: { doMobSpawning: false, doDaylightCycle: false, spawnChunkRadius: 0 }
-                block-abundance: {}
-                mob-abundance: {}
-              realm_world_1:
-                enabled: true
-                id: "elarion:realm_world_1"
-                type: "OVERWORLD"
-                seed: 11001
-                spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
-                block-abundance:
-                  minecraft:iron_ore: { retain-chance: 0.25, replace-with: "minecraft:stone" }
-                  minecraft:deepslate_iron_ore: { retain-chance: 0.25, replace-with: "minecraft:deepslate" }
-                mob-abundance: {}
-                gamerules: {}
-              realm_world_2:
-                enabled: true
-                id: "elarion:realm_world_2"
-                type: "OVERWORLD"
-                seed: 22002
-                spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
-                block-abundance:
-                  minecraft:sugar_cane: { retain-chance: 0.0, replace-with: "minecraft:air" }
-                mob-abundance: {}
-                gamerules: {}
-              realm_world_3:
-                enabled: true
-                id: "elarion:realm_world_3"
-                type: "OVERWORLD"
-                seed: 33003
-                spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
-                block-abundance: {}
-                mob-abundance: {}
-                gamerules: {}
-            """;
 
     private final Logger logger;
     private final Path path;
@@ -107,7 +31,7 @@ public final class WorldsConfigManager {
     private volatile boolean enforceLobby;
 
     public WorldsConfigManager(Logger logger) {
-        this(logger, AddonConfigFiles.writeDefault("worlds", "worlds.yml", DEFAULT_CONFIG));
+        this(logger, AddonConfigFiles.writeDefault("worlds", "worlds.yml", WorldsConfigDefaults.CONFIG));
     }
 
     public WorldsConfigManager(Logger logger, Path path) {
@@ -115,16 +39,16 @@ public final class WorldsConfigManager {
         this.path = path;
         try {
             Files.createDirectories(path.getParent());
-            if (Files.notExists(path)) Files.writeString(path, DEFAULT_CONFIG, StandardCharsets.UTF_8);
+            if (Files.notExists(path)) Files.writeString(path, WorldsConfigDefaults.CONFIG, StandardCharsets.UTF_8);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to create Worlds config " + path, exception);
         }
     }
 
     public synchronized void load() {
-        Map<String, Object> root = readRoot(path, "worlds.yml");
+        Map<String, Object> root = WorldsConfigIo.readRoot(path, "worlds.yml");
         migrate(root);
-        root = readRoot(path, "worlds.yml");
+        root = WorldsConfigIo.readRoot(path, "worlds.yml");
         List<String> errors = new ArrayList<>();
         checkKeys("worlds.yml", root, Set.of(
                 "config-version", "lobby", "defaults", "worlds"), errors);
@@ -148,7 +72,7 @@ public final class WorldsConfigManager {
                 "NORMAL", errors);
         boolean defaultTickTime = bool("worlds.yml.defaults.tick-time", defaults.get("tick-time"), true, errors);
         WorldBorderDefinition defaultBorder = border("worlds.yml.defaults.border",
-                map("worlds.yml.defaults.border", defaults.get("border"), errors), DEFAULT_BORDER, errors);
+                map("worlds.yml.defaults.border", defaults.get("border"), errors), WorldsConfigDefaults.BORDER, errors);
 
         identifier("worlds.yml.defaults.template", defaultTemplate, errors);
         identifier("worlds.yml.defaults.biome", defaultBiome, errors);
@@ -245,44 +169,44 @@ public final class WorldsConfigManager {
         if (!(versionValue instanceof Number number) || number.intValue() == CONFIG_VERSION) return;
         if (number.intValue() < 1 || number.intValue() > 3) return;
 
-        Map<String, Object> migrated = deepMutableMap(root);
+        Map<String, Object> migrated = WorldsConfigIo.deepMutableMap(root);
         migrated.put("config-version", CONFIG_VERSION);
 
-        Map<String, Object> defaults = mutableChild(migrated, "defaults");
+        Map<String, Object> defaults = WorldsConfigIo.mutableChild(migrated, "defaults");
         defaults.putIfAbsent("type", "OVERWORLD");
         defaults.putIfAbsent("template", "minecraft:overworld");
         defaults.putIfAbsent("biome", "minecraft:plains");
         defaults.putIfAbsent("platform-block", "minecraft:stone");
         defaults.putIfAbsent("platform-radius", 0);
 
-        Map<String, Object> lobby = mutableChild(migrated, "lobby");
+        Map<String, Object> lobby = WorldsConfigIo.mutableChild(migrated, "lobby");
         lobby.putIfAbsent("destination", "lobby");
         lobby.putIfAbsent("enforce-for-unassigned", true);
 
         migrated.remove("destinations");
         migrated.remove("existing-worlds");
 
-        Map<String, Object> worlds = mutableChild(migrated, "worlds");
+        Map<String, Object> worlds = WorldsConfigIo.mutableChild(migrated, "worlds");
         for (Map.Entry<String, Object> entry : worlds.entrySet()) {
             if (entry.getValue() instanceof Map<?, ?> rawWorld) {
-                Map<String, Object> world = deepMutableMap(rawWorld);
+                Map<String, Object> world = WorldsConfigIo.deepMutableMap(rawWorld);
                 world.putIfAbsent("type", inferType(world.get("template")));
                 entry.setValue(world);
             }
         }
-        worlds.putIfAbsent("lobby", lobbyWorld());
+        worlds.putIfAbsent("lobby", WorldsConfigDefaults.lobbyWorld());
 
         Path legacyCreated = path.resolveSibling("created-worlds.yml");
         if (Files.exists(legacyCreated)) {
-            Map<String, Object> createdRoot = readRoot(legacyCreated, "created-worlds.yml");
-            Map<String, Object> created = mutableChild(createdRoot, "worlds");
+            Map<String, Object> createdRoot = WorldsConfigIo.readRoot(legacyCreated, "created-worlds.yml");
+            Map<String, Object> created = WorldsConfigIo.mutableChild(createdRoot, "worlds");
             created.forEach(worlds::putIfAbsent);
         }
 
         Path backup = path.resolveSibling(path.getFileName() + ".bak-v" + number.intValue());
         try {
             if (Files.notExists(backup)) Files.copy(path, backup);
-            writeYaml(path, migrated);
+            WorldsConfigIo.writeYaml(path, migrated);
             if (Files.exists(legacyCreated)) Files.delete(legacyCreated);
             logger.info("Migrated {} from schema {} to schema {}; backup saved to {}",
                     path, number.intValue(), CONFIG_VERSION, backup);
@@ -359,11 +283,11 @@ public final class WorldsConfigManager {
     private ManagedWorldDefinition defaultsFor(String key, WorldType type, long seed) {
         WorldSpawn spawn = type == WorldType.VOID
                 ? new WorldSpawn(0.5, 65, 0.5, 0, 0)
-                : DEFAULT_SPAWN;
+                : WorldsConfigDefaults.SPAWN;
         return new ManagedWorldDefinition(
                 key, true, "elarion:" + key, type, templateFor(type, "minecraft:overworld"),
                 "minecraft:plains", "minecraft:stone", 0, seed, "NORMAL", true,
-                spawn, DEFAULT_BORDER, Map.of(), List.of(), List.of());
+                spawn, WorldsConfigDefaults.BORDER, Map.of(), List.of(), List.of());
     }
 
     private void saveWorlds(Map<String, ManagedWorldDefinition> worlds) {
@@ -372,143 +296,21 @@ public final class WorldsConfigManager {
         serialized.put("lobby", Map.of(
                 "destination", lobbyDestination,
                 "enforce-for-unassigned", enforceLobby));
-        serialized.put("defaults", defaultValues());
+        serialized.put("defaults", WorldsConfigDefaults.defaultValues());
         Map<String, Object> entries = new LinkedHashMap<>();
-        worlds.forEach((key, definition) -> entries.put(key, serialize(definition)));
+        worlds.forEach((key, definition) -> entries.put(key, WorldsConfigSerializer.serialize(definition)));
         serialized.put("worlds", entries);
         try {
-            writeYaml(path, serialized);
+            WorldsConfigIo.writeYaml(path, serialized);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to save " + path, exception);
         }
-    }
-
-    private static void writeYaml(Path destination, Map<String, Object> data) throws IOException {
-        DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        options.setPrettyFlow(true);
-        options.setIndent(2);
-        Path temporary = destination.resolveSibling(destination.getFileName() + ".tmp");
-        Files.createDirectories(destination.getParent());
-        try (Writer writer = Files.newBufferedWriter(temporary, StandardCharsets.UTF_8)) {
-            new Yaml(options).dump(data, writer);
-        }
-        try {
-            Files.move(temporary, destination, StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE);
-        } catch (java.nio.file.AtomicMoveNotSupportedException exception) {
-            Files.move(temporary, destination, StandardCopyOption.REPLACE_EXISTING);
-        }
-    }
-
-    private static Map<String, Object> defaultValues() {
-        Map<String, Object> defaults = new LinkedHashMap<>();
-        defaults.put("type", "OVERWORLD");
-        defaults.put("template", "minecraft:overworld");
-        defaults.put("biome", "minecraft:plains");
-        defaults.put("platform-block", "minecraft:stone");
-        defaults.put("platform-radius", 0);
-        defaults.put("difficulty", "NORMAL");
-        defaults.put("tick-time", true);
-        defaults.put("border", serializeBorder(DEFAULT_BORDER));
-        return defaults;
-    }
-
-    private static Map<String, Object> lobbyWorld() {
-        Map<String, Object> value = new LinkedHashMap<>();
-        value.put("enabled", true);
-        value.put("id", "elarion:lobby");
-        value.put("type", "VOID");
-        value.put("difficulty", "PEACEFUL");
-        value.put("tick-time", false);
-        value.put("spawn", Map.of("x", 0.5, "y", 65.0, "z", 0.5, "yaw", 0.0, "pitch", 0.0));
-        value.put("border", Map.of("center-x", 0.5, "center-z", 0.5, "size", 32.0));
-        value.put("gamerules", Map.of(
-                "doMobSpawning", false, "doDaylightCycle", false, "spawnChunkRadius", 0));
-        value.put("block-abundance", Map.of());
-        value.put("mob-abundance", Map.of());
-        return value;
     }
 
     private static String inferType(Object template) {
         if ("minecraft:the_nether".equals(template)) return "NETHER";
         if ("minecraft:the_end".equals(template)) return "END";
         return "OVERWORLD";
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> deepMutableMap(Map<?, ?> source) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        source.forEach((key, value) -> {
-            Object copied = value;
-            if (value instanceof Map<?, ?> mapValue) copied = deepMutableMap(mapValue);
-            else if (value instanceof List<?> listValue) copied = new ArrayList<>(listValue);
-            result.put(String.valueOf(key), copied);
-        });
-        return result;
-    }
-
-    private static Map<String, Object> mutableChild(Map<String, Object> parent, String key) {
-        Object value = parent.get(key);
-        Map<String, Object> child = value instanceof Map<?, ?> mapValue
-                ? deepMutableMap(mapValue)
-                : new LinkedHashMap<>();
-        parent.put(key, child);
-        return child;
-    }
-
-    private static Map<String, Object> serialize(ManagedWorldDefinition definition) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("enabled", definition.enabled());
-        result.put("id", definition.id());
-        result.put("type", definition.type().name());
-        result.put("template", definition.template());
-        result.put("biome", definition.biome());
-        result.put("platform-block", definition.platformBlock());
-        result.put("platform-radius", definition.platformRadius());
-        result.put("seed", definition.seed());
-        result.put("difficulty", definition.difficulty());
-        result.put("tick-time", definition.tickTime());
-        result.put("spawn", Map.of(
-                "x", definition.spawn().x(), "y", definition.spawn().y(), "z", definition.spawn().z(),
-                "yaw", definition.spawn().yaw(), "pitch", definition.spawn().pitch()));
-        result.put("border", serializeBorder(definition.border()));
-        result.put("gamerules", new LinkedHashMap<>(definition.gameRules()));
-        Map<String, Object> blocks = new LinkedHashMap<>();
-        definition.blockRules().forEach(rule -> blocks.put(rule.blockId(), Map.of(
-                "retain-chance", rule.retainChance(),
-                "replace-with", rule.replacementBlockId())));
-        result.put("block-abundance", blocks);
-        Map<String, Object> mobs = new LinkedHashMap<>();
-        definition.mobRules().forEach(rule -> mobs.put(rule.entityId(), Map.of(
-                "retain-chance", rule.retainChance())));
-        result.put("mob-abundance", mobs);
-        return result;
-    }
-
-    private static Map<String, Object> serializeBorder(WorldBorderDefinition border) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("center-x", border.centerX());
-        result.put("center-z", border.centerZ());
-        result.put("size", border.size());
-        result.put("safe-zone", border.safeZone());
-        result.put("damage-per-block", border.damagePerBlock());
-        result.put("warning-blocks", border.warningBlocks());
-        result.put("warning-time", border.warningTime());
-        return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> readRoot(Path path, String displayName) {
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            Object loaded = new Yaml().load(reader);
-            if (loaded == null) return Map.of();
-            if (loaded instanceof Map<?, ?> map) return (Map<String, Object>) map;
-            throw new WorldsConfigException(List.of(displayName
-                    + ": expected a YAML object at the document root"));
-        } catch (IOException exception) {
-            throw new IllegalStateException("Unable to read " + path, exception);
-        }
     }
 
     private static String templateFor(WorldType type, String customFallback) {
@@ -533,11 +335,11 @@ public final class WorldsConfigManager {
     private static WorldSpawn spawn(String field, Map<String, Object> data, List<String> errors) {
         checkKeys(field, data, Set.of("x", "y", "z", "yaw", "pitch"), errors);
         return new WorldSpawn(
-                number(field + ".x", data.get("x"), DEFAULT_SPAWN.x(), errors),
-                number(field + ".y", data.get("y"), DEFAULT_SPAWN.y(), errors),
-                number(field + ".z", data.get("z"), DEFAULT_SPAWN.z(), errors),
-                (float) number(field + ".yaw", data.get("yaw"), DEFAULT_SPAWN.yaw(), errors),
-                (float) number(field + ".pitch", data.get("pitch"), DEFAULT_SPAWN.pitch(), errors));
+                number(field + ".x", data.get("x"), WorldsConfigDefaults.SPAWN.x(), errors),
+                number(field + ".y", data.get("y"), WorldsConfigDefaults.SPAWN.y(), errors),
+                number(field + ".z", data.get("z"), WorldsConfigDefaults.SPAWN.z(), errors),
+                (float) number(field + ".yaw", data.get("yaw"), WorldsConfigDefaults.SPAWN.yaw(), errors),
+                (float) number(field + ".pitch", data.get("pitch"), WorldsConfigDefaults.SPAWN.pitch(), errors));
     }
 
     private static WorldBorderDefinition border(

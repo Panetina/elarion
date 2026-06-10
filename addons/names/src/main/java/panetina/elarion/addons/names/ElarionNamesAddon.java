@@ -10,7 +10,7 @@ public final class ElarionNamesAddon implements ElarionAddon {
 
     @Override
     public void initialize(ElarionApi api) {
-        api.abilities().register("elarion.identity.nickname.manage");
+        api.system().abilities().register("elarion.identity.nickname.manage");
         LOGGER.info("Elarion Names integration initialized");
     }
 }

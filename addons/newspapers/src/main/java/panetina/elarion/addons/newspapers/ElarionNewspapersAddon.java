@@ -10,8 +10,8 @@ public final class ElarionNewspapersAddon implements ElarionAddon {
 
     @Override
     public void initialize(ElarionApi api) {
-        api.abilities().register("elarion.newspaper.publish");
-        api.abilities().register("elarion.newspaper.manage");
+        api.system().abilities().register("elarion.newspaper.publish");
+        api.system().abilities().register("elarion.newspaper.manage");
         LOGGER.info("Elarion Newspapers addon shell initialized");
     }
 }

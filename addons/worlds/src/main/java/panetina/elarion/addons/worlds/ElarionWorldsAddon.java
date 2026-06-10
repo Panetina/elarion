@@ -18,11 +18,11 @@ public final class ElarionWorldsAddon implements ElarionAddon {
         WorldsConfigManager config = new WorldsConfigManager(LOGGER);
         config.load();
         WorldService worlds = new WorldService(LOGGER, api, config);
-        WorldRuleService rules = new WorldRuleService(LOGGER, worlds);
+        WorldRuleService rules = new WorldRuleService(LOGGER, api, worlds);
         new ElarionWorldsApi(worlds);
 
-        api.abilities().register("elarion.world.manage");
-        api.commands().registerAdminSubcommand(() -> WorldCommands.create(worlds));
+        api.system().abilities().register("elarion.world.manage");
+        api.system().commands().registerAdminSubcommand(() -> WorldCommands.create(worlds));
         rules.registerEvents();
         worlds.registerEvents();
         LOGGER.info("Elarion Worlds initialized");

@@ -47,14 +47,24 @@ public abstract class PlayerEntityRendererMixin
             CallbackInfo ci
     ) {
         ClientIdentityCache.find(player.getUuid())
-                .filter(identity -> identity.visible() && !identity.title().isBlank())
+                .filter(identity -> identity.visible() && (!identity.title().isBlank() || !identity.leaderLabel().isBlank()))
                 .ifPresent(identity -> {
-                    matrices.push();
-                    matrices.scale(0.75f, 0.75f, 0.75f);
-                    matrices.translate(0.0f, 0.6f, 0.0f);
-                    super.renderLabelIfPresent(
-                            player, identity.titleText(), matrices, vertices, light, tickDelta);
-                    matrices.pop();
+                    if (!identity.leaderLabel().isBlank()) {
+                        matrices.push();
+                        matrices.scale(2.0f, 2.0f, 2.0f);
+                        matrices.translate(0.0f, -0.8f, 0.0f);
+                        super.renderLabelIfPresent(
+                                player, identity.leaderText(), matrices, vertices, light, tickDelta);
+                        matrices.pop();
+                    }
+                    if (!identity.title().isBlank()) {
+                        matrices.push();
+                        matrices.scale(0.75f, 0.75f, 0.75f);
+                        matrices.translate(0.0f, 0.6f, 0.0f);
+                        super.renderLabelIfPresent(
+                                player, identity.titleText(), matrices, vertices, light, tickDelta);
+                        matrices.pop();
+                    }
                     matrices.translate(0.0d, 0.1225d, 0.0d);
                 });
     }

@@ -17,7 +17,7 @@ public final class ElarionUnderworldAddon implements ElarionAddon {
                   block-voice-chat: true
                   spawn-world: "minecraft:overworld"
                 """);
-        api.abilities().register("elarion.underworld.manage");
+        api.system().abilities().register("elarion.underworld.manage");
         LOGGER.info("Elarion Underworld addon shell initialized");
     }
 }

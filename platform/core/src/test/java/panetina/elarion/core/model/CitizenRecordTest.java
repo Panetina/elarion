@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class CitizenRecordTest {
     @Test
@@ -18,5 +19,27 @@ final class CitizenRecordTest {
 
         citizen.setRealmId(null);
         assertEquals("", citizen.realmId());
+    }
+
+    @Test
+    void activeTitleIsAlsoUnlockedForMigrationCompatibility() {
+        CitizenRecord citizen = new CitizenRecord(UUID.randomUUID(), "Player");
+
+        citizen.setTitleId("Diplomat");
+
+        assertEquals("diplomat", citizen.activeTitleId());
+        assertTrue(citizen.hasUnlockedTitle("diplomat"));
+        assertTrue(citizen.titleUnlockTimes().containsKey("diplomat"));
+    }
+
+    @Test
+    void revokingActiveTitleClearsActiveSelection() {
+        CitizenRecord citizen = new CitizenRecord(UUID.randomUUID(), "Player");
+        citizen.setActiveTitleId("citizen");
+
+        citizen.revokeTitle("citizen");
+
+        assertEquals("", citizen.activeTitleId());
+        assertTrue(citizen.unlockedTitleIds().isEmpty());
     }
 }

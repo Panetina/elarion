@@ -65,8 +65,12 @@ public final class WorldService {
             this.server = null;
         });
         ServerTickEvents.END_SERVER_TICK.register(this::tick);
+        ServerPlayerEvents.JOIN.register(this::routePlayerLocation);
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            if (newPlayer.getSpawnPointPosition() == null) teleport(newPlayer, config.lobbyDestination());
+            if (newPlayer.getSpawnPointPosition() == null
+                    && api.realm().citizens().getOrCreate(newPlayer).realmId().isBlank()) {
+                teleport(newPlayer, config.lobbyDestination());
+            }
         });
     }
 
@@ -323,8 +327,13 @@ public final class WorldService {
         flushHistory();
         ServerWorld lobby = config.enforceLobby() ? resolveWorld(config.lobbyDestination()) : null;
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            if (lobby != null && player.getServerWorld() != lobby && !player.hasPermissionLevel(4)
-                    && api.citizens().getOrCreate(player).realmId().isBlank()) {
+            String realmId = api.realm().citizens().getOrCreate(player).realmId();
+            if (player.getServerWorld().getRegistryKey().equals(World.OVERWORLD)) {
+                if (realmId.isBlank()
+                        || !api.realm().spawns().teleportToRealmSpawn(player, "overworld-fallback")) {
+                    teleport(player, config.lobbyDestination());
+                }
+            } else if (lobby != null && player.getServerWorld() != lobby && realmId.isBlank()) {
                 teleport(player, config.lobbyDestination());
             }
             RegistryKey<World> current = player.getServerWorld().getRegistryKey();
@@ -332,6 +341,23 @@ public final class WorldService {
             if (!current.equals(previous)) sendBorder(player, player.getServerWorld());
         }
         playerWorlds.keySet().removeIf(uuid -> server.getPlayerManager().getPlayer(uuid) == null);
+    }
+
+    private void routePlayerLocation(ServerPlayerEntity player) {
+        String realmId = api.realm().citizens().getOrCreate(player).realmId();
+        if (player.getServerWorld().getRegistryKey().equals(World.OVERWORLD)) {
+            if (realmId.isBlank()
+                    || !api.realm().spawns().teleportToRealmSpawn(player, "login-overworld-fallback")) {
+                teleport(player, config.lobbyDestination());
+            }
+            return;
+        }
+        if (config.enforceLobby() && realmId.isBlank()) {
+            ServerWorld lobby = resolveWorld(config.lobbyDestination());
+            if (lobby != null && player.getServerWorld() != lobby) {
+                teleport(player, config.lobbyDestination());
+            }
+        }
     }
 
     private static void sendBorder(ServerPlayerEntity player, ServerWorld world) {
@@ -346,7 +372,7 @@ public final class WorldService {
         if (pendingHistory.isEmpty()) return;
         List<PendingHistory> events = List.copyOf(pendingHistory);
         pendingHistory.clear();
-        events.forEach(event -> api.history().record(
+        events.forEach(event -> api.progressionApi().history().record(
                 "world", event.type(), null, "world", event.worldId(), "", event.metadata()));
     }
 

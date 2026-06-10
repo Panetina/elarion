@@ -10,7 +10,7 @@ public final class ElarionTablistAddon implements ElarionAddon {
 
     @Override
     public void initialize(ElarionApi api) {
-        api.abilities().register("elarion.tablist.manage");
+        api.system().abilities().register("elarion.tablist.manage");
         LOGGER.info("Elarion Tablist addon shell initialized");
     }
 }

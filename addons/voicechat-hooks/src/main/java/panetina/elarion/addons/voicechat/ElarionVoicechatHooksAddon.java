@@ -10,7 +10,7 @@ public final class ElarionVoicechatHooksAddon implements ElarionAddon {
 
     @Override
     public void initialize(ElarionApi api) {
-        api.abilities().register("elarion.voicechat.override");
+        api.system().abilities().register("elarion.voicechat.override");
         LOGGER.info("Elarion Voice Chat Hooks addon shell initialized");
     }
 }

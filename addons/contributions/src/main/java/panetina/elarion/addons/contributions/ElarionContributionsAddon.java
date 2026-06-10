@@ -21,9 +21,9 @@ public final class ElarionContributionsAddon implements ElarionAddon {
                         description: "First milestone"
                         reward: "welcome"
                 """);
-        api.abilities().register("elarion.contribution.manage");
-        api.rewards().registerHandler("contribution-event", (context, action) -> {
-            api.events().emitProgression(new panetina.elarion.core.event.ElarionEventBus.ProgressionEvent(
+        api.system().abilities().register("elarion.contribution.manage");
+        api.progressionApi().rewards().registerHandler("contribution-event", (context, action) -> {
+            api.system().events().emitProgression(new panetina.elarion.core.event.ElarionEventBus.ProgressionEvent(
                     action.parameters().getOrDefault("event", "contribution.event"),
                     context.player().getUuid(),
                     action.parameters().getOrDefault("project", context.rewardId())));

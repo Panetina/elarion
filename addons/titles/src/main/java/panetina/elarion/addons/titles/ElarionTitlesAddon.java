@@ -10,7 +10,7 @@ public final class ElarionTitlesAddon implements ElarionAddon {
 
     @Override
     public void initialize(ElarionApi api) {
-        api.abilities().register("elarion.title.render_under_username");
+        api.system().abilities().register("elarion.title.render_under_username");
         LOGGER.info("Elarion Titles renderer initialized");
     }
 }

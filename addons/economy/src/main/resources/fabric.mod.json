@@ -1,0 +1,27 @@
+{
+    "schemaVersion": 1,
+    "id": "elarion_economy",
+    "version": "${version}",
+    "name": "Elarion Economy",
+    "description": "Audited currency, wallets, Realm treasuries, and economy monitoring for Elarion.",
+    "authors": [
+        "Panyel"
+    ],
+    "contributors": [
+        "Panetina Team"
+    ],
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "elarion:addon": [
+            "panetina.elarion.addons.economy.ElarionEconomyAddon"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.16.14",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*",
+        "elarion_core": "*"
+    }
+}

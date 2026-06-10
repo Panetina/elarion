@@ -3,6 +3,10 @@ package panetina.elarion.core.service;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 import panetina.elarion.core.config.CoreConfigManager;
 import panetina.elarion.core.event.ElarionEventBus;
 import panetina.elarion.core.model.CitizenStatus;
@@ -11,9 +15,22 @@ import panetina.elarion.core.model.RewardAction;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class RewardActionService {
+    private static final Set<String> BUILT_IN_ACTION_TYPES = Set.of(
+            "message",
+            "item",
+            "broadcast",
+            "server-command",
+            "player-command",
+            "status-change",
+            "title-grant",
+            "ability-grant",
+            "history-event"
+    );
+
     @FunctionalInterface
     public interface ActionHandler {
         boolean execute(Context context, RewardAction action);
@@ -47,6 +64,14 @@ public final class RewardActionService {
         handlers.put(normalize(type), handler);
     }
 
+    public static Set<String> builtInActionTypes() {
+        return BUILT_IN_ACTION_TYPES;
+    }
+
+    public Set<String> rewardIds() {
+        return config.rewards().keySet();
+    }
+
     public boolean executeReward(String rewardId, ServerPlayerEntity player) {
         List<RewardAction> actions = config.rewards().get(normalize(rewardId));
         if (actions == null) return false;
@@ -64,6 +89,22 @@ public final class RewardActionService {
     private void registerBuiltIns() {
         registerHandler("message", (context, action) -> {
             context.player().sendMessage(Text.literal(action.parameters().getOrDefault("text", "")), false);
+            return true;
+        });
+        registerHandler("item", (context, action) -> {
+            Identifier id = Identifier.tryParse(action.parameters().getOrDefault("id", ""));
+            if (id == null || !Registries.ITEM.containsId(id)) return false;
+            int count;
+            try {
+                count = Math.max(1, Integer.parseInt(action.parameters().getOrDefault("count", "1")));
+            } catch (NumberFormatException exception) {
+                return false;
+            }
+            Item item = Registries.ITEM.get(id);
+            ItemStack stack = new ItemStack(item, count);
+            if (!context.player().getInventory().insertStack(stack)) {
+                context.player().dropItem(stack, false);
+            }
             return true;
         });
         registerHandler("broadcast", (context, action) -> {

@@ -18,13 +18,14 @@ import static net.minecraft.server.command.CommandManager.literal;
 public final class CommandPolicy {
     private static final Set<String> DISABLED_COMMANDS = Set.of(
             "msg", "tell", "teammsg", "tm", "me");
-    private static final Set<String> OP_ONLY_COMMANDS = Set.of("list", "seed");
+    private static final Set<String> OP_ONLY_COMMANDS = Set.of("random", "seed");
     private CommandPolicy() {}
 
     public static void applyVanillaPolicy(CommandDispatcher<ServerCommandSource> dispatcher) {
         DISABLED_COMMANDS.forEach(command -> remove(dispatcher, command));
         OP_ONLY_COMMANDS.forEach(command -> requireOperatorLevelFour(dispatcher, command));
         remove(dispatcher, "w");
+        remove(dispatcher, "list");
         remove(dispatcher, "help");
     }
 

@@ -14,6 +14,7 @@ public record IdentitySyncPayload(
         String prefix,
         String suffix,
         String title,
+        String leaderLabel,
         String color,
         String realmId,
         boolean visible
@@ -29,6 +30,7 @@ public record IdentitySyncPayload(
                 buffer.writeString(payload.prefix());
                 buffer.writeString(payload.suffix());
                 buffer.writeString(payload.title());
+                buffer.writeString(payload.leaderLabel());
                 buffer.writeString(payload.color());
                 buffer.writeString(payload.realmId());
                 buffer.writeBoolean(payload.visible());
@@ -36,6 +38,7 @@ public record IdentitySyncPayload(
             buffer -> new IdentitySyncPayload(
                     buffer.readUuid(),
                     buffer.readString(64),
+                    buffer.readString(128),
                     buffer.readString(128),
                     buffer.readString(128),
                     buffer.readString(128),

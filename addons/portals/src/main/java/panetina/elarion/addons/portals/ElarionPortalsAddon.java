@@ -18,10 +18,10 @@ public final class ElarionPortalsAddon implements ElarionAddon {
                     owning-realm: "oak"
                     foreign-access-ability: "elarion.portal.foreign_access"
                 """);
-        api.abilities().register("elarion.portal.foreign_access");
-        api.abilities().register("elarion.portal.manage");
-        api.rewards().registerHandler("portal-state", (context, action) -> {
-            api.events().emitProgression(new panetina.elarion.core.event.ElarionEventBus.ProgressionEvent(
+        api.system().abilities().register("elarion.portal.foreign_access");
+        api.system().abilities().register("elarion.portal.manage");
+        api.progressionApi().rewards().registerHandler("portal-state", (context, action) -> {
+            api.system().events().emitProgression(new panetina.elarion.core.event.ElarionEventBus.ProgressionEvent(
                     "portal.state",
                     context.player().getUuid(),
                     action.parameters().getOrDefault("portal", context.rewardId())));
