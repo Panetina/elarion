@@ -12,6 +12,9 @@
     "entrypoints":  {
                         "elarion:addon":  [
                                               "panetina.elarion.addons.government.ElarionGovernmentAddon"
+                                          ],
+                        "client": [
+                                              "panetina.elarion.addons.government.client.ElarionGovernmentClient"
                                           ]
                     },
     "depends":  {
@@ -19,7 +22,9 @@
                     "minecraft":  "~1.21.1",
                     "java":  "\u003e=21",
                     "fabric-api":  "*",
-                    "elarion_core":  "*"
+                    "elarion_core":  "*",
+                    "elarion_offerings":  "*",
+                    "elarion_groups":  "*"
                 },
     "contributors":  [
                          "Panetina Team"

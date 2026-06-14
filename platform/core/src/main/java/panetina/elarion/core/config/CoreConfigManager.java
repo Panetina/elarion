@@ -9,6 +9,9 @@ import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.model.TitleUnlockRule;
 import panetina.elarion.core.model.ProgressionRegion;
 import panetina.elarion.core.model.HistoryRecordingPolicy;
+import panetina.elarion.core.model.ServerIdentityConfig;
+import panetina.elarion.core.model.ElarionUiTheme;
+import panetina.elarion.core.model.ElarionUiThemeVariant;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -38,6 +41,8 @@ public final class CoreConfigManager {
     private Map<String, TitleUnlockRule> titleUnlockRules = Map.of();
     private Map<String, ProgressionRegion> progressionRegions = Map.of();
     private Map<String, List<RewardAction>> rewards = Map.of();
+    private ServerIdentityConfig serverIdentity = ServerIdentityConfig.defaults();
+    private ElarionUiTheme uiTheme = ElarionUiTheme.defaults();
     private String defaultTitleId = "citizen";
     private boolean localChatEnabled = true;
     private int localChatRadius = 64;
@@ -72,6 +77,7 @@ public final class CoreConfigManager {
     private int publicHistoryDefaultWeeks = 8;
     private int publicHistoryDefaultLimit = 50;
     private int publicHistoryMaxLimit = 200;
+    private int citizenInactivityDays = 14;
 
     public CoreConfigManager(Logger logger) {
         this(logger, FabricLoader.getInstance().getConfigDir().resolve("elarion/core"));
@@ -87,13 +93,15 @@ public final class CoreConfigManager {
         migrateConfigs();
         new CoreConfigValidator(this::loadMap, CONFIG_VERSION, FORMATTING_COLORS).validateConfigs();
 
-        CoreConfigParser parser = new CoreConfigParser(logger, yaml, coreConfigDir, defaultTitleId);
+        ServerIdentityConfig loadedServerIdentity = loadServerIdentity();
+        ElarionUiTheme loadedUiTheme = loadUiTheme();
+        CoreConfigParser parser = new CoreConfigParser(logger, yaml, coreConfigDir, defaultTitleId,
+                loadedServerIdentity);
         Map<String, RealmDefinition> loadedRealms = parser.loadRealms();
         Map<String, TitleDefinition> loadedTitles = parser.loadTitles();
         Map<String, ProgressionRegion> loadedProgressionRegions = parser.loadProgressionRegions();
         Map<String, TitleUnlockRule> loadedTitleUnlockRules = parser.loadTitleUnlockRules();
         Map<String, List<RewardAction>> loadedRewards = parser.loadRewards();
-
         Map<String, Object> defaults = loadMap("citizens-defaults.yml");
         String loadedDefaultTitleId = string(map(defaults.get("defaults")).get("title"), "citizen");
 
@@ -140,12 +148,16 @@ public final class CoreConfigManager {
                 bool(nicknameProtection.get("reject-containing-protected-name"), true);
         CoreConfigHistorySupport.Settings loadedHistory = CoreConfigHistorySupport.load(
                 loadMap("history.yml"), historyChronicleCategories);
+        int loadedCitizenInactivityDays = Math.max(1,
+                number(map(loadMap("activity.yml").get("citizens")).get("inactivity-days"), 14).intValue());
 
         realms = loadedRealms;
         titles = loadedTitles;
         titleUnlockRules = loadedTitleUnlockRules;
         progressionRegions = loadedProgressionRegions;
         rewards = loadedRewards;
+        serverIdentity = loadedServerIdentity;
+        uiTheme = loadedUiTheme;
         defaultTitleId = loadedDefaultTitleId;
         localChatEnabled = loadedLocalChatEnabled;
         localChatRadius = loadedLocalChatRadius;
@@ -180,6 +192,7 @@ public final class CoreConfigManager {
         publicHistoryDefaultWeeks = loadedHistory.publicDefaultWeeks();
         publicHistoryDefaultLimit = loadedHistory.publicDefaultLimit();
         publicHistoryMaxLimit = loadedHistory.publicMaxLimit();
+        citizenInactivityDays = loadedCitizenInactivityDays;
         logger.info("Loaded {} realms, {} titles, {} title progression rules, and {} reward definitions",
                 realms.size(), titles.size(), titleUnlockRules.size(), rewards.size());
     }
@@ -189,6 +202,8 @@ public final class CoreConfigManager {
     public Map<String, TitleUnlockRule> titleUnlockRules() { return titleUnlockRules; }
     public Map<String, ProgressionRegion> progressionRegions() { return progressionRegions; }
     public Map<String, List<RewardAction>> rewards() { return rewards; }
+    public ServerIdentityConfig serverIdentity() { return serverIdentity; }
+    public ElarionUiTheme uiTheme() { return uiTheme; }
     public String defaultTitleId() { return defaultTitleId; }
     public boolean localChatEnabled() { return localChatEnabled; }
     public int localChatRadius() { return localChatRadius; }
@@ -223,6 +238,10 @@ public final class CoreConfigManager {
     public int publicHistoryDefaultWeeks() { return publicHistoryDefaultWeeks; }
     public int publicHistoryDefaultLimit() { return publicHistoryDefaultLimit; }
     public int publicHistoryMaxLimit() { return publicHistoryMaxLimit; }
+    public int citizenInactivityDays() { return citizenInactivityDays; }
+    public long citizenActivityWindowMillis() {
+        return java.time.Duration.ofDays(citizenInactivityDays).toMillis();
+    }
     public Path coreConfigDir() { return coreConfigDir; }
 
     private void writeDefaults() {
@@ -263,6 +282,157 @@ public final class CoreConfigManager {
         migrateChatConfig();
         migrateIdentityConfig();
         migrateHistoryConfig();
+    }
+
+    private ServerIdentityConfig loadServerIdentity() {
+        ServerIdentityConfig defaults = ServerIdentityConfig.defaults();
+        Map<String, Object> root = loadMap("server_identity.yml");
+        Map<String, Object> identity = map(root.get("identity"));
+        Map<String, Object> terms = map(root.get("terms"));
+        Map<String, Object> chat = map(root.get("chat-labels"));
+        return new ServerIdentityConfig(
+                string(identity.get("server-name"), defaults.serverName()),
+                string(identity.get("capital-name"), defaults.capitalName()),
+                string(identity.get("treasury-name"), defaults.treasuryName()),
+                string(identity.get("seal-name"), defaults.sealName()),
+                string(terms.get("realm-singular"), defaults.realmSingular()),
+                string(terms.get("realm-plural"), defaults.realmPlural()),
+                string(terms.get("currency-singular"), defaults.currencySingular()),
+                string(terms.get("currency-plural"), defaults.currencyPlural()),
+                string(terms.get("offering-singular"), defaults.offeringSingular()),
+                string(terms.get("offering-plural"), defaults.offeringPlural()),
+                string(terms.get("shrine-of-foundation"), defaults.shrineOfFoundation()),
+                string(chat.get("local"), defaults.localChatLabel()),
+                string(chat.get("realm"), defaults.realmChatLabel()),
+                string(chat.get("alliance"), defaults.allianceChatLabel())
+        );
+    }
+
+    private ElarionUiTheme loadUiTheme() {
+        ElarionUiTheme defaults = ElarionUiTheme.defaults();
+        Map<String, Object> root = loadMap("ui_theme.yml");
+        Map<String, Object> dimensions = map(root.get("defaults"));
+        Map<String, Object> rawVariants = map(root.get("variants"));
+        if (!rawVariants.containsKey("default")) {
+            throw new ConfigValidationException(List.of("ui_theme.yml.variants.default: required"));
+        }
+        if (rawVariants.size() > 32) {
+            throw new ConfigValidationException(List.of("ui_theme.yml.variants: at most 32 variants are allowed"));
+        }
+        Map<String, ElarionUiThemeVariant> variants = new java.util.LinkedHashMap<>();
+        java.util.Set<String> resolving = new java.util.LinkedHashSet<>();
+        for (String id : rawVariants.keySet()) {
+            if (!id.matches("[a-z0-9_.-]+")) {
+                throw new ConfigValidationException(List.of(
+                        "ui_theme.yml.variants." + id + ": invalid variant id"));
+            }
+            resolveUiVariant(id, rawVariants, variants, resolving, defaults.variant("default"));
+        }
+        int logicalWidth = boundedInt(dimensions, "logical-width", defaults.logicalWidth(), 240, 960);
+        int logicalHeight = boundedInt(dimensions, "logical-height", defaults.logicalHeight(), 180, 720);
+        int minimumScale = boundedInt(dimensions, "minimum-scale-percent",
+                defaults.minimumScalePercent(), 25, 100);
+        return new ElarionUiTheme(
+                logicalWidth, logicalHeight, minimumScale,
+                boundedInt(dimensions, "padding", defaults.padding(), 4, 48),
+                boundedInt(dimensions, "gap", defaults.gap(), 1, 32),
+                boundedInt(dimensions, "row-height", defaults.rowHeight(), 10, 64),
+                boundedInt(dimensions, "button-height", defaults.buttonHeight(), 10, 64),
+                boundedInt(dimensions, "scrollbar-width", defaults.scrollbarWidth(), 3, 16),
+                variants);
+    }
+
+    private ElarionUiThemeVariant resolveUiVariant(
+            String id,
+            Map<String, Object> rawVariants,
+            Map<String, ElarionUiThemeVariant> resolved,
+            Set<String> resolving,
+            ElarionUiThemeVariant fallback
+    ) {
+        if (resolved.containsKey(id)) return resolved.get(id);
+        if (!resolving.add(id)) {
+            throw new ConfigValidationException(List.of("ui_theme.yml.variants." + id + ": inheritance cycle"));
+        }
+        Map<String, Object> raw = map(rawVariants.get(id));
+        String parentId = string(raw.get("extends"), "");
+        ElarionUiThemeVariant parent = fallback;
+        if (!parentId.isBlank()) {
+            if (!rawVariants.containsKey(parentId)) {
+                throw new ConfigValidationException(List.of(
+                        "ui_theme.yml.variants." + id + ".extends: unknown variant " + parentId));
+            }
+            parent = resolveUiVariant(parentId, rawVariants, resolved, resolving, fallback);
+        }
+        Map<String, Object> colors = map(raw.get("colors"));
+        Map<String, Object> textures = map(raw.get("textures"));
+        ElarionUiThemeVariant variant = new ElarionUiThemeVariant(
+                  id,
+                  color(colors, "panel", parent.panelColor()),
+                  color(colors, "header", parent.headerColor()),
+                  color(colors, "inset", parent.insetColor()),
+                  color(colors, "border", parent.borderColor()),
+                  color(colors, "bevel-highlight", parent.bevelHighlightColor()),
+                  color(colors, "bevel-shadow", parent.bevelShadowColor()),
+                  color(colors, "background-overlay", parent.backgroundOverlayColor()),
+                color(colors, "title", parent.titleColor()),
+                color(colors, "text", parent.textColor()),
+                color(colors, "muted", parent.mutedColor()),
+                color(colors, "success", parent.successColor()),
+                color(colors, "warning", parent.warningColor()),
+                color(colors, "error", parent.errorColor()),
+                color(colors, "disabled", parent.disabledColor()),
+                color(colors, "button", parent.buttonColor()),
+                color(colors, "button-hover", parent.buttonHoverColor()),
+                color(colors, "card", parent.cardColor()),
+                color(colors, "progress-background", parent.progressBackgroundColor()),
+                color(colors, "progress-fill", parent.progressFillColor()),
+                color(colors, "progress-complete", parent.progressCompleteColor()),
+                color(colors, "scrollbar-track", parent.scrollbarTrackColor()),
+                color(colors, "scrollbar-thumb", parent.scrollbarThumbColor()),
+                texture(textures, "panel", parent.panelTexture()),
+                texture(textures, "card", parent.cardTexture()),
+                textureMode(textures, parent.textureMode()),
+                color(textures, "tint", parent.textureTint()));
+        resolving.remove(id);
+        resolved.put(id, variant);
+        return variant;
+    }
+
+    private int boundedInt(Map<String, Object> map, String key, int fallback, int minimum, int maximum) {
+        int value = number(map.get(key), fallback).intValue();
+        if (value < minimum || value > maximum) {
+            throw new ConfigValidationException(List.of(
+                    "ui_theme.yml." + key + ": must be between " + minimum + " and " + maximum));
+        }
+        return value;
+    }
+
+    private int color(Map<String, Object> map, String key, int fallback) {
+        Object value = map.get(key);
+        if (value == null) return fallback;
+        try {
+            return (int) Long.decode(String.valueOf(value)).longValue();
+        } catch (NumberFormatException exception) {
+            throw new ConfigValidationException(List.of(
+                    "ui_theme.yml." + key + ": expected ARGB integer or hex color"));
+        }
+    }
+
+    private String texture(Map<String, Object> map, String key, String fallback) {
+        String value = string(map.get(key), fallback);
+        if (!value.isBlank() && net.minecraft.util.Identifier.tryParse(value) == null) {
+            throw new ConfigValidationException(List.of(
+                    "ui_theme.yml.textures." + key + ": invalid identifier " + value));
+        }
+        return value;
+    }
+
+    private String textureMode(Map<String, Object> map, String fallback) {
+        String value = string(map.get("mode"), fallback).toLowerCase(java.util.Locale.ROOT);
+        if (!value.equals("tiled") && !value.equals("stretch")) {
+            throw new ConfigValidationException(List.of("ui_theme.yml.textures.mode: expected tiled or stretch"));
+        }
+        return value;
     }
 
     private void migrateChatConfig() {

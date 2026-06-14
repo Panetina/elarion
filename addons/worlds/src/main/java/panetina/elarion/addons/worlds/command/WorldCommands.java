@@ -10,6 +10,7 @@ import panetina.elarion.addons.worlds.config.WorldsConfigException;
 import panetina.elarion.addons.worlds.model.ManagedWorldDefinition;
 import panetina.elarion.addons.worlds.model.WorldType;
 import panetina.elarion.addons.worlds.service.WorldService;
+import panetina.elarion.core.command.CommandOutput;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -99,13 +100,17 @@ public final class WorldCommands {
     }
 
     private static int list(ServerCommandSource source, WorldService worlds) {
-        source.sendFeedback(() -> Text.literal("Managed worlds:"), false);
-        worlds.definitions().forEach((key, definition) -> source.sendFeedback(() -> Text.literal(
-                " - " + key + " (" + definition.id() + ", " + definition.type() + "): "
-                        + (worlds.isLoaded(definition) ? "loaded" : definition.enabled() ? "pending" : "disabled")),
-                false));
-        source.sendFeedback(() -> Text.literal("Teleport destinations: "
-                + String.join(", ", worlds.destinationNames())), false);
+        CommandOutput.header(source, "Managed Worlds");
+        worlds.definitions().forEach((key, definition) -> CommandOutput.bullet(source,
+                key + " | " + definition.id()
+                        + " | type=" + definition.type()
+                        + " | state=" + (worlds.isLoaded(definition)
+                        ? "loaded"
+                        : definition.enabled() ? "pending" : "disabled")));
+        CommandOutput.section(source, "Teleport Destinations");
+        CommandOutput.line(source, worlds.destinationNames().isEmpty()
+                ? "(none)"
+                : String.join(", ", worlds.destinationNames()));
         return worlds.definitions().size();
     }
 
@@ -182,14 +187,15 @@ public final class WorldCommands {
     private static int info(ServerCommandSource source, WorldService worlds, String name) {
         ManagedWorldDefinition definition = worlds.findDefinition(name);
         if (definition == null) return unknown(source, name);
-        source.sendFeedback(() -> Text.literal(definition.id()
-                + " type=" + definition.type()
-                + " template=" + definition.template()
-                + " seed=" + definition.seed()
-                + " loaded=" + worlds.isLoaded(definition)
-                + " border=" + definition.border().size()
-                + " block-rules=" + definition.blockRules().size()
-                + " mob-rules=" + definition.mobRules().size()), false);
+        CommandOutput.header(source, "Managed World");
+        CommandOutput.kv(source, "ID", definition.id());
+        CommandOutput.kv(source, "Type", definition.type());
+        CommandOutput.kv(source, "Template", definition.template());
+        CommandOutput.kv(source, "Seed", definition.seed());
+        CommandOutput.kv(source, "Loaded", worlds.isLoaded(definition));
+        CommandOutput.kv(source, "World border", definition.border().size());
+        CommandOutput.kv(source, "Block rules", definition.blockRules().size());
+        CommandOutput.kv(source, "Mob rules", definition.mobRules().size());
         return 1;
     }
 

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import panetina.elarion.core.api.AddonConfigFiles;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.command.CommandOutput;
 import panetina.elarion.core.service.ElarionDiagnostics;
 import panetina.elarion.core.service.ElarionPerformanceMonitor;
 import panetina.elarion.core.service.ElarionTaskService;
@@ -63,136 +64,132 @@ public final class ElarionOptimizationAddon implements ElarionAddon {
     private static int sendStatus(ServerCommandSource source, ElarionApi api, PerformanceSampler sampler) {
         ElarionTaskService.Snapshot snapshot = api.system().tasks().snapshot();
         PerformanceSampler.Sample sample = sampler.sample();
-        source.sendFeedback(() -> Text.literal("Elarion performance: host="
-                + snapshot.hardwareProfile()
-                + " cpuSharingRisk=" + snapshot.cpuSharingRisk()
-                + " fallbackConfig=" + (snapshot.usingFallbackConfig() ? "yes" : "no")), false);
-        source.sendFeedback(() -> Text.literal("Headroom: "
-                + sample.headroom()
-                + " averageTick=" + format(sample.averageTickMillis()) + "ms"), false);
-        source.sendFeedback(() -> Text.literal("Workers: io="
-                + snapshot.ioWorkers()
-                + " compute=" + snapshot.computeWorkers()
-                + " serverApplyBudget=" + format(snapshot.maxServerApplyMillis()) + "ms"
-                + " maxTasks=" + snapshot.maxServerAppliesPerTick()), false);
-        source.sendFeedback(() -> Text.literal("Server queue: queued="
-                + snapshot.queuedServerTasks()
-                + " completed=" + snapshot.completedServerTasks()
-                + " failed=" + snapshot.failedServerTasks()
-                + " rejected=" + snapshot.rejectedServerTasks()), false);
-        source.sendFeedback(() -> Text.literal("IO queue: queued="
-                + snapshot.io().queuedTasks()
-                + " active=" + snapshot.io().activeTasks()
-                + " completed=" + snapshot.io().completedTasks()
-                + " failed=" + snapshot.io().failedTasks()), false);
-        source.sendFeedback(() -> Text.literal("Compute queue: queued="
-                + snapshot.compute().queuedTasks()
-                + " active=" + snapshot.compute().activeTasks()
-                + " completed=" + snapshot.compute().completedTasks()
-                + " failed=" + snapshot.compute().failedTasks()), false);
-        source.sendFeedback(() -> Text.literal("Server apply: tasks="
-                + snapshot.lastTickApplied()
-                + " last=" + format(snapshot.lastTickMillis())
-                + "ms rolling=" + format(snapshot.rollingApplyMillis())
-                + "ms max=" + format(snapshot.maxTickMillis())
-                + "ms slowTicks=" + snapshot.slowServerApplyTicks()), false);
-        source.sendFeedback(() -> Text.literal("Queue pressure: "
-                + (snapshot.queuePressure() ? "yes" : "no")
-                + " usage=" + format(snapshot.queueUsage() * 100.0D)
-                + "% applyOverBudget=" + (snapshot.serverApplyOverBudget() ? "yes" : "no")
-                + " warningAt=" + snapshot.queueWarningThreshold()), false);
-        source.sendFeedback(() -> Text.literal("Slow operations: "
-                + formatOperations(ElarionPerformanceMonitor.snapshot())), false);
+        CommandOutput.header(source, "Elarion Performance");
+        CommandOutput.section(source, "Host");
+        CommandOutput.kv(source, "Profile", snapshot.hardwareProfile());
+        CommandOutput.kv(source, "CPU sharing risk", snapshot.cpuSharingRisk());
+        CommandOutput.kv(source, "Fallback config", snapshot.usingFallbackConfig() ? "yes" : "no");
+        CommandOutput.section(source, "Headroom");
+        CommandOutput.kv(source, "State", sample.headroom());
+        CommandOutput.kv(source, "Average tick", format(sample.averageTickMillis()) + "ms");
+        CommandOutput.section(source, "Workers");
+        CommandOutput.kv(source, "IO workers", snapshot.ioWorkers());
+        CommandOutput.kv(source, "Compute workers", snapshot.computeWorkers());
+        CommandOutput.kv(source, "Server apply budget", format(snapshot.maxServerApplyMillis()) + "ms");
+        CommandOutput.kv(source, "Max server tasks/tick", snapshot.maxServerAppliesPerTick());
+        CommandOutput.section(source, "Queues");
+        CommandOutput.kv(source, "Server", "queued=" + snapshot.queuedServerTasks()
+                + ", completed=" + snapshot.completedServerTasks()
+                + ", failed=" + snapshot.failedServerTasks()
+                + ", rejected=" + snapshot.rejectedServerTasks());
+        CommandOutput.kv(source, "IO", "queued=" + snapshot.io().queuedTasks()
+                + ", active=" + snapshot.io().activeTasks()
+                + ", completed=" + snapshot.io().completedTasks()
+                + ", failed=" + snapshot.io().failedTasks());
+        CommandOutput.kv(source, "Compute", "queued=" + snapshot.compute().queuedTasks()
+                + ", active=" + snapshot.compute().activeTasks()
+                + ", completed=" + snapshot.compute().completedTasks()
+                + ", failed=" + snapshot.compute().failedTasks());
+        CommandOutput.section(source, "Server Apply");
+        CommandOutput.kv(source, "Last tick tasks", snapshot.lastTickApplied());
+        CommandOutput.kv(source, "Last apply time", format(snapshot.lastTickMillis()) + "ms");
+        CommandOutput.kv(source, "Rolling apply time", format(snapshot.rollingApplyMillis()) + "ms");
+        CommandOutput.kv(source, "Max apply time", format(snapshot.maxTickMillis()) + "ms");
+        CommandOutput.kv(source, "Slow apply ticks", snapshot.slowServerApplyTicks());
+        CommandOutput.section(source, "Pressure");
+        CommandOutput.kv(source, "Queue pressure", snapshot.queuePressure() ? "yes" : "no");
+        CommandOutput.kv(source, "Queue usage", format(snapshot.queueUsage() * 100.0D) + "%");
+        CommandOutput.kv(source, "Apply over budget", snapshot.serverApplyOverBudget() ? "yes" : "no");
+        CommandOutput.kv(source, "Queue warning threshold", snapshot.queueWarningThreshold());
+        CommandOutput.section(source, "Slow Operations");
+        CommandOutput.line(source, formatOperations(ElarionPerformanceMonitor.snapshot()));
         return 1;
     }
 
     private static int sendQueues(ServerCommandSource source, ElarionApi api) {
         ElarionTaskService.Snapshot snapshot = api.system().tasks().snapshot();
-        source.sendFeedback(() -> Text.literal("Rejected by family: "
-                + formatFamilies(snapshot.rejectedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("Completed by family: "
-                + formatFamilies(snapshot.completedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("Failed by family: "
-                + formatFamilies(snapshot.failedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("IO submitted by family: "
-                + formatFamilies(snapshot.io().submittedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("IO completed by family: "
-                + formatFamilies(snapshot.io().completedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("IO failed by family: "
-                + formatFamilies(snapshot.io().failedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("Compute submitted by family: "
-                + formatFamilies(snapshot.compute().submittedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("Compute completed by family: "
-                + formatFamilies(snapshot.compute().completedByFamily())), false);
-        source.sendFeedback(() -> Text.literal("Compute failed by family: "
-                + formatFamilies(snapshot.compute().failedByFamily())), false);
+        CommandOutput.header(source, "Task Queues");
+        CommandOutput.section(source, "Server Thread");
+        CommandOutput.kv(source, "Rejected", formatFamilies(snapshot.rejectedByFamily()));
+        CommandOutput.kv(source, "Completed", formatFamilies(snapshot.completedByFamily()));
+        CommandOutput.kv(source, "Failed", formatFamilies(snapshot.failedByFamily()));
+        CommandOutput.section(source, "IO Queue");
+        CommandOutput.kv(source, "Submitted", formatFamilies(snapshot.io().submittedByFamily()));
+        CommandOutput.kv(source, "Completed", formatFamilies(snapshot.io().completedByFamily()));
+        CommandOutput.kv(source, "Failed", formatFamilies(snapshot.io().failedByFamily()));
+        CommandOutput.section(source, "Compute Queue");
+        CommandOutput.kv(source, "Submitted", formatFamilies(snapshot.compute().submittedByFamily()));
+        CommandOutput.kv(source, "Completed", formatFamilies(snapshot.compute().completedByFamily()));
+        CommandOutput.kv(source, "Failed", formatFamilies(snapshot.compute().failedByFamily()));
         return 1;
     }
 
     private static int sendConfig(ServerCommandSource source, ElarionApi api) {
         ElarionTaskService.Snapshot snapshot = api.system().tasks().snapshot();
-        source.sendFeedback(() -> Text.literal("Performance config: host="
-                + snapshot.hardwareProfile()
-                + " cpuSharingRisk=" + snapshot.cpuSharingRisk()
-                + " fallback=" + (snapshot.usingFallbackConfig() ? "yes" : "no")), false);
-        source.sendFeedback(() -> Text.literal("Budgets: ioWorkers="
-                + snapshot.ioWorkers()
-                + " computeWorkers=" + snapshot.computeWorkers()
-                + " maxQueuedServerTasks=" + snapshot.maxQueuedServerTasks()
-                + " maxServerAppliesPerTick=" + snapshot.maxServerAppliesPerTick()
-                + " maxServerApplyMillis=" + format(snapshot.maxServerApplyMillis())), false);
-        source.sendFeedback(() -> Text.literal("Monitoring: tickWarningMillis="
-                + format(snapshot.tickWarningMillis())
-                + " queueWarningThreshold=" + snapshot.queueWarningThreshold()
-                + " slowOperationWarningMillis=" + format(snapshot.slowOperationWarningMillis())
-                + " sampleIntervalSeconds=" + snapshot.sampleIntervalSeconds()
-                + " worldSamples=" + snapshot.worldSamplesEnabled()
-                + " realmSamples=" + snapshot.realmSamplesEnabled()), false);
-        source.sendFeedback(() -> Text.literal("Headroom thresholds: warm="
-                + format(snapshot.headroomWarmMillis())
-                + "ms pressure=" + format(snapshot.headroomPressureMillis())
-                + "ms overloaded=" + format(snapshot.headroomOverloadedMillis())
-                + "ms"), false);
-        source.sendFeedback(() -> Text.literal("Validation warnings: "
-                + (snapshot.validationWarnings().isEmpty()
+        CommandOutput.header(source, "Performance Config");
+        CommandOutput.kv(source, "Host profile", snapshot.hardwareProfile());
+        CommandOutput.kv(source, "CPU sharing risk", snapshot.cpuSharingRisk());
+        CommandOutput.kv(source, "Fallback", snapshot.usingFallbackConfig() ? "yes" : "no");
+        CommandOutput.section(source, "Budgets");
+        CommandOutput.kv(source, "IO workers", snapshot.ioWorkers());
+        CommandOutput.kv(source, "Compute workers", snapshot.computeWorkers());
+        CommandOutput.kv(source, "Max queued server tasks", snapshot.maxQueuedServerTasks());
+        CommandOutput.kv(source, "Max server applies/tick", snapshot.maxServerAppliesPerTick());
+        CommandOutput.kv(source, "Max server apply time", format(snapshot.maxServerApplyMillis()) + "ms");
+        CommandOutput.section(source, "Monitoring");
+        CommandOutput.kv(source, "Tick warning", format(snapshot.tickWarningMillis()) + "ms");
+        CommandOutput.kv(source, "Queue warning threshold", snapshot.queueWarningThreshold());
+        CommandOutput.kv(source, "Slow operation warning", format(snapshot.slowOperationWarningMillis()) + "ms");
+        CommandOutput.kv(source, "Sample interval", snapshot.sampleIntervalSeconds() + "s");
+        CommandOutput.kv(source, "World samples", snapshot.worldSamplesEnabled());
+        CommandOutput.kv(source, "Realm samples", snapshot.realmSamplesEnabled());
+        CommandOutput.section(source, "Headroom Thresholds");
+        CommandOutput.kv(source, "Warm", format(snapshot.headroomWarmMillis()) + "ms");
+        CommandOutput.kv(source, "Pressure", format(snapshot.headroomPressureMillis()) + "ms");
+        CommandOutput.kv(source, "Overloaded", format(snapshot.headroomOverloadedMillis()) + "ms");
+        CommandOutput.section(source, "Validation");
+        CommandOutput.line(source, snapshot.validationWarnings().isEmpty()
                 ? "(none)"
-                : String.join("; ", snapshot.validationWarnings()))), false);
+                : String.join("; ", snapshot.validationWarnings()));
         return 1;
     }
 
     private static int sendWorlds(ServerCommandSource source, PerformanceSampler sampler) {
         PerformanceSampler.Sample sample = sampler.sample();
-        source.sendFeedback(() -> Text.literal("World samples at "
-                + (sample.timestamp() == 0L ? "never" : Instant.ofEpochMilli(sample.timestamp()).toString())), false);
+        CommandOutput.header(source, "World Samples");
+        CommandOutput.kv(source, "Sampled at",
+                sample.timestamp() == 0L ? "never" : Instant.ofEpochMilli(sample.timestamp()).toString());
         if (sample.worlds().isEmpty()) {
-            source.sendFeedback(() -> Text.literal("No world samples available."), false);
+            CommandOutput.empty(source, "No world samples available.");
             return 1;
         }
         for (PerformanceSampler.WorldSample world : sample.worlds()) {
-            source.sendFeedback(() -> Text.literal(world.worldId()
-                    + ": players=" + world.players()
-                    + " loadedChunks=" + world.loadedChunks() + " (" + signed(world.loadedChunkDelta()) + ")"
-                    + " entities=" + world.entities() + " (" + signed(world.entityDelta()) + ")"
-                    + " groups=" + formatGroups(world.entityGroups())
-                    + " blockEntities=" + world.blockEntities() + " (" + signed(world.blockEntityDelta()) + ")"
-                    + " blockEntityTypes=" + formatGroups(world.blockEntityTypes())
-                    + " trend=" + formatTrend(world)), false);
+            CommandOutput.section(source, world.worldId());
+            CommandOutput.kv(source, "Players", world.players());
+            CommandOutput.kv(source, "Loaded chunks",
+                    world.loadedChunks() + " (" + signed(world.loadedChunkDelta()) + ")");
+            CommandOutput.kv(source, "Entities",
+                    world.entities() + " (" + signed(world.entityDelta()) + ")");
+            CommandOutput.kv(source, "Entity groups", formatGroups(world.entityGroups()));
+            CommandOutput.kv(source, "Block entities",
+                    world.blockEntities() + " (" + signed(world.blockEntityDelta()) + ")");
+            CommandOutput.kv(source, "Block entity types", formatGroups(world.blockEntityTypes()));
+            CommandOutput.kv(source, "Trend", formatTrend(world));
         }
         return 1;
     }
 
     private static int sendRealms(ServerCommandSource source, PerformanceSampler sampler) {
         PerformanceSampler.Sample sample = sampler.sample();
-        source.sendFeedback(() -> Text.literal("Realm samples at "
-                + (sample.timestamp() == 0L ? "never" : Instant.ofEpochMilli(sample.timestamp()).toString())), false);
+        CommandOutput.header(source, "Realm Samples");
+        CommandOutput.kv(source, "Sampled at",
+                sample.timestamp() == 0L ? "never" : Instant.ofEpochMilli(sample.timestamp()).toString());
         if (sample.realms().isEmpty()) {
-            source.sendFeedback(() -> Text.literal("No Realm samples available."), false);
+            CommandOutput.empty(source, "No Realm samples available.");
             return 1;
         }
         for (PerformanceSampler.RealmSample realm : sample.realms()) {
-            source.sendFeedback(() -> Text.literal(realm.realmId()
-                    + ": world=" + realm.worldId()
-                    + " onlinePlayers=" + realm.onlinePlayers()), false);
+            sendRealmSample(source, realm);
         }
         return 1;
     }
@@ -201,9 +198,8 @@ public final class ElarionOptimizationAddon implements ElarionAddon {
         PerformanceSampler.Sample sample = sampler.sample();
         for (PerformanceSampler.RealmSample realm : sample.realms()) {
             if (realm.realmId().equalsIgnoreCase(realmId)) {
-                source.sendFeedback(() -> Text.literal(realm.realmId()
-                        + ": world=" + realm.worldId()
-                        + " onlinePlayers=" + realm.onlinePlayers()), false);
+                CommandOutput.header(source, "Realm Sample");
+                sendRealmSample(source, realm);
                 return 1;
             }
         }
@@ -213,11 +209,11 @@ public final class ElarionOptimizationAddon implements ElarionAddon {
 
     private static int sendHotzones(ServerCommandSource source, PerformanceSampler sampler) {
         PerformanceSampler.Sample sample = sampler.sample();
-        source.sendFeedback(() -> Text.literal("Headroom: "
-                + sample.headroom()
-                + " averageTick=" + format(sample.averageTickMillis()) + "ms"), false);
+        CommandOutput.header(source, "Performance Hotzones");
+        CommandOutput.kv(source, "Headroom", sample.headroom());
+        CommandOutput.kv(source, "Average tick", format(sample.averageTickMillis()) + "ms");
         if (sample.worlds().isEmpty()) {
-            source.sendFeedback(() -> Text.literal("No world samples available."), false);
+            CommandOutput.empty(source, "No world samples available.");
             return 1;
         }
         sample.worlds().stream()
@@ -225,34 +221,43 @@ public final class ElarionOptimizationAddon implements ElarionAddon {
                         .comparingInt(ElarionOptimizationAddon::hotzoneScore)
                         .thenComparingInt(PerformanceSampler.WorldSample::entities)
                         .thenComparingInt(PerformanceSampler.WorldSample::loadedChunks)
-                        .reversed())
+                .reversed())
                 .limit(5)
-                .forEach(world -> source.sendFeedback(() -> Text.literal(world.worldId()
-                        + ": players=" + world.players()
-                        + " loadedChunks=" + world.loadedChunks() + " (" + signed(world.loadedChunkDelta()) + ")"
-                        + " entities=" + world.entities() + " (" + signed(world.entityDelta()) + ")"
-                        + " groups=" + formatGroups(world.entityGroups())
-                        + " blockEntities=" + world.blockEntities() + " (" + signed(world.blockEntityDelta()) + ")"
-                        + " blockEntityTypes=" + formatGroups(world.blockEntityTypes())
-                        + " trend=" + formatTrend(world)), false));
+                .forEach(world -> {
+                    CommandOutput.section(source, world.worldId());
+                    CommandOutput.kv(source, "Players", world.players());
+                    CommandOutput.kv(source, "Loaded chunks",
+                            world.loadedChunks() + " (" + signed(world.loadedChunkDelta()) + ")");
+                    CommandOutput.kv(source, "Entities",
+                            world.entities() + " (" + signed(world.entityDelta()) + ")");
+                    CommandOutput.kv(source, "Entity groups", formatGroups(world.entityGroups()));
+                    CommandOutput.kv(source, "Block entities",
+                            world.blockEntities() + " (" + signed(world.blockEntityDelta()) + ")");
+                    CommandOutput.kv(source, "Block entity types", formatGroups(world.blockEntityTypes()));
+                    CommandOutput.kv(source, "Trend", formatTrend(world));
+                });
         return 1;
     }
 
     private static int sendSecurity(ServerCommandSource source) {
         Map<String, String> diagnostics = ElarionDiagnostics.snapshot("security");
         if (diagnostics.isEmpty()) {
-            source.sendFeedback(() -> Text.literal("Security diagnostics: provider not active."), false);
+            CommandOutput.empty(source, "Security diagnostics provider is not active.");
             return 1;
         }
-        source.sendFeedback(() -> Text.literal("Security diagnostics: state="
-                + diagnostics.getOrDefault("state", "unknown")
-                + " totalEvidence=" + diagnostics.getOrDefault("totalEvidence", "0")
-                + " dirty=" + diagnostics.getOrDefault("dirty", "false")), false);
-        source.sendFeedback(() -> Text.literal("Evidence types: "
-                + diagnostics.getOrDefault("types", "(none)")), false);
-        source.sendFeedback(() -> Text.literal("Last evidence: "
-                + diagnostics.getOrDefault("lastEvidenceAt", "never")), false);
+        CommandOutput.header(source, "Security Diagnostics");
+        CommandOutput.kv(source, "State", diagnostics.getOrDefault("state", "unknown"));
+        CommandOutput.kv(source, "Total evidence", diagnostics.getOrDefault("totalEvidence", "0"));
+        CommandOutput.kv(source, "Dirty", diagnostics.getOrDefault("dirty", "false"));
+        CommandOutput.kv(source, "Evidence types", diagnostics.getOrDefault("types", "(none)"));
+        CommandOutput.kv(source, "Last evidence", diagnostics.getOrDefault("lastEvidenceAt", "never"));
         return 1;
+    }
+
+    private static void sendRealmSample(ServerCommandSource source, PerformanceSampler.RealmSample realm) {
+        CommandOutput.section(source, realm.realmId());
+        CommandOutput.kv(source, "World", realm.worldId());
+        CommandOutput.kv(source, "Online players", realm.onlinePlayers());
     }
 
     private static String formatFamilies(Map<String, Long> values) {

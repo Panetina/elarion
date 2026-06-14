@@ -70,7 +70,8 @@ final class RealmCommandRegistrar {
                             .sorted()
                             .reduce((left, right) -> left + ", " + right)
                             .orElse("(none)");
-                    context.getSource().sendFeedback(() -> Text.literal("Realms: " + values), false);
+                    CommandOutput.header(context.getSource(), "Realms");
+                    CommandOutput.kv(context.getSource(), "Available", values);
                     return 1;
                 }))
                 .then(literal("reward")
@@ -207,8 +208,9 @@ final class RealmCommandRegistrar {
                                     String leader = api.governance().leader(realm)
                                             .map(uuid -> displayCitizen(api, uuid))
                                             .orElse("(none)");
-                                    context.getSource().sendFeedback(
-                                            () -> Text.literal("Leader for " + realm + ": " + leader), false);
+                                    CommandOutput.header(context.getSource(), "Realm Leader");
+                                    CommandOutput.kv(context.getSource(), "Realm", realm);
+                                    CommandOutput.kv(context.getSource(), "Leader", leader);
                                     return 1;
                                 })));
     }
@@ -227,8 +229,10 @@ final class RealmCommandRegistrar {
                                                 return 0;
                                             }
                                             RealmRelationship relationship = api.governance().relationship(first, second);
-                                            context.getSource().sendFeedback(
-                                                    () -> Text.literal(first + " <-> " + second + ": " + relationship), false);
+                                            CommandOutput.header(context.getSource(), "Realm Relationship");
+                                            CommandOutput.kv(context.getSource(), "First Realm", first);
+                                            CommandOutput.kv(context.getSource(), "Second Realm", second);
+                                            CommandOutput.kv(context.getSource(), "Relationship", relationship);
                                             return 1;
                                         }))))
                 .then(literal("set")
@@ -252,13 +256,15 @@ final class RealmCommandRegistrar {
                         .then(literal("list").executes(context -> {
                             List<RealmDecision> pending = api.governance().pending();
                             if (pending.isEmpty()) {
-                                context.getSource().sendFeedback(() -> Text.literal("No pending realm decisions."), false);
+                                CommandOutput.empty(context.getSource(), "No pending realm decisions.");
                                 return 1;
                             }
+                            CommandOutput.header(context.getSource(), "Pending Realm Decisions");
                             pending.forEach(decision -> context.getSource().sendFeedback(
-                                    () -> Text.literal(decision.id() + " " + decision.type()
-                                            + " " + decision.declaringRealmId() + " -> "
-                                            + value(decision.receivingRealmId())), false));
+                                    () -> Text.literal(" - " + decision.id()
+                                            + " | " + decision.type()
+                                            + " | " + decision.declaringRealmId()
+                                            + " -> " + value(decision.receivingRealmId())), false));
                             return pending.size();
                         }))
                         .then(literal("propose")
@@ -305,8 +311,10 @@ final class RealmCommandRegistrar {
             source.sendError(Text.literal("Could not set relationship."));
             return 0;
         }
-        source.sendFeedback(() -> Text.literal("Set " + first + " <-> " + second
-                + " to " + relationship), true);
+        CommandOutput.success(source, "Realm relationship updated.", true);
+        CommandOutput.kv(source, "First Realm", first);
+        CommandOutput.kv(source, "Second Realm", second);
+        CommandOutput.kv(source, "Relationship", relationship);
         return 1;
     }
 
@@ -338,7 +346,11 @@ final class RealmCommandRegistrar {
             source.sendError(Text.literal(exception.getMessage()));
             return 0;
         }
-        source.sendFeedback(() -> Text.literal("Created decision " + decision.id()), true);
+        CommandOutput.success(source, "Realm decision created.", true);
+        CommandOutput.kv(source, "ID", decision.id());
+        CommandOutput.kv(source, "Type", decision.type());
+        CommandOutput.kv(source, "Declaring Realm", decision.declaringRealmId());
+        CommandOutput.kv(source, "Receiving Realm", value(decision.receivingRealmId()));
         return 1;
     }
 }

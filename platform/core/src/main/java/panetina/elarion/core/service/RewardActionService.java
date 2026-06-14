@@ -6,6 +6,9 @@ import net.minecraft.text.Text;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import panetina.elarion.core.config.CoreConfigManager;
 import panetina.elarion.core.event.ElarionEventBus;
@@ -61,7 +64,7 @@ public final class RewardActionService {
     }
 
     public void registerHandler(String type, ActionHandler handler) {
-        handlers.put(normalize(type), handler);
+        handlers.put(normalizeActionType(type), handler);
     }
 
     public static Set<String> builtInActionTypes() {
@@ -72,18 +75,30 @@ public final class RewardActionService {
         return config.rewards().keySet();
     }
 
+    public List<RewardAction> actions(String rewardId) {
+        return config.rewards().getOrDefault(normalizeRewardId(rewardId), List.of());
+    }
+
     public boolean executeReward(String rewardId, ServerPlayerEntity player) {
-        List<RewardAction> actions = config.rewards().get(normalize(rewardId));
+        String normalizedRewardId = normalizeRewardId(rewardId);
+        List<RewardAction> actions = config.rewards().get(normalizedRewardId);
         if (actions == null) return false;
-        Context context = new Context(player.getServer(), player, normalize(rewardId));
+        Context context = new Context(player.getServer(), player, normalizedRewardId);
         boolean success = true;
         for (RewardAction action : actions) {
-            ActionHandler handler = handlers.get(normalize(action.type()));
+            ActionHandler handler = handlers.get(normalizeActionType(action.type()));
             success &= handler != null && handler.execute(context, action);
         }
         events.emitProgression(new ElarionEventBus.ProgressionEvent(
-                "reward.executed", player.getUuid(), normalize(rewardId)));
+                "reward.executed", player.getUuid(), normalizedRewardId));
         return success;
+    }
+
+    public boolean executeAction(String sourceId, RewardAction action, ServerPlayerEntity player) {
+        if (action == null || player == null) return false;
+        ActionHandler handler = handlers.get(normalizeActionType(action.type()));
+        return handler != null && handler.execute(
+                new Context(player.getServer(), player, normalizeRewardId(sourceId)), action);
     }
 
     private void registerBuiltIns() {
@@ -102,6 +117,7 @@ public final class RewardActionService {
             }
             Item item = Registries.ITEM.get(id);
             ItemStack stack = new ItemStack(item, count);
+            applyEnchantments(context, stack, action.parameters());
             if (!context.player().getInventory().insertStack(stack)) {
                 context.player().dropItem(stack, false);
             }
@@ -150,6 +166,28 @@ public final class RewardActionService {
         });
     }
 
+    private static void applyEnchantments(Context context, ItemStack stack, Map<String, String> parameters) {
+        String raw = parameters.getOrDefault("enchants", parameters.getOrDefault("enchantments", ""));
+        if (raw == null || raw.isBlank()) return;
+        for (String entry : raw.split(",")) {
+            String trimmed = entry.trim();
+            int separator = trimmed.lastIndexOf(':');
+            if (separator <= 0 || separator >= trimmed.length() - 1) continue;
+            Identifier id = Identifier.tryParse(trimmed.substring(0, separator).trim());
+            if (id == null) continue;
+            java.util.Optional<RegistryEntry.Reference<net.minecraft.enchantment.Enchantment>> enchantment =
+                    context.server().getRegistryManager()
+                            .getWrapperOrThrow(RegistryKeys.ENCHANTMENT)
+                            .getOptional(RegistryKey.of(RegistryKeys.ENCHANTMENT, id));
+            if (enchantment.isEmpty()) continue;
+            try {
+                int level = Math.max(1, Integer.parseInt(trimmed.substring(separator + 1).trim()));
+                stack.addEnchantment(enchantment.get(), level);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+    }
+
     private static String interpolate(String command, Context context) {
         return command
                 .replace("{player}", context.player().getGameProfile().getName())
@@ -157,7 +195,11 @@ public final class RewardActionService {
                 .replace("{reward}", context.rewardId());
     }
 
-    private static String normalize(String value) {
+    private static String normalizeActionType(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT).replace('_', '-');
+    }
+
+    static String normalizeRewardId(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
     }
 }

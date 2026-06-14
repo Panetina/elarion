@@ -42,6 +42,17 @@ world/elarion/addon-state/security/evidence.json
 Security publishes a Core diagnostics provider named `security`. The
 Optimization addon reads that provider for `/e perf security`.
 
+## Web Bridge Security
+
+The website/backend bridge should treat secrets and identities as server-side
+only. Bridge endpoints that accept server sync traffic must:
+
+- require bearer authentication
+- hash any stored API secret material
+- log accepted and rejected calls
+- avoid exposing `DATABASE_URL`, secret values, or raw admin tokens
+- keep whitelist and account intake auditable
+
 ## Rules
 
 Detection must be event-driven or sampled. Automatic enforcement requires

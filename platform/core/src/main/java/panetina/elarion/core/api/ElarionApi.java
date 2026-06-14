@@ -18,7 +18,11 @@ import panetina.elarion.core.service.PlayerStatsService;
 import panetina.elarion.core.service.ProgressionService;
 import panetina.elarion.core.service.TitleService;
 import panetina.elarion.core.service.ElarionTaskService;
+import panetina.elarion.core.service.ElarionUiThemeService;
+import panetina.elarion.core.service.DeferredRewardGrantService;
+import panetina.elarion.core.service.CatchTelemetryService;
 import panetina.elarion.core.registry.ElarionRegistries;
+import panetina.elarion.core.model.ServerIdentityConfig;
 
 public final class ElarionApi {
     private static ElarionApi instance;
@@ -43,12 +47,16 @@ public final class ElarionApi {
     private final ElarionCommandRegistry commands;
     private final ElarionRegistries registries;
     private final ElarionTaskService tasks;
+    private final ServerIdentityConfig serverIdentity;
+    private final ElarionUiThemeService uiThemes;
+    private final DeferredRewardGrantService deferredRewards;
     private final ElarionIdentityApi identityApi;
     private final ElarionRealmApi realmApi;
     private final ElarionMessagingApi messagingApi;
     private final ElarionProgressionApi progressionApi;
     private final ElarionSystemApi systemApi;
     private final ElarionPublicHistoryApi publicHistoryApi;
+    private final ElarionCatchTelemetryApi catchTelemetryApi;
 
     public ElarionApi(
             CitizenService citizens,
@@ -70,7 +78,11 @@ public final class ElarionApi {
             ElarionEventBus events,
             ElarionCommandRegistry commands,
             ElarionRegistries registries,
-            ElarionTaskService tasks
+            ElarionTaskService tasks,
+            ServerIdentityConfig serverIdentity,
+            ElarionUiThemeService uiThemes,
+            DeferredRewardGrantService deferredRewards,
+            CatchTelemetryService catchTelemetry
     ) {
         if (instance != null) throw new IllegalStateException("ElarionApi is already initialized");
         this.citizens = citizens;
@@ -93,12 +105,16 @@ public final class ElarionApi {
         this.commands = commands;
         this.registries = registries;
         this.tasks = tasks;
+        this.serverIdentity = serverIdentity;
+        this.uiThemes = uiThemes;
+        this.deferredRewards = deferredRewards;
         this.identityApi = new ElarionIdentityApi(identities, identitySync, nicknames, titles);
         this.realmApi = new ElarionRealmApi(citizens, realms, governance, realmSpawns, realmDeliveries);
         this.messagingApi = new ElarionMessagingApi(chat, privateMessages);
         this.progressionApi = new ElarionProgressionApi(playerStats, progression, rewards, history);
         this.systemApi = new ElarionSystemApi(abilities, events, commands, registries, tasks);
         this.publicHistoryApi = new ElarionPublicHistoryApi(history);
+        this.catchTelemetryApi = new ElarionCatchTelemetryApi(catchTelemetry);
         instance = this;
     }
 
@@ -127,10 +143,14 @@ public final class ElarionApi {
     public ElarionCommandRegistry commands() { return commands; }
     public ElarionRegistries registries() { return registries; }
     public ElarionTaskService tasks() { return tasks; }
+    public ServerIdentityConfig serverIdentity() { return serverIdentity; }
+    public ElarionUiThemeService uiThemes() { return uiThemes; }
+    public DeferredRewardGrantService deferredRewards() { return deferredRewards; }
     public ElarionIdentityApi identity() { return identityApi; }
     public ElarionRealmApi realm() { return realmApi; }
     public ElarionMessagingApi messaging() { return messagingApi; }
     public ElarionProgressionApi progressionApi() { return progressionApi; }
     public ElarionSystemApi system() { return systemApi; }
     public ElarionPublicHistoryApi publicHistory() { return publicHistoryApi; }
+    public ElarionCatchTelemetryApi catchTelemetry() { return catchTelemetryApi; }
 }

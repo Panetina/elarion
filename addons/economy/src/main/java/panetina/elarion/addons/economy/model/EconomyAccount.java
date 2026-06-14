@@ -6,7 +6,7 @@ import java.util.UUID;
 public record EconomyAccount(EconomyAccountType type, String id) {
     public static final EconomyAccount MINT = system("mint");
     public static final EconomyAccount BURN = system("burn");
-    public static final EconomyAccount PHYSICAL_SIGIL = system("physical_sigil");
+    public static final EconomyAccount PHYSICAL_CURRENCY = system("physical_currency");
 
     public EconomyAccount {
         if (type == null) throw new IllegalArgumentException("Account type is required");

@@ -45,6 +45,15 @@ final class CommandGameTestSupport {
         }
     }
 
+    void assertFails(String command, int level) {
+        try {
+            int result = dispatcher.execute(command, server.getCommandSource().withLevel(level));
+            context.assertTrue(result <= 0, "/" + command + " should fail");
+        } catch (CommandSyntaxException exception) {
+            // Brigadier parse/permission failures are valid command failure outcomes.
+        }
+    }
+
     private CommandNode<ServerCommandSource> root() {
         return dispatcher.getRoot();
     }

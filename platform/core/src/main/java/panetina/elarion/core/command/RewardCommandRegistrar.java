@@ -32,7 +32,9 @@ final class RewardCommandRegistrar {
                                                 context.getSource().sendError(Text.literal("Unknown or failed reward: " + reward));
                                                 return 0;
                                             }
-                                            context.getSource().sendFeedback(() -> Text.literal("Executed reward " + reward), true);
+                                            CommandOutput.success(context.getSource(), "Reward executed.", true);
+                                            CommandOutput.kv(context.getSource(), "Reward", reward);
+                                            CommandOutput.kv(context.getSource(), "Player", player.getGameProfile().getName());
                                             return 1;
                                         }))));
     }

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "elarion_groups",
+  "version": "${version}",
+  "name": "Elarion Groups",
+  "description": "Reusable public group, tag, invite, and group chat foundation for Elarion.",
+  "authors": [
+    "Panyel"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "elarion:addon": [
+      "panetina.elarion.addons.groups.ElarionGroupsAddon"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "elarion_core": "*",
+    "elarion_economy": "*"
+  },
+  "contributors": [
+    "Panetina Team"
+  ]
+}

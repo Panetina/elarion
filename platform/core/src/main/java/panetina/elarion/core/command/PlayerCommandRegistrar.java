@@ -5,7 +5,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.api.ElarionCommandRegistry;
 import panetina.elarion.core.config.CoreConfigManager;
@@ -106,12 +105,12 @@ final class PlayerCommandRegistrar {
                 .requires(source -> source.hasPermissionLevel(4))
                 .executes(context -> {
                     List<ServerPlayerEntity> players = context.getSource().getServer().getPlayerManager().getPlayerList();
-                    context.getSource().sendFeedback(
-                            () -> Text.literal("There are " + players.size() + " total online players:"), false);
+                    CommandOutput.header(context.getSource(), "Online Players");
+                    CommandOutput.kv(context.getSource(), "Total", players.size());
                     Map<String, List<String>> grouped = new LinkedHashMap<>();
                     players.stream()
                             .sorted(Comparator.comparing(player ->
-                                    api.citizens().getOrCreate(player).realmId()))
+                                    String.valueOf(api.citizens().getOrCreate(player).realmId())))
                             .forEach(player -> {
                                 CitizenRecord citizen = api.citizens().getOrCreate(player);
                                 String group = api.realms().forCitizen(citizen)
@@ -122,9 +121,8 @@ final class PlayerCommandRegistrar {
                             });
                     grouped.forEach((realm, names) -> {
                         names.sort(String.CASE_INSENSITIVE_ORDER);
-                        context.getSource().sendFeedback(
-                                () -> Text.literal(realm + " (" + names.size() + "): "
-                                        + String.join(", ", names)), false);
+                        CommandOutput.section(context.getSource(), realm + " (" + names.size() + ")");
+                        CommandOutput.line(context.getSource(), String.join(", ", names));
                     });
                     return players.size();
                 }));

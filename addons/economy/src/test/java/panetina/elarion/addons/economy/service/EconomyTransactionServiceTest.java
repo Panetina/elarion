@@ -135,6 +135,31 @@ final class EconomyTransactionServiceTest {
         assertEquals(0L, service.balance(EconomyAccount.player(player)));
     }
 
+    @Test
+    void treasuryGrantMovesRealmCurrencyToPlayerAndSinkBurnsThem() {
+        List<EconomyTransaction> history = new ArrayList<>();
+        EconomyTransactionService service = service(new EconomyStorage(
+                LoggerFactory.getLogger("economy-test"), root), history);
+        UUID player = UUID.randomUUID();
+
+        var treasuryReward = service.reward(EconomyAccount.realm("oak"), 200L, null,
+                "Treasury seed", "elarion:test");
+        var grant = service.execute(EconomyTransactionType.TREASURY_GRANT,
+                EconomyAccount.realm("oak"), EconomyAccount.player(player), 75L, player,
+                "Public grant", "elarion:test", Map.of());
+        var sink = service.sink(EconomyAccount.player(player), 25L, player,
+                "Fee sink", "elarion:test");
+
+        assertTrue(treasuryReward.successful());
+        assertTrue(grant.successful());
+        assertTrue(sink.successful());
+        assertEquals(125L, service.balance(EconomyAccount.realm("oak")));
+        assertEquals(50L, service.balance(EconomyAccount.player(player)));
+        assertEquals(EconomyTransactionType.TREASURY_GRANT, grant.transaction().type());
+        assertEquals(EconomyTransactionType.SINK, sink.transaction().type());
+        assertEquals(3, history.size());
+    }
+
     private EconomyTransactionService service(
             EconomyStorage storage,
             List<EconomyTransaction> history

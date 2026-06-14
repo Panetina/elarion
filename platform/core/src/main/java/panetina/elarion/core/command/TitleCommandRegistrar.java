@@ -123,14 +123,16 @@ final class TitleCommandRegistrar {
                                         context.getSource().sendError(Text.literal("Unknown title: " + titleId));
                                         return 0;
                                     }
-                                    context.getSource().sendFeedback(() -> Text.literal(
-                                            title.id() + " | " + title.displayName()
-                                                    + " | acquisition=" + title.acquisitionMode()
-                                                    + " | ownership=" + title.ownershipMode()
-                                                    + " | hidden=" + title.hiddenFromDiscovery()
-                                                    + " | abilities=" + title.abilities()), false);
+                                    CommandOutput.header(context.getSource(), "Title");
+                                    CommandOutput.kv(context.getSource(), "ID", title.id());
+                                    CommandOutput.kv(context.getSource(), "Display", title.displayName());
+                                    CommandOutput.kv(context.getSource(), "Acquisition", title.acquisitionMode());
+                                    CommandOutput.kv(context.getSource(), "Ownership", title.ownershipMode());
+                                    CommandOutput.kv(context.getSource(), "Hidden", title.hiddenFromDiscovery());
+                                    CommandOutput.kv(context.getSource(), "Abilities",
+                                            title.abilities().isEmpty() ? "(none)" : title.abilities());
                                     if (!title.description().isBlank()) {
-                                        context.getSource().sendFeedback(() -> Text.literal(title.description()), false);
+                                        CommandOutput.kv(context.getSource(), "Description", title.description());
                                     }
                                     return 1;
                                 })))
@@ -143,10 +145,10 @@ final class TitleCommandRegistrar {
                                             .sorted()
                                             .reduce((left, right) -> left + ", " + right)
                                             .orElse("(none)");
-                                    context.getSource().sendFeedback(() -> Text.literal(
-                                            player.getGameProfile().getName()
-                                                    + " active=" + value(citizen.activeTitleId())
-                                                    + " unlocked=" + unlocked), false);
+                                    CommandOutput.header(context.getSource(), "Player Titles");
+                                    CommandOutput.kv(context.getSource(), "Player", player.getGameProfile().getName());
+                                    CommandOutput.kv(context.getSource(), "Active", value(citizen.activeTitleId()));
+                                    CommandOutput.kv(context.getSource(), "Unlocked", unlocked);
                                     return 1;
                                 })))
                 .then(literal("claims")
@@ -155,9 +157,10 @@ final class TitleCommandRegistrar {
                                     Map<String, panetina.elarion.core.storage.TitleClaimStorage.TitleClaim> claims =
                                             api.titles().claims();
                                     if (claims.isEmpty()) {
-                                        context.getSource().sendFeedback(() -> Text.literal("No unique title claims."), false);
+                                        CommandOutput.empty(context.getSource(), "No unique title claims.");
                                         return 0;
                                     }
+                                    CommandOutput.header(context.getSource(), "Unique Title Claims");
                                     claims.entrySet().stream()
                                             .sorted(Map.Entry.comparingByKey())
                                             .forEach(entry -> context.getSource().sendFeedback(
@@ -195,7 +198,8 @@ final class TitleCommandRegistrar {
                             .sorted()
                             .reduce((left, right) -> left + ", " + right)
                             .orElse("(none)");
-                    context.getSource().sendFeedback(() -> Text.literal("Titles: " + values), false);
+                    CommandOutput.header(context.getSource(), "Titles");
+                    CommandOutput.kv(context.getSource(), "Available", values);
                     return 1;
                 }));
     }

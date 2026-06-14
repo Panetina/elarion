@@ -1,0 +1,706 @@
+package panetina.elarion.addons.offerings.service;
+
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import org.slf4j.Logger;
+import panetina.elarion.addons.offerings.model.OfferingAnchor;
+import panetina.elarion.addons.offerings.model.OfferingContributionResult;
+import panetina.elarion.addons.offerings.model.OfferingDonationRecord;
+import panetina.elarion.addons.offerings.model.OfferingInstance;
+import panetina.elarion.addons.offerings.model.OfferingMilestone;
+import panetina.elarion.addons.offerings.model.OfferingProgress;
+import panetina.elarion.addons.offerings.model.OfferingProjectDefinition;
+import panetina.elarion.addons.offerings.model.OfferingProjectLevel;
+import panetina.elarion.addons.offerings.model.OfferingRequirement;
+import panetina.elarion.addons.offerings.model.OfferingScope;
+import panetina.elarion.addons.offerings.storage.OfferingState;
+import panetina.elarion.addons.offerings.storage.OfferingStorage;
+import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.registry.ActionContext;
+import panetina.elarion.core.registry.MilestoneContext;
+import panetina.elarion.core.registry.RegistryExecutionContext;
+import panetina.elarion.core.registry.RegistryExecutionResult;
+import panetina.elarion.addons.economy.api.ElarionEconomyApi;
+import panetina.elarion.addons.economy.model.EconomyAccount;
+import panetina.elarion.addons.economy.model.EconomyTransactionType;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+public final class OfferingService {
+    private static final int MAX_RECENT_DONATIONS = 50;
+    private static final double SHRINE_INTERACTION_RANGE_SQUARED = 64.0D;
+    private final Logger logger;
+    private final ElarionApi api;
+    private final OfferingDefinitionService definitions;
+    private final OfferingStorage storage;
+    private OfferingState state = new OfferingState();
+    private MinecraftServer server;
+
+    public OfferingService(
+            Logger logger,
+            ElarionApi api,
+            OfferingDefinitionService definitions,
+            OfferingStorage storage
+    ) {
+        this.logger = logger;
+        this.api = api;
+        this.definitions = definitions;
+        this.storage = storage;
+    }
+
+    public synchronized void bind(MinecraftServer server) {
+        this.server = server;
+        state = storage.load(server);
+        resumeIncompleteCompletions();
+    }
+
+    public synchronized void save() {
+        if (server != null) storage.save(server, state);
+    }
+
+    public synchronized Collection<OfferingInstance> instances() {
+        return state.instances.values().stream()
+                .sorted(Comparator.comparing(OfferingInstance::id))
+                .toList();
+    }
+
+    public synchronized Collection<OfferingAnchor> anchors() {
+        return state.anchors.values().stream()
+                .sorted(Comparator.comparing(OfferingAnchor::id))
+                .toList();
+    }
+
+    public synchronized Optional<OfferingInstance> findInstance(String id) {
+        return Optional.ofNullable(state.instances.get(id));
+    }
+
+    public synchronized Optional<OfferingAnchor> findAnchor(String id) {
+        return Optional.ofNullable(state.anchors.get(id));
+    }
+
+    public synchronized Optional<OfferingAnchor> findAnchorAt(String worldId, BlockPos pos) {
+        return state.anchors.values().stream()
+                .filter(anchor -> anchor.worldId().equals(worldId)
+                        && anchor.x() == pos.getX()
+                        && anchor.y() == pos.getY()
+                        && anchor.z() == pos.getZ())
+                .findFirst();
+    }
+
+    public synchronized List<OfferingDonationRecord> recentDonations(String instanceId, int limit) {
+        return recentDonations(instanceId, "", limit);
+    }
+
+    public synchronized List<OfferingDonationRecord> recentDonations(String instanceId, String levelId, int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 20));
+        List<OfferingDonationRecord> records = state.donations.getOrDefault(instanceId, List.of()).stream()
+                .filter(record -> levelId == null || levelId.isBlank() || levelId.equals(record.levelId()))
+                .toList();
+        int from = Math.max(0, records.size() - safeLimit);
+        List<OfferingDonationRecord> result = new ArrayList<>(records.subList(from, records.size()));
+        java.util.Collections.reverse(result);
+        return List.copyOf(result);
+    }
+
+    public synchronized OfferingInstance startRealm(String realmId, String projectId, ServerPlayerEntity actor) {
+        if (api.realms().find(realmId).isEmpty()) throw new IllegalArgumentException("Unknown Realm " + realmId);
+        OfferingProjectDefinition project = requireProject(projectId);
+        OfferingInstance instance = create(project, OfferingScope.REALM, realmId, "", 0, 0, 0);
+        put(instance);
+        history("project-started", actorId(actor), instance, Map.of("scope", "realm"));
+        return instance;
+    }
+
+    public synchronized OfferingInstance startGlobal(String projectId, ServerPlayerEntity actor) {
+        OfferingProjectDefinition project = requireProject(projectId);
+        OfferingInstance instance = create(project, OfferingScope.GLOBAL, "", "", 0, 0, 0);
+        put(instance);
+        history("project-started", actorId(actor), instance, Map.of("scope", "global"));
+        return instance;
+    }
+
+    public synchronized OfferingInstance startLocation(String projectId, ServerPlayerEntity actor) {
+        if (actor == null) throw new IllegalArgumentException("A player source is required for location projects.");
+        OfferingProjectDefinition project = requireProject(projectId);
+        BlockPos pos = actor.getBlockPos();
+        String world = actor.getWorld().getRegistryKey().getValue().toString();
+        OfferingInstance instance = create(project, OfferingScope.LOCATION, "", world,
+                pos.getX(), pos.getY(), pos.getZ());
+        put(instance);
+        history("project-started", actor.getUuid(), instance, Map.of("scope", "location", "world", world));
+        return instance;
+    }
+
+    public synchronized OfferingAnchor linkAnchorAt(
+            String instanceId,
+            String worldId,
+            BlockPos pos,
+            ServerPlayerEntity actor
+    ) {
+        OfferingInstance instance = requireInstance(instanceId);
+        findAnchorAt(worldId, pos).ifPresent(existing -> {
+            if (!existing.instanceId().equals(instanceId)) {
+                throw new IllegalArgumentException("This Shrine is already linked to " + existing.instanceId());
+            }
+        });
+        if (!instance.anchorId().isBlank()) {
+            state.anchors.remove(instance.anchorId());
+        }
+        String id = nextId(instanceId + "_shrine", state.anchors.keySet());
+        OfferingAnchor anchor = new OfferingAnchor(id, instanceId, worldId, pos.getX(), pos.getY(), pos.getZ(),
+                actorId(actor), System.currentTimeMillis());
+        state.anchors.put(id, anchor);
+        state.instances.put(instance.id(), instance.withAnchor(id));
+        save();
+        history("shrine-linked", actorId(actor), instance, Map.of("anchor", id, "world", worldId));
+        return anchor;
+    }
+
+    public synchronized void unlinkAnchorAt(String worldId, BlockPos pos, ServerPlayerEntity actor) {
+        OfferingAnchor removed = findAnchorAt(worldId, pos)
+                .orElseThrow(() -> new IllegalArgumentException("This Shrine is not linked."));
+        removeAnchor(removed.id(), actor);
+    }
+
+    public synchronized void removeAnchor(String anchorId, ServerPlayerEntity actor) {
+        OfferingAnchor removed = state.anchors.remove(anchorId);
+        if (removed == null) throw new IllegalArgumentException("Unknown anchor " + anchorId);
+        OfferingInstance instance = requireInstance(removed.instanceId());
+        if (instance.anchorId().equals(anchorId)) {
+            state.instances.put(instance.id(), instance.withAnchor(""));
+        }
+        save();
+        history("anchor-removed", actorId(actor), instance, Map.of("anchor", anchorId));
+    }
+
+    public synchronized OfferingInstance deleteInstance(String instanceId, ServerPlayerEntity actor) {
+        OfferingInstance instance = requireInstance(instanceId);
+        history("project-deleted", actorId(actor), instance,
+                instance.anchorId().isBlank() ? Map.of() : Map.of("anchor", instance.anchorId()));
+        if (!instance.anchorId().isBlank()) {
+            state.anchors.remove(instance.anchorId());
+        }
+        state.anchors.values().removeIf(anchor -> anchor.instanceId().equals(instanceId));
+        state.donations.remove(instanceId);
+        state.instances.remove(instanceId);
+        save();
+        return instance;
+    }
+
+    public synchronized Optional<OfferingInstance> deleteLinkedInstanceAt(
+            String worldId,
+            BlockPos pos,
+            ServerPlayerEntity actor
+    ) {
+        Optional<OfferingAnchor> anchor = findAnchorAt(worldId, pos);
+        if (anchor.isEmpty()) return Optional.empty();
+        OfferingInstance instance = state.instances.get(anchor.get().instanceId());
+        if (instance == null) {
+            state.anchors.remove(anchor.get().id());
+            save();
+            logger.warn("Removed orphaned Shrine link {} for missing instance {}",
+                    anchor.get().id(), anchor.get().instanceId());
+            return Optional.empty();
+        }
+        return Optional.of(deleteInstance(instance.id(), actor));
+    }
+
+    public synchronized OfferingInstance contributeEvent(
+            String instanceId,
+            String eventId,
+            long amount,
+            ServerPlayerEntity actor
+    ) {
+        if (amount < 1) throw new IllegalArgumentException("Amount must be positive.");
+        if (eventId == null || eventId.isBlank()) throw new IllegalArgumentException("Event ID is required.");
+        OfferingInstance current = requireInstance(instanceId);
+        OfferingProjectDefinition project = requireProject(current.projectId());
+        OfferingProjectLevel level = currentLevel(project, current);
+        String key = "event:" + eventId;
+        boolean configured = level.requirements().stream().anyMatch(requirement -> requirement.key().equals(key));
+        if (!configured) throw new IllegalArgumentException("Unknown event requirement " + eventId);
+        OfferingInstance updated = current.withProgress(key, amount, actorId(actor));
+        state.instances.put(updated.id(), updated);
+        history("offering-accepted", actorId(actor), updated, Map.of("key", key, "amount", Long.toString(amount)));
+        if (isComplete(level, updated)) {
+            updated = complete(updated.id(), actor, false);
+        } else {
+            save();
+        }
+        return updated;
+    }
+
+    public synchronized OfferingContributionResult contributePlayer(
+            String instanceId,
+            String requirementKey,
+            long requestedAmount,
+            ServerPlayerEntity player
+    ) {
+        if (player == null) return OfferingContributionResult.failure("A player is required.");
+        if (requestedAmount < 1) return OfferingContributionResult.failure("Amount must be positive.");
+        OfferingInstance current;
+        OfferingProjectDefinition project;
+        OfferingRequirement requirement;
+        try {
+            current = requireInstance(instanceId);
+            project = requireProject(current.projectId());
+            OfferingProjectLevel level = currentLevel(project, current);
+            requirement = level.requirements().stream()
+                    .filter(candidate -> candidate.key().equals(requirementKey))
+                    .findFirst()
+                    .orElse(null);
+        } catch (IllegalArgumentException exception) {
+            return OfferingContributionResult.failure(exception.getMessage());
+        }
+        if (current.completed()) return OfferingContributionResult.failure("This project is already complete.");
+        if (requirement == null || (!"items".equals(requirement.type())
+                && !"currency".equals(requirement.type()))) {
+            return OfferingContributionResult.failure("That requirement cannot be offered directly.");
+        }
+        String locationError = validateShrineInteraction(current, player);
+        if (locationError != null) return OfferingContributionResult.failure(locationError);
+        long existing = current.progress().getOrDefault(requirement.key(), 0L);
+        long remaining = Math.max(0L, requirement.count() - existing);
+        if (remaining == 0L) return OfferingContributionResult.failure("That requirement is already complete.");
+        long accepted = Math.min(requestedAmount, remaining);
+        return "items".equals(requirement.type())
+                ? contributePlayerItems(current, project, requirement, accepted, player)
+                : contributePlayerCurrency(current, project, requirement, accepted, player);
+    }
+
+    public synchronized OfferingInstance complete(String instanceId, ServerPlayerEntity actor, boolean forced) {
+        OfferingInstance current = requireInstance(instanceId);
+
+        OfferingProjectDefinition project = requireProject(current.projectId());
+        OfferingProjectLevel level = currentLevel(project, current);
+
+        OfferingInstance updated = executeLevelMilestones(current, level, actor);
+
+        Optional<OfferingProjectLevel> next = project.nextLevel(level.id());
+        if (next.isPresent()) {
+            history(forced ? "level-force-completed" : "level-completed", actorId(actor), updated,
+                    Map.of("level", level.id()));
+
+            updated = updated.advanceToLevel(next.get().id());
+            state.instances.put(updated.id(), updated);
+            save();
+
+            history("level-started", actorId(actor), updated, Map.of("level", next.get().id()));
+            return updated;
+        }
+
+        boolean newlyCompleted = !updated.completed();
+
+        updated = updated.withCompletion(System.currentTimeMillis(), updated.completedMilestones());
+        state.instances.put(updated.id(), updated);
+        save();
+
+        if (newlyCompleted || forced) {
+            history(forced ? "project-force-completed" : "project-completed",
+                    actorId(actor), updated, Map.of("level", level.id()));
+        }
+
+        return updated;
+    }
+
+    public synchronized OfferingInstance reset(String instanceId, ServerPlayerEntity actor) {
+        OfferingInstance reset = requireInstance(instanceId).reset();
+        state.instances.put(reset.id(), reset);
+        state.donations.remove(instanceId);
+        save();
+        history("project-reset", actorId(actor), reset, Map.of());
+        return reset;
+    }
+
+    public synchronized OfferingProgress progress(String instanceId) {
+        OfferingInstance instance = requireInstance(instanceId);
+        OfferingProjectDefinition project = requireProject(instance.projectId());
+        OfferingProjectLevel level = currentLevel(project, instance);
+        List<OfferingProgress.Row> rows = new ArrayList<>();
+        boolean complete = true;
+        for (OfferingRequirement requirement : level.requirements()) {
+            long current = instance.progress().getOrDefault(requirement.key(), 0L);
+            boolean rowComplete = current >= requirement.count();
+            complete &= rowComplete;
+            rows.add(new OfferingProgress.Row(requirement.key(), current, requirement.count(), rowComplete));
+        }
+        return new OfferingProgress(instanceId, complete, rows);
+    }
+
+    public synchronized boolean hasRealmFlag(String realmId, String flag) {
+        return state.realmFlags.getOrDefault(realmId, Set.of()).contains(flag);
+    }
+
+    private OfferingProjectDefinition requireProject(String projectId) {
+        return definitions.find(projectId)
+                .filter(OfferingProjectDefinition::enabled)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown or disabled project " + projectId));
+    }
+
+    private OfferingInstance requireInstance(String instanceId) {
+        OfferingInstance instance = state.instances.get(instanceId);
+        if (instance == null) throw new IllegalArgumentException("Unknown project instance " + instanceId);
+        return instance;
+    }
+
+    private OfferingInstance create(
+            OfferingProjectDefinition project,
+            OfferingScope scope,
+            String realmId,
+            String worldId,
+            int x,
+            int y,
+            int z
+    ) {
+        if (!project.allowMultipleInstances() && state.instances.values().stream()
+                .anyMatch(existing -> existing.projectId().equals(project.id()) && !existing.completed())) {
+            throw new IllegalArgumentException("Project " + project.id() + " already has an active instance.");
+        }
+        String base = instanceBase(scope, realmId);
+        int counter = state.projectCounters.merge(base, 1, Integer::sum);
+        String id = base + "_" + counter;
+        while (state.instances.containsKey(id)) {
+            counter = state.projectCounters.merge(base, 1, Integer::sum);
+            id = base + "_" + counter;
+        }
+        return new OfferingInstance(id, project.id(), project.firstLevel().id(), scope, realmId, worldId, x, y, z, "",
+                Map.of(), Map.of(), Set.of(), System.currentTimeMillis(), 0L);
+    }
+
+    private static String instanceBase(OfferingScope scope, String realmId) {
+        return switch (scope) {
+            case REALM -> "offering_realm_" + safeId(realmId);
+            case GLOBAL -> "offering_global";
+            case LOCATION -> "offering_location";
+        };
+    }
+
+    private static String safeId(String value) {
+        if (value == null || value.isBlank()) return "unknown";
+        return value.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_.-]", "_");
+    }
+
+    private void put(OfferingInstance instance) {
+        state.instances.put(instance.id(), instance);
+        save();
+    }
+
+    private OfferingContributionResult contributePlayerItems(
+            OfferingInstance current,
+            OfferingProjectDefinition project,
+            OfferingRequirement requirement,
+            long amount,
+            ServerPlayerEntity player
+    ) {
+        if (amount > Integer.MAX_VALUE) return OfferingContributionResult.failure("Item amount is too large.");
+        List<ItemStack> removed = removeMatchingItems(player, requirement.id(), (int) amount);
+        long removedCount = removed.stream().mapToLong(ItemStack::getCount).sum();
+        if (removedCount < amount) {
+            restoreItems(current, player, removed);
+            return OfferingContributionResult.failure("You do not have enough matching items.");
+        }
+        try {
+            OfferingInstance updated = persistPlayerContribution(
+                    current, project, requirement, amount, player, "items");
+            return OfferingContributionResult.success(
+                    "Offered " + amount + " item" + (amount == 1 ? "" : "s") + ".", amount, updated);
+        } catch (RuntimeException exception) {
+            restoreItems(current, player, removed);
+            return OfferingContributionResult.failure("The offering could not be saved; your items were restored.");
+        }
+    }
+
+    private OfferingContributionResult contributePlayerCurrency(
+            OfferingInstance current,
+            OfferingProjectDefinition project,
+            OfferingRequirement requirement,
+            long amount,
+            ServerPlayerEntity player
+    ) {
+        var economy = ElarionEconomyApi.get();
+        var payment = economy.transact(
+                EconomyTransactionType.SINK,
+                EconomyAccount.player(player.getUuid()),
+                EconomyAccount.BURN,
+                amount,
+                player.getUuid(),
+                "Shrine offering for " + current.id(),
+                "elarion_offerings",
+                Map.of("instance", current.id(), "requirement", requirement.key()));
+        if (!payment.successful()) {
+            return OfferingContributionResult.failure(payment.message());
+        }
+        try {
+            OfferingInstance updated = persistPlayerContribution(
+                    current, project, requirement, amount, player, "currency");
+            return OfferingContributionResult.success(
+                    "Offered " + api.serverIdentity().currencyAmount(amount) + ".", amount, updated);
+        } catch (RuntimeException exception) {
+            economy.transact(
+                    EconomyTransactionType.REWARD,
+                    EconomyAccount.MINT,
+                    EconomyAccount.player(player.getUuid()),
+                    amount,
+                    player.getUuid(),
+                    "Offering persistence compensation for " + current.id(),
+                    "elarion_offerings",
+                    Map.of("instance", current.id(), "compensation", "true"));
+            return OfferingContributionResult.failure(
+                    "The offering could not be saved; your bank balance was restored.");
+        }
+    }
+
+    private OfferingInstance persistPlayerContribution(
+            OfferingInstance current,
+            OfferingProjectDefinition project,
+            OfferingRequirement requirement,
+            long amount,
+            ServerPlayerEntity player,
+            String donationType
+    ) {
+        OfferingState previous = state.copy();
+        OfferingInstance updated = current.withProgress(requirement.key(), amount, player.getUuid());
+        state.instances.put(updated.id(), updated);
+        addDonation(updated.id(), new OfferingDonationRecord(
+                player.getUuid(), player.getGameProfile().getName(), updated.activeLevelId(), requirement.key(),
+                donationType, amount, System.currentTimeMillis()));
+        try {
+            storage.saveChecked(server, state);
+        } catch (IOException exception) {
+            state = previous;
+            throw new IllegalStateException("Unable to persist offering contribution", exception);
+        }
+        history("offering-accepted", player.getUuid(), updated,
+                Map.of("key", requirement.key(), "amount", Long.toString(amount), "type", donationType));
+        if (isComplete(currentLevel(project, updated), updated)) {
+            updated = complete(updated.id(), player, false);
+        }
+        return updated;
+    }
+
+    private void addDonation(String instanceId, OfferingDonationRecord donation) {
+        List<OfferingDonationRecord> records =
+                new ArrayList<>(state.donations.getOrDefault(instanceId, List.of()));
+        records.add(donation);
+        if (records.size() > MAX_RECENT_DONATIONS) {
+            records = new ArrayList<>(records.subList(records.size() - MAX_RECENT_DONATIONS, records.size()));
+        }
+        state.donations.put(instanceId, records);
+    }
+
+    private String validateShrineInteraction(OfferingInstance instance, ServerPlayerEntity player) {
+        if (instance.anchorId().isBlank()) return "This project is not linked to a Shrine.";
+        OfferingAnchor anchor = state.anchors.get(instance.anchorId());
+        if (anchor == null || !anchor.instanceId().equals(instance.id())) return "The Shrine link is invalid.";
+        String playerWorld = player.getWorld().getRegistryKey().getValue().toString();
+        if (!anchor.worldId().equals(playerWorld)) return "You are not at this Shrine.";
+        double distance = player.squaredDistanceTo(
+                anchor.x() + 0.5D, anchor.y() + 0.5D, anchor.z() + 0.5D);
+        return distance <= SHRINE_INTERACTION_RANGE_SQUARED ? null : "You are too far from the Shrine.";
+    }
+
+    private static List<ItemStack> removeMatchingItems(
+            ServerPlayerEntity player,
+            String itemOrTag,
+            int amount
+    ) {
+        List<ItemStack> removed = new ArrayList<>();
+        int remaining = amount;
+        for (int slot = 0; slot < player.getInventory().size() && remaining > 0; slot++) {
+            ItemStack stack = player.getInventory().getStack(slot);
+            if (stack.isEmpty() || !matches(stack, itemOrTag)) continue;
+            int take = Math.min(remaining, stack.getCount());
+            ItemStack copy = stack.copyWithCount(take);
+            stack.decrement(take);
+            removed.add(copy);
+            remaining -= take;
+        }
+        return removed;
+    }
+
+    private static boolean matches(ItemStack stack, String itemOrTag) {
+        if (itemOrTag == null || itemOrTag.isBlank()) return false;
+        if (itemOrTag.startsWith("#")) {
+            Identifier id = Identifier.tryParse(itemOrTag.substring(1));
+            return id != null && stack.isIn(TagKey.of(RegistryKeys.ITEM, id));
+        }
+        Identifier id = Identifier.tryParse(itemOrTag);
+        return id != null && Registries.ITEM.getId(stack.getItem()).equals(id);
+    }
+
+    private void restoreItems(
+            OfferingInstance instance,
+            ServerPlayerEntity player,
+            List<ItemStack> stacks
+    ) {
+        long dropped = 0L;
+        for (ItemStack stack : stacks) {
+            ItemStack restored = stack.copy();
+            if (!player.getInventory().insertStack(restored) && !restored.isEmpty()) {
+                dropped += restored.getCount();
+                player.dropItem(restored, false);
+            }
+        }
+        if (dropped > 0) {
+            history("offering-rollback-dropped", player.getUuid(), instance,
+                    Map.of("amount", Long.toString(dropped)));
+            logger.warn("Offering rollback dropped {} item(s) at player {} because inventory restore was full",
+                    dropped, player.getGameProfile().getName());
+        }
+    }
+
+    private void distributeReward(OfferingInstance instance, OfferingMilestone milestone) {
+        String rewardId = milestone.parameters().getOrDefault(
+                "reward", milestone.parameters().getOrDefault("id", ""));
+        List<panetina.elarion.core.model.RewardAction> actions = api.rewards().actions(rewardId);
+        if (rewardId.isBlank() || actions.isEmpty()) {
+            history("milestone-failed", null, instance,
+                    Map.of("milestone", milestone.id(), "message", "unknown or empty reward " + rewardId));
+            return;
+        }
+        for (panetina.elarion.core.model.CitizenRecord citizen : rewardRecipients(instance)) {
+            String grantId = "offering:" + instance.id() + ":" + milestone.id() + ":" + citizen.uuid();
+            api.deferredRewards().enqueue(grantId, citizen.uuid(), "elarion_offerings",
+                    rewardId, actions);
+        }
+        history("milestone-completed", null, instance,
+                Map.of("milestone", milestone.id(), "reward", rewardId));
+    }
+
+    private OfferingInstance executeLevelMilestones(
+            OfferingInstance instance,
+            OfferingProjectLevel level,
+            ServerPlayerEntity actor
+    ) {
+        Set<String> milestones = new LinkedHashSet<>(instance.completedMilestones());
+        OfferingInstance updated = instance;
+        for (OfferingMilestone milestone : level.milestones()) {
+            if (milestones.contains(milestone.id())) continue;
+            if ("elarion:run_reward".equals(milestone.type())) distributeReward(updated, milestone);
+            else executeMilestone(updated, milestone, actor);
+            milestones.add(milestone.id());
+            updated = updated.withCompletedMilestones(milestones);
+            state.instances.put(updated.id(), updated);
+            save();
+        }
+        return updated;
+    }
+
+    private void resumeIncompleteCompletions() {
+        if (server == null) return;
+        for (OfferingInstance instance : List.copyOf(state.instances.values())) {
+            if (!instance.completed()) continue;
+            OfferingProjectDefinition project = definitions.find(instance.projectId()).orElse(null);
+            if (project == null) continue;
+            OfferingProjectLevel level = currentLevel(project, instance);
+            if (level.milestones().stream()
+                    .allMatch(milestone -> instance.completedMilestones().contains(milestone.id()))) {
+                continue;
+            }
+            try {
+                complete(instance.id(), null, false);
+            } catch (RuntimeException exception) {
+                logger.error("Failed to resume completion for Offering instance {}", instance.id(), exception);
+            }
+        }
+    }
+
+    private List<panetina.elarion.core.model.CitizenRecord> rewardRecipients(OfferingInstance instance) {
+        Set<String> contributors = instance.contributorTotals().entrySet().stream()
+                .filter(entry -> entry.getValue() > 0)
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toSet());
+        return api.citizens().all().stream()
+                .filter(api.citizens()::isActiveCitizen)
+                .filter(citizen -> switch (instance.scope()) {
+                    case REALM -> instance.realmId().equals(citizen.realmId());
+                    case GLOBAL -> true;
+                    case LOCATION -> contributors.contains(citizen.uuid().toString());
+                })
+                .toList();
+    }
+
+    private OfferingProjectLevel currentLevel(OfferingProjectDefinition project, OfferingInstance instance) {
+        return project.level(instance.activeLevelId()).orElse(project.firstLevel());
+    }
+
+    private boolean isComplete(OfferingProjectLevel level, OfferingInstance instance) {
+        return level.requirements().stream()
+                .allMatch(req -> instance.progress().getOrDefault(req.key(), 0L) >= req.count());
+    }
+
+    private void executeMilestone(OfferingInstance instance, OfferingMilestone milestone, ServerPlayerEntity actor) {
+        Map<String, String> parameters = new LinkedHashMap<>(milestone.parameters());
+        parameters.putIfAbsent("project", instance.projectId());
+        parameters.putIfAbsent("instance", instance.id());
+        parameters.putIfAbsent("realm", instance.realmId());
+        RegistryExecutionContext execution = new RegistryExecutionContext(
+                api, server, actor, actorId(actor), instance.realmId(), null, instance.realmId(),
+                instance.worldId(), "elarion_offerings", parameters);
+        RegistryExecutionResult result = switch (milestone.type()) {
+            case "elarion:set_realm_flag" -> setRealmFlag(instance.realmId(), parameters.get("flag"), true);
+            case "elarion:clear_realm_flag" -> setRealmFlag(instance.realmId(), parameters.get("flag"), false);
+            case "elarion:run_reward" -> api.registries().execute(new MilestoneContext(execution,
+                    "elarion:run_reward", parameters));
+            case "elarion:emit_history" -> api.registries().execute(new MilestoneContext(execution,
+                    "elarion:emit_history", parameters));
+            default -> api.registries().actions().contains(milestone.type())
+                    ? api.registries().execute(new ActionContext(execution, milestone.type(), parameters))
+                    : api.registries().execute(new MilestoneContext(execution, milestone.type(), parameters));
+        };
+        if (!result.success()) {
+            logger.warn("offering milestone {} failed for {}: {}", milestone.id(), instance.id(), result.message());
+            history("milestone-failed", actorId(actor), instance,
+                    Map.of("milestone", milestone.id(), "message", result.message()));
+        } else {
+            history("milestone-completed", actorId(actor), instance, Map.of("milestone", milestone.id()));
+        }
+    }
+
+    private RegistryExecutionResult setRealmFlag(String realmId, String flag, boolean enabled) {
+        if (realmId == null || realmId.isBlank()) return RegistryExecutionResult.failure("realm flag needs a Realm");
+        if (flag == null || flag.isBlank()) return RegistryExecutionResult.failure("realm flag needs a flag");
+        state.realmFlags.computeIfAbsent(realmId, ignored -> new LinkedHashSet<>());
+        if (enabled) state.realmFlags.get(realmId).add(flag);
+        else state.realmFlags.get(realmId).remove(flag);
+        return RegistryExecutionResult.ok();
+    }
+
+    private void history(String type, UUID actorId, OfferingInstance instance, Map<String, String> metadata) {
+        if (server == null) return;
+        Map<String, String> data = new LinkedHashMap<>(metadata);
+        data.put("project", instance.projectId());
+        data.put("instance", instance.id());
+        data.put("scope", instance.scope().name().toLowerCase());
+        api.history().recordChronicle("offering", type, actorId, "project", instance.id(), instance.realmId(),
+                data, "The project " + instance.projectId() + " recorded offering event " + type + ".");
+    }
+
+    private static UUID actorId(ServerPlayerEntity actor) {
+        return actor == null ? null : actor.getUuid();
+    }
+
+    private static String nextId(String base, Collection<String> existing) {
+        String sanitized = base.replaceAll("[^a-zA-Z0-9_.-]", "_");
+        int index = 1;
+        String id = sanitized + "_" + index;
+        while (existing.contains(id)) id = sanitized + "_" + ++index;
+        return id;
+    }
+}

@@ -7,6 +7,96 @@ final class CoreConfigDefaultFiles {
     }
 
     static final Map<String, String> FILES = Map.ofEntries(
+            Map.entry("ui_theme.yml", """
+                    config-version: 1
+
+                    defaults:
+                      logical-width: 480
+                      logical-height: 340
+                      minimum-scale-percent: 60
+                      padding: 16
+                      gap: 8
+                      row-height: 18
+                      button-height: 18
+                      scrollbar-width: 6
+
+                    variants:
+                        default:
+                          colors:
+                            panel: "0xFF17130F"
+                            header: "0xFF2B2116"
+                            inset: "0xFF211A12"
+                            border: "0xFFC08A32"
+                            bevel-highlight: "0xFF8F6A32"
+                            bevel-shadow: "0xFF080604"
+                            background-overlay: "0x66000000"
+                            title: "0xFFFFD27A"
+                            text: "0xFFFFFFFF"
+                            muted: "0xFFC2AE82"
+                            success: "0xFF80FF80"
+                            warning: "0xFFFFC766"
+                            error: "0xFFFF7777"
+                            disabled: "0xFF262626"
+                            button: "0xFF46341D"
+                            button-hover: "0xFF684C25"
+                            card: "0xFF261E15"
+                            progress-background: "0xFF181818"
+                            progress-fill: "0xFFD69A35"
+                            progress-complete: "0xFF70C060"
+                            scrollbar-track: "0xFF201C18"
+                            scrollbar-thumb: "0xFFC08A32"
+                          textures:
+                            panel: "elarion:textures/gui/shared/panel_parchment.png"
+                            card: ""
+                            mode: "tiled"
+                            tint: "0x11FFFFFF"
+                        npc:
+                          extends: "default"
+                        shrine:
+                          extends: "default"
+                      """),
+            Map.entry("server_identity.yml", """
+                    config-version: 1
+
+                    # Server identity and player-facing terms.
+                    # Runtime text can use these placeholders:
+                    # %server%, %capital%, %treasury%, %seal%
+                    # %realm_term%, %realms_term%
+                    # %currency%, %currency_plural%
+                    # %offering%, %offerings%, %shrine_of_foundation%
+                    # %local_chat%, %realm_chat%, %alliance_chat%
+                    # Add _upper or _lower before the closing %, for example:
+                    # %currency_upper%, %realm_term_lower%, %server_upper%.
+                    #
+                    # Realm display names, short tags, prefixes, colors, and
+                    # spawns stay in realms.yml because they are Realm
+                    # definitions, not generic server identity.
+                    identity:
+                      server-name: "Elarion"
+                      capital-name: "Worldheart"
+                      treasury-name: "Worldheart Treasury"
+                      seal-name: "Elarion Seal"
+
+                    terms:
+                      realm-singular: "Realm"
+                      realm-plural: "Realms"
+                      currency-singular: "Sigil"
+                      currency-plural: "Sigils"
+                      offering-singular: "Offering"
+                      offering-plural: "Offerings"
+                      shrine-of-foundation: "Shrine of Foundation"
+
+                    chat-labels:
+                      local: "Local"
+                      realm: "Realm"
+                      alliance: "Alliance"
+                    """),
+            Map.entry("activity.yml", """
+                    config-version: 1
+
+                    citizens:
+                      inactivity-days: 14
+                    """),
             Map.entry("realms.yml", """
                     config-version: 1
 
@@ -18,10 +108,10 @@ final class CoreConfigDefaultFiles {
                     # Invalid color names fall back to white.
 
                     realms:
-                      oak:
-                        display-name: "Kingdom of Oak"
-                        short-name: "OAK"
-                        prefix: "[OAK]"
+                      realm1:
+                        display-name: "Wilderness I"
+                        short-name: "R1"
+                        prefix: "[R1]"
                         color: "green"
                         visibility-scope: "REALM"
                         spawn:
@@ -35,10 +125,10 @@ final class CoreConfigDefaultFiles {
                         # - diplomacy-excluded: keep this Realm out of war, alliance,
                         #   embargo, and Realm decision targets without hiding its members.
                         flags: []
-                      sky:
-                        display-name: "Kingdom of Sky"
-                        short-name: "SKY"
-                        prefix: "[SKY]"
+                      realm2:
+                        display-name: "Wilderness II"
+                        short-name: "R2"
+                        prefix: "[R2]"
                         color: "blue"
                         visibility-scope: "REALM"
                         spawn:
@@ -49,10 +139,10 @@ final class CoreConfigDefaultFiles {
                           yaw: 0
                           pitch: 0
                         flags: [ ]
-                      earth:
-                        display-name: "Kingdom of Earth"
-                        short-name: "EARTH"
-                        prefix: "[EARTH]"
+                      realm3:
+                        display-name: "Wilderness III"
+                        short-name: "R3"
+                        prefix: "[R3]"
                         color: "gold"
                         visibility-scope: "REALM"
                         spawn:
@@ -69,7 +159,7 @@ final class CoreConfigDefaultFiles {
 
                     titles:
                       citizen:
-                        description: "A citizen of Elarion."
+                        description: "A citizen of %server%."
                         display-name: "Citizen"
                         prefix: ""
                         suffix: ""
@@ -239,7 +329,7 @@ final class CoreConfigDefaultFiles {
                         - "console"
                         - "operator"
                         - "moderator"
-                        - "elarion"
+                        - "%server_lower%"
                     nickname-protection:
                       enabled: true
                       protect-realm-presentation: true
@@ -258,26 +348,26 @@ final class CoreConfigDefaultFiles {
                       # Enables the OP-only /spy chat toggle. OPs do not spy
                       # automatically.
                       admin-spy: true
-                      format: "[Local] %player% \u00bb %message%"
+                      format: "[%local_chat%] %player% \u00bb %message%"
                     whisper-chat:
                       command: "w"
                       radius: 4
-                      format: "[Local] %player% whispers: %message%"
+                      format: "[%local_chat%] %player% whispers: %message%"
                     yell-chat:
                       command: "yell"
                       radius: 128
                       cooldown-seconds: 300
-                      format: "[Local] %player% yells: %message%"
+                      format: "[%local_chat%] %player% yells: %message%"
                     realm-chat:
                       command: "rc"
-                      format: "[Realm] %player% \u00bb %message%"
+                      format: "[%realm_chat%] %player% \u00bb %message%"
                     alliance-chat:
                       command: "ac"
-                      format: "[Alliance:%realm_short%] %player% \u00bb %message%"
+                      format: "[%alliance_chat%:%realm_short%] %player% \u00bb %message%"
                     notices:
                       scoped-join-leave: true
-                      realm-format: "%player% joined your Realm."
-                      admin-format: "%player% joined realm %realm%."
+                      realm-format: "%player% joined your %realm_term%."
+                      admin-format: "%player% joined %realm_term_lower% %realm%."
                     """),
             Map.entry("visibility.yml", """
                     config-version: 1
@@ -293,14 +383,14 @@ final class CoreConfigDefaultFiles {
                       welcome:
                         actions:
                           - type: "message"
-                            text: "Welcome to Elarion."
+                            text: "Welcome to %server%."
                       starter_diamonds:
                         actions:
                           - type: "item"
                             id: "minecraft:diamond"
                             count: 3
                           - type: "message"
-                            text: "Your Realm received starter diamonds."
+                            text: "Your %realm_term% received starter diamonds."
                     """),
             Map.entry("history.yml", """
                     config-version: 1

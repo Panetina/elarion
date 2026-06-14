@@ -6,13 +6,17 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public final class EconomyItems {
-    public static final Identifier SIGIL_ID = Identifier.of("elarion", "sigil");
+    public static final Identifier CURRENCY_ID = Identifier.of("elarion", "currency");
     public static final Identifier ITEM_GROUP_ID = Identifier.of("elarion", "economy");
-    public static final Item SIGIL = new Item(new Item.Settings().maxCount(64));
+    public static final RegistryKey<ItemGroup> ITEM_GROUP_KEY =
+            RegistryKey.of(RegistryKeys.ITEM_GROUP, ITEM_GROUP_ID);
+    public static final Item CURRENCY = new Item(new Item.Settings().maxCount(64));
     public static ItemGroup ITEM_GROUP;
     private static boolean registered;
 
@@ -21,14 +25,14 @@ public final class EconomyItems {
 
     public static synchronized void register() {
         if (registered) return;
-        Registry.register(Registries.ITEM, SIGIL_ID, SIGIL);
+        Registry.register(Registries.ITEM, CURRENCY_ID, CURRENCY);
         ITEM_GROUP = Registry.register(
                 Registries.ITEM_GROUP,
                 ITEM_GROUP_ID,
                 FabricItemGroup.builder()
                         .displayName(Text.translatable("itemGroup.elarion.economy"))
-                        .icon(() -> new ItemStack(SIGIL))
-                        .entries((context, entries) -> entries.add(SIGIL))
+                        .icon(() -> new ItemStack(CURRENCY))
+                        .entries((context, entries) -> entries.add(CURRENCY))
                         .build()
         );
         registered = true;

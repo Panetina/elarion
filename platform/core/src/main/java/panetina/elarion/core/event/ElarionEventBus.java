@@ -1,6 +1,7 @@
 package panetina.elarion.core.event;
 
 import panetina.elarion.core.model.CitizenRecord;
+import panetina.elarion.core.model.CatchTelemetryEvent;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,7 @@ public final class ElarionEventBus {
 
     private final List<Consumer<CitizenChanged>> citizenListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<ProgressionEvent>> progressionListeners = new CopyOnWriteArrayList<>();
+    private final List<Consumer<CatchTelemetryEvent>> catchTelemetryListeners = new CopyOnWriteArrayList<>();
 
     public AutoCloseable onCitizenChanged(Consumer<CitizenChanged> listener) {
         citizenListeners.add(listener);
@@ -24,11 +26,20 @@ public final class ElarionEventBus {
         return () -> progressionListeners.remove(listener);
     }
 
+    public AutoCloseable onCatchTelemetry(Consumer<CatchTelemetryEvent> listener) {
+        catchTelemetryListeners.add(listener);
+        return () -> catchTelemetryListeners.remove(listener);
+    }
+
     public void emitCitizenChanged(CitizenChanged event) {
         citizenListeners.forEach(listener -> listener.accept(event));
     }
 
     public void emitProgression(ProgressionEvent event) {
         progressionListeners.forEach(listener -> listener.accept(event));
+    }
+
+    public void emitCatchTelemetry(CatchTelemetryEvent event) {
+        catchTelemetryListeners.forEach(listener -> listener.accept(event));
     }
 }

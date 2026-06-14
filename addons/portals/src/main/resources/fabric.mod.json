@@ -3,7 +3,7 @@
     "id":  "elarion_portals",
     "version":  "${version}",
     "name":  "Elarion Portals",
-    "description":  "Portal addon shell backed by Elarion Core progression and abilities.",
+    "description":  "Linked, scheduled Elarion portal routes with tickets and return entitlements.",
     "authors":  [
                     "Panyel"
                 ],
@@ -12,6 +12,9 @@
     "entrypoints":  {
                         "elarion:addon":  [
                                               "panetina.elarion.addons.portals.ElarionPortalsAddon"
+                                          ],
+                        "client": [
+                                              "panetina.elarion.addons.portals.client.ElarionPortalsClient"
                                           ]
                     },
     "depends":  {
@@ -19,7 +22,8 @@
                     "minecraft":  "~1.21.1",
                     "java":  "\u003e=21",
                     "fabric-api":  "*",
-                    "elarion_core":  "*"
+                    "elarion_core":  "*",
+                    "elarion_economy": "*"
                 },
     "contributors":  [
                          "Panetina Team"

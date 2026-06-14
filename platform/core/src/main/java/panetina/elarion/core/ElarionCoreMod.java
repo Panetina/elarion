@@ -49,8 +49,16 @@ import panetina.elarion.core.storage.RealmDeliveryStorage;
 import panetina.elarion.core.storage.RealmRuntimeStorage;
 import panetina.elarion.core.storage.TitleClaimStorage;
 import panetina.elarion.core.storage.TitleProgressStorage;
+import panetina.elarion.core.storage.DeferredRewardGrantStorage;
 import panetina.elarion.core.network.IdentitySyncRequestPayload;
 import panetina.elarion.core.network.IdentitySyncPayload;
+import panetina.elarion.core.network.UiThemeSyncPayload;
+import panetina.elarion.core.service.ElarionUiThemeService;
+import panetina.elarion.core.service.DeferredRewardGrantService;
+import panetina.elarion.core.service.CatchTelemetryService;
+import panetina.elarion.core.storage.CatchSummaryStorage;
+import panetina.elarion.core.storage.CatchTelemetryJournalStorage;
+import panetina.elarion.core.storage.JsonStateStorage;
 
 public final class ElarionCoreMod implements ModInitializer {
     public static final String MOD_ID = "elarion_core";
@@ -60,6 +68,7 @@ public final class ElarionCoreMod implements ModInitializer {
     public void onInitialize() {
         PayloadTypeRegistry.playS2C().register(IdentitySyncPayload.ID, IdentitySyncPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(IdentitySyncRequestPayload.ID, IdentitySyncRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(UiThemeSyncPayload.ID, UiThemeSyncPayload.CODEC);
 
         CoreConfigManager config = new CoreConfigManager(LOGGER);
         config.load();
@@ -86,22 +95,32 @@ public final class ElarionCoreMod implements ModInitializer {
         });
         ChatService chat = new ChatService(config, citizens, realms, identities, history, governance);
         PrivateMessageService privateMessages =
-                new PrivateMessageService(realms, citizens, identities, governance, history, chat);
-        RealmSpawnService realmSpawns = new RealmSpawnService(citizens, realms, history);
+                new PrivateMessageService(realms, citizens, identities, governance, history, chat,
+                        config.serverIdentity());
+        RealmSpawnService realmSpawns = new RealmSpawnService(citizens, realms, history, config.serverIdentity());
         RewardActionService rewards = new RewardActionService(config, citizens, titles, abilities, events);
+        DeferredRewardGrantService deferredRewards = new DeferredRewardGrantService(
+                new DeferredRewardGrantStorage(LOGGER), rewards, history);
         PlayerStatsService playerStats = new PlayerStatsService(new PlayerStatsStorage(LOGGER), titles);
         ProgressionService progression =
                 new ProgressionService(config, citizens, titles, playerStats, new TitleProgressStorage(LOGGER));
         RealmDeliveryService realmDeliveries =
-                new RealmDeliveryService(new RealmDeliveryStorage(LOGGER), citizens, realms, rewards, history);
+                new RealmDeliveryService(new RealmDeliveryStorage(LOGGER), citizens, realms, rewards, history,
+                        config.serverIdentity());
         ElarionCommandRegistry commands = new ElarionCommandRegistry();
         ElarionRegistries registries = new ElarionRegistries();
         ElarionTaskService tasks = new ElarionTaskService(LOGGER, ElarionTaskConfig.loadSettings(LOGGER));
+        ElarionUiThemeService uiThemes = new ElarionUiThemeService(config);
+        CatchTelemetryService catchTelemetry = new CatchTelemetryService(
+                new CatchTelemetryJournalStorage(),
+                new CatchSummaryStorage(),
+                LOGGER);
+        catchTelemetry.registerEvents(events);
         history.setTaskService(tasks);
         ElarionApi api = new ElarionApi(
                 citizens, realms, titles, abilities, identities, identitySync, nicknames, history, privateMessages,
                 chat, governance, realmSpawns, realmDeliveries, rewards, playerStats, progression, events, commands,
-                registries, tasks);
+                registries, tasks, config.serverIdentity(), uiThemes, deferredRewards, catchTelemetry);
 
         initializeAddons(api);
         progression.registerEvents();
@@ -126,20 +145,27 @@ public final class ElarionCoreMod implements ModInitializer {
             progression.bind(server);
             governance.bind(server);
             realmDeliveries.bind(server);
+            deferredRewards.bind(server);
+            catchTelemetry.bind(JsonStateStorage.elarionRoot(server));
             realms.initializeScoreboardTeams(server);
             LOGGER.info("Elarion Core bound to server {}", server.getServerMotd());
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            citizens.getOrCreate(handler.getPlayer());
+            citizens.markSeen(handler.getPlayer());
             titles.repair(citizens.getOrCreate(handler.getPlayer()), null);
             realms.applyCurrentScoreboardTeam(handler.getPlayer());
             realmDeliveries.deliverPending(handler.getPlayer());
+            deferredRewards.deliverPending(handler.getPlayer());
+            catchTelemetry.activate(handler.getPlayer().getUuid());
             identitySync.syncAllNow(server);
+            uiThemes.sync(handler.getPlayer());
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            citizens.markSeen(handler.getPlayer());
             playerStats.save(handler.getPlayer().getUuid());
             progression.save(handler.getPlayer().getUuid());
+            catchTelemetry.save(handler.getPlayer().getUuid());
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tasks.tickServerQueue();
@@ -147,11 +173,14 @@ public final class ElarionCoreMod implements ModInitializer {
             progression.tick(server);
             history.tick();
             identitySync.tick(server);
+            catchTelemetry.tick();
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             playerStats.saveDirty();
             progression.saveDirty();
+            deferredRewards.save();
             history.flush();
+            catchTelemetry.shutdown();
             tasks.shutdown();
         });
 
@@ -173,14 +202,26 @@ public final class ElarionCoreMod implements ModInitializer {
     }
 
     private static void initializeAddons(ElarionApi api) {
-        for (EntrypointContainer<ElarionAddon> container :
-                FabricLoader.getInstance().getEntrypointContainers("elarion:addon", ElarionAddon.class)) {
-            String provider = container.getProvider().getMetadata().getId();
-            try {
-                container.getEntrypoint().initialize(api);
-                LOGGER.info("Initialized Elarion addon {}", provider);
-            } catch (RuntimeException exception) {
-                throw new IllegalStateException("Failed to initialize Elarion addon " + provider, exception);
+        var containers = FabricLoader.getInstance()
+                .getEntrypointContainers("elarion:addon", ElarionAddon.class);
+        java.util.Map<String, java.util.List<EntrypointContainer<ElarionAddon>>> byProvider =
+                new java.util.LinkedHashMap<>();
+        containers.forEach(container -> byProvider
+                .computeIfAbsent(container.getProvider().getMetadata().getId(), ignored -> new java.util.ArrayList<>())
+                .add(container));
+        java.util.Set<String> providers = java.util.Set.copyOf(byProvider.keySet());
+        java.util.Map<String, java.util.Set<String>> dependencies = new java.util.LinkedHashMap<>();
+        byProvider.forEach((provider, entries) ->
+                dependencies.put(provider, AddonInitializationOrder.dependenciesOf(entries.getFirst(), providers)));
+
+        for (String provider : AddonInitializationOrder.sort(dependencies)) {
+            for (EntrypointContainer<ElarionAddon> container : byProvider.get(provider)) {
+                try {
+                    container.getEntrypoint().initialize(api);
+                    LOGGER.info("Initialized Elarion addon {}", provider);
+                } catch (RuntimeException exception) {
+                    throw new IllegalStateException("Failed to initialize Elarion addon " + provider, exception);
+                }
             }
         }
     }

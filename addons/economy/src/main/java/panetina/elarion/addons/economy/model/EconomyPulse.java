@@ -3,8 +3,8 @@ package panetina.elarion.addons.economy.model;
 public record EconomyPulse(
         EconomyGovernorMode mode,
         EconomyHealth health,
-        long walletSigils,
-        long treasurySigils,
+        long walletCurrency,
+        long treasuryCurrency,
         long trackedSupply,
         long createdInWindow,
         long destroyedInWindow,

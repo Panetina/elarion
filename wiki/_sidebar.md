@@ -1,0 +1,16 @@
+# Elarion Wiki
+
+- [Home](README.md)
+- [Admin](admin/README.md)
+- [Commands](admin/commands.md)
+- [Setup Checklist](admin/setup-checklist.md)
+- [Portals](admin/portals.md)
+- [Offerings](admin/offerings.md)
+- [Government](admin/government.md)
+- [Groups](admin/groups.md)
+- [NPCs](admin/npcs.md)
+- [Economy](admin/economy.md)
+- [Worlds](admin/worlds.md)
+- [Performance](admin/performance.md)
+- [Addons](addons/README.md)
+- [Players](players/README.md)

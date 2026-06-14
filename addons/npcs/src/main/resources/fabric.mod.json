@@ -1,0 +1,30 @@
+{
+    "schemaVersion": 1,
+    "id": "elarion_npcs",
+    "version": "${version}",
+    "name": "Elarion NPCs",
+    "description": "Static placeable NPCs, dialogue trees, and registry-driven interaction hooks for Elarion.",
+    "authors": [
+        "Panyel"
+    ],
+    "contributors": [
+        "Panetina Team"
+    ],
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "elarion:addon": [
+            "panetina.elarion.addons.npcs.ElarionNpcsAddon"
+        ],
+        "client": [
+            "panetina.elarion.addons.npcs.client.ElarionNpcsClient"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.16.14",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*",
+        "elarion_core": "*"
+    }
+}

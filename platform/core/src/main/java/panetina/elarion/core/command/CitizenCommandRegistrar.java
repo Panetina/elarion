@@ -25,12 +25,13 @@ final class CitizenCommandRegistrar {
                                 .executes(context -> {
                                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                     CitizenRecord citizen = api.citizens().getOrCreate(player);
-                                    String info = "Citizen " + player.getGameProfile().getName()
-                                            + " | realm=" + value(citizen.realmId())
-                                            + " | title=" + value(citizen.titleId())
-                                            + " | nickname=" + value(citizen.nickname())
-                                            + " | status=" + citizen.status();
-                                    context.getSource().sendFeedback(() -> Text.literal(info), false);
+                                    CommandOutput.header(context.getSource(), "Citizen");
+                                    CommandOutput.kv(context.getSource(), "Username", player.getGameProfile().getName());
+                                    CommandOutput.kv(context.getSource(), "Realm", value(citizen.realmId()));
+                                    CommandOutput.kv(context.getSource(), "Legacy title", value(citizen.titleId()));
+                                    CommandOutput.kv(context.getSource(), "Active title", value(citizen.activeTitleId()));
+                                    CommandOutput.kv(context.getSource(), "Nickname", value(citizen.nickname()));
+                                    CommandOutput.kv(context.getSource(), "Status", citizen.status());
                                     return 1;
                                 })))
                 .then(literal("nickname")

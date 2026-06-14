@@ -237,8 +237,8 @@ Good Chronicle source events include:
 
 ## Curated Folklore
 
-Curated lost-age books under `Folklore/` are a separate source class. They are
-authored, stable-numbered records rather than summaries of runtime events.
+Curated lost-age books under `lore/folklore/` are a separate source class. They
+are authored, stable-numbered records rather than summaries of runtime events.
 Future archive presentation may display Folklore and Chronicles through one
 reader interface, but Core must not merge their source ownership or treat
 Folklore Markdown as live history storage.

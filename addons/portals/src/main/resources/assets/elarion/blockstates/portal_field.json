@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "axis=x": { "model": "elarion:block/portal_field_x" },
+    "axis=y": { "model": "elarion:block/portal_field_y" },
+    "axis=z": { "model": "elarion:block/portal_field_z" }
+  }
+}

@@ -26,13 +26,28 @@ final class ProgressionCommandRegistrar {
                                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                     var stats = api.playerStats().get(player.getUuid());
                                     Map<String, Long> progress = api.progression().progressFor(player.getUuid());
-                                    context.getSource().sendFeedback(() -> Text.literal(
-                                            "Stats for " + player.getGameProfile().getName()
-                                                    + ": zombie_kills=" + stats.zombieKills()
-                                                    + ", dragon_kills=" + stats.dragonKills()
-                                                    + ", custom=" + stats.customCounters()), false);
-                                    context.getSource().sendFeedback(() -> Text.literal(
-                                            "Title progress: " + (progress.isEmpty() ? "(none)" : progress)), false);
+                                    CommandOutput.header(context.getSource(), "Progression");
+                                    CommandOutput.kv(context.getSource(), "Player", player.getGameProfile().getName());
+                                    CommandOutput.section(context.getSource(), "Stats");
+                                    CommandOutput.kv(context.getSource(), "Zombie kills", stats.zombieKills());
+                                    CommandOutput.kv(context.getSource(), "Dragon kills", stats.dragonKills());
+                                    if (stats.customCounters().isEmpty()) {
+                                        CommandOutput.kv(context.getSource(), "Custom counters", "(none)");
+                                    } else {
+                                        stats.customCounters().entrySet().stream()
+                                                .sorted(Map.Entry.comparingByKey())
+                                                .forEach(entry -> CommandOutput.kv(
+                                                        context.getSource(), entry.getKey(), entry.getValue()));
+                                    }
+                                    CommandOutput.section(context.getSource(), "Title Progress");
+                                    if (progress.isEmpty()) {
+                                        CommandOutput.empty(context.getSource(), "No title progress recorded.");
+                                    } else {
+                                        progress.entrySet().stream()
+                                                .sorted(Map.Entry.comparingByKey())
+                                                .forEach(entry -> CommandOutput.kv(
+                                                        context.getSource(), entry.getKey(), entry.getValue()));
+                                    }
                                     return 1;
                                 })))
                 .then(literal("event")

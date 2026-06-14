@@ -21,7 +21,7 @@ final class CoreConfigManagerTest {
         CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
         config.load();
 
-        assertTrue(config.realms().containsKey("oak"));
+        assertTrue(config.realms().containsKey("realm1"));
         assertEquals("A citizen of Elarion.", config.titles().get("citizen").description());
         assertEquals(panetina.elarion.core.model.TitleAcquisitionMode.DEFAULT,
                 config.titles().get("citizen").acquisitionMode());
@@ -47,11 +47,49 @@ final class CoreConfigManagerTest {
         assertEquals(8, config.publicHistoryDefaultWeeks());
         assertEquals(50, config.publicHistoryDefaultLimit());
         assertEquals(200, config.publicHistoryMaxLimit());
+        assertEquals("Elarion", config.serverIdentity().serverName());
+        assertEquals("1 sigil", config.serverIdentity().currencyAmount(1));
+        assertTrue(Files.exists(tempDir.resolve("server_identity.yml")));
+        assertTrue(Files.exists(tempDir.resolve("ui_theme.yml")));
+        assertEquals(0xFFC08A32, config.uiTheme().variant("shrine").borderColor());
+        assertEquals(config.uiTheme().variant("default"), config.uiTheme().variant("missing"));
         try (var files = Files.list(tempDir)) {
             for (Path file : files.filter(path -> path.toString().endsWith(".yml")).toList()) {
                 assertTrue(Files.readString(file).contains("config-version: 1"), file.toString());
             }
         }
+    }
+
+    @Test
+    void rejectsUnknownUiThemeParentAndKeepsPreviousTheme() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+        int previousBorder = config.uiTheme().variant("shrine").borderColor();
+        Path theme = tempDir.resolve("ui_theme.yml");
+        Files.writeString(theme, Files.readString(theme, StandardCharsets.UTF_8)
+                .replace("extends: \"default\"", "extends: \"missing\""), StandardCharsets.UTF_8);
+
+        assertThrows(ConfigValidationException.class, config::load);
+        assertEquals(previousBorder, config.uiTheme().variant("shrine").borderColor());
+    }
+
+    @Test
+    void reloadsCustomServerIdentityWithoutChangingInternalIds() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+
+        Path identity = tempDir.resolve("server_identity.yml");
+        Files.writeString(identity, Files.readString(identity, StandardCharsets.UTF_8)
+                .replace("server-name: \"Elarion\"", "server-name: \"Asterfall\"")
+                .replace("currency-singular: \"Sigil\"", "currency-singular: \"Crown\"")
+                .replace("currency-plural: \"Sigils\"", "currency-plural: \"Crowns\""),
+                StandardCharsets.UTF_8);
+
+        config.load();
+
+        assertEquals("Asterfall", config.serverIdentity().serverName());
+        assertEquals("1 crown", config.serverIdentity().currencyAmount(1));
+        assertEquals("8 crowns", config.serverIdentity().currencyAmount(8));
     }
 
     @Test
@@ -68,7 +106,7 @@ final class CoreConfigManagerTest {
                 assertThrows(ConfigValidationException.class, config::load);
 
         assertTrue(exception.errors().stream()
-                .anyMatch(error -> error.contains("realms.yml.realms.oak.color")));
+                .anyMatch(error -> error.contains("realms.yml.realms.realm1.color")));
         assertEquals(previousRealmCount, config.realms().size());
     }
 
@@ -91,5 +129,32 @@ final class CoreConfigManagerTest {
                 .anyMatch(error -> error.contains("citizens-defaults.yml.defaults.title")));
         assertTrue(exception.errors().stream()
                 .anyMatch(error -> error.contains("rewards.yml.rewards")));
+    }
+
+    @Test
+    void acceptsKnownAddonRewardActionsDuringCoreOnlyValidation() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+
+        Path rewards = tempDir.resolve("rewards.yml");
+        Files.writeString(rewards, """
+                config-version: 1
+
+                rewards:
+                  test_economy_reward:
+                    actions:
+                      - type: "currency-reward"
+                        amount: 25
+                      - type: "realm-currency-reward"
+                        realm: "realm1"
+                        amount: 50
+                      - type: "realm-treasury-grant"
+                        realm: "realm1"
+                        amount: 10
+                """, StandardCharsets.UTF_8);
+
+        config.load();
+
+        assertTrue(config.rewards().containsKey("test_economy_reward"));
     }
 }

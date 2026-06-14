@@ -20,8 +20,16 @@ public final class DirtyTracker {
         dirty.clear();
     }
 
+    public boolean contains(UUID uuid) {
+        return dirty.contains(uuid);
+    }
+
+    public Set<UUID> snapshot() {
+        return Set.copyOf(dirty);
+    }
+
     public void flush(Consumer<UUID> saver) {
-        for (UUID uuid : Set.copyOf(dirty)) {
+        for (UUID uuid : snapshot()) {
             saver.accept(uuid);
         }
     }

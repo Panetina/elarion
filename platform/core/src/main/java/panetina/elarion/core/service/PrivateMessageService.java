@@ -5,6 +5,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RealmRelationship;
+import panetina.elarion.core.model.ServerIdentityConfig;
 import panetina.elarion.core.model.VisibilityScope;
 
 import java.util.Map;
@@ -18,6 +19,7 @@ public final class PrivateMessageService {
     private final RealmGovernanceService governance;
     private final HistoryService history;
     private final ChatService chat;
+    private final ServerIdentityConfig serverIdentity;
     private final Map<UUID, UUID> lastPrivateMessageSender = new ConcurrentHashMap<>();
 
     public PrivateMessageService(
@@ -26,7 +28,8 @@ public final class PrivateMessageService {
             IdentityService identities,
             RealmGovernanceService governance,
             HistoryService history,
-            ChatService chat
+            ChatService chat,
+            ServerIdentityConfig serverIdentity
     ) {
         this.realms = realms;
         this.citizens = citizens;
@@ -34,6 +37,7 @@ public final class PrivateMessageService {
         this.governance = governance;
         this.history = history;
         this.chat = chat;
+        this.serverIdentity = serverIdentity;
     }
 
     public boolean privateMessage(ServerPlayerEntity sender, ServerPlayerEntity recipient, String message) {
@@ -49,7 +53,8 @@ public final class PrivateMessageService {
                 relationship == RealmRelationship.ALLY || relationship == RealmRelationship.NEUTRAL;
         if (!sameRealm && (!recipientIsGlobal || !relationshipAllowsForeignMessage)) {
             sender.sendMessage(Text.literal(
-                    "You may only message citizens in your Realm or reachable members of a GLOBAL Realm.")
+                    "You may only message citizens in your " + serverIdentity.realmSingular()
+                            + " or reachable members of a GLOBAL " + serverIdentity.realmSingular() + ".")
                     .formatted(Formatting.RED), false);
             return false;
         }

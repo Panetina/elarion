@@ -7,8 +7,11 @@ import org.slf4j.LoggerFactory;
 import panetina.elarion.addons.economy.api.ElarionEconomyApi;
 import panetina.elarion.addons.economy.command.EconomyCommands;
 import panetina.elarion.addons.economy.config.EconomyConfig;
+import panetina.elarion.addons.economy.registry.EconomyNpcActions;
+import panetina.elarion.addons.economy.registry.EconomyRewardActions;
 import panetina.elarion.addons.economy.service.EconomyGovernorService;
 import panetina.elarion.addons.economy.service.EconomyInventoryService;
+import panetina.elarion.addons.economy.service.EconomyPricingService;
 import panetina.elarion.addons.economy.service.EconomyTransactionService;
 import panetina.elarion.addons.economy.storage.EconomyStorage;
 import panetina.elarion.core.api.ElarionAddon;
@@ -34,11 +37,14 @@ public final class ElarionEconomyAddon implements ElarionAddon {
                         api.system().tasks());
         EconomyInventoryService inventory = new EconomyInventoryService(transactions);
         EconomyGovernorService governor = new EconomyGovernorService(transactions);
-        new ElarionEconomyApi(transactions, inventory, governor);
+        EconomyPricingService pricing = new EconomyPricingService();
+        new ElarionEconomyApi(transactions, inventory, governor, pricing);
+        EconomyNpcActions.register(api, transactions, inventory);
+        EconomyRewardActions.register(api, transactions);
 
         api.system().abilities().register("elarion.economy.admin");
         api.system().commands().registerAdminSubcommand(
-                () -> EconomyCommands.create(api, transactions, inventory, governor));
+                () -> EconomyCommands.create(api, transactions, inventory, governor, pricing));
         api.system().commands().registerHelpDescription(
                 "/e economy wallet ...", "Inspect or adjust player wallets.");
         api.system().commands().registerHelpDescription(
@@ -80,7 +86,7 @@ public final class ElarionEconomyAddon implements ElarionAddon {
                 transaction.id().toString(),
                 realmId,
                 metadata,
-                "A transaction of " + transaction.amount() + " sigils was recorded for "
+                "A transaction of " + api.serverIdentity().currencyAmount(transaction.amount()) + " was recorded for "
                         + transaction.reason() + "."
         );
     }

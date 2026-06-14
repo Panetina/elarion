@@ -7,6 +7,8 @@ import panetina.elarion.core.client.ClientIdentityCache;
 import panetina.elarion.core.client.ElarionNotificationHud;
 import panetina.elarion.core.network.IdentitySyncRequestPayload;
 import panetina.elarion.core.network.IdentitySyncPayload;
+import panetina.elarion.core.network.UiThemeSyncPayload;
+import panetina.elarion.core.client.ui.ElarionUiThemes;
 
 public final class ElarionCoreClient implements ClientModInitializer {
     @Override
@@ -14,10 +16,16 @@ public final class ElarionCoreClient implements ClientModInitializer {
         ElarionNotificationHud.initialize();
         ClientPlayNetworking.registerGlobalReceiver(IdentitySyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientIdentityCache.update(payload)));
+        ClientPlayNetworking.registerGlobalReceiver(UiThemeSyncPayload.ID, (payload, context) ->
+                context.client().execute(() -> ElarionUiThemes.update(payload.theme())));
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ClientIdentityCache.clear();
+            ElarionUiThemes.clear();
             ClientPlayNetworking.send(IdentitySyncRequestPayload.INSTANCE);
         });
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientIdentityCache.clear());
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            ClientIdentityCache.clear();
+            ElarionUiThemes.clear();
+        });
     }
 }

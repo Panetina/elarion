@@ -1,0 +1,4 @@
+# Local upstream reference checkout. It contains non-MIT assets and must never
+# be committed or distributed as part of Elarion.
+/reference/upstream-starcatcher-neoforge-1.21.1/
+

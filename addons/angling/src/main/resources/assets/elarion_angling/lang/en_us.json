@@ -1,0 +1,6 @@
+{
+    "fish.elarion_angling.placeholder_fish_001": "[REPLACE: fish.placeholder_fish_001.name]",
+    "feedback.elarion_angling.catch_accepted": "[REPLACE: feedback.catch.accepted]",
+    "feedback.elarion_angling.catch_unavailable": "[REPLACE: feedback.catch.unavailable]",
+    "modmenu.descriptionTranslation.elarion_angling": "Fishing addon shell for future Elarion catch systems."
+}

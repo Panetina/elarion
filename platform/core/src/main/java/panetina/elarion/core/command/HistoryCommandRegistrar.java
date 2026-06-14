@@ -103,10 +103,11 @@ final class HistoryCommandRegistrar {
 
     private static int sendHistory(ServerCommandSource source, List<HistoryEvent> events) {
         if (events.isEmpty()) {
-            source.sendFeedback(() -> Text.literal("No matching Elarion history events."), false);
+            CommandOutput.empty(source, "No matching Elarion history events.");
             return 0;
         }
-        source.sendFeedback(() -> Text.literal("Elarion history (" + events.size() + "):"), false);
+        CommandOutput.header(source, "Elarion History");
+        CommandOutput.kv(source, "Events shown", events.size());
         for (HistoryEvent event : events) {
             source.sendFeedback(() -> Text.literal(formatHistory(event)), false);
         }
@@ -116,14 +117,15 @@ final class HistoryCommandRegistrar {
     private static int sendChronicleList(ServerCommandSource source, ElarionApi api, int weeks) {
         List<ChronicleArchive> archives = api.publicHistory().recentChronicles(weeks);
         if (archives.isEmpty()) {
-            source.sendFeedback(() -> Text.literal("No Chronicle archives found."), false);
+            CommandOutput.empty(source, "No Chronicle archives found.");
             return 0;
         }
-        source.sendFeedback(() -> Text.literal("Chronicle archives (" + archives.size() + "):"), false);
+        CommandOutput.header(source, "Chronicle Archives");
+        CommandOutput.kv(source, "Archives shown", archives.size());
         for (ChronicleArchive archive : archives) {
-            source.sendFeedback(() -> Text.literal(archive.weekStart() + " to " + archive.weekEnd()
-                    + " events=" + archive.totalEvents()
-                    + " categories=" + summarize(archive.categoryCounts())), false);
+            CommandOutput.section(source, archive.weekStart() + " to " + archive.weekEnd());
+            CommandOutput.kv(source, "Events", archive.totalEvents());
+            CommandOutput.kv(source, "Categories", summarize(archive.categoryCounts()));
         }
         return archives.size();
     }
@@ -137,9 +139,10 @@ final class HistoryCommandRegistrar {
             source.sendError(Text.literal("Unknown Chronicle archive week: " + week));
             return 0;
         }
-        source.sendFeedback(() -> Text.literal("Chronicle " + archive.weekStart() + " to " + archive.weekEnd()
-                + " events=" + archive.totalEvents()
-                + " realms=" + summarize(archive.realmCounts())), false);
+        CommandOutput.header(source, "Chronicle " + archive.weekStart());
+        CommandOutput.kv(source, "Range", archive.weekStart() + " to " + archive.weekEnd());
+        CommandOutput.kv(source, "Events", archive.totalEvents());
+        CommandOutput.kv(source, "Realms", summarize(archive.realmCounts()));
         int count = 0;
         for (ChronicleEntry entry : archive.entries()) {
             if (count >= limit) break;

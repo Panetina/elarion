@@ -245,6 +245,18 @@ final class CoreConfigValidator {
         requireString("citizens-defaults.yml.defaults.title", defaultValues.get("title"), false, errors);
         requireStringCollection("citizens-defaults.yml.defaults.flags", defaultValues.get("flags"), errors);
 
+        Map<String, Object> activity = loadMap("activity.yml");
+        checkKeys("activity.yml", activity, Set.of("config-version", "citizens"), errors);
+        checkVersion("activity.yml", activity, errors);
+        Map<String, Object> activityCitizens =
+                requiredMap("activity.yml.citizens", activity.get("citizens"), errors);
+        checkKeys("activity.yml.citizens", activityCitizens, Set.of("inactivity-days"), errors);
+        Number inactivityDays = requireNumber(
+                "activity.yml.citizens.inactivity-days", activityCitizens.get("inactivity-days"), errors);
+        if (inactivityDays != null && inactivityDays.intValue() < 1) {
+            errors.add("activity.yml.citizens.inactivity-days: must be at least 1");
+        }
+
         Map<String, Object> chat = loadMap("chat.yml");
         checkKeys("chat.yml", chat, Set.of("config-version", "local-chat", "whisper-chat",
                 "yell-chat", "realm-chat", "alliance-chat", "notices"), errors);

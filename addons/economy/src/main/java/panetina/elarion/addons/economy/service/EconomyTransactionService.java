@@ -302,12 +302,14 @@ public final class EconomyTransactionService {
         boolean toSystem = to.type() == EconomyAccountType.SYSTEM;
         return switch (type) {
             case TRANSFER -> !fromSystem && !toSystem;
-            case DEPOSIT -> from.equals(EconomyAccount.PHYSICAL_SIGIL)
+            case DEPOSIT -> from.equals(EconomyAccount.PHYSICAL_CURRENCY)
                     && to.type() == EconomyAccountType.PLAYER;
             case WITHDRAW -> from.type() == EconomyAccountType.PLAYER
-                    && to.equals(EconomyAccount.PHYSICAL_SIGIL);
-            case REWARD -> from.equals(EconomyAccount.MINT) && !toSystem;
-            case FEE, SINK -> !fromSystem && to.equals(EconomyAccount.BURN);
+                    && to.equals(EconomyAccount.PHYSICAL_CURRENCY);
+            case REWARD -> from.equals(EconomyAccount.MINT)
+                    && (!toSystem || to.equals(EconomyAccount.PHYSICAL_CURRENCY));
+            case FEE, SINK -> (!fromSystem || from.equals(EconomyAccount.PHYSICAL_CURRENCY))
+                    && to.equals(EconomyAccount.BURN);
             case TAX -> !fromSystem
                     && (to.equals(EconomyAccount.BURN) || to.type() == EconomyAccountType.REALM);
             case TREASURY_GRANT -> from.type() == EconomyAccountType.REALM
@@ -334,8 +336,8 @@ public final class EconomyTransactionService {
                     "state", bound ? "active" : "unbound",
                     "walletAccounts", Integer.toString(state.wallets().size()),
                     "realmTreasuries", Integer.toString(state.treasuries().size()),
-                    "walletSigils", Long.toString(walletTotal()),
-                    "treasurySigils", Long.toString(treasuryTotal()),
+                    "walletCurrency", Long.toString(walletTotal()),
+                    "treasuryCurrency", Long.toString(treasuryTotal()),
                     "lastSequence", Long.toString(state.lastAppliedSequence())
             );
         }

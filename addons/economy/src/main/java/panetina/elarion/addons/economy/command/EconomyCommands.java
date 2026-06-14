@@ -17,8 +17,10 @@ import panetina.elarion.addons.economy.model.EconomyTransactionType;
 import panetina.elarion.addons.economy.model.TransactionResult;
 import panetina.elarion.addons.economy.service.EconomyGovernorService;
 import panetina.elarion.addons.economy.service.EconomyInventoryService;
+import panetina.elarion.addons.economy.service.EconomyPricingService;
 import panetina.elarion.addons.economy.service.EconomyTransactionService;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.command.CommandOutput;
 
 import java.util.Locale;
 import java.util.Map;
@@ -35,7 +37,8 @@ public final class EconomyCommands {
             ElarionApi core,
             EconomyTransactionService transactions,
             EconomyInventoryService inventory,
-            EconomyGovernorService governor
+            EconomyGovernorService governor,
+            EconomyPricingService pricing
     ) {
         return literal("economy")
                 .requires(source -> source.hasPermissionLevel(4))
@@ -45,7 +48,8 @@ public final class EconomyCommands {
                 .then(transactionQueries(core, transactions))
                 .then(literal("pulse").executes(context -> showPulse(context.getSource(), governor.pulse())))
                 .then(literal("recalculate").executes(context -> showPulse(context.getSource(), governor.pulse())))
-                .then(literal("reload").executes(context -> reload(context.getSource(), transactions)));
+                .then(literal("reload").executes(context -> reload(
+                        context.getSource(), transactions, pricing)));
     }
 
     private static LiteralArgumentBuilder<ServerCommandSource> wallet(
@@ -59,8 +63,10 @@ public final class EconomyCommands {
                                 .executes(context -> {
                                     ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
                                     long balance = transactions.balance(EconomyAccount.player(player.getUuid()));
-                                    context.getSource().sendFeedback(() -> Text.literal(
-                                            display(core, player.getUuid()) + " wallet: " + balance + " sigils"), false);
+                                    CommandOutput.header(context.getSource(), "Wallet");
+                                    CommandOutput.kv(context.getSource(), "Player", display(core, player.getUuid()));
+                                    CommandOutput.kv(context.getSource(), "Balance",
+                                            core.serverIdentity().currencyAmount(balance));
                                     return 1;
                                 })))
                 .then(literal("give")
@@ -110,8 +116,11 @@ public final class EconomyCommands {
                                     String realm = com.mojang.brigadier.arguments.StringArgumentType.getString(
                                             context, "realm");
                                     long balance = transactions.balance(EconomyAccount.realm(realm));
-                                    context.getSource().sendFeedback(() ->
-                                            Text.literal(realm + " treasury: " + balance + " sigils"), false);
+                                    CommandOutput.header(context.getSource(),
+                                            core.serverIdentity().realmSingular() + " Treasury");
+                                    CommandOutput.kv(context.getSource(), core.serverIdentity().realmSingular(), realm);
+                                    CommandOutput.kv(context.getSource(), "Balance",
+                                            core.serverIdentity().currencyAmount(balance));
                                     return 1;
                                 })))
                 .then(literal("give")
@@ -218,9 +227,12 @@ public final class EconomyCommands {
             return 0;
         }
         EconomyTransaction transaction = result.transaction();
-        source.sendFeedback(() -> Text.literal("Transaction " + transaction.id()
-                + " completed: " + transaction.amount() + " sigils, "
-                + transaction.fromAccount().key() + " -> " + transaction.toAccount().key()), true);
+        CommandOutput.success(source, "Transaction completed.", true);
+        CommandOutput.kv(source, "ID", transaction.id());
+        CommandOutput.kv(source, "Type", transaction.type());
+        CommandOutput.kv(source, "Amount", currency(transaction.amount()));
+        CommandOutput.kv(source, "From", transaction.fromAccount().key());
+        CommandOutput.kv(source, "To", transaction.toAccount().key());
         return 1;
     }
 
@@ -231,37 +243,56 @@ public final class EconomyCommands {
             int limit
     ) {
         var values = transactions.recentFor(account, limit);
-        source.sendFeedback(() -> Text.literal("Transactions for " + account.key()
-                + ": " + values.size()), false);
+        CommandOutput.header(source, "Economy Transactions");
+        CommandOutput.kv(source, "Account", account.key());
+        CommandOutput.kv(source, "Shown", values.size());
+        if (values.isEmpty()) {
+            CommandOutput.empty(source, "No recent transactions for this account.");
+            return 0;
+        }
         for (EconomyTransaction transaction : values) {
-            source.sendFeedback(() -> Text.literal("#" + transaction.sequence()
-                    + " " + transaction.type()
-                    + " " + transaction.amount()
-                    + " " + transaction.fromAccount().key()
-                    + " -> " + transaction.toAccount().key()
-                    + " " + (transaction.success() ? "SUCCESS" : "FAILED:" + transaction.failure())
-                    + " source=" + transaction.sourceSystem()), false);
+            CommandOutput.section(source, "#" + transaction.sequence() + " " + transaction.type());
+            CommandOutput.kv(source, "ID", transaction.id());
+            CommandOutput.kv(source, "Amount", currency(transaction.amount()));
+            CommandOutput.kv(source, "Route", transaction.fromAccount().key()
+                    + " -> " + transaction.toAccount().key());
+            CommandOutput.kv(source, "Result", transaction.success()
+                    ? "SUCCESS"
+                    : "FAILED: " + transaction.failure());
+            CommandOutput.kv(source, "Source", transaction.sourceSystem());
+            if (!transaction.reason().isBlank()) {
+                CommandOutput.kv(source, "Reason", transaction.reason());
+            }
         }
         return 1;
     }
 
     private static int showPulse(ServerCommandSource source, EconomyPulse pulse) {
-        source.sendFeedback(() -> Text.literal("Economy pulse: mode=" + pulse.mode()
-                + " health=" + pulse.health()), false);
-        source.sendFeedback(() -> Text.literal("Supply: tracked=" + pulse.trackedSupply()
-                + " wallets=" + pulse.walletSigils()
-                + " treasuries=" + pulse.treasurySigils()), false);
-        source.sendFeedback(() -> Text.literal("Window: transactions=" + pulse.transactionsInWindow()
-                + " created=" + pulse.createdInWindow()
-                + " destroyed=" + pulse.destroyedInWindow()
-                + " faucet:sink=" + format(pulse.faucetSinkRatio())
-                + " top10Share=" + format(pulse.topTenWalletShare() * 100.0D) + "%"), false);
+        CommandOutput.header(source, "Economy Pulse");
+        CommandOutput.section(source, "Health");
+        CommandOutput.kv(source, "Mode", pulse.mode());
+        CommandOutput.kv(source, "State", pulse.health());
+        CommandOutput.section(source, "Supply");
+        CommandOutput.kv(source, "Tracked supply", currency(pulse.trackedSupply()));
+        CommandOutput.kv(source, "Wallets", currency(pulse.walletCurrency()));
+        CommandOutput.kv(source, "Treasuries", currency(pulse.treasuryCurrency()));
+        CommandOutput.section(source, "Current Window");
+        CommandOutput.kv(source, "Transactions", pulse.transactionsInWindow());
+        CommandOutput.kv(source, "Created", currency(pulse.createdInWindow()));
+        CommandOutput.kv(source, "Destroyed", currency(pulse.destroyedInWindow()));
+        CommandOutput.kv(source, "Faucet:Sink", format(pulse.faucetSinkRatio()));
+        CommandOutput.kv(source, "Top 10 wallet share", format(pulse.topTenWalletShare() * 100.0D) + "%");
         return 1;
     }
 
-    private static int reload(ServerCommandSource source, EconomyTransactionService transactions) {
+    private static int reload(
+            ServerCommandSource source,
+            EconomyTransactionService transactions,
+            EconomyPricingService pricing
+    ) {
         try {
             transactions.reload(EconomyConfig.load());
+            pricing.reload();
             source.sendFeedback(() -> Text.literal("Economy configuration reloaded."), true);
             return 1;
         } catch (RuntimeException exception) {
@@ -280,6 +311,10 @@ public final class EconomyCommands {
                         ? citizen.lastKnownUsername()
                         : citizen.nickname())
                 .orElse(playerId.toString());
+    }
+
+    private static String currency(long amount) {
+        return ElarionApi.get().serverIdentity().currencyAmount(amount);
     }
 
     private static String format(double value) {

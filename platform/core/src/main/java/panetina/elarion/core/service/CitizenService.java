@@ -76,6 +76,24 @@ public final class CitizenService {
         return List.copyOf(citizens.values());
     }
 
+    public CitizenRecord markSeen(ServerPlayerEntity player) {
+        CitizenRecord citizen = getOrCreate(player);
+        citizen.setLastSeenAt(System.currentTimeMillis());
+        storage.save(server, citizen);
+        return citizen;
+    }
+
+    public boolean isActiveCitizen(UUID uuid) {
+        return find(uuid).map(this::isActiveCitizen).orElse(false);
+    }
+
+    public boolean isActiveCitizen(CitizenRecord citizen) {
+        if (citizen == null) return false;
+        if (server != null && server.getPlayerManager().getPlayer(citizen.uuid()) != null) return true;
+        long cutoff = System.currentTimeMillis() - config.citizenActivityWindowMillis();
+        return citizen.lastSeenAt() >= cutoff;
+    }
+
     public CitizenRecord update(ServerPlayerEntity player, String reason, Consumer<CitizenRecord> mutation) {
         CitizenRecord citizen = getOrCreate(player);
         mutation.accept(citizen);

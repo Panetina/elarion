@@ -5,6 +5,7 @@ import org.yaml.snakeyaml.Yaml;
 import panetina.elarion.core.model.ProgressionRegion;
 import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RewardAction;
+import panetina.elarion.core.model.ServerIdentityConfig;
 import panetina.elarion.core.model.SpawnPoint;
 import panetina.elarion.core.model.TitleAcquisitionMode;
 import panetina.elarion.core.model.TitleActiveEffect;
@@ -32,12 +33,15 @@ final class CoreConfigParser {
     private final Yaml yaml;
     private final Path coreConfigDir;
     private final String defaultTitleId;
+    private final ServerIdentityConfig serverIdentity;
 
-    CoreConfigParser(Logger logger, Yaml yaml, Path coreConfigDir, String defaultTitleId) {
+    CoreConfigParser(Logger logger, Yaml yaml, Path coreConfigDir, String defaultTitleId,
+                     ServerIdentityConfig serverIdentity) {
         this.logger = logger;
         this.yaml = yaml;
         this.coreConfigDir = coreConfigDir;
         this.defaultTitleId = defaultTitleId;
+        this.serverIdentity = serverIdentity;
     }
 
     Map<String, RealmDefinition> loadRealms() {
@@ -77,10 +81,10 @@ final class CoreConfigParser {
             Map<String, Object> data = map(entry.getValue());
             result.put(id, new TitleDefinition(
                     id,
-                    string(data.get("description"), ""),
-                    string(data.get("display-name"), id),
-                    string(data.get("prefix"), ""),
-                    string(data.get("suffix"), ""),
+                    text(data.get("description"), ""),
+                    text(data.get("display-name"), id),
+                    text(data.get("prefix"), ""),
+                    text(data.get("suffix"), ""),
                     number(data.get("priority"), 0).intValue(),
                     bool(data.get("visible-under-username"), true),
                     enumValue(TitleAcquisitionMode.class, data.get("acquisition-mode"),
@@ -164,7 +168,7 @@ final class CoreConfigParser {
                     String type = string(raw.get("type"), "");
                     Map<String, String> parameters = new LinkedHashMap<>();
                     raw.forEach((key, value) -> {
-                        if (!key.equals("type")) parameters.put(key, String.valueOf(value));
+                        if (!key.equals("type")) parameters.put(key, serverIdentity.replace(String.valueOf(value)));
                     });
                     if (!type.isBlank()) actions.add(new RewardAction(type, parameters));
                 }
@@ -230,6 +234,10 @@ final class CoreConfigParser {
 
     private static String string(Object value, String fallback) {
         return value == null ? fallback : String.valueOf(value);
+    }
+
+    private String text(Object value, String fallback) {
+        return serverIdentity.replace(string(value, fallback));
     }
 
     private static Number number(Object value, Number fallback) {

@@ -1,9 +1,12 @@
 package panetina.elarion.core.api;
 
+import net.minecraft.server.network.ServerPlayerEntity;
 import panetina.elarion.core.service.IdentityService;
 import panetina.elarion.core.service.IdentitySyncService;
 import panetina.elarion.core.service.NicknameService;
 import panetina.elarion.core.service.TitleService;
+
+import java.util.function.Function;
 
 public final class ElarionIdentityApi {
     private final IdentityService identities;
@@ -37,5 +40,9 @@ public final class ElarionIdentityApi {
 
     public TitleService titles() {
         return titles;
+    }
+
+    public void registerChatPrefixProvider(Function<ServerPlayerEntity, String> provider) {
+        identities.registerChatPrefixProvider(provider);
     }
 }

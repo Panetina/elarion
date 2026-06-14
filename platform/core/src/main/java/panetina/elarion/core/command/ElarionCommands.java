@@ -58,6 +58,7 @@ public final class ElarionCommands {
                             api.realms().applyCurrentScoreboardTeam(player);
                         }
                         api.identitySync().syncAll(context.getSource().getServer());
+                        api.uiThemes().syncAll(context.getSource().getServer());
                         context.getSource().sendFeedback(() -> Text.literal("Elarion configuration reloaded."), true);
                         return 1;
                     } finally {

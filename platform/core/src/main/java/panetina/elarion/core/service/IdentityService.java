@@ -16,6 +16,8 @@ import panetina.elarion.core.model.VisibilityScope;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 
 public final class IdentityService {
     private static final Identifier ICON_FONT = Identifier.of("elarion_core", "icons");
@@ -23,6 +25,7 @@ public final class IdentityService {
     private final CitizenService citizens;
     private final RealmService realms;
     private final TitleService titles;
+    private final List<Function<ServerPlayerEntity, String>> chatPrefixProviders = new CopyOnWriteArrayList<>();
     private RealmGovernanceService governance;
 
     public IdentityService(CitizenService citizens, RealmService realms, TitleService titles) {
@@ -33,6 +36,10 @@ public final class IdentityService {
 
     public void setGovernance(RealmGovernanceService governance) {
         this.governance = governance;
+    }
+
+    public void registerChatPrefixProvider(Function<ServerPlayerEntity, String> provider) {
+        if (provider != null) chatPrefixProviders.add(provider);
     }
 
     public PlayerIdentity resolve(ServerPlayerEntity player) {
@@ -48,6 +55,8 @@ public final class IdentityService {
         MutableText display = Text.literal(baseName).formatted(color);
         if (!suffix.isBlank()) display.append(Text.literal(" " + suffix));
         MutableText chatName = Text.empty();
+        String externalPrefix = externalPrefix(player);
+        if (!externalPrefix.isBlank()) chatName.append(Text.literal(externalPrefix + " ").formatted(Formatting.GRAY));
         if (citizen.isRealmLeader()) chatName.append(crown()).append(Text.literal(" "));
         chatName.append(Text.literal(baseName).formatted(color));
         if (!suffix.isBlank()) chatName.append(Text.literal(" " + suffix));
@@ -57,6 +66,7 @@ public final class IdentityService {
         Text leaderText = citizen.isRealmLeader() ? crown() : Text.empty();
         VisibilityScope scope = realm == null ? VisibilityScope.REALM : realm.visibilityScope();
         MutableText tabName = Text.empty();
+        if (!externalPrefix.isBlank()) tabName.append(Text.literal(externalPrefix + " ").formatted(Formatting.GRAY));
         if (citizen.isRealmLeader()) tabName.append(crown()).append(Text.literal(" "));
         tabName.append(display.copy());
         return new PlayerIdentity(display, chatName, tabName, titleText, leaderText,
@@ -118,5 +128,17 @@ public final class IdentityService {
     private static Text crown() {
         return Text.literal(CROWN_GLYPH)
                 .styled(style -> style.withFont(ICON_FONT).withColor(Formatting.GOLD));
+    }
+
+    private String externalPrefix(ServerPlayerEntity player) {
+        for (Function<ServerPlayerEntity, String> provider : chatPrefixProviders) {
+            try {
+                String value = provider.apply(player);
+                if (value != null && !value.isBlank()) return value.trim();
+            } catch (RuntimeException ignored) {
+                // Presentation hooks must not break identity rendering.
+            }
+        }
+        return "";
     }
 }

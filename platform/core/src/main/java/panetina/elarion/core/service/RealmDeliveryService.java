@@ -9,6 +9,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import panetina.elarion.core.model.CitizenRecord;
+import panetina.elarion.core.model.ServerIdentityConfig;
 import panetina.elarion.core.storage.RealmDeliveryStorage;
 import panetina.elarion.core.storage.RealmDeliveryStorage.PendingDelivery;
 
@@ -24,6 +25,7 @@ public final class RealmDeliveryService {
     private final RealmService realms;
     private final RewardActionService rewards;
     private final HistoryService history;
+    private final ServerIdentityConfig serverIdentity;
     private MinecraftServer server;
     private final List<PendingDelivery> pending = new ArrayList<>();
 
@@ -32,13 +34,15 @@ public final class RealmDeliveryService {
             CitizenService citizens,
             RealmService realms,
             RewardActionService rewards,
-            HistoryService history
+            HistoryService history,
+            ServerIdentityConfig serverIdentity
     ) {
         this.storage = storage;
         this.citizens = citizens;
         this.realms = realms;
         this.rewards = rewards;
         this.history = history;
+        this.serverIdentity = serverIdentity;
     }
 
     public void bind(MinecraftServer server) {
@@ -123,10 +127,11 @@ public final class RealmDeliveryService {
                 int count = parts.length > 1 ? parseCount(parts[1]) : 1;
                 if (id != null) giveItem(player, id, count);
             } else if ("announcement".equals(delivery.type)) {
-                player.sendMessage(Text.literal("[Realm Announcement] " + delivery.payload)
+                player.sendMessage(Text.literal("[" + serverIdentity.realmSingular() + " Announcement] "
+                                + delivery.payload)
                         .formatted(Formatting.GOLD), false);
             } else if ("mail".equals(delivery.type)) {
-                player.sendMessage(Text.literal("[Realm Mail] " + delivery.payload)
+                player.sendMessage(Text.literal("[" + serverIdentity.realmSingular() + " Mail] " + delivery.payload)
                         .formatted(Formatting.AQUA), false);
             }
             history.record("realm", "offline-delivery", null, "player",
@@ -189,8 +194,10 @@ public final class RealmDeliveryService {
         }
     }
 
-    private static String prefix(String type) {
-        return "announcement".equals(type) ? "[Realm Announcement] " : "[Realm Mail] ";
+    private String prefix(String type) {
+        return "announcement".equals(type)
+                ? "[" + serverIdentity.realmSingular() + " Announcement] "
+                : "[" + serverIdentity.realmSingular() + " Mail] ";
     }
 
     private static Formatting color(String type) {

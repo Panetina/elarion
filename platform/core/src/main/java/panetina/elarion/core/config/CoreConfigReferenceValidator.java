@@ -14,6 +14,14 @@ import java.util.function.Function;
 
 final class CoreConfigReferenceValidator {
     private static final Set<String> CORE_TITLE_EFFECT_TYPES = Set.of("status_effect");
+    private static final Set<String> KNOWN_ADDON_REWARD_ACTION_TYPES = Set.of(
+            // Config validation runs before addon handlers are available. These IDs are implemented by Economy.
+            "currency-reward",
+            "currency-sink",
+            "realm-currency-reward",
+            "realm-currency-sink",
+            "realm-treasury-grant"
+    );
 
     private CoreConfigReferenceValidator() {
     }
@@ -93,7 +101,8 @@ final class CoreConfigReferenceValidator {
                 Map<String, Object> action = map(item);
                 String type = normalizeDash(string(action.get("type")));
                 String path = "rewards.yml.rewards." + id + ".actions[" + index + "]";
-                if (!RewardActionService.builtInActionTypes().contains(type)) {
+                if (!RewardActionService.builtInActionTypes().contains(type)
+                        && !KNOWN_ADDON_REWARD_ACTION_TYPES.contains(type)) {
                     errors.add(path + ".type: unknown Core reward action '" + string(action.get("type")) + "'");
                 }
                 validateRewardActionParameters(path, type, action, titleIds, abilityIds, errors);
@@ -114,6 +123,8 @@ final class CoreConfigReferenceValidator {
             case "item" -> {
                 validateIdentifier(path + ".id", string(action.get("id")), errors);
                 validateOptionalInteger(path + ".count", action.get("count"), errors);
+                validateEnchantments(path, action.get("enchants"), errors);
+                validateEnchantments(path, action.get("enchantments"), errors);
             }
             case "status-change" -> validateEnum(path + ".status", string(action.get("status")),
                     CitizenStatus.class, errors);
@@ -127,6 +138,15 @@ final class CoreConfigReferenceValidator {
                 String ability = string(action.get("ability"));
                 if (!isAbilityId(ability)) {
                     errors.add(path + ".ability: invalid ability id '" + ability + "'");
+                }
+            }
+            case "currency-reward", "currency-sink" -> validateRequiredLong(path + ".amount",
+                    action.get("amount"), errors);
+            case "realm-currency-reward", "realm-currency-sink", "realm-treasury-grant" -> {
+                validateRequiredLong(path + ".amount", action.get("amount"), errors);
+                String realm = string(action.getOrDefault("realm", action.get("realm-id")));
+                if (realm.isBlank()) {
+                    errors.add(path + ".realm: required for Realm Economy reward actions");
                 }
             }
             default -> {
@@ -190,6 +210,36 @@ final class CoreConfigReferenceValidator {
             Integer.parseInt(String.valueOf(value));
         } catch (NumberFormatException exception) {
             errors.add(path + ": expected an integer");
+        }
+    }
+
+    private static void validateEnchantments(String path, Object value, List<String> errors) {
+        if (value == null) return;
+        String raw = String.valueOf(value);
+        if (raw.isBlank()) return;
+        for (String entry : raw.split(",")) {
+            String trimmed = entry.trim();
+            int separator = trimmed.lastIndexOf(':');
+            if (separator <= 0 || separator >= trimmed.length() - 1) {
+                errors.add(path + ".enchants: expected comma-separated id:level entries");
+                return;
+            }
+            validateIdentifier(path + ".enchants.id", trimmed.substring(0, separator).trim(), errors);
+            validateOptionalInteger(path + ".enchants.level", trimmed.substring(separator + 1).trim(), errors);
+        }
+    }
+
+    private static void validateRequiredLong(String path, Object value, List<String> errors) {
+        if (value == null) {
+            errors.add(path + ": required");
+            return;
+        }
+        try {
+            if (Long.parseLong(String.valueOf(value)) < 1L) {
+                errors.add(path + ": expected a positive integer");
+            }
+        } catch (NumberFormatException exception) {
+            errors.add(path + ": expected a positive integer");
         }
     }
 

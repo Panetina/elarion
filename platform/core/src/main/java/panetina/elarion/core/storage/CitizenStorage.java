@@ -85,6 +85,7 @@ public final class CitizenStorage {
         String nickname;
         String status;
         long joinedAt;
+        long lastSeenAt;
         List<String> flags = new ArrayList<>();
         List<String> grantedAbilities = new ArrayList<>();
         List<String> unlockedTitleIds = new ArrayList<>();
@@ -99,6 +100,7 @@ public final class CitizenStorage {
             stored.nickname = citizen.nickname();
             stored.status = citizen.status().name();
             stored.joinedAt = citizen.joinedAt();
+            stored.lastSeenAt = citizen.lastSeenAt();
             stored.flags = new ArrayList<>(citizen.flags());
             stored.grantedAbilities = new ArrayList<>(citizen.grantedAbilities());
             stored.unlockedTitleIds = new ArrayList<>(citizen.unlockedTitleIds());
@@ -124,6 +126,7 @@ public final class CitizenStorage {
             record.setActiveTitleId(loadedActiveTitle);
             record.setNickname(nickname);
             record.setJoinedAt(joinedAt);
+            record.setLastSeenAt(lastSeenAt > 0 ? lastSeenAt : System.currentTimeMillis());
             try {
                 record.setStatus(CitizenStatus.valueOf(status));
             } catch (IllegalArgumentException | NullPointerException ignored) {

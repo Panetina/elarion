@@ -1,12 +1,29 @@
 # Elarion Commands
 
-Last reviewed: 2026-06-10
+Last reviewed: 2026-06-11
 
 Author: Panyel  
 Team: Panetina Team
 
 This is the command surface contract. Use it as the source matrix for command
 integration tests and GameTests.
+
+## Output Style
+
+Admin diagnostics and inspection commands should use the shared
+`CommandOutput` helper. Prefer:
+
+- a clear header
+- short sections
+- one labeled value per line
+- explicit empty-state messages
+- compact rows only for naturally small lists
+
+Avoid long packed strings such as `a=1 b=2 c=3` for commands meant to be read
+by server owners in chat. This applies especially to `/e economy pulse`,
+`/e economy transactions`, `/e perf ...`, `/e realm relationship ...`,
+`/e progression inspect`, `/e history ...`, `/e world info`, and future NPC,
+Government, Offerings, Portal, Ledger, and Chronicle commands.
 
 ## Player Commands
 
@@ -18,6 +35,15 @@ integration tests and GameTests.
 /r <message>
 /w <message>
 /yell <message>
+/group create <id> <tag> <display-name...>
+/group invite <player>
+/group accept <group>
+/group kick <player>
+/group leave
+/group transfer <player>
+/group info [group]
+/gc <message>
+/lc <message>
 ```
 
 Rules:
@@ -28,6 +54,10 @@ Rules:
 - `/pm` and `/r` follow Realm/relationship visibility rules.
 - `/w` is local whisper chat, not private messaging.
 - `/yell` is local yell chat and uses its configured cooldown.
+- `/group ...` manages the player's public group.
+- `/gc` sends group chat to current group members.
+- `/lc` sends Government authority chat to same-Realm authority holders.
+- `/ac` remains alliance chat; it is not used for Government authority chat.
 - OP level 4 does not bypass local chat distances by default.
 - `/spy chat` is the explicit OP tool for seeing chat outside normal distance
   or Realm scope.
@@ -60,6 +90,71 @@ Rules:
 /e economy transactions player <player> [limit]
 /e economy transactions realm <realm> [limit]
 /e economy pulse|recalculate|reload
+/e offerings reload
+/e offerings projects
+/e offerings inspect <project>
+/e offerings instances
+/e offerings state <instance>
+/e offerings start realm <realm> <project>
+/e offerings start global <project>
+/e offerings start location <project>
+/e offerings shrine link <instance>
+/e offerings shrine unlink
+/e offerings shrine inspect
+/e offerings shrine remove
+/e offerings shrine repair
+/e offerings delete <instance>
+/e offerings reset <instance>
+/e offerings complete <instance>
+/e government reload
+/e government forms
+/e government inspect <form>
+/e government state <realm>
+/e government gates <realm>
+/e government set-form <realm> <form>
+/e government identity set <realm> <tag> <display-name...>
+/e government founding complete <realm>
+/e government authority cleanup
+/e government office assign <realm> <office> <player>
+/e government office remove <realm> <office> <player>
+/e groups reload
+/e groups list
+/e groups inspect <group>
+/e groups delete <group>
+/e groups transfer <group> <player>
+/e portal reload
+/e portal wand
+/e portal list
+/e portal inspect <route>
+/e portal guide <route>
+/e portal setup enter <route> [x y z]
+/e portal setup return
+/e portal endpoint set <route> a_gate|a_arrival|b_gate|b_arrival
+/e portal unlock|lock|remove <route>
+/e portal repair <route>|all
+/e portal window open <route> <duration>
+/e portal window close <route>
+/e portal entitlement inspect|grant|clear <player> <route>
+/e npc reload
+/e npc place <npcDefinition> [north|east|south|west|here]
+/e npc place <npcDefinition> yaw <value>
+/e npc remove <npcId>
+/e npc remove nearest
+/e npc face <npcId>
+/e npc rotate <npcId> <north|east|south|west|here>
+/e npc rotate <npcId> yaw <value>
+/e npc repair <npcId|all>
+/e npc tp <npcId>
+/e npc duplicate <npcId> [north|east|south|west|here]
+/e npc duplicate <npcId> yaw <value>
+/e npc nearest
+/e npc list [world|near]
+/e npc list tag <tag>
+/e npc inspect <npcId>
+/e npc inspect nearest
+/e npc move <npcId>
+/e npc set name|skin|portrait|dialogue <npcId> ...
+/e npc dialogue inspect <dialogueId>
 /e world ...
 /e perf status
 /e perf queues
@@ -72,6 +167,11 @@ Rules:
 /e security status
 ```
 
+Portal linking uses the `Portal Surveyor`. Attack a frame-facing block to mark
+the adjacent first interior cell, then use the Surveyor on the opposite
+frame-facing block to mark the adjacent second interior cell. The selected
+cuboid must be one block thick on exactly one axis.
+
 All `/e ...` commands are OP level 4 unless a future feature is explicitly
 approved as player-facing.
 
@@ -80,6 +180,30 @@ command. The bare `/random` root is incomplete; examples are
 `/random value 1..10` and `/random roll 1..20`. Elarion gates the entire command
 at OP level 4 so its vanilla permission-2 subcommands do not bypass the server
 command policy.
+
+NPC command IDs are readable placed IDs such as `worldheart_banker_1`, shown by
+`/e npc place` and `/e npc list`. `/e npc set skin <npcId> <skinProfile>` uses
+profiles from `config/elarion/addons/npcs/skins.yml` for future in-world body
+presentation metadata. `/e npc set portrait <npcId> <portraitProfile>` uses
+profiles from `config/elarion/addons/npcs/portraits.yml` and affects the
+dialogue portrait rendered in the NPC GUI.
+`/e npc face <npcId>` stores a one-time yaw toward the executing administrator.
+`/e npc rotate <npcId> ...` stores a fixed direction/yaw.
+`/e npc repair <npcId|all>` reconciles missing, stale, or duplicate world
+entities from canonical placement state.
+
+Portal setup uses A/B names:
+
+- `a_gate`: portal frame A.
+- `a_arrival`: where players appear on side A.
+- `b_gate`: portal frame B.
+- `b_arrival`: where players appear on side B.
+- Travel rule: entering `a_gate` sends players to `b_arrival`; entering
+  `b_gate` sends players to `a_arrival`.
+- `/e portal setup enter <route> [x y z]`: OP-only authorized travel into a
+  protected destination before the route is linked. Example:
+  `/e portal setup enter nether 0 80 0`.
+- `/e portal setup return`: returns to the position stored before setup travel.
 
 ## Current Coverage
 
@@ -110,6 +234,8 @@ Future command tests should cover:
 - command error text for missing targets, invalid IDs, and failed rules
 - command side effects persist after restart where runtime state is changed
 - command output uses nickname/identity presentation where expected
+- command output follows the readable header/section/key-value style for
+  inspection and diagnostics commands
 
 Keep command behavior covered by focused unit tests for pure helpers and by
 GameTests where Minecraft server context is required. Use manual dev-server

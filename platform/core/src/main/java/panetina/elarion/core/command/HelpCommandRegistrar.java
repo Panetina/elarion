@@ -32,7 +32,7 @@ final class HelpCommandRegistrar {
                             .distinct()
                             .sorted()
                             .forEach(commands::add);
-                    source.sendFeedback(() -> Text.literal("Commands available to you:"), false);
+                    CommandOutput.header(source, "Commands Available");
                     commands.forEach(command -> source.sendFeedback(
                             () -> Text.literal(extensions.helpDescription(command)
                                     .orElseGet(() -> CommandPolicy.description(command))), false));
@@ -56,9 +56,10 @@ final class HelpCommandRegistrar {
                                 source.sendError(Text.literal("Unknown or unavailable command: /" + name));
                                 return 0;
                             }
-                            source.sendFeedback(
-                                    () -> Text.literal(extensions.helpDescription(name)
-                                            .orElseGet(() -> CommandPolicy.description(name))), false);
+                            CommandOutput.header(source, "/" + name);
+                            CommandOutput.line(source, extensions.helpDescription(name)
+                                    .orElseGet(() -> CommandPolicy.description(name)));
+                            CommandOutput.section(source, "Usage");
                             dispatcher.getSmartUsage(node, source).values().stream()
                                     .sorted(Comparator.naturalOrder())
                                     .forEach(usage -> source.sendFeedback(

@@ -1,0 +1,9 @@
+{
+  "id": "elarion_angling:placeholder_fish_001",
+  "translation_key": "fish.elarion_angling.placeholder_fish_001",
+  "rarity": "PLACEHOLDER_COMMON",
+  "weight": 10,
+  "conditions": [
+    "placeholder_condition_001"
+  ]
+}

@@ -16,6 +16,7 @@ public final class CitizenRecord {
     private String nickname;
     private CitizenStatus status;
     private long joinedAt;
+    private long lastSeenAt;
     private final Set<String> flags;
     private final Set<String> grantedAbilities;
     private final Set<String> unlockedTitleIds;
@@ -26,6 +27,7 @@ public final class CitizenRecord {
         this.lastKnownUsername = username;
         this.status = CitizenStatus.ACTIVE;
         this.joinedAt = Instant.now().toEpochMilli();
+        this.lastSeenAt = this.joinedAt;
         this.flags = new LinkedHashSet<>();
         this.grantedAbilities = new LinkedHashSet<>();
         this.unlockedTitleIds = new LinkedHashSet<>();
@@ -42,6 +44,7 @@ public final class CitizenRecord {
     public String nickname() { return nickname; }
     public CitizenStatus status() { return status; }
     public long joinedAt() { return joinedAt; }
+    public long lastSeenAt() { return lastSeenAt; }
     public Set<String> flags() { return flags; }
     public Set<String> grantedAbilities() { return grantedAbilities; }
     public Set<String> unlockedTitleIds() { return unlockedTitleIds; }
@@ -80,6 +83,7 @@ public final class CitizenRecord {
     public void setNickname(String value) { this.nickname = value; }
     public void setStatus(CitizenStatus value) { this.status = value; }
     public void setJoinedAt(long value) { this.joinedAt = value; }
+    public void setLastSeenAt(long value) { this.lastSeenAt = value; }
 
     private static String normalizeTitleId(String value) {
         return value == null ? "" : value.trim().toLowerCase(java.util.Locale.ROOT);

@@ -1,6 +1,6 @@
 # Optimization Addon Contract
 
-Last reviewed: 2026-06-10
+Last reviewed: 2026-06-11
 
 Author: Panyel  
 Team: Panetina Team
@@ -52,6 +52,10 @@ compute work. `config` shows loaded settings and validation warnings,
 sorts sampled worlds by current pressure and shows entity groups plus
 block entity groups, previous-sample deltas, in-memory trends, and `security`
 shows the Security addon evidence summary.
+
+Optimization commands use `CommandOutput` for chat-readable headers, sections,
+and key-value rows. Do not collapse `/e perf` diagnostics back into packed
+single-line strings; these commands are an operator-facing triage surface.
 
 ## Rules
 

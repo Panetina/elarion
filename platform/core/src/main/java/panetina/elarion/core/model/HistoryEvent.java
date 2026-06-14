@@ -66,7 +66,7 @@ public record HistoryEvent(
             String subjectId,
             String realmId
     ) {
-        String realm = realmId == null || realmId.isBlank() ? "Elarion" : "the Realm of " + realmId;
+        String realm = realmId == null || realmId.isBlank() ? "the server" : "realm " + realmId;
         String subject = subjectId == null || subjectId.isBlank()
                 ? "an event"
                 : (subjectType == null || subjectType.isBlank() ? subjectId : subjectType + " " + subjectId);

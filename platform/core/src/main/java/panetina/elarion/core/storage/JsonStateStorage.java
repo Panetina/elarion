@@ -48,6 +48,14 @@ public final class JsonStateStorage {
     }
 
     public static void writeAtomic(Path file, Gson gson, Object value, Logger logger, String description) {
+        try {
+            writeAtomicChecked(file, gson, value, description);
+        } catch (IOException exception) {
+            logger.error("Failed to save {}", description, exception);
+        }
+    }
+
+    public static void writeAtomicChecked(Path file, Gson gson, Object value, String description) throws IOException {
         long started = System.nanoTime();
         Path temporary = file.resolveSibling(file.getFileName() + ".tmp");
         try {
@@ -61,12 +69,12 @@ public final class JsonStateStorage {
                 Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException exception) {
-            logger.error("Failed to save {}", description, exception);
             try {
                 Files.deleteIfExists(temporary);
             } catch (IOException cleanupFailure) {
-                logger.warn("Failed to clean temporary state file {}", temporary, cleanupFailure);
+                exception.addSuppressed(cleanupFailure);
             }
+            throw exception;
         } finally {
             ElarionPerformanceMonitor.record("json-state-save:" + description, System.nanoTime() - started);
         }

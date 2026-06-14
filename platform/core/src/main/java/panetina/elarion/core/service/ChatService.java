@@ -48,7 +48,7 @@ public final class ChatService {
         CitizenRecord senderCitizen = citizens.getOrCreate(sender);
         RealmDefinition realm = realms.forCitizen(senderCitizen).orElse(null);
         if (realm == null) {
-            sender.sendMessage(Text.literal("You are not assigned to a realm."), false);
+            sender.sendMessage(Text.literal("You are not assigned to a " + config.serverIdentity().realmSingular() + "."), false);
             return false;
         }
 
@@ -60,7 +60,8 @@ public final class ChatService {
             if (realm.id().equals(recipientCitizen.realmId())) {
                 recipient.sendMessage(output, false);
             } else if (isChatSpy(recipient)) {
-                recipient.sendMessage(spyMessage("Realm:" + realm.shortName(), identity, message), false);
+                recipient.sendMessage(spyMessage(config.serverIdentity().realmChatLabel() + ":" + realm.shortName(),
+                        identity, message), false);
             }
         }
         history.record("chat", "realm-message", sender.getUuid(), "player",
@@ -73,7 +74,7 @@ public final class ChatService {
         CitizenRecord senderCitizen = citizens.getOrCreate(sender);
         RealmDefinition realm = realms.forCitizen(senderCitizen).orElse(null);
         if (realm == null) {
-            sender.sendMessage(Text.literal("You are not assigned to a realm."), false);
+            sender.sendMessage(Text.literal("You are not assigned to a " + config.serverIdentity().realmSingular() + "."), false);
             return false;
         }
         PlayerIdentity identity = identities.resolve(sender);
@@ -87,14 +88,15 @@ public final class ChatService {
                 recipients++;
             } else if (isChatSpy(recipient)) {
                 recipient.sendMessage(spyMessage(
-                        "Alliance:" + realm.shortName(),
+                        config.serverIdentity().allianceChatLabel() + ":" + realm.shortName(),
                         identity,
                         message
                 ), false);
             }
         }
         if (recipients <= 1) {
-            sender.sendMessage(Text.literal("Your Realm has no online allied citizens to receive alliance chat.")
+            sender.sendMessage(Text.literal("Your " + config.serverIdentity().realmSingular()
+                            + " has no online allied citizens to receive alliance chat.")
                     .formatted(Formatting.RED), false);
         }
         history.record("chat", "alliance-message", sender.getUuid(), "player",
@@ -262,7 +264,7 @@ public final class ChatService {
         return text.endsWith(" joined the game") || text.endsWith(" left the game");
     }
 
-    private static Text renderMessage(
+    private Text renderMessage(
             String format,
             RealmDefinition realm,
             PlayerIdentity identity,
@@ -270,24 +272,25 @@ public final class ChatService {
     ) {
         MutableText output = Text.empty();
         int cursor = 0;
-        while (cursor < format.length()) {
-            int tokenStart = format.indexOf('%', cursor);
+        String renderedFormat = config.serverIdentity().replace(format);
+        while (cursor < renderedFormat.length()) {
+            int tokenStart = renderedFormat.indexOf('%', cursor);
             if (tokenStart < 0) {
-                output.append(Text.literal(format.substring(cursor)));
+                output.append(Text.literal(renderedFormat.substring(cursor)));
                 break;
             }
 
             if (tokenStart > cursor) {
-                output.append(Text.literal(format.substring(cursor, tokenStart)));
+                output.append(Text.literal(renderedFormat.substring(cursor, tokenStart)));
             }
 
-            int tokenEnd = format.indexOf('%', tokenStart + 1);
+            int tokenEnd = renderedFormat.indexOf('%', tokenStart + 1);
             if (tokenEnd < 0) {
-                output.append(Text.literal(format.substring(tokenStart)));
+                output.append(Text.literal(renderedFormat.substring(tokenStart)));
                 break;
             }
 
-            String token = format.substring(tokenStart, tokenEnd + 1);
+            String token = renderedFormat.substring(tokenStart, tokenEnd + 1);
             switch (token) {
                 case "%realm_short%" ->
                         output.append(Text.literal(realm == null ? "" : realm.shortName()).formatted(identity.color()));
@@ -316,15 +319,15 @@ public final class ChatService {
                 .append(Text.literal(": " + message).formatted(Formatting.GRAY));
     }
 
-    private static String channelLabel(String channel) {
+    private String channelLabel(String channel) {
         return switch (channel) {
             case "whisper" -> "Whisper";
             case "yell" -> "Yell";
-            default -> "Local";
+            default -> config.serverIdentity().localChatLabel();
         };
     }
 
-    private static Text renderNotice(String format, RealmDefinition realm, PlayerIdentity identity) {
+    private Text renderNotice(String format, RealmDefinition realm, PlayerIdentity identity) {
         return renderMessage(format, realm, identity, "");
     }
 }

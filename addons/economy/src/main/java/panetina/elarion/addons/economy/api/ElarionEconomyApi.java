@@ -3,11 +3,13 @@ package panetina.elarion.addons.economy.api;
 import net.minecraft.server.network.ServerPlayerEntity;
 import panetina.elarion.addons.economy.model.EconomyAccount;
 import panetina.elarion.addons.economy.model.EconomyPulse;
+import panetina.elarion.addons.economy.model.EconomyMixedPayment;
 import panetina.elarion.addons.economy.model.EconomyTransaction;
 import panetina.elarion.addons.economy.model.EconomyTransactionType;
 import panetina.elarion.addons.economy.model.TransactionResult;
 import panetina.elarion.addons.economy.service.EconomyGovernorService;
 import panetina.elarion.addons.economy.service.EconomyInventoryService;
+import panetina.elarion.addons.economy.service.EconomyPricingService;
 import panetina.elarion.addons.economy.service.EconomyTransactionService;
 
 import java.util.List;
@@ -19,16 +21,19 @@ public final class ElarionEconomyApi {
     private final EconomyTransactionService transactions;
     private final EconomyInventoryService inventory;
     private final EconomyGovernorService governor;
+    private final EconomyPricingService pricing;
 
     public ElarionEconomyApi(
             EconomyTransactionService transactions,
             EconomyInventoryService inventory,
-            EconomyGovernorService governor
+            EconomyGovernorService governor,
+            EconomyPricingService pricing
     ) {
         if (instance != null) throw new IllegalStateException("ElarionEconomyApi is already initialized");
         this.transactions = transactions;
         this.inventory = inventory;
         this.governor = governor;
+        this.pricing = pricing;
         instance = this;
     }
 
@@ -86,11 +91,41 @@ public final class ElarionEconomyApi {
         return inventory.withdraw(player, amount, sourceSystem);
     }
 
+    public int physicalCurrency(ServerPlayerEntity player) {
+        return inventory.countCurrency(player);
+    }
+
+    public EconomyMixedPayment payPhysicalThenBank(
+            ServerPlayerEntity player,
+            long amount,
+            String reason,
+            String sourceSystem
+    ) {
+        return inventory.payPhysicalThenBank(player, amount, reason, sourceSystem);
+    }
+
+    public void refundMixedPayment(
+            ServerPlayerEntity player,
+            EconomyMixedPayment payment,
+            String reason,
+            String sourceSystem
+    ) {
+        inventory.refundMixedPayment(player, payment, reason, sourceSystem);
+    }
+
     public List<EconomyTransaction> recent(EconomyAccount account, int limit) {
         return transactions.recentFor(account, limit);
     }
 
     public EconomyPulse pulse() {
         return governor.pulse();
+    }
+
+    public long servicePrice(String priceId) {
+        return pricing.currentPrice(priceId);
+    }
+
+    public EconomyPricingService pricing() {
+        return pricing;
     }
 }

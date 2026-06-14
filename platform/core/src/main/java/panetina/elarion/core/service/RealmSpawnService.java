@@ -10,6 +10,7 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.RealmDefinition;
+import panetina.elarion.core.model.ServerIdentityConfig;
 import panetina.elarion.core.model.SpawnPoint;
 
 import java.util.Map;
@@ -18,11 +19,14 @@ public final class RealmSpawnService {
     private final CitizenService citizens;
     private final RealmService realms;
     private final HistoryService history;
+    private final ServerIdentityConfig serverIdentity;
 
-    public RealmSpawnService(CitizenService citizens, RealmService realms, HistoryService history) {
+    public RealmSpawnService(CitizenService citizens, RealmService realms, HistoryService history,
+                             ServerIdentityConfig serverIdentity) {
         this.citizens = citizens;
         this.realms = realms;
         this.history = history;
+        this.serverIdentity = serverIdentity;
     }
 
     public boolean teleportToRealmSpawn(ServerPlayerEntity player, String reason) {
@@ -39,7 +43,8 @@ public final class RealmSpawnService {
 
     public void teleportAfterRealmAssignment(ServerPlayerEntity player) {
         if (teleportToRealmSpawn(player, "realm-join-teleport")) {
-            player.sendMessage(Text.literal("You were sent to your Realm spawn."), false);
+            player.sendMessage(Text.literal("You were sent to your "
+                    + serverIdentity.realmSingular().toLowerCase(java.util.Locale.ROOT) + " spawn."), false);
         }
     }
 

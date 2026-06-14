@@ -2,12 +2,12 @@ package panetina.elarion.addons.security;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.core.api.AddonConfigFiles;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.command.CommandOutput;
 
 import java.util.Map;
 
@@ -60,14 +60,12 @@ public final class ElarionSecurityAddon implements ElarionAddon {
 
     private static int sendStatus(ServerCommandSource source, SecurityEvidenceService evidence) {
         Map<String, String> diagnostics = evidence.diagnostics();
-        source.sendFeedback(() -> Text.literal("Security evidence: state="
-                + diagnostics.getOrDefault("state", "unknown")
-                + " total=" + diagnostics.getOrDefault("totalEvidence", "0")
-                + " dirty=" + diagnostics.getOrDefault("dirty", "false")), false);
-        source.sendFeedback(() -> Text.literal("Security evidence types: "
-                + diagnostics.getOrDefault("types", "(none)")), false);
-        source.sendFeedback(() -> Text.literal("Last evidence: "
-                + diagnostics.getOrDefault("lastEvidenceAt", "never")), false);
+        CommandOutput.header(source, "Security Evidence");
+        CommandOutput.kv(source, "State", diagnostics.getOrDefault("state", "unknown"));
+        CommandOutput.kv(source, "Total evidence", diagnostics.getOrDefault("totalEvidence", "0"));
+        CommandOutput.kv(source, "Dirty", diagnostics.getOrDefault("dirty", "false"));
+        CommandOutput.kv(source, "Evidence types", diagnostics.getOrDefault("types", "(none)"));
+        CommandOutput.kv(source, "Last evidence", diagnostics.getOrDefault("lastEvidenceAt", "never"));
         return 1;
     }
 }
