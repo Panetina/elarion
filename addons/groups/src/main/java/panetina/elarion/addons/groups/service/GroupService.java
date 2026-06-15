@@ -12,6 +12,9 @@ import panetina.elarion.addons.groups.model.GroupRecord;
 import panetina.elarion.addons.groups.storage.GroupState;
 import panetina.elarion.addons.groups.storage.GroupStorage;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.model.ElarionNotificationAction;
+import panetina.elarion.core.model.ElarionNotificationCategory;
+import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.model.CitizenRecord;
 
 import java.util.Collection;
@@ -43,6 +46,7 @@ public final class GroupService {
     public void bind(MinecraftServer server) {
         this.server = server;
         state = storage.load(server);
+        expireInvites();
         rebuildPlayerIndex();
         save();
     }
@@ -66,7 +70,10 @@ public final class GroupService {
     }
 
     public String tagFor(UUID playerId) {
-        return groupFor(playerId).map(group -> "[" + group.tag() + "]").orElse("");
+        return groupFor(playerId)
+                .filter(group -> !group.tagHidden())
+                .map(group -> "[" + group.tag() + "]")
+                .orElse("");
     }
 
     public GroupRecord create(ServerPlayerEntity creator, String id, String tag, String displayName) {
@@ -113,8 +120,22 @@ public final class GroupService {
         save();
         api.history().record("groups", "invite", actor.getUuid(), "group", group.id(),
                 realmOf(actor.getUuid()), java.util.Map.of("target", target.getUuid().toString()));
-        target.sendMessage(Text.literal("Group invite: " + group.displayName()
-                + " [" + group.tag() + "]. Use /group accept " + group.id() + ".").formatted(Formatting.GOLD), false);
+        api.notifications().publishPersonal(
+                target.getUuid(),
+                ElarionNotificationCategory.PERSONAL,
+                "elarion_groups",
+                "group-invite",
+                "group-invite:" + invite.key(),
+                "Group Invitation",
+                actor.getGameProfile().getName() + " invited you to " + group.displayName()
+                        + " [" + group.tag() + "].",
+                "Invitation",
+                "item:minecraft:paper",
+                java.util.List.of(
+                        new ElarionNotificationAction("elarion_groups:accept_invite", "Accept", true),
+                        new ElarionNotificationAction("elarion_groups:decline_invite", "Decline", true)),
+                java.util.Map.of("groupId", group.id(), "invitedBy", actor.getUuidAsString()),
+                invite.createdAt() + config.inviteLifetimeMillis());
         return invite;
     }
 
@@ -124,6 +145,11 @@ public final class GroupService {
         GroupRecord group = requireGroup(groupId);
         GroupInvite invite = state.invites.get(group.id() + ":" + player.getUuid());
         if (invite == null) throw new IllegalArgumentException("You do not have an invite to that group.");
+        if (invite.createdAt() + config.inviteLifetimeMillis() <= System.currentTimeMillis()) {
+            state.invites.remove(invite.key());
+            save();
+            throw new IllegalArgumentException("That group invitation expired.");
+        }
         validateConfederationLock(group, player.getUuid());
         LinkedHashSet<UUID> members = new LinkedHashSet<>(group.members());
         members.add(player.getUuid());
@@ -134,7 +160,21 @@ public final class GroupService {
         save();
         api.history().record("groups", "joined", player.getUuid(), "group", updated.id(),
                 realmOf(player.getUuid()), java.util.Map.of("tag", updated.tag()));
+        notifyPersonal(invite.invitedBy(), "Group Invitation Accepted",
+                player.getGameProfile().getName() + " joined " + updated.displayName() + ".",
+                "group-invite-accepted:" + invite.key());
         return updated;
+    }
+
+    public GroupInvite decline(ServerPlayerEntity player, String groupId) {
+        GroupRecord group = requireGroup(groupId);
+        GroupInvite invite = state.invites.remove(group.id() + ":" + player.getUuid());
+        if (invite == null) throw new IllegalArgumentException("You do not have an invite to that group.");
+        save();
+        notifyPersonal(invite.invitedBy(), "Group Invitation Declined",
+                player.getGameProfile().getName() + " declined the invitation to " + group.displayName() + ".",
+                "group-invite-declined:" + invite.key());
+        return invite;
     }
 
     public GroupRecord kick(ServerPlayerEntity actor, ServerPlayerEntity target) {
@@ -149,6 +189,9 @@ public final class GroupService {
         save();
         api.history().record("groups", "kicked", actor.getUuid(), "group", updated.id(),
                 realmOf(actor.getUuid()), java.util.Map.of("target", target.getUuid().toString()));
+        notifyPersonal(target.getUuid(), "Removed From Group",
+                "You were removed from " + updated.displayName() + ".", "group-kicked:" + updated.id()
+                        + ":" + target.getUuid() + ":" + System.currentTimeMillis());
         return updated;
     }
 
@@ -179,6 +222,19 @@ public final class GroupService {
         save();
         api.history().record("groups", "leader-transferred", actorId, "group", updated.id(),
                 realmOf(target), java.util.Map.of("leader", target.toString()));
+        notifyPersonal(target, "Group Leadership Transferred",
+                "You are now the leader of " + updated.displayName() + ".",
+                "group-leader:" + updated.id() + ":" + target + ":" + System.currentTimeMillis());
+        return updated;
+    }
+
+    public GroupRecord setTagHidden(ServerPlayerEntity actor, boolean hidden) {
+        GroupRecord group = requireLeaderGroup(actor.getUuid());
+        GroupRecord updated = group.withTagHidden(hidden);
+        state.groups.put(updated.id(), updated);
+        save();
+        api.history().record("groups", hidden ? "tag-hidden" : "tag-shown", actor.getUuid(), "group", updated.id(),
+                realmOf(actor.getUuid()), java.util.Map.of("tag", updated.tag()));
         return updated;
     }
 
@@ -191,7 +247,33 @@ public final class GroupService {
         save();
         api.history().record("groups", "deleted", actorId, "group", group.id(),
                 realmOf(group.leaderId()), java.util.Map.of("tag", group.tag()));
+        group.members().forEach(member -> notifyPersonal(member, "Group Disbanded",
+                group.displayName() + " was disbanded.", "group-deleted:" + group.id() + ":" + member));
         return group;
+    }
+
+    private void expireInvites() {
+        long now = System.currentTimeMillis();
+        boolean changed = state.invites.entrySet().removeIf(entry ->
+                entry.getValue().createdAt() + config.inviteLifetimeMillis() <= now);
+        if (changed) save();
+    }
+
+    private void notifyPersonal(UUID recipient, String title, String body, String dedupe) {
+        api.notifications().publishPersonal(
+                recipient,
+                ElarionNotificationCategory.PERSONAL,
+                "elarion_groups",
+                "group-membership",
+                dedupe,
+                title,
+                body,
+                "Groups",
+                "item:minecraft:paper",
+                java.util.List.of(new ElarionNotificationAction(
+                        ElarionNotificationService.DISMISS, "Dismiss", true)),
+                java.util.Map.of(),
+                api.notifications().defaultExpiry());
     }
 
     public boolean eligibleForConfederationDelegate(String groupId, String realmId) {

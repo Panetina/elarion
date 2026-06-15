@@ -23,6 +23,8 @@ Manual checks to run after server-facing changes.
 - [Portals](portals.md): geometry, tickets, return entitlements, Iris rendering.
 - [Offerings](offerings.md): item/currency offerings, rewards, donation history.
 - [NPCs](npcs.md): placement, skin/portrait, dialogue, banker actions.
+- [Government](government.md): Civic Forum/Seat sessions, founding stages,
+  authority chat, and block removal safety.
 - [Performance](performance.md): queue status, hotzones, TPS-drop workflow.
 
 ## Source-Backed Notes

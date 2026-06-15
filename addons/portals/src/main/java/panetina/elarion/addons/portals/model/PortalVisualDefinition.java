@@ -7,11 +7,25 @@ public record PortalVisualDefinition(
         int frameTime,
         String texture,
         String iconItem,
+        String statusIconItem,
         int promptAccentColor
 ) {
+    public PortalVisualDefinition(
+            int rgb,
+            float brightness,
+            float opacity,
+            int frameTime,
+            String texture,
+            String iconItem,
+            int promptAccentColor
+    ) {
+        this(rgb, brightness, opacity, frameTime, texture, iconItem, iconItem, promptAccentColor);
+    }
+
     public PortalVisualDefinition {
         texture = texture == null ? "" : texture;
         iconItem = iconItem == null ? "" : iconItem;
+        statusIconItem = statusIconItem == null ? "" : statusIconItem;
     }
 
     public int argb() {

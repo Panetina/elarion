@@ -86,6 +86,7 @@ public final class PortalConfigLoader {
                             integer(visual, "frame-time", 2),
                             string(visual, "texture", "minecraft:block/nether_portal"),
                             string(visual, "icon-item", ""),
+                            string(visual, "status-icon-item", string(visual, "icon-item", "")),
                             optionalColor(visual, "prompt-accent-color")));
             validate(file, definition);
             if (result.put(id, definition) != null) {
@@ -167,6 +168,15 @@ public final class PortalConfigLoader {
                     && !PortalContent.TICKET_ID.equals(icon)
                     && !EconomyItems.CURRENCY_ID.equals(icon)) {
                 errors.add("invalid visual icon-item");
+            }
+        }
+        if (!route.visual().statusIconItem().isBlank()) {
+            net.minecraft.util.Identifier icon =
+                    net.minecraft.util.Identifier.tryParse(route.visual().statusIconItem());
+            if (icon == null || !net.minecraft.registry.Registries.ITEM.containsId(icon)
+                    && !PortalContent.TICKET_ID.equals(icon)
+                    && !EconomyItems.CURRENCY_ID.equals(icon)) {
+                errors.add("invalid visual status-icon-item");
             }
         }
         if (!errors.isEmpty()) throw new PortalConfigException(file + " route " + route.id()

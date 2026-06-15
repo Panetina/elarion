@@ -185,20 +185,37 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
         String status = progress.complete() || instance.completed()
                 ? "Complete"
                 : "Awaiting " + api.serverIdentity().offeringPlural().toLowerCase(java.util.Locale.ROOT);
+        String scopeLabel = instance.scope().name().toLowerCase(java.util.Locale.ROOT);
+        String realmLabel = instance.realmId().isBlank()
+                ? ""
+                : api.realms().find(instance.realmId())
+                .map(api.realms()::officialName)
+                .orElse(instance.realmId());
         String subtitle = api.serverIdentity().shrineOfFoundation() + " - "
-                + instance.scope().name().toLowerCase(java.util.Locale.ROOT)
-                + (instance.realmId().isBlank() ? "" : " - " + instance.realmId());
+                + scopeLabel
+                + (realmLabel.isBlank() ? "" : " - " + realmLabel);
         var ui = definitions.ui();
         java.util.List<ShrineUiOpenPayload.DisplayRow> rewards = milestoneRewards(api, level.milestones(),
                 instance.completedMilestones());
-        java.util.List<ShrineUiOpenPayload.DisplayRow> history = service.recentDonations(
+        java.util.List<ShrineUiOpenPayload.DonationRow> history = service.recentDonations(
                         instance.id(), level.id(), 20).stream()
-                .map(record -> new ShrineUiOpenPayload.DisplayRow(
-                        Long.toString(record.createdAt()), "history",
-                        record.contributorName() + " offered " + record.amount() + " "
-                                + donationLabel(api, record.type(), record.requirementKey()),
-                        java.time.Instant.ofEpochMilli(record.createdAt()).toString(),
-                        "", 1, "", false))
+                .map(record -> {
+                    var citizen = record.contributorId() == null
+                            ? java.util.Optional.<panetina.elarion.core.model.CitizenRecord>empty()
+                            : api.citizens().find(record.contributorId());
+                    String contributor = citizen.map(value -> value.nickname() == null || value.nickname().isBlank()
+                                    ? value.lastKnownUsername() : value.nickname())
+                            .filter(value -> value != null && !value.isBlank())
+                            .orElse(record.contributorName());
+                    int contributorColor = citizen.flatMap(value -> api.realms().find(value.realmId()))
+                            .map(realm -> realmTextColor(realm.color()))
+                            .orElse(0xFFFFFFFF);
+                    int offeringColor = "currency".equals(record.type()) ? 0xFF9A9CFF : 0xFFAAAAAA;
+                    return new ShrineUiOpenPayload.DonationRow(
+                            Long.toString(record.createdAt()), contributor, contributorColor,
+                            record.amount(), donationLabel(api, record.type(), record.requirementKey()),
+                            offeringColor, java.time.Instant.ofEpochMilli(record.createdAt()).toString());
+                })
                 .toList();
         boolean completed = progress.complete() || instance.completed();
         ServerPlayNetworking.send(player, new ShrineUiOpenPayload(
@@ -218,6 +235,12 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
             return requirementLabel(api, "items", requirementKey.substring("item:".length()));
         }
         return api.serverIdentity().offeringPlural().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private static int realmTextColor(String colorName) {
+        net.minecraft.util.Formatting formatting = net.minecraft.util.Formatting.byName(colorName);
+        Integer color = formatting == null ? null : formatting.getColorValue();
+        return color == null ? 0xFFFFFFFF : 0xFF000000 | color;
     }
 
     private static java.util.List<ShrineUiOpenPayload.DisplayRow> milestoneRewards(

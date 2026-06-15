@@ -5,6 +5,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryKey;
@@ -116,10 +117,20 @@ public final class RewardActionService {
                 return false;
             }
             Item item = Registries.ITEM.get(id);
-            ItemStack stack = new ItemStack(item, count);
-            applyEnchantments(context, stack, action.parameters());
-            if (!context.player().getInventory().insertStack(stack)) {
-                context.player().dropItem(stack, false);
+            ItemStack prototype = new ItemStack(item, count);
+            applyEnchantments(context, prototype, action.parameters());
+            if (!canFit(context.player().getInventory(), prototype, count)) {
+                return false;
+            }
+            int remaining = count;
+            while (remaining > 0) {
+                int stackCount = Math.min(remaining, item.getMaxCount());
+                ItemStack stack = prototype.copy();
+                stack.setCount(stackCount);
+                if (!context.player().getInventory().insertStack(stack)) {
+                    return false;
+                }
+                remaining -= stackCount;
             }
             return true;
         });
@@ -186,6 +197,21 @@ public final class RewardActionService {
             } catch (NumberFormatException ignored) {
             }
         }
+    }
+
+    private static boolean canFit(PlayerInventory inventory, ItemStack prototype, int count) {
+        if (prototype.isEmpty() || count < 1) return false;
+        int remaining = count;
+        for (int slot = 0; slot < inventory.size(); slot++) {
+            ItemStack existing = inventory.getStack(slot);
+            if (existing.isEmpty()) {
+                remaining -= Math.min(remaining, prototype.getMaxCount());
+            } else if (ItemStack.areItemsAndComponentsEqual(existing, prototype)) {
+                remaining -= Math.max(0, Math.min(existing.getMaxCount(), prototype.getMaxCount()) - existing.getCount());
+            }
+            if (remaining <= 0) return true;
+        }
+        return false;
     }
 
     private static String interpolate(String command, Context context) {

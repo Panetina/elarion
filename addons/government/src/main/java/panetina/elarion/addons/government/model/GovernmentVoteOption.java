@@ -66,4 +66,20 @@ public final class GovernmentVoteOption {
     public String officeId() {
         return officeId;
     }
+
+    public String id() {
+        return id;
+    }
+
+    public String formId() {
+        return formId;
+    }
+
+    public String groupId() {
+        return groupId;
+    }
+
+    public UUID candidateId() {
+        return candidateId;
+    }
 }

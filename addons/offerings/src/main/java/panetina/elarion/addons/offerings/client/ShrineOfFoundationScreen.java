@@ -33,7 +33,7 @@ public final class ShrineOfFoundationScreen extends Screen {
     private static final int CONTENT_INSET = 5;
     private static final int LIST_SCROLLBAR_GAP = 3;
     private static final int ROW_HORIZONTAL_PADDING = 8;
-    private static final int ROW_ICON_SIZE = 16;
+    private static final int ROW_ICON_SIZE = 13;
     private static final int ROW_ICON_GAP = 8;
     private static final int REWARD_SLOT_SIZE = 30;
     private static final int REWARD_SLOT_GAP = 6;
@@ -288,7 +288,7 @@ public final class ShrineOfFoundationScreen extends Screen {
         }
     }
 
-    private void renderDisplayRows(DrawContext context, List<ShrineUiOpenPayload.DisplayRow> rows) {
+    private void renderDisplayRows(DrawContext context, List<ShrineUiOpenPayload.DonationRow> rows) {
         boolean scrollable = rows.size() > list.visibleRows();
         int scrollbarReserve = scrollable
                 ? ElarionUiThemes.current().scrollbarWidth() + LIST_SCROLLBAR_GAP : 0;
@@ -296,13 +296,21 @@ public final class ShrineOfFoundationScreen extends Screen {
         int rowWidth = mainWidth - CONTENT_INSET * 2 - scrollbarReserve;
         for (int index = list.firstVisible(); index < list.lastVisibleExclusive(); index++) {
             int y = contentTop + CONTENT_INSET + (index - list.firstVisible()) * payload.rowHeight();
-            ShrineUiOpenPayload.DisplayRow row = rows.get(index);
+            ShrineUiOpenPayload.DonationRow row = rows.get(index);
             ElarionUiRenderer.beveledBox(
                     context, rowX, y, rowWidth, payload.rowHeight() - 2, theme.cardColor(), style);
-            context.drawText(textRenderer, ElarionUiRenderer.ellipsize(
-                            textRenderer, row.label(), rowWidth - ROW_HORIZONTAL_PADDING * 2),
-                    rowX + ROW_HORIZONTAL_PADDING, y + 5,
-                    row.disabled() ? theme.mutedColor() : theme.textColor(), false);
+            String offered = row.amount() + " " + row.offeringLabel();
+            int nameWidth = textRenderer.getWidth(row.contributor());
+            String verb = " offered ";
+            int verbWidth = textRenderer.getWidth(verb);
+            int offeredWidth = textRenderer.getWidth(offered);
+            int totalWidth = nameWidth + verbWidth + offeredWidth;
+            int startX = rowX + Math.max(ROW_HORIZONTAL_PADDING, (rowWidth - totalWidth) / 2);
+            int textY = y + (payload.rowHeight() - 2 - textRenderer.fontHeight) / 2;
+            context.drawText(textRenderer, row.contributor(), startX, textY, row.contributorColor(), false);
+            context.drawText(textRenderer, verb, startX + nameWidth, textY, theme.mutedColor(), false);
+            context.drawText(textRenderer, offered, startX + nameWidth + verbWidth,
+                    textY, row.offeringColor(), false);
         }
         renderScrollbar(context, rows.size());
     }
@@ -327,13 +335,19 @@ public final class ShrineOfFoundationScreen extends Screen {
         if (icon.startsWith("item:")) {
             Identifier id = Identifier.tryParse(icon.substring("item:".length()));
             if (id != null && Registries.ITEM.containsId(id)) {
-                context.drawItem(new ItemStack(Registries.ITEM.get(id)), x, y);
+                context.getMatrices().push();
+                context.getMatrices().translate(x, y, 0.0F);
+                context.getMatrices().scale(ROW_ICON_SIZE / 16.0F, ROW_ICON_SIZE / 16.0F, 1.0F);
+                context.drawItem(new ItemStack(Registries.ITEM.get(id)), 0, 0);
+                context.getMatrices().pop();
                 return;
             }
         }
         String raw = icon.startsWith("texture:") ? icon.substring("texture:".length()) : icon;
         Identifier texture = Identifier.tryParse(raw);
-        if (texture != null) context.drawTexture(texture, x, y, 0, 0, 16, 16, 16, 16);
+        if (texture != null) {
+            context.drawTexture(texture, x, y, 0, 0, ROW_ICON_SIZE, ROW_ICON_SIZE, ROW_ICON_SIZE, ROW_ICON_SIZE);
+        }
     }
 
     private void renderClose(DrawContext context, double mouseX, double mouseY) {
@@ -394,6 +408,15 @@ public final class ShrineOfFoundationScreen extends Screen {
                 return true;
             }
             if (y >= listBottom) return true;
+            boolean scrollable = payload.requirementRows().size() > list.visibleRows();
+            int scrollbarReserve = scrollable
+                    ? ElarionUiThemes.current().scrollbarWidth() + LIST_SCROLLBAR_GAP : 0;
+            int rowX = mainX + CONTENT_INSET;
+            int rowWidth = mainWidth - CONTENT_INSET * 2 - scrollbarReserve;
+            if (!inside(x, y, rowX, contentTop + CONTENT_INSET,
+                    rowWidth, listBottom - contentTop - CONTENT_INSET * 2)) {
+                return true;
+            }
             int rowIndex = list.itemAt(y, contentTop + CONTENT_INSET, payload.rowHeight());
             if (rowIndex >= 0 && rowIndex < payload.requirementRows().size()) {
                 var row = payload.requirementRows().get(rowIndex);

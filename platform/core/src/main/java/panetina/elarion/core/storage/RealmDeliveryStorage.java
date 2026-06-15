@@ -49,6 +49,7 @@ public final class RealmDeliveryStorage {
         public UUID playerId;
         public String type;
         public String realmId;
+        public String title;
         public String payload;
         public long createdAt;
 
@@ -56,9 +57,14 @@ public final class RealmDeliveryStorage {
         }
 
         public PendingDelivery(UUID playerId, String type, String realmId, String payload) {
+            this(playerId, type, realmId, "", payload);
+        }
+
+        public PendingDelivery(UUID playerId, String type, String realmId, String title, String payload) {
             this.playerId = playerId;
             this.type = type;
             this.realmId = realmId;
+            this.title = title;
             this.payload = payload;
             this.createdAt = Instant.now().toEpochMilli();
         }

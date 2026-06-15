@@ -16,6 +16,7 @@ public record IdentitySyncPayload(
         String title,
         String leaderLabel,
         String color,
+        String realmName,
         String realmId,
         boolean visible
 ) implements CustomPayload {
@@ -32,6 +33,7 @@ public record IdentitySyncPayload(
                 buffer.writeString(payload.title());
                 buffer.writeString(payload.leaderLabel());
                 buffer.writeString(payload.color());
+                buffer.writeString(payload.realmName());
                 buffer.writeString(payload.realmId());
                 buffer.writeBoolean(payload.visible());
             },
@@ -44,6 +46,7 @@ public record IdentitySyncPayload(
                     buffer.readString(128),
                     buffer.readString(128),
                     buffer.readString(32),
+                    buffer.readString(128),
                     buffer.readString(128),
                     buffer.readBoolean())
     );

@@ -21,7 +21,12 @@ Tracked addon overview for admins and future wiki expansion.
 | Security | `Implemented foundation` | [Performance](../admin/performance.md) |
 | Titles | `Implemented` | [Commands](../admin/commands.md) |
 | Names | `Implemented` | [Commands](../admin/commands.md) |
-| Angling | `Implemented foundation` | [Setup Checklist](../admin/setup-checklist.md) |
+| Angling | `Implemented foundation`, `Porting paused` | [Setup Checklist](../admin/setup-checklist.md) |
+| Jail | `Shell` | [Commands](../admin/commands.md) |
+| Newspapers | `Shell` | [Commands](../admin/commands.md) |
+| Tablist | `Shell` | [Commands](../admin/commands.md) |
+| Underworld | `Shell` | [Commands](../admin/commands.md) |
+| Voice Chat Hooks | `Shell` | [Commands](../admin/commands.md) |
 
 ## Shell Or Future Addons
 
@@ -30,12 +35,12 @@ Tracked addon overview for admins and future wiki expansion.
 | Trade | `Future` |
 | Adventure Guild | `Future` |
 | Ledger | `Future` |
-| Jail | `Shell` |
-| Underworld | `Shell` |
-| Newspapers | `Shell` |
-| Tablist | `Shell` |
-| Voice Chat Hooks | `Shell` |
 | Atlas | `Future` |
+
+## Reference Material Policy
+
+`../../addons/angling/reference/**` is upstream reference material. Ignore it
+unless Angling porting is explicitly resumed.
 
 ## Source-Backed Notes
 

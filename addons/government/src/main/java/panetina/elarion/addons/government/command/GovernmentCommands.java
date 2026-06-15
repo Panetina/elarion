@@ -5,11 +5,15 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import panetina.elarion.addons.government.model.GovernmentFormDefinition;
 import panetina.elarion.addons.government.service.GovernmentDefinitionService;
 import panetina.elarion.addons.government.service.GovernmentStateService;
@@ -154,6 +158,35 @@ public final class GovernmentCommands {
                                     CommandOutput.success(ctx.getSource(),
                                             "Authority inactivity cleanup removed " + removed + " office holder(s).",
                                             true);
+                                }))))
+                .then(CommandManager.literal("test")
+                        .then(CommandManager.literal("advance")
+                                .then(CommandManager.argument("realm", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                                api.realms().all().stream().map(realm -> realm.id()), builder))
+                                        .executes(ctx -> run(ctx.getSource(), () ->
+                                                CommandOutput.success(ctx.getSource(),
+                                                        states.advanceCurrentWindow(
+                                                                StringArgumentType.getString(ctx, "realm")),
+                                                        true))))))
+                .then(CommandManager.literal("block")
+                        .then(CommandManager.literal("remove")
+                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                    ServerPlayerEntity player = ctx.getSource().getPlayerOrThrow();
+                                    HitResult hit = player.raycast(8.0D, 0.0F, false);
+                                    if (!(hit instanceof BlockHitResult blockHit)) {
+                                        throw new IllegalArgumentException("Look directly at a Government block.");
+                                    }
+                                    var blockState = player.getWorld().getBlockState(blockHit.getBlockPos());
+                                    if (!blockState.isOf(panetina.elarion.addons.government.GovernmentBlocks.CIVIC_FORUM)
+                                            && !blockState.isOf(
+                                            panetina.elarion.addons.government.GovernmentBlocks.SEAT_OF_RULE)) {
+                                        throw new IllegalArgumentException(
+                                                "The targeted block is not a Civic Forum or Seat of Rule.");
+                                    }
+                                    player.getWorld().setBlockState(
+                                            blockHit.getBlockPos(), Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
+                                    CommandOutput.success(ctx.getSource(), "Government block removed safely.", true);
                                 }))))
                 .then(officeCommands(api, definitions, states));
     }

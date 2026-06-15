@@ -22,7 +22,7 @@ final class PortalFreePassagePolicy {
             PortalFreePassageState state,
             PortalTravelDirection direction
     ) {
-        if (direction == PortalTravelDirection.OUTBOUND && state == null) {
+        if (direction == PortalTravelDirection.OUTBOUND) {
             return PortalFreePassageState.RETURN_AVAILABLE;
         }
         if (direction == PortalTravelDirection.RETURN

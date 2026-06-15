@@ -31,4 +31,19 @@ public abstract class MouseNotificationIconMixin {
             ci.cancel();
         }
     }
+
+    @Inject(method = "onMouseScroll", at = @At("HEAD"), cancellable = true)
+    private void elarion$handleNotificationDrawerScroll(
+            long window,
+            double horizontal,
+            double vertical,
+            CallbackInfo ci
+    ) {
+        if (window != client.getWindow().getHandle()) return;
+        double scaledX = x * client.getWindow().getScaledWidth() / client.getWindow().getWidth();
+        double scaledY = y * client.getWindow().getScaledHeight() / client.getWindow().getHeight();
+        if (ElarionNotificationHud.handleScroll(scaledX, scaledY, vertical)) {
+            ci.cancel();
+        }
+    }
 }

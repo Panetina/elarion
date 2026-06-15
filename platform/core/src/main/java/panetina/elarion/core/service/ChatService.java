@@ -60,7 +60,7 @@ public final class ChatService {
             if (realm.id().equals(recipientCitizen.realmId())) {
                 recipient.sendMessage(output, false);
             } else if (isChatSpy(recipient)) {
-                recipient.sendMessage(spyMessage(config.serverIdentity().realmChatLabel() + ":" + realm.shortName(),
+                recipient.sendMessage(spyMessage(config.serverIdentity().realmChatLabel() + ":" + realms.shortName(realm),
                         identity, message), false);
             }
         }
@@ -88,7 +88,7 @@ public final class ChatService {
                 recipients++;
             } else if (isChatSpy(recipient)) {
                 recipient.sendMessage(spyMessage(
-                        config.serverIdentity().allianceChatLabel() + ":" + realm.shortName(),
+                        config.serverIdentity().allianceChatLabel() + ":" + realms.shortName(realm),
                         identity,
                         message
                 ), false);
@@ -293,9 +293,9 @@ public final class ChatService {
             String token = renderedFormat.substring(tokenStart, tokenEnd + 1);
             switch (token) {
                 case "%realm_short%" ->
-                        output.append(Text.literal(realm == null ? "" : realm.shortName()).formatted(identity.color()));
+                        output.append(Text.literal(realm == null ? "" : realms.shortName(realm)).formatted(identity.color()));
                 case "%realm%" ->
-                        output.append(Text.literal(realm == null ? "" : realm.displayName()).formatted(identity.color()));
+                        output.append(Text.literal(realm == null ? "" : realms.officialName(realm)).formatted(identity.color()));
                 case "%player%" -> output.append(identity.chatName());
                 case "%message%" -> output.append(Text.literal(message));
                 default -> output.append(Text.literal(token));

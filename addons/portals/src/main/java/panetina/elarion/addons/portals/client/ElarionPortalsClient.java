@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.render.RenderLayer;
 import panetina.elarion.addons.portals.PortalContent;
 import panetina.elarion.addons.portals.network.PortalScreenClosePayload;
@@ -17,6 +18,7 @@ public final class ElarionPortalsClient implements ClientModInitializer {
         BlockRenderLayerMap.INSTANCE.putBlock(PortalContent.FIELD, RenderLayer.getTranslucent());
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) ->
                 PortalClientVisuals.color(pos), PortalContent.FIELD);
+        HudRenderCallback.EVENT.register((context, tickCounter) -> PortalStatusHud.render(context));
         ClientPlayNetworking.registerGlobalReceiver(PortalVisualSyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> PortalClientVisuals.replace(payload)));
         ClientPlayNetworking.registerGlobalReceiver(PortalRouteStatusSyncPayload.ID, (payload, context) ->

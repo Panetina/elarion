@@ -40,6 +40,7 @@ public final class GroupConfigLoader {
         Map<?, ?> creation = map(root.get("creation"));
         Map<?, ?> tags = map(root.get("tags"));
         Map<?, ?> identity = map(root.get("identity"));
+        Map<?, ?> invitations = map(root.get("invitations"));
         return new GroupConfig(
                 bool(root, "enabled", true),
                 number(creation, "fee", 25L),
@@ -48,7 +49,8 @@ public final class GroupConfigLoader {
                 (int) number(identity, "max-name-length", 48L),
                 string(identity, "id-pattern", "[a-z0-9_-]{3,32}"),
                 string(tags, "pattern", "[A-Z0-9]{2,6}"),
-                stringSet(tags.get("blocked"))
+                stringSet(tags.get("blocked")),
+                java.time.Duration.ofDays(number(invitations, "lifetime-days", 7L)).toMillis()
         );
     }
 

@@ -27,6 +27,7 @@ class GroupConfigTest {
         assertEquals("[a-z0-9_-]{3,32}", config.idPattern());
         assertEquals("[A-Z0-9]{2,6}", config.tagPattern());
         assertTrue(config.blockedTags().isEmpty());
+        assertEquals(java.time.Duration.ofDays(7).toMillis(), config.inviteLifetimeMillis());
     }
 
     @Test
@@ -42,5 +43,13 @@ class GroupConfigTest {
                 Set.of("ADMIN"));
 
         assertEquals(Set.of("ADMIN"), config.blockedTags());
+    }
+
+    @Test
+    void inviteLifetimeIsNeverShorterThanOneMinute() {
+        GroupConfig config = new GroupConfig(
+                true, 25, 2, 6, 48, "[a-z]+", "[A-Z]+", Set.of(), 1L);
+
+        assertEquals(60_000L, config.inviteLifetimeMillis());
     }
 }

@@ -9,12 +9,18 @@ import panetina.elarion.addons.government.model.GovernmentVoteOption;
 import panetina.elarion.addons.government.model.GovernmentVoteState;
 import panetina.elarion.addons.government.model.GovernmentVoteType;
 import panetina.elarion.addons.government.model.RealmGovernmentState;
+import panetina.elarion.addons.government.model.RealmIdentityRules;
 import panetina.elarion.addons.groups.api.ElarionGroupsApi;
 import panetina.elarion.addons.offerings.api.ElarionOfferingsApi;
 import panetina.elarion.addons.government.storage.GovernmentState;
 import panetina.elarion.addons.government.storage.GovernmentStorage;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.CitizenRecord;
+import panetina.elarion.core.model.RealmDefinition;
+import panetina.elarion.core.model.RealmPresentation;
+import panetina.elarion.core.model.ElarionNotificationAction;
+import panetina.elarion.core.model.ElarionNotificationCategory;
+import panetina.elarion.core.service.ElarionNotificationService;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -27,11 +33,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 public final class GovernmentStateService {
     private static final Duration FOUNDING_VOTE_DURATION = Duration.ofHours(24);
-    private static final Pattern REALM_TAG = Pattern.compile("[A-Z0-9]{2,6}");
     private final ElarionApi api;
     private final GovernmentDefinitionService definitions;
     private final GovernmentStorage storage;
@@ -50,6 +54,7 @@ public final class GovernmentStateService {
         state = storage.load(server);
         api.realms().all().forEach(realm ->
                 state.realms.computeIfAbsent(realm.id(), RealmGovernmentState::empty));
+        sanitizeStoredVotes();
         save();
     }
 
@@ -76,28 +81,39 @@ public final class GovernmentStateService {
         RealmGovernmentState updated = realm(realmId).withForm(formId);
         state.realms.put(realmId, updated);
         save();
+        refreshIdentities();
         api.history().recordChronicle("government", "form-set", null, "realm", realmId, realmId,
                 java.util.Map.of("governmentForm", formId),
                 "The Realm " + realmId + " was assigned the government form " + formId + ".");
+        api.realmDeliveries().notifyRealm(
+                realmId,
+                "Government Form Selected",
+                "The Realm has chosen " + definitions.require(formId).displayName() + ".",
+                "government",
+                null);
         return updated;
     }
 
     public RealmGovernmentState setVotedIdentity(String realmId, String displayName, String tag) {
         String normalizedRealm = normalize(realmId);
-        if (displayName == null || displayName.isBlank()) {
-            throw new IllegalArgumentException("Display name is required.");
-        }
-        if (tag == null || tag.isBlank()) {
-            throw new IllegalArgumentException("Tag is required.");
-        }
+        String validatedName = RealmIdentityRules.validateName(displayName);
+        String validatedTag = RealmIdentityRules.validateTag(tag);
         RealmGovernmentState updated = realm(normalizedRealm).withVotedIdentity(
-                displayName.trim().replaceAll("\\s+", " "),
-                tag.trim().toUpperCase(java.util.Locale.ROOT));
+                validatedName,
+                validatedTag);
         state.realms.put(normalizedRealm, updated);
         save();
+        refreshIdentities();
         api.history().recordChronicle("government", "realm-identity-set", null, "realm", normalizedRealm,
                 normalizedRealm, java.util.Map.of("displayName", updated.votedDisplayName(), "tag", updated.votedTag()),
                 "The Realm " + normalizedRealm + " recorded its founding name.");
+        api.realmDeliveries().notifyRealm(
+                normalizedRealm,
+                "Realm Name Selected",
+                "Citizens selected " + updated.votedDisplayName() + " as the Realm name and ["
+                        + updated.votedTag() + "] as its public tag.",
+                "government",
+                null);
         return updated;
     }
 
@@ -110,9 +126,16 @@ public final class GovernmentStateService {
         RealmGovernmentState updated = current.withFoundingElectionComplete();
         state.realms.put(normalizedRealm, updated);
         save();
+        refreshIdentities();
         api.history().recordChronicle("government", "founding-election-complete", null, "realm", normalizedRealm,
                 normalizedRealm, java.util.Map.of("governmentForm", updated.activeGovernmentFormId()),
                 "The Realm " + normalizedRealm + " completed its first founding election.");
+        api.realmDeliveries().notifyRealm(
+                normalizedRealm,
+                "Founding Election Complete",
+                "The first authority holders have been elected.",
+                "government",
+                null);
         return updated;
     }
 
@@ -162,19 +185,33 @@ public final class GovernmentStateService {
         GovernmentGateStatus gates = gates(realm);
         if (!gates.nameVoteUnlocked()) throw new IllegalArgumentException("Realm naming is locked.");
         requireEligible(player, realm);
-        String cleanName = cleanName(displayName);
-        String cleanTag = tag == null ? "" : tag.trim().toUpperCase(java.util.Locale.ROOT);
-        if (cleanName.length() < 3 || cleanName.length() > 32) {
-            throw new IllegalArgumentException("Realm name must be 3-32 characters.");
-        }
-        if (!REALM_TAG.matcher(cleanTag).matches()) {
-            throw new IllegalArgumentException("Realm tag must be 2-6 uppercase letters or numbers.");
-        }
+        String cleanName = RealmIdentityRules.validateName(displayName);
+        String cleanTag = RealmIdentityRules.validateTag(tag);
         GovernmentVoteState vote = vote(realm, GovernmentVoteType.REALM_NAME);
+        long now = System.currentTimeMillis();
+        boolean openingProposalWindow = vote.proposalStartedAt <= 0L;
+        if (vote.proposalEnded(now)) {
+            throw new IllegalArgumentException("Realm name proposals are closed.");
+        }
+        UUID proposerId = player.getUuid();
+        boolean alreadyProposed = vote.options.values().stream()
+                .anyMatch(option -> proposerId.equals(option.proposedBy));
+        if (alreadyProposed) {
+            throw new IllegalArgumentException("You already proposed a Realm name.");
+        }
         String id = "name_" + Integer.toUnsignedString((cleanName + "|" + cleanTag)
                 .toLowerCase(java.util.Locale.ROOT).hashCode(), 36);
-        vote.options.putIfAbsent(id, GovernmentVoteOption.realmName(id, cleanName, cleanTag, player.getUuid()));
+        if (vote.options.containsKey(id)) {
+            throw new IllegalArgumentException("That Realm name and tag were already proposed.");
+        }
+        vote.options.put(id, GovernmentVoteOption.realmName(id, cleanName, cleanTag, player.getUuid()));
+        vote.startProposalIfNeeded(now, FOUNDING_VOTE_DURATION);
         save();
+        if (openingProposalWindow) {
+            notifyVoteStage(realm, "Realm Name Proposals Open",
+                    "Citizens may propose a founding name and public tag for the next 24 hours.",
+                    "name-proposals:" + vote.round, vote.proposalEndsAt);
+        }
         api.history().recordChronicle("government", "name-proposed", player.getUuid(), "realm", realm, realm,
                 Map.of("displayName", cleanName, "tag", cleanTag), "A Realm name was proposed.");
         return vote;
@@ -221,6 +258,10 @@ public final class GovernmentStateService {
         requireEligible(player, realm);
         validateVoteUnlocked(realm, type);
         GovernmentVoteState vote = vote(realm, type);
+        long now = System.currentTimeMillis();
+        if (type == GovernmentVoteType.REALM_NAME && !vote.proposalEnded(now)) {
+            throw new IllegalArgumentException("Name voting opens after the proposal window ends.");
+        }
         if (type == GovernmentVoteType.GOVERNMENT_FORM && vote.options.isEmpty()) {
             definitions.forms().stream().filter(GovernmentFormDefinition::enabled)
                     .forEach(form -> vote.options.putIfAbsent(form.id(),
@@ -228,8 +269,12 @@ public final class GovernmentStateService {
         }
         GovernmentVoteOption option = vote.options.get(optionId);
         if (option == null) throw new IllegalArgumentException("Unknown vote option.");
-        long now = System.currentTimeMillis();
+        boolean openingVote = vote.startedAt <= 0L;
         vote.startIfNeeded(now, FOUNDING_VOTE_DURATION);
+        if (openingVote) {
+            notifyVoteStage(realm, voteTitle(type), voteBody(type),
+                    type.name().toLowerCase(java.util.Locale.ROOT) + ":" + vote.round, vote.endsAt);
+        }
         String voter = player.getUuid().toString();
         if (type == GovernmentVoteType.FOUNDING_ELECTION) {
             List<String> selected = new ArrayList<>(vote.ballots.getOrDefault(voter, List.of()));
@@ -267,6 +312,42 @@ public final class GovernmentStateService {
         return resolved;
     }
 
+    public String advanceCurrentWindow(String realmId) {
+        String realm = normalize(realmId);
+        GovernmentVoteType type = switch (currentCivicScreen(realm)) {
+            case REALM_NAME -> GovernmentVoteType.REALM_NAME;
+            case GOVERNMENT_FORM -> GovernmentVoteType.GOVERNMENT_FORM;
+            case FOUNDING_ELECTION -> GovernmentVoteType.FOUNDING_ELECTION;
+            case CITIZEN_FEATURES ->
+                    throw new IllegalArgumentException("Founding is already complete for this Realm.");
+        };
+        GovernmentVoteState vote = existingVote(realm, type)
+                .orElseThrow(() -> new IllegalArgumentException("No active civic window exists yet."));
+        long now = System.currentTimeMillis();
+        if (type == GovernmentVoteType.REALM_NAME && !vote.proposalEnded(now)) {
+            if (vote.proposalStartedAt <= 0L) {
+                throw new IllegalArgumentException("Submit at least one name proposal first.");
+            }
+            vote.proposalEndsAt = now - 1L;
+            vote.startIfNeeded(now, FOUNDING_VOTE_DURATION);
+            save();
+            notifyVoteStage(realm, voteTitle(type), voteBody(type),
+                    type.name().toLowerCase(java.util.Locale.ROOT) + ":" + vote.round, vote.endsAt);
+            return "Name proposal window ended. Name voting is now available.";
+        }
+        if (vote.startedAt <= 0L) {
+            throw new IllegalArgumentException("Cast at least one ballot before advancing this vote.");
+        }
+        vote.endsAt = now - 1L;
+        int resolved = resolveExpiredVotes(now);
+        if (resolved == 0) {
+            throw new IllegalStateException("The current civic vote could not be resolved.");
+        }
+        return vote.runoff
+                ? "The current runoff was advanced."
+                : "The current civic vote was advanced and resolved.";
+    }
+
     public RealmGovernmentState assignOffice(String realmId, String officeId, UUID citizenId) {
         String normalizedRealm = normalize(realmId);
         var form = definitions.require(realm(normalizedRealm).activeGovernmentFormId());
@@ -286,9 +367,13 @@ public final class GovernmentStateService {
         RealmGovernmentState updated = realm(normalizedRealm).withOfficeHolder(officeId, citizenId);
         state.realms.put(normalizedRealm, updated);
         save();
+        refreshIdentities();
         api.history().recordChronicle("government", "office-assigned", citizenId, "office", officeId,
                 normalizedRealm, java.util.Map.of("office", officeId, "form", form.id()),
                 "A citizen was assigned to " + office.displayName() + " in " + normalizedRealm + ".");
+        api.realmDeliveries().notifyRealm(normalizedRealm, "Authority Appointed",
+                citizenName(citizen) + " was appointed as " + office.displayName() + ".",
+                "government", citizenId);
         return updated;
     }
 
@@ -297,9 +382,13 @@ public final class GovernmentStateService {
         RealmGovernmentState updated = realm(normalizedRealm).withoutOfficeHolder(officeId, citizenId);
         state.realms.put(normalizedRealm, updated);
         save();
+        refreshIdentities();
         api.history().recordChronicle("government", "office-removed", citizenId, "office", officeId,
                 normalizedRealm, java.util.Map.of("office", officeId),
                 "A citizen was removed from " + officeId + " in " + normalizedRealm + ".");
+        api.realmDeliveries().notifyRealm(normalizedRealm, "Authority Changed",
+                "The office of " + officeId.replace('_', ' ') + " changed.",
+                "government", citizenId);
         return updated;
     }
 
@@ -364,7 +453,32 @@ public final class GovernmentStateService {
             }
         }
         if (removed > 0) save();
+        if (removed > 0) refreshIdentities();
         return removed;
+    }
+
+    public Optional<RealmPresentation> presentation(RealmDefinition realm) {
+        if (realm == null) return Optional.empty();
+        RealmGovernmentState government = state.realms.get(realm.id());
+        if (government == null) return Optional.empty();
+        String displayName = government.votedDisplayName().isBlank()
+                ? realm.displayName()
+                : government.votedDisplayName();
+        String shortName = government.votedTag().isBlank() ? realm.shortName() : government.votedTag();
+        String prefix = shortName.isBlank() ? realm.prefix() : "[" + shortName + "]";
+        String officialName = displayName;
+        if (!government.activeGovernmentFormId().isBlank()) {
+            try {
+                officialName = definitions.require(government.activeGovernmentFormId())
+                        .officialNameTemplate()
+                        .replace("%realm%", displayName)
+                        .replace("%REALM%", displayName.toUpperCase(java.util.Locale.ROOT))
+                        .replace("%realm_lower%", displayName.toLowerCase(java.util.Locale.ROOT));
+            } catch (IllegalArgumentException ignored) {
+                officialName = displayName;
+            }
+        }
+        return Optional.of(new RealmPresentation(displayName, officialName, shortName, prefix));
     }
 
     private int handleMonarchInactivity(String realmId, Map<String, Set<UUID>> offices, long now) {
@@ -426,7 +540,10 @@ public final class GovernmentStateService {
             return;
         }
         Map<String, Long> totals = totals(vote);
-        if (totals.isEmpty()) return;
+        if (totals.isEmpty()) {
+            resetEmptyVote(vote);
+            return;
+        }
         long best = totals.values().stream().mapToLong(Long::longValue).max().orElse(0L);
         List<String> winners = totals.entrySet().stream()
                 .filter(entry -> entry.getValue() == best)
@@ -436,11 +553,17 @@ public final class GovernmentStateService {
         if (winners.size() > 1) {
             state.votes.put(voteKey(vote.realmId, vote.type),
                     vote.runoff(winners, now, FOUNDING_VOTE_DURATION));
+            GovernmentVoteState runoff = state.votes.get(voteKey(vote.realmId, vote.type));
+            notifyVoteStage(vote.realmId, "Government Runoff Open",
+                    "The leading options were tied. A 24-hour runoff is now open.",
+                    vote.type.name().toLowerCase(java.util.Locale.ROOT) + ":runoff:" + runoff.round,
+                    runoff.endsAt);
             return;
         }
         String winner = winners.getFirst();
         vote.resolved = true;
         vote.winnerIds = List.of(winner);
+        vote.resultTotals = Map.copyOf(totals);
         GovernmentVoteOption option = vote.options.get(winner);
         if (vote.type == GovernmentVoteType.REALM_NAME) {
             setVotedIdentity(vote.realmId, option.title, option.tag);
@@ -456,6 +579,10 @@ public final class GovernmentStateService {
         RealmGovernmentState current = realm(vote.realmId);
         GovernmentFormDefinition form = definitions.require(current.activeGovernmentFormId());
         Map<String, Long> totals = totals(vote);
+        if (totals.isEmpty()) {
+            resetEmptyVote(vote);
+            return;
+        }
         Map<String, List<String>> winnersByOffice = new LinkedHashMap<>();
         List<String> tiedBoundary = new ArrayList<>();
         for (String office : foundingElectionOffices(form)) {
@@ -486,6 +613,10 @@ public final class GovernmentStateService {
         if (!tiedBoundary.isEmpty()) {
             state.votes.put(voteKey(vote.realmId, vote.type),
                     vote.runoff(tiedBoundary, now, FOUNDING_VOTE_DURATION));
+            GovernmentVoteState runoff = state.votes.get(voteKey(vote.realmId, vote.type));
+            notifyVoteStage(vote.realmId, "Founding Election Runoff",
+                    "A seat-boundary tie requires a 24-hour runoff.",
+                    "founding-election:runoff:" + runoff.round, runoff.endsAt);
             return;
         }
         RealmGovernmentState updated = current;
@@ -505,9 +636,30 @@ public final class GovernmentStateService {
         state.realms.put(vote.realmId, updated);
         vote.resolved = true;
         vote.winnerIds = List.copyOf(winnerIds);
+        vote.resultTotals = Map.copyOf(totals);
+        refreshIdentities();
         api.history().recordChronicle("government", "founding-election-resolved", null, "realm",
                 vote.realmId, vote.realmId, Map.of("form", form.id(), "winners", Integer.toString(winnerIds.size())),
                 "A Realm founding election resolved.");
+        api.realmDeliveries().notifyRealm(
+                vote.realmId,
+                "Founding Election Complete",
+                "Citizens elected " + winnerIds.size() + " founding authority holder"
+                        + (winnerIds.size() == 1 ? "." : "s."),
+                "government",
+                null);
+    }
+
+    private void resetEmptyVote(GovernmentVoteState vote) {
+        vote.startedAt = 0L;
+        vote.endsAt = 0L;
+        vote.runoff = false;
+        vote.ballots.clear();
+        vote.winnerIds = List.of();
+        vote.resultTotals = Map.of();
+        api.history().recordChronicle("government", "vote-expired-empty", null, "realm",
+                vote.realmId, vote.realmId, Map.of("type", vote.type.name().toLowerCase()),
+                "A Government vote window expired without valid ballots.");
     }
 
     private Map<String, Long> totals(GovernmentVoteState vote) {
@@ -566,10 +718,6 @@ public final class GovernmentStateService {
         return citizen.uuid().toString();
     }
 
-    private static String cleanName(String value) {
-        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
-    }
-
     private static String voteKey(String realmId, GovernmentVoteType type) {
         return normalize(realmId) + ":" + type.name().toLowerCase(java.util.Locale.ROOT);
     }
@@ -590,10 +738,79 @@ public final class GovernmentStateService {
         api.history().recordChronicle("government", eventType, citizenId, "office", officeId,
                 realmId, java.util.Map.of("form", formId, "office", officeId, "reason", "inactive"),
                 "A Government office was vacated because its holder became inactive.");
+        api.realmDeliveries().notifyRealm(realmId, "Authority Seat Vacated",
+                "The " + officeId.replace('_', ' ') + " office was vacated because its holder became inactive.",
+                "government", citizenId);
+    }
+
+    private void notifyVoteStage(
+            String realmId, String title, String body, String dedupe, long expiresAt
+    ) {
+        api.notifications().publishRealm(
+                realmId,
+                ElarionNotificationCategory.GOVERNMENT,
+                "elarion_government",
+                "vote-stage",
+                realmId + ":" + dedupe,
+                title,
+                body,
+                "Civic Forum",
+                "item:minecraft:writable_book",
+                List.of(
+                        new ElarionNotificationAction(
+                                "elarion_government:open_civic_forum", "Open Forum", true),
+                        new ElarionNotificationAction(
+                                ElarionNotificationService.DISMISS, "Dismiss", true)),
+                Map.of("realmId", realmId),
+                expiresAt);
+    }
+
+    private static String voteTitle(GovernmentVoteType type) {
+        return switch (type) {
+            case REALM_NAME -> "Realm Name Voting Open";
+            case GOVERNMENT_FORM -> "Government Form Voting Open";
+            case FOUNDING_ELECTION -> "Founding Election Open";
+        };
+    }
+
+    private static String voteBody(GovernmentVoteType type) {
+        return switch (type) {
+            case REALM_NAME -> "Review the proposed names and cast one private ballot.";
+            case GOVERNMENT_FORM -> "Choose the form that will govern the Realm.";
+            case FOUNDING_ELECTION -> "Vote for the Realm's founding authority holders.";
+        };
     }
 
     private void save() {
         if (server != null) storage.save(server, state);
+    }
+
+    private void refreshIdentities() {
+        if (server != null) api.identitySync().syncAll(server);
+    }
+
+    private void sanitizeStoredVotes() {
+        for (GovernmentVoteState vote : state.votes.values()) {
+            if (vote.type == GovernmentVoteType.REALM_NAME && !vote.resolved) {
+                vote.options.entrySet().removeIf(entry -> !validStoredRealmName(entry.getValue()));
+            }
+            Set<String> validOptions = Set.copyOf(vote.options.keySet());
+            vote.ballots.replaceAll((voter, selections) -> selections.stream()
+                    .filter(validOptions::contains)
+                    .distinct()
+                    .toList());
+            vote.ballots.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        }
+    }
+
+    private static boolean validStoredRealmName(GovernmentVoteOption option) {
+        try {
+            RealmIdentityRules.validateName(option.title);
+            RealmIdentityRules.validateTag(option.tag);
+            return true;
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
     }
 
     private static String normalize(String value) {

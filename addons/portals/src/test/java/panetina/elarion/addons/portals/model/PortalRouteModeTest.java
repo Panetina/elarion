@@ -28,11 +28,11 @@ class PortalRouteModeTest {
     }
 
     @Test
-    void feePassageUsesEconomyWithoutTicketsOrSchedule() {
+    void feePassageUsesEconomyAndProgressionUnlockWithoutTicketsOrSchedule() {
         PortalRouteMode mode = PortalRouteMode.parse("fee_passage");
 
         assertFalse(mode.usesSchedule());
-        assertFalse(mode.requiresUnlock());
+        assertTrue(mode.requiresUnlock());
         assertFalse(mode.requiresTicket());
         assertTrue(mode.chargesPassage());
     }

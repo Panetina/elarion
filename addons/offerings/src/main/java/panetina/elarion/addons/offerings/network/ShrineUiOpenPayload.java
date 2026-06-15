@@ -30,7 +30,7 @@ public record ShrineUiOpenPayload(
         long progressRequired,
         List<RequirementRow> requirementRows,
         List<DisplayRow> rewardRows,
-        List<DisplayRow> historyRows,
+        List<DonationRow> historyRows,
         String rewardsPlaceholder,
         String historyPlaceholder,
         String contributionPlaceholder,
@@ -69,7 +69,7 @@ public record ShrineUiOpenPayload(
                 buffer.writeVarInt(payload.requirementRows().size());
                 payload.requirementRows().forEach(row -> RequirementRow.write(row, buffer));
                 writeRows(payload.rewardRows(), buffer);
-                writeRows(payload.historyRows(), buffer);
+                writeDonationRows(payload.historyRows(), buffer);
                 buffer.writeString(payload.rewardsPlaceholder());
                 buffer.writeString(payload.historyPlaceholder());
                 buffer.writeString(payload.contributionPlaceholder());
@@ -109,7 +109,7 @@ public record ShrineUiOpenPayload(
                 return new ShrineUiOpenPayload(
                         instanceId, projectId, title, subtitle, description, status, level, icon, variant,
                         width, height, scale, summaryWidth, tabHeight, rowHeight, iconSize, closeWidth,
-                        current, required, requirements, readRows(buffer), readRows(buffer),
+                        current, required, requirements, readRows(buffer), readDonationRows(buffer),
                         buffer.readString(512), buffer.readString(512), buffer.readString(512),
                         buffer.readString(512), buffer.readBoolean(), buffer.readBoolean(),
                         buffer.readString(256), buffer.readString(512), buffer.readString(512),
@@ -131,6 +131,18 @@ public record ShrineUiOpenPayload(
         int count = buffer.readVarInt();
         List<DisplayRow> rows = new ArrayList<>();
         for (int index = 0; index < count; index++) rows.add(DisplayRow.read(buffer));
+        return List.copyOf(rows);
+    }
+
+    private static void writeDonationRows(List<DonationRow> rows, PacketByteBuf buffer) {
+        buffer.writeVarInt(rows.size());
+        rows.forEach(row -> DonationRow.write(row, buffer));
+    }
+
+    private static List<DonationRow> readDonationRows(PacketByteBuf buffer) {
+        int count = buffer.readVarInt();
+        List<DonationRow> rows = new ArrayList<>();
+        for (int index = 0; index < count; index++) rows.add(DonationRow.read(buffer));
         return List.copyOf(rows);
     }
 
@@ -192,6 +204,32 @@ public record ShrineUiOpenPayload(
             return new DisplayRow(buffer.readString(128), buffer.readString(32),
                     buffer.readString(256), buffer.readString(1024), buffer.readString(256),
                     buffer.readVarInt(), buffer.readString(1024), buffer.readBoolean());
+        }
+    }
+
+    public record DonationRow(
+            String id,
+            String contributor,
+            int contributorColor,
+            long amount,
+            String offeringLabel,
+            int offeringColor,
+            String timestamp
+    ) {
+        static void write(DonationRow row, PacketByteBuf buffer) {
+            buffer.writeString(row.id());
+            buffer.writeString(row.contributor());
+            buffer.writeInt(row.contributorColor());
+            buffer.writeVarLong(row.amount());
+            buffer.writeString(row.offeringLabel());
+            buffer.writeInt(row.offeringColor());
+            buffer.writeString(row.timestamp());
+        }
+
+        static DonationRow read(PacketByteBuf buffer) {
+            return new DonationRow(
+                    buffer.readString(128), buffer.readString(256), buffer.readInt(),
+                    buffer.readVarLong(), buffer.readString(256), buffer.readInt(), buffer.readString(128));
         }
     }
 }

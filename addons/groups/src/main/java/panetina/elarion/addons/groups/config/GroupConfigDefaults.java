@@ -11,6 +11,9 @@ public final class GroupConfigDefaults {
             creation:
               fee: 25
 
+            invitations:
+              lifetime-days: 7
+
             tags:
               min-length: 2
               max-length: 6

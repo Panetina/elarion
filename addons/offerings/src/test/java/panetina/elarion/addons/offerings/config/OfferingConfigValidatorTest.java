@@ -19,7 +19,10 @@ final class OfferingConfigValidatorTest {
     void acceptsBuiltInOfferingMilestones() {
         OfferingProjectDefinition definition = definition(
                 List.of(new OfferingRequirement("items", "minecraft:stone", 1)),
-                List.of(new OfferingMilestone("history", "elarion:emit_history", Map.of()))
+                List.of(
+                        new OfferingMilestone("history", "elarion:emit_history", Map.of()),
+                        new OfferingMilestone("realm-notice", "elarion:notify_realm", Map.of()),
+                        new OfferingMilestone("world-notice", "elarion:notify_world", Map.of()))
         );
 
         assertDoesNotThrow(() -> OfferingConfigValidator.validate(definition, Path.of("project.yml"),

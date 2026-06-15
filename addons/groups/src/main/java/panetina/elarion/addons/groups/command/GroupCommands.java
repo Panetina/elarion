@@ -28,7 +28,7 @@ public final class GroupCommands {
             GroupService groups
     ) {
         api.system().commands().registerHelpDescription("group",
-                "/group create|invite|accept|kick|leave|transfer|info - Manage your public group.");
+                "/group create|invite|accept|kick|leave|transfer|tag|info - Manage your public group.");
         api.system().commands().registerHelpDescription("gc",
                 "/gc <message> - Send a message to your group.");
 
@@ -96,6 +96,19 @@ public final class GroupCommands {
                                     ctx.getSource().sendFeedback(
                                             () -> Text.literal("Transferred group leadership to "
                                                     + target.getGameProfile().getName() + "."), false);
+                                }))))
+                .then(CommandManager.literal("tag")
+                        .then(CommandManager.literal("hide")
+                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                    groups.setTagHidden(ctx.getSource().getPlayerOrThrow(), true);
+                                    ctx.getSource().sendFeedback(
+                                            () -> Text.literal("Your group tag is now hidden publicly."), false);
+                                })))
+                        .then(CommandManager.literal("show")
+                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                    groups.setTagHidden(ctx.getSource().getPlayerOrThrow(), false);
+                                    ctx.getSource().sendFeedback(
+                                            () -> Text.literal("Your group tag is now shown publicly."), false);
                                 }))))
                 .then(CommandManager.literal("info")
                         .executes(ctx -> run(ctx.getSource(), () -> showOwnGroup(ctx.getSource(), groups)))
@@ -166,6 +179,7 @@ public final class GroupCommands {
         CommandOutput.header(source, group.displayName());
         CommandOutput.kv(source, "ID", group.id());
         CommandOutput.kv(source, "Tag", "[" + group.tag() + "]");
+        CommandOutput.kv(source, "Public Tag", group.tagHidden() ? "Hidden" : "Shown");
         CommandOutput.kv(source, "Leader", displayCitizen(group.leaderId()));
         CommandOutput.kv(source, "Members", group.members().size());
         CommandOutput.kv(source, "Confederation Eligible In Realm", "see Government delegate screen");

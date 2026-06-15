@@ -6,6 +6,7 @@ import panetina.elarion.core.service.IdentitySyncService;
 import panetina.elarion.core.service.NicknameService;
 import panetina.elarion.core.service.TitleService;
 
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 public final class ElarionIdentityApi {
@@ -44,5 +45,9 @@ public final class ElarionIdentityApi {
 
     public void registerChatPrefixProvider(Function<ServerPlayerEntity, String> provider) {
         identities.registerChatPrefixProvider(provider);
+    }
+
+    public void registerAuthorityMarkerProvider(BiPredicate<String, ServerPlayerEntity> provider) {
+        identities.registerAuthorityMarkerProvider(provider);
     }
 }

@@ -29,6 +29,9 @@ import panetina.elarion.addons.portals.model.PortalTravelDirection;
 import panetina.elarion.addons.portals.storage.PortalState;
 import panetina.elarion.addons.portals.storage.PortalStorage;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.model.ElarionNotificationAction;
+import panetina.elarion.core.model.ElarionNotificationCategory;
+import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.service.ElarionPerformanceMonitor;
 
 import java.time.Duration;
@@ -281,7 +284,38 @@ public final class PortalRouteService {
         route.unlocked = true;
         dirty = true;
         save();
-        announce(definitions.require(routeId).displayName() + " has been unlocked.");
+        List<ElarionNotificationAction> actions = List.of(new ElarionNotificationAction(
+                ElarionNotificationService.DISMISS, "Dismiss", true));
+        String body = definition.description().isBlank()
+                ? "A new route has opened."
+                : definition.description();
+        if (definition.mode().chargesPassage()) {
+            api.notifications().publishRealm(
+                    routeId,
+                    ElarionNotificationCategory.REALM,
+                    "elarion_portals",
+                    "ancient-gate-unlocked",
+                    "portal-unlocked:" + routeId,
+                    definition.displayName() + " Unlocked",
+                    body,
+                    "Realm Gate",
+                    "item:minecraft:ender_eye",
+                    actions,
+                    Map.of("routeId", routeId),
+                    api.notifications().defaultExpiry());
+        } else {
+            api.notifications().publishWorld(
+                    "elarion_portals",
+                    "route-unlocked",
+                    "portal-unlocked:" + routeId,
+                    definition.displayName() + " Unlocked",
+                    body,
+                    "World Gate",
+                    "item:minecraft:ender_eye",
+                    actions,
+                    Map.of("routeId", routeId),
+                    api.notifications().defaultExpiry());
+        }
         record("route-unlocked", actor, routeId, Map.of());
         reconcileRoute(routeId);
     }
@@ -424,27 +458,41 @@ public final class PortalRouteService {
         boolean entitled = hasEntitlement(player.getUuid(), definition.id());
         boolean ticketed = definition.mode().requiresTicket();
         boolean feePassage = definition.mode().chargesPassage();
-        boolean freePassage = feePassage && isFreePassage(player.getUuid(), definition, direction);
+        boolean storedReturnPassage = feePassage && direction == PortalTravelDirection.RETURN
+                && state.freePassages.get(entitlementKey(player.getUuid(), definition.id()))
+                == PortalFreePassageState.RETURN_AVAILABLE;
+        boolean freePassage = feePassage && (isFreePassage(player.getUuid(), definition, direction)
+                || storedReturnPassage);
+        boolean feeReturnWithoutStoredPassage = feePassage && direction == PortalTravelDirection.RETURN
+                && !storedReturnPassage;
         ElarionEconomyApi economy = ElarionEconomyApi.get();
         long passagePrice = feePassage ? economy.servicePrice(definition.passagePriceKey()) : 0L;
         boolean hasTicket = !ticketed || direction != PortalTravelDirection.OUTBOUND
                 || ticketSlot(player, definition.ticketId()) >= 0;
-        boolean canPay = !feePassage || freePassage
-                || economy.physicalCurrency(player) + economy.wallet(player.getUuid()) >= passagePrice;
+        boolean canPay = !feeReturnWithoutStoredPassage && (!feePassage || freePassage
+                || economy.physicalCurrency(player) + economy.wallet(player.getUuid()) >= passagePrice);
         String requirement = ticketed && direction == PortalTravelDirection.OUTBOUND
                 ? "You need a " + definition.ticketName() + "."
                 : ticketed
                 ? "Uses your stored return passage."
+                : feeReturnWithoutStoredPassage
+                ? "You do not have a stored return passage."
+                : storedReturnPassage
+                ? "Your return passage is already paid."
                 : feePassage && freePassage
-                ? "Your first journey and return are free."
+                ? "Your first round trip is free."
                 : feePassage
                 ? "You need " + api.serverIdentity().currencyAmount(passagePrice) + "."
                 : "No ticket or fee required.";
         String message = !hasTicket ? "The required ticket is not in your inventory."
+                : feeReturnWithoutStoredPassage
+                ? "Enter from the Realm side first to store a return passage."
                 : !canPay ? "You do not have enough physical or banked "
                 + api.serverIdentity().currencyPlural() + "."
                 : ticketed && direction == PortalTravelDirection.RETURN && !entitled
                 ? "You do not have a return passage for this route."
+                : storedReturnPassage
+                ? "This return completes your current round trip."
                 : feePassage && freePassage
                 ? "Later passages cost " + api.serverIdentity().currencyAmount(passagePrice) + "."
                 : feePassage
@@ -534,7 +582,12 @@ public final class PortalRouteService {
         String key = entitlementKey(player.getUuid(), definition.id());
         PortalFreePassageState freeState = state.freePassages.get(key);
         boolean free = isFreePassage(player.getUuid(), definition, direction);
-        long price = free ? 0L : ElarionEconomyApi.get().servicePrice(definition.passagePriceKey());
+        boolean storedReturnPassage = direction == PortalTravelDirection.RETURN
+                && freeState == PortalFreePassageState.RETURN_AVAILABLE;
+        if (direction == PortalTravelDirection.RETURN && !storedReturnPassage) {
+            return TravelResult.fail("You do not have a stored return passage for this route.");
+        }
+        long price = free || storedReturnPassage ? 0L : ElarionEconomyApi.get().servicePrice(definition.passagePriceKey());
         EconomyMixedPayment payment = null;
         if (price > 0) {
             payment = ElarionEconomyApi.get().payPhysicalThenBank(
@@ -549,7 +602,7 @@ public final class PortalRouteService {
             }
             return TravelResult.fail("Travel failed" + (price > 0 ? "; your payment was refunded." : "."));
         }
-        if (free) {
+        if (free || direction == PortalTravelDirection.OUTBOUND || storedReturnPassage) {
             state.freePassages.put(key,
                     PortalFreePassagePolicy.afterSuccessfulTravel(freeState, direction));
             dirty = true;

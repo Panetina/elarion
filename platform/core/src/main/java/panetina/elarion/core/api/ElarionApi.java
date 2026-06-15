@@ -21,6 +21,7 @@ import panetina.elarion.core.service.ElarionTaskService;
 import panetina.elarion.core.service.ElarionUiThemeService;
 import panetina.elarion.core.service.DeferredRewardGrantService;
 import panetina.elarion.core.service.CatchTelemetryService;
+import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.registry.ElarionRegistries;
 import panetina.elarion.core.model.ServerIdentityConfig;
 
@@ -50,6 +51,7 @@ public final class ElarionApi {
     private final ServerIdentityConfig serverIdentity;
     private final ElarionUiThemeService uiThemes;
     private final DeferredRewardGrantService deferredRewards;
+    private final ElarionNotificationService notifications;
     private final ElarionIdentityApi identityApi;
     private final ElarionRealmApi realmApi;
     private final ElarionMessagingApi messagingApi;
@@ -82,6 +84,7 @@ public final class ElarionApi {
             ServerIdentityConfig serverIdentity,
             ElarionUiThemeService uiThemes,
             DeferredRewardGrantService deferredRewards,
+            ElarionNotificationService notifications,
             CatchTelemetryService catchTelemetry
     ) {
         if (instance != null) throw new IllegalStateException("ElarionApi is already initialized");
@@ -108,6 +111,7 @@ public final class ElarionApi {
         this.serverIdentity = serverIdentity;
         this.uiThemes = uiThemes;
         this.deferredRewards = deferredRewards;
+        this.notifications = notifications;
         this.identityApi = new ElarionIdentityApi(identities, identitySync, nicknames, titles);
         this.realmApi = new ElarionRealmApi(citizens, realms, governance, realmSpawns, realmDeliveries);
         this.messagingApi = new ElarionMessagingApi(chat, privateMessages);
@@ -146,6 +150,7 @@ public final class ElarionApi {
     public ServerIdentityConfig serverIdentity() { return serverIdentity; }
     public ElarionUiThemeService uiThemes() { return uiThemes; }
     public DeferredRewardGrantService deferredRewards() { return deferredRewards; }
+    public ElarionNotificationService notifications() { return notifications; }
     public ElarionIdentityApi identity() { return identityApi; }
     public ElarionRealmApi realm() { return realmApi; }
     public ElarionMessagingApi messaging() { return messagingApi; }

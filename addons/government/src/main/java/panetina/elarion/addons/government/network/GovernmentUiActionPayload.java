@@ -11,7 +11,8 @@ public record GovernmentUiActionPayload(
         String realmId,
         String targetId,
         String value,
-        String secondaryValue
+        String secondaryValue,
+        String sessionId
 ) implements CustomPayload {
     public static final Id<GovernmentUiActionPayload> ID =
             new Id<>(Identifier.of("elarion_government", "government_ui_action"));
@@ -24,6 +25,7 @@ public record GovernmentUiActionPayload(
                 buffer.writeString(payload.targetId());
                 buffer.writeString(payload.value());
                 buffer.writeString(payload.secondaryValue());
+                buffer.writeString(payload.sessionId());
             },
             buffer -> new GovernmentUiActionPayload(
                     buffer.readString(64),
@@ -31,7 +33,8 @@ public record GovernmentUiActionPayload(
                     buffer.readString(128),
                     buffer.readString(256),
                     buffer.readString(512),
-                    buffer.readString(256)));
+                    buffer.readString(256),
+                    buffer.readString(64)));
 
     @Override
     public Id<? extends CustomPayload> getId() {

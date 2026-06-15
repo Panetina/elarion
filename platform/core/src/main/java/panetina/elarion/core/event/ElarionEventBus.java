@@ -2,6 +2,7 @@ package panetina.elarion.core.event;
 
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.CatchTelemetryEvent;
+import panetina.elarion.core.model.ElarionDomainEvent;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +16,7 @@ public final class ElarionEventBus {
     private final List<Consumer<CitizenChanged>> citizenListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<ProgressionEvent>> progressionListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<CatchTelemetryEvent>> catchTelemetryListeners = new CopyOnWriteArrayList<>();
+    private final List<Consumer<ElarionDomainEvent>> domainListeners = new CopyOnWriteArrayList<>();
 
     public AutoCloseable onCitizenChanged(Consumer<CitizenChanged> listener) {
         citizenListeners.add(listener);
@@ -31,6 +33,11 @@ public final class ElarionEventBus {
         return () -> catchTelemetryListeners.remove(listener);
     }
 
+    public AutoCloseable onDomainEvent(Consumer<ElarionDomainEvent> listener) {
+        domainListeners.add(listener);
+        return () -> domainListeners.remove(listener);
+    }
+
     public void emitCitizenChanged(CitizenChanged event) {
         citizenListeners.forEach(listener -> listener.accept(event));
     }
@@ -41,5 +48,10 @@ public final class ElarionEventBus {
 
     public void emitCatchTelemetry(CatchTelemetryEvent event) {
         catchTelemetryListeners.forEach(listener -> listener.accept(event));
+    }
+
+    public void emitDomainEvent(ElarionDomainEvent event) {
+        if (event == null) return;
+        domainListeners.forEach(listener -> listener.accept(event));
     }
 }

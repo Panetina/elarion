@@ -17,6 +17,8 @@ public final class OfferingConfigValidator {
             "elarion:clear_realm_flag",
             "elarion:run_reward",
             "elarion:emit_history",
+            "elarion:notify_realm",
+            "elarion:notify_world",
             "elarion:economy_reward_realm",
             "elarion:economy_sink_realm"
     );

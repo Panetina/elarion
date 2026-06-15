@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class OfferingService {
+    public static final String GLOBAL_NOTIFICATION_FLAG = "ancient_gate_unlocked";
     private static final int MAX_RECENT_DONATIONS = 50;
     private static final double SHRINE_INTERACTION_RANGE_SQUARED = 64.0D;
     private final Logger logger;
@@ -68,6 +69,10 @@ public final class OfferingService {
         this.server = server;
         state = storage.load(server);
         resumeIncompleteCompletions();
+        api.notifications().replaceWorldEligibleRealms(state.realmFlags.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(GLOBAL_NOTIFICATION_FLAG))
+                .map(Map.Entry::getKey)
+                .toList());
     }
 
     public synchronized void save() {
@@ -296,6 +301,7 @@ public final class OfferingService {
         if (next.isPresent()) {
             history(forced ? "level-force-completed" : "level-completed", actorId(actor), updated,
                     Map.of("level", level.id()));
+            notifyRealmOfferingLevel(updated, level, next.get());
 
             updated = updated.advanceToLevel(next.get().id());
             state.instances.put(updated.id(), updated);
@@ -314,6 +320,7 @@ public final class OfferingService {
         if (newlyCompleted || forced) {
             history(forced ? "project-force-completed" : "project-completed",
                     actorId(actor), updated, Map.of("level", level.id()));
+            notifyRealmOfferingComplete(updated, level);
         }
 
         return updated;
@@ -660,6 +667,8 @@ public final class OfferingService {
                     "elarion:run_reward", parameters));
             case "elarion:emit_history" -> api.registries().execute(new MilestoneContext(execution,
                     "elarion:emit_history", parameters));
+            case "elarion:notify_realm" -> notifyMilestone(instance, milestone, parameters, false);
+            case "elarion:notify_world" -> notifyMilestone(instance, milestone, parameters, true);
             default -> api.registries().actions().contains(milestone.type())
                     ? api.registries().execute(new ActionContext(execution, milestone.type(), parameters))
                     : api.registries().execute(new MilestoneContext(execution, milestone.type(), parameters));
@@ -673,12 +682,46 @@ public final class OfferingService {
         }
     }
 
+    private RegistryExecutionResult notifyMilestone(
+            OfferingInstance instance,
+            OfferingMilestone milestone,
+            Map<String, String> parameters,
+            boolean world
+    ) {
+        String title = parameters.getOrDefault("title", "Offering Milestone");
+        String body = parameters.getOrDefault("body", "A Shrine milestone was completed.");
+        String icon = parameters.getOrDefault("icon", "item:minecraft:amethyst_shard");
+        String dedupe = "offering:" + instance.id() + ":" + milestone.id();
+        var actions = List.of(new panetina.elarion.core.model.ElarionNotificationAction(
+                panetina.elarion.core.service.ElarionNotificationService.DISMISS, "Dismiss", true));
+        if (world) {
+            api.notifications().publishWorld("elarion_offerings", "milestone", dedupe,
+                    title, body, "World Offering", icon, actions,
+                    Map.of("instanceId", instance.id(), "projectId", instance.projectId()),
+                    api.notifications().defaultExpiry());
+        } else {
+            if (instance.realmId().isBlank()) {
+                return RegistryExecutionResult.failure("Realm notification milestone requires a Realm instance.");
+            }
+            api.notifications().publishRealm(instance.realmId(),
+                    panetina.elarion.core.model.ElarionNotificationCategory.REALM,
+                    "elarion_offerings", "milestone", dedupe,
+                    title, body, "Shrine Milestone", icon, actions,
+                    Map.of("instanceId", instance.id(), "projectId", instance.projectId()),
+                    api.notifications().defaultExpiry());
+        }
+        return RegistryExecutionResult.ok("Notification published.");
+    }
+
     private RegistryExecutionResult setRealmFlag(String realmId, String flag, boolean enabled) {
         if (realmId == null || realmId.isBlank()) return RegistryExecutionResult.failure("realm flag needs a Realm");
         if (flag == null || flag.isBlank()) return RegistryExecutionResult.failure("realm flag needs a flag");
         state.realmFlags.computeIfAbsent(realmId, ignored -> new LinkedHashSet<>());
         if (enabled) state.realmFlags.get(realmId).add(flag);
         else state.realmFlags.get(realmId).remove(flag);
+        if (GLOBAL_NOTIFICATION_FLAG.equals(flag)) {
+            api.notifications().setWorldRealmEligible(realmId, enabled);
+        }
         return RegistryExecutionResult.ok();
     }
 
@@ -690,6 +733,30 @@ public final class OfferingService {
         data.put("scope", instance.scope().name().toLowerCase());
         api.history().recordChronicle("offering", type, actorId, "project", instance.id(), instance.realmId(),
                 data, "The project " + instance.projectId() + " recorded offering event " + type + ".");
+    }
+
+    private void notifyRealmOfferingLevel(
+            OfferingInstance instance,
+            OfferingProjectLevel completed,
+            OfferingProjectLevel next
+    ) {
+        if (instance.scope() != OfferingScope.REALM || instance.realmId().isBlank()) return;
+        api.realmDeliveries().notifyRealm(
+                instance.realmId(),
+                "Shrine Level Up",
+                completed.displayName() + " is complete. " + next.displayName() + " is now active.",
+                "offering",
+                null);
+    }
+
+    private void notifyRealmOfferingComplete(OfferingInstance instance, OfferingProjectLevel completed) {
+        if (instance.scope() != OfferingScope.REALM || instance.realmId().isBlank()) return;
+        api.realmDeliveries().notifyRealm(
+                instance.realmId(),
+                "Shrine Project Complete",
+                completed.displayName() + " is complete.",
+                "offering",
+                null);
     }
 
     private static UUID actorId(ServerPlayerEntity actor) {

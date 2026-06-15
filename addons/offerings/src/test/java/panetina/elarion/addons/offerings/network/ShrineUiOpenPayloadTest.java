@@ -16,8 +16,8 @@ final class ShrineUiOpenPayloadTest {
                 "Stone", "item:minecraft:stone", 12, 64, false);
         ShrineUiOpenPayload.DisplayRow reward = new ShrineUiOpenPayload.DisplayRow(
                 "rank", "event", "Foundation Rank", "Unlocked at completion", "", 1, "", true);
-        ShrineUiOpenPayload.DisplayRow history = new ShrineUiOpenPayload.DisplayRow(
-                "recent", "history", "Recent Offering", "A citizen offered stone.", "", 1, "", false);
+        ShrineUiOpenPayload.DonationRow history = new ShrineUiOpenPayload.DonationRow(
+                "recent", "Citizen", 0xFF55FF55, 12, "Stone", 0xFFAAAAAA, "2026-06-14T00:00:00Z");
         ShrineUiOpenPayload payload = new ShrineUiOpenPayload(
                 "offering_realm_oak_1", "oak_foundation", "Shrine of Foundation",
                 "Realm of Oak", "A shared foundation project.", "Active", "Foundation I",

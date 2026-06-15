@@ -4,7 +4,7 @@ import java.util.Locale;
 
 public enum PortalRouteMode {
     SCHEDULED_TICKETED("scheduled_ticketed", true, true, true, false),
-    FEE_PASSAGE("fee_passage", false, false, false, true),
+    FEE_PASSAGE("fee_passage", false, true, false, true),
     ALWAYS_OPEN("always_open", false, false, false, false);
 
     private final String configId;

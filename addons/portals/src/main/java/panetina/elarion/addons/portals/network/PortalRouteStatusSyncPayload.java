@@ -49,6 +49,7 @@ public record PortalRouteStatusSyncPayload(List<Entry> routes) implements Custom
             long opensAt,
             long closesAt,
             String iconItem,
+            String statusIconItem,
             int argb
     ) {
         static Entry of(PortalRouteSnapshot snapshot) {
@@ -56,7 +57,7 @@ public record PortalRouteStatusSyncPayload(List<Entry> routes) implements Custom
                     snapshot.routeId(), snapshot.displayName(), snapshot.mode().configId(),
                     snapshot.unlocked(), snapshot.complete(), snapshot.active(),
                     snapshot.windowStart().toEpochMilli(), snapshot.windowEnd().toEpochMilli(),
-                    snapshot.visual().iconItem(), snapshot.visual().argb());
+                    snapshot.visual().iconItem(), snapshot.visual().statusIconItem(), snapshot.visual().argb());
         }
 
         void write(PacketByteBuf buffer) {
@@ -69,6 +70,7 @@ public record PortalRouteStatusSyncPayload(List<Entry> routes) implements Custom
             buffer.writeLong(opensAt);
             buffer.writeLong(closesAt);
             buffer.writeString(iconItem);
+            buffer.writeString(statusIconItem);
             buffer.writeInt(argb);
         }
 
@@ -76,7 +78,8 @@ public record PortalRouteStatusSyncPayload(List<Entry> routes) implements Custom
             return new Entry(
                     buffer.readString(128), buffer.readString(256), buffer.readString(64),
                     buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(),
-                    buffer.readLong(), buffer.readLong(), buffer.readString(256), buffer.readInt());
+                    buffer.readLong(), buffer.readLong(), buffer.readString(256),
+                    buffer.readString(256), buffer.readInt());
         }
     }
 }

@@ -6,11 +6,11 @@ Admin guide for the first Government backend foundation.
 
 ## Status
 
-`Implemented foundation`, `Admin-only`
+`Implemented foundation`, `Admin-only`, `Manual verification needed`
 
-Government currently owns config-defined forms, office metadata, action metadata, transition metadata, compact Realm government state, assigned office holders, Shrine/Foundation gate status, authority inactivity cleanup, two admin-placed Government blocks, read-only Government UI snapshots, and `/lc` authority eligibility.
+Government currently owns config-defined forms, office metadata, action metadata, transition metadata, compact Realm government state, persisted founding votes, assigned office holders, Shrine/Foundation gate status, authority inactivity cleanup, two admin-placed Government blocks, focused Civic Forum UI snapshots/actions, Seat of Rule module shells, and `/lc` authority eligibility.
 
-It does not yet implement real votes, laws, taxes, treaties, treasury spending, mutating GUI actions, or election flows.
+It does not yet implement laws, taxes, treaties, treasury spending, reform mechanics, or rich authority modules.
 
 Definitions:
 
@@ -37,6 +37,8 @@ world/elarion/addon-state/government/state.json
 /e government identity set <realm> <tag> <display-name...>
 /e government founding complete <realm>
 /e government authority cleanup
+/e government test advance <realm>
+/e government block remove
 /e government office assign <realm> <office> <player>
 /e government office remove <realm> <office> <player>
 ```
@@ -76,8 +78,8 @@ Use:
 /e government gates realm1
 ```
 
-The OP-only `identity set` and `founding complete` commands are development
-stand-ins for future Civic Forum votes.
+The OP-only `identity set` and `founding complete` commands remain development
+shortcuts. The Civic Forum now contains the normal founding vote flow.
 
 ## Blocks
 
@@ -93,16 +95,50 @@ level 4 players.
 
 Current behavior:
 
-- Civic Forum opens a read-only staged UI for the Realm-owned world it is
+- Civic Forum opens one focused page at a time for the Realm-owned world it is
   placed in.
-- Civic Forum shows Foundation-gated name voting, Government form visibility,
-  Government voting, founding election, and Seat unlock state.
+- Neutral players and citizens of another Realm cannot open that Realm's
+  Civic Forum or Seat of Rule.
+- Before Foundation I, the Realm Name screen is visible but locked.
+- After Foundation I, active citizens can submit one Realm name/tag proposal
+  during a 24h proposal window.
+- After proposals close, citizens vote from the proposal grid during a separate
+  24h voting window.
+- After a name vote resolves, the Government Form screen appears.
+- After Foundation II, active citizens can vote for Monarchy, Republic,
+  Theocracy, or Confederation.
+- After the form vote resolves, the Founding Election screen appears.
+- After Foundation III, active citizens can nominate themselves and vote in the
+  founding election.
 - Seat of Rule stays locked until Foundation III and founding completion, then
   shows the official government summary, office holders, and future authority
   modules.
 
-These blocks are interaction anchors only. They do not yet run votes or mutate
-laws/elections through a GUI.
+These blocks are interaction anchors and UI entry points. Laws, taxes,
+treaties, proposals, and full office management are still future modules.
+
+Realm names are limited to 3-24 characters and two words. Names cannot contain
+government or settlement labels such as Kingdom, Empire, City, Republic,
+Confederation, or Holy Land; those labels are generated later from the chosen
+government form.
+
+Development timing:
+
+```text
+/e government test advance realm1
+```
+
+Run it once to end an active name-proposal window. After at least one ballot is
+cast, run it again to expire and resolve the current vote. It follows the
+Realm's current founding screen.
+
+Safe block removal:
+
+```text
+/e government block remove
+```
+
+Look directly at a Civic Forum or Seat of Rule before running it.
 
 ## Authority Inactivity
 
@@ -122,8 +158,19 @@ active heir; other vacant offices wait for future election/replacement systems.
 - `state <realm>` should show the current active form or `-`.
 - `gates realm1` should show Foundation I/II/III locks and Seat of Rule state.
 - Civic Forum and Seat of Rule should appear in the Government Creative tab.
-- Right-clicking Civic Forum should open the Government UI, not chat spam.
+- Right-clicking Civic Forum should open the current focused founding page.
+- Civic Forum and Seat actions are server-bound to the specific block session
+  opened by right-clicking. If an action is rejected after moving away, changing
+  world, removing the block, or waiting too long, reopen the block.
+- The session layer is intentionally small and tested separately; gameplay
+  checks still happen server-side before state is mutated.
+- Before Foundation I, name proposal controls should be locked.
+- After Foundation I, a citizen should be able to propose a name and tag.
+- Voting for a proposal should refresh the UI with `Your vote`.
+- After vote expiry, the next stage should appear.
 - Right-clicking Seat of Rule should open a locked or authority-summary UI.
+- Seat module buttons are placeholders, but they still require a valid Seat
+  session and Realm citizen context.
 - `set-form <realm> republic` should persist to Government runtime state and emit a government history event.
 - `office assign <realm> president <player>` should grant `/lc` access if the active form has that office.
 
@@ -132,6 +179,7 @@ active heir; other vacant offices wait for future election/replacement systems.
 - Commands: [../../addons/government/src/main/java/panetina/elarion/addons/government/command/GovernmentCommands.java](../../addons/government/src/main/java/panetina/elarion/addons/government/command/GovernmentCommands.java)
 - Blocks: [../../addons/government/src/main/java/panetina/elarion/addons/government/GovernmentBlocks.java](../../addons/government/src/main/java/panetina/elarion/addons/government/GovernmentBlocks.java)
 - Block interactions: [../../addons/government/src/main/java/panetina/elarion/addons/government/GovernmentBlockInteractions.java](../../addons/government/src/main/java/panetina/elarion/addons/government/GovernmentBlockInteractions.java)
+- UI sessions: [../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentUiSessionService.java](../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentUiSessionService.java)
 - UI payload: [../../addons/government/src/main/java/panetina/elarion/addons/government/network/GovernmentUiOpenPayload.java](../../addons/government/src/main/java/panetina/elarion/addons/government/network/GovernmentUiOpenPayload.java)
 - UI screen: [../../addons/government/src/main/java/panetina/elarion/addons/government/client/GovernmentStatusScreen.java](../../addons/government/src/main/java/panetina/elarion/addons/government/client/GovernmentStatusScreen.java)
 - Definitions: [../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentDefinitionService.java](../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentDefinitionService.java)

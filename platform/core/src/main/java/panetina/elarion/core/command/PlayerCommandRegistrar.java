@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -114,7 +113,7 @@ final class PlayerCommandRegistrar {
                             .forEach(player -> {
                                 CitizenRecord citizen = api.citizens().getOrCreate(player);
                                 String group = api.realms().forCitizen(citizen)
-                                        .map(realm -> realm.shortName().toUpperCase(Locale.ROOT))
+                                        .map(api.realms()::shortName)
                                         .orElse("UNASSIGNED");
                                 grouped.computeIfAbsent(group, ignored -> new ArrayList<>())
                                         .add(api.identities().resolve(player).displayName().getString());

@@ -9,6 +9,8 @@ import panetina.elarion.core.model.RealmDecisionType;
 import panetina.elarion.core.model.RealmRelationship;
 import panetina.elarion.core.storage.RealmRuntimeStorage;
 import panetina.elarion.core.storage.RealmRuntimeStorage.RealmRuntimeState;
+import panetina.elarion.core.model.ElarionNotificationAction;
+import panetina.elarion.core.model.ElarionNotificationCategory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -28,6 +30,7 @@ public final class RealmGovernanceService {
     private final HistoryService history;
     private MinecraftServer server;
     private RealmRuntimeState state = new RealmRuntimeState();
+    private ElarionNotificationService notifications;
 
     public RealmGovernanceService(
             RealmRuntimeStorage storage,
@@ -45,6 +48,10 @@ public final class RealmGovernanceService {
         this.server = server;
         this.state = storage.load(server);
         expirePendingDecisions();
+    }
+
+    public void setNotifications(ElarionNotificationService notifications) {
+        this.notifications = notifications;
     }
 
     public Optional<UUID> leader(String realmId) {
@@ -154,12 +161,13 @@ public final class RealmGovernanceService {
         save();
         history.record("realm-decision", "declared", leaderId, "decision",
                 decision.id().toString(), decision.declaringRealmId(), decisionMetadata(decision));
+        publishDecisionOpened(decision);
         return decision;
     }
 
     public boolean vote(UUID decisionId, UUID citizenId, boolean approve) {
         RealmDecision decision = state.decisions().get(decisionId);
-        if (decision == null || !decision.isPending()) return false;
+        if (decision == null || !decision.isPending() || !citizenAffected(decision, citizenId)) return false;
         decision.votes().put(citizenId, approve);
         evaluateDecision(decision);
         save();
@@ -200,6 +208,10 @@ public final class RealmGovernanceService {
                     history.record("realm-decision", "expired", null, "decision",
                             decision.id().toString(), decision.declaringRealmId(), decisionMetadata(decision));
                 }
+                resolveDecisionNotifications(decision);
+                publishDecisionResult(decision, "Realm Decision Expired",
+                        "The " + decision.type().name().toLowerCase(Locale.ROOT).replace('_', ' ')
+                                + " decision expired without passing.");
             }
         }
         if (changed) save();
@@ -221,6 +233,10 @@ public final class RealmGovernanceService {
             applyDecision(decision);
             history.record("realm-decision", "succeeded", decision.leaderId(), "decision",
                     decision.id().toString(), decision.declaringRealmId(), decisionMetadata(decision));
+            resolveDecisionNotifications(decision);
+            publishDecisionResult(decision, "Realm Decision Passed",
+                    "The " + decision.type().name().toLowerCase(Locale.ROOT).replace('_', ' ')
+                            + " decision succeeded.");
         }
     }
 
@@ -267,6 +283,54 @@ public final class RealmGovernanceService {
 
     private void save() {
         if (server != null) storage.save(server, state);
+    }
+
+    private void publishDecisionOpened(RealmDecision decision) {
+        if (notifications == null) return;
+        String title = "Realm Decision: " + decision.type().name().toLowerCase(Locale.ROOT).replace('_', ' ');
+        String body = decision.receivingRealmId().isBlank()
+                ? "Your Realm opened a civic decision."
+                : "A decision involving " + decision.declaringRealmId() + " and "
+                        + decision.receivingRealmId() + " is open.";
+        List<ElarionNotificationAction> actions = List.of(
+                new ElarionNotificationAction("elarion_core:realm_decision_approve", "Approve", true),
+                new ElarionNotificationAction("elarion_core:realm_decision_reject", "Reject", true));
+        Map<String, String> metadata = Map.of("decisionId", decision.id().toString());
+        notifications.publishRealm(decision.declaringRealmId(), ElarionNotificationCategory.REALM,
+                "elarion_core", "realm-decision-open", "decision:" + decision.id() + ":declaring",
+                title, body, "Decision open", "item:minecraft:writable_book", actions, metadata,
+                decision.expiresAt());
+        if (!decision.receivingRealmId().isBlank()
+                && !decision.receivingRealmId().equals(decision.declaringRealmId())) {
+            notifications.publishRealm(decision.receivingRealmId(), ElarionNotificationCategory.REALM,
+                    "elarion_core", "realm-decision-open", "decision:" + decision.id() + ":receiving",
+                    title, body, "Decision open", "item:minecraft:writable_book", actions, metadata,
+                    decision.expiresAt());
+        }
+    }
+
+    private void publishDecisionResult(RealmDecision decision, String title, String body) {
+        if (notifications == null) return;
+        Map<String, String> metadata = Map.of("decisionId", decision.id().toString());
+        List<ElarionNotificationAction> actions = List.of(
+                new ElarionNotificationAction(ElarionNotificationService.DISMISS, "Dismiss", true));
+        notifications.publishRealm(decision.declaringRealmId(), ElarionNotificationCategory.REALM,
+                "elarion_core", "realm-decision-result", "decision-result:" + decision.id() + ":declaring",
+                title, body, decision.status().name(), "item:minecraft:paper", actions, metadata,
+                notifications.defaultExpiry());
+        if (!decision.receivingRealmId().isBlank()
+                && !decision.receivingRealmId().equals(decision.declaringRealmId())) {
+            notifications.publishRealm(decision.receivingRealmId(), ElarionNotificationCategory.REALM,
+                    "elarion_core", "realm-decision-result", "decision-result:" + decision.id() + ":receiving",
+                    title, body, decision.status().name(), "item:minecraft:paper", actions, metadata,
+                    notifications.defaultExpiry());
+        }
+    }
+
+    private void resolveDecisionNotifications(RealmDecision decision) {
+        if (notifications != null) {
+            notifications.resolveByMetadata("elarion_core", "decisionId", decision.id().toString());
+        }
     }
 
     private static String normalize(String value) {

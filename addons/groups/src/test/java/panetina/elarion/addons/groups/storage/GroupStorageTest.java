@@ -28,6 +28,7 @@ class GroupStorageTest {
                 "merc",
                 "Mercury Guild",
                 "MERC",
+                false,
                 leader,
                 Set.of(leader, member),
                 1234L));

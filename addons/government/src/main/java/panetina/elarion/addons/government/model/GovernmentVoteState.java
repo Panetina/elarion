@@ -12,11 +12,14 @@ public final class GovernmentVoteState {
     public int round = 1;
     public boolean runoff;
     public boolean resolved;
+    public long proposalStartedAt;
+    public long proposalEndsAt;
     public long startedAt;
     public long endsAt;
     public Map<String, GovernmentVoteOption> options = new LinkedHashMap<>();
     public Map<String, List<String>> ballots = new LinkedHashMap<>();
     public List<String> winnerIds = new ArrayList<>();
+    public Map<String, Long> resultTotals = new LinkedHashMap<>();
 
     public GovernmentVoteState() {
     }
@@ -30,6 +33,14 @@ public final class GovernmentVoteState {
         return !resolved && startedAt > 0L && endsAt > now;
     }
 
+    public boolean proposalActive(long now) {
+        return !resolved && proposalStartedAt > 0L && proposalEndsAt > now;
+    }
+
+    public boolean proposalEnded(long now) {
+        return proposalStartedAt > 0L && proposalEndsAt <= now;
+    }
+
     public boolean ended(long now) {
         return !resolved && startedAt > 0L && endsAt <= now;
     }
@@ -38,6 +49,12 @@ public final class GovernmentVoteState {
         if (startedAt > 0L) return;
         startedAt = now;
         endsAt = now + duration.toMillis();
+    }
+
+    public void startProposalIfNeeded(long now, Duration duration) {
+        if (proposalStartedAt > 0L) return;
+        proposalStartedAt = now;
+        proposalEndsAt = now + duration.toMillis();
     }
 
     public GovernmentVoteState runoff(List<String> tiedIds, long now, Duration duration) {

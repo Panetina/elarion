@@ -16,6 +16,7 @@ public record ClientIdentity(
         String title,
         String leaderLabel,
         Formatting color,
+        String realmName,
         String realmId,
         boolean visible
 ) {
@@ -30,9 +31,14 @@ public record ClientIdentity(
 
     public Text tabName() {
         MutableText text = Text.empty();
+        if (!realmName.isBlank()) text.append(Text.literal(realmName + " ").formatted(Formatting.DARK_GRAY));
         if (!leaderLabel.isBlank()) text.append(crown()).append(Text.literal(" "));
         text.append(displayName());
         return text;
+    }
+
+    public Text hiddenTabName() {
+        return Text.literal("Unknown Citizen").formatted(Formatting.DARK_GRAY);
     }
 
     public Text titleText() {

@@ -62,6 +62,9 @@ Use remove if you want to delete the linked Shrine and its instance:
 - Offer required currency from banked balance.
 - Confirm progress updates live.
 - Confirm recent donation history appears.
+- Confirm history centers the contributor nickname and offering amount, uses
+  the contributor's Realm color, uses the Sigil accent for currency, and gray
+  for block/item Offerings.
 - Complete the project and verify milestone rewards.
 - Restart the server and confirm progress, history, and completion state persist.
 

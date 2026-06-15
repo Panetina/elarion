@@ -29,7 +29,22 @@ public final class ElarionGovernmentAddon implements ElarionAddon {
         GovernmentDefinitionService definitions = new GovernmentDefinitionService(api);
         definitions.load();
         GovernmentStateService states = new GovernmentStateService(api, definitions, new GovernmentStorage(LOGGER));
+        api.notifications().registerAction("elarion_government:open_civic_forum", context -> {
+            String realmId = context.notification().metadata().getOrDefault("realmId", "");
+            try {
+                GovernmentBlockInteractions.openCivicForumFromNotification(
+                        api, definitions, states, context.player(), realmId);
+                return panetina.elarion.core.service.ElarionNotificationService.ActionResult.success(
+                        "Civic Forum opened.", false);
+            } catch (IllegalArgumentException exception) {
+                return panetina.elarion.core.service.ElarionNotificationService.ActionResult.failure(
+                        exception.getMessage());
+            }
+        });
         new ElarionGovernmentApi(definitions, states);
+        api.realms().registerPresentationProvider(states::presentation);
+        api.identity().registerAuthorityMarkerProvider((realmId, player) ->
+                states.isAuthority(realmId, player.getUuid()));
         ServerLifecycleEvents.SERVER_STARTED.register(states::bind);
         ServerTickEvents.END_SERVER_TICK.register(server -> states.tick());
         api.system().commands().registerAdminSubcommand(() -> GovernmentCommands.create(api, definitions, states));

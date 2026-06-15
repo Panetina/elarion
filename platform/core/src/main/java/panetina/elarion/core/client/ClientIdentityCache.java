@@ -25,6 +25,7 @@ public final class ClientIdentityCache {
                 payload.title(),
                 payload.leaderLabel(),
                 color == null ? Formatting.WHITE : color,
+                payload.realmName(),
                 payload.realmId(),
                 payload.visible()));
     }

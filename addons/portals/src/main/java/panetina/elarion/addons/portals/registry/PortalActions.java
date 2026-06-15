@@ -24,7 +24,8 @@ public final class PortalActions {
             ElarionApi api, PortalDefinitionService definitions, PortalRouteService routes
     ) {
         register(api, UNLOCK, "Unlocks a configured portal route.", context -> {
-            String route = context.parameters().getOrDefault("route", "");
+            String route = context.parameters().getOrDefault(
+                    "route", context.execution().actorRealmId());
             routes.unlock(route, context.execution().actorId());
             return RegistryExecutionResult.ok("Portal route unlocked.");
         });

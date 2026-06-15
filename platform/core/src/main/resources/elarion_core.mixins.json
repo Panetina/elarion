@@ -14,6 +14,8 @@
   ],
   "client": [
     "client.ClientCommandSourceMixin",
+    "client.InGameHudNotificationMixin",
+    "client.KeyboardNotificationHudMixin",
     "client.MouseNotificationIconMixin",
     "client.PlayerEntityRendererVisibilityMixin",
     "client.PlayerListHudMixin"

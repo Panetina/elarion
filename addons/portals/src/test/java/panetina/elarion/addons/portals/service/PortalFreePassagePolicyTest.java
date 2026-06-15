@@ -21,4 +21,15 @@ class PortalFreePassagePolicyTest {
         assertFalse(PortalFreePassagePolicy.isFree(true, state, PortalTravelDirection.OUTBOUND));
         assertFalse(PortalFreePassagePolicy.isFree(true, state, PortalTravelDirection.RETURN));
     }
+
+    @Test
+    void paidOutboundStillStoresAFreeReturnPassage() {
+        PortalFreePassageState state = PortalFreePassageState.COMPLETED;
+        assertFalse(PortalFreePassagePolicy.isFree(true, state, PortalTravelDirection.OUTBOUND));
+
+        state = PortalFreePassagePolicy.afterSuccessfulTravel(state, PortalTravelDirection.OUTBOUND);
+
+        assertEquals(PortalFreePassageState.RETURN_AVAILABLE, state);
+        assertTrue(PortalFreePassagePolicy.isFree(true, state, PortalTravelDirection.RETURN));
+    }
 }

@@ -11,3 +11,20 @@ logs/
 dev/run/
 dev/client1/
 dev/client2/
+
+# Local documentation/reference workspace.
+# INDEX.md remains the single repository navigation entry point. Existing
+# tracked Markdown files remain tracked until deliberately removed from Git;
+# this only prevents new Markdown/reference docs from being added by accident.
+*.md
+!INDEX.md
+!RULES.md
+!TODO.md
+!PLAN.md
+!PLANS.md
+!LORE.md
+!OPTIMIZATION_TRACKER.md
+!wiki/**/*.md
+docs/
+lore/folklore/
+external/

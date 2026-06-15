@@ -24,6 +24,7 @@ public record GovernmentUiOpenPayload(
         long voteEndsAt,
         String message,
         String primaryAction,
+        String sessionId,
         List<Row> stageRows,
         List<Row> formRows,
         List<Row> officeRows,
@@ -49,6 +50,7 @@ public record GovernmentUiOpenPayload(
                 buffer.writeVarLong(payload.voteEndsAt());
                 buffer.writeString(payload.message());
                 buffer.writeString(payload.primaryAction());
+                buffer.writeString(payload.sessionId());
                 writeRows(payload.stageRows(), buffer);
                 writeRows(payload.formRows(), buffer);
                 writeRows(payload.officeRows(), buffer);
@@ -70,6 +72,7 @@ public record GovernmentUiOpenPayload(
                     buffer.readVarLong(),
                     buffer.readString(1024),
                     buffer.readString(64),
+                    buffer.readString(64),
                     readRows(buffer),
                     readRows(buffer),
                     readRows(buffer),
@@ -79,6 +82,7 @@ public record GovernmentUiOpenPayload(
     public GovernmentUiOpenPayload {
         message = message == null ? "" : message;
         primaryAction = primaryAction == null ? "" : primaryAction;
+        sessionId = sessionId == null ? "" : sessionId;
         stageRows = stageRows == null ? List.of() : List.copyOf(stageRows);
         formRows = formRows == null ? List.of() : List.copyOf(formRows);
         officeRows = officeRows == null ? List.of() : List.copyOf(officeRows);

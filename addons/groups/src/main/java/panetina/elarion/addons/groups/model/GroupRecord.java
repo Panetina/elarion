@@ -8,6 +8,7 @@ public record GroupRecord(
         String id,
         String displayName,
         String tag,
+        boolean tagHidden,
         UUID leaderId,
         Set<UUID> members,
         long createdAt
@@ -21,16 +22,20 @@ public record GroupRecord(
     }
 
     public static GroupRecord create(String id, String displayName, String tag, UUID leaderId) {
-        return new GroupRecord(id, displayName, tag, leaderId, Set.of(leaderId), System.currentTimeMillis());
+        return new GroupRecord(id, displayName, tag, false, leaderId, Set.of(leaderId), System.currentTimeMillis());
     }
 
     public GroupRecord withMembers(Set<UUID> updatedMembers) {
-        return new GroupRecord(id, displayName, tag, leaderId, updatedMembers, createdAt);
+        return new GroupRecord(id, displayName, tag, tagHidden, leaderId, updatedMembers, createdAt);
     }
 
     public GroupRecord withLeader(UUID leaderId) {
         LinkedHashSet<UUID> updated = new LinkedHashSet<>(members);
         updated.add(leaderId);
-        return new GroupRecord(id, displayName, tag, leaderId, updated, createdAt);
+        return new GroupRecord(id, displayName, tag, tagHidden, leaderId, updated, createdAt);
+    }
+
+    public GroupRecord withTagHidden(boolean hidden) {
+        return new GroupRecord(id, displayName, tag, hidden, leaderId, members, createdAt);
     }
 }

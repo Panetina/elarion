@@ -14,7 +14,8 @@ public abstract class PlayerEntityMixin {
     private void elarion$identityDisplayName(CallbackInfoReturnable<Text> cir) {
         PlayerEntity player = (PlayerEntity) (Object) this;
         ClientIdentityCache.find(player.getUuid())
-                .filter(identity -> identity.visible())
-                .ifPresent(identity -> cir.setReturnValue(identity.displayName()));
+                .ifPresent(identity -> cir.setReturnValue(identity.visible()
+                        ? identity.displayName()
+                        : identity.hiddenTabName()));
     }
 }

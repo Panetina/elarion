@@ -29,6 +29,7 @@ public final class PortalConfigDefaults {
                   frame-time: 2
                   texture: "minecraft:block/nether_portal"
                   icon-item: "elarion:portal_ticket"
+                  status-icon-item: "minecraft:netherrack"
 
               end:
                 display-name: "End Gate"
@@ -54,6 +55,7 @@ public final class PortalConfigDefaults {
                   frame-time: 2
                   texture: "minecraft:block/nether_portal"
                   icon-item: "elarion:portal_ticket"
+                  status-icon-item: "minecraft:end_stone"
 
               realm1:
                 display-name: "Ancient Gate"

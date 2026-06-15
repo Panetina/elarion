@@ -74,7 +74,10 @@ The selected cuboid must be one block thick on exactly one axis and at least two
 ## Route Types
 
 - `scheduled_ticketed`: Nether and End-style gates. Outbound travel consumes one physical route-bound ticket and creates one return entitlement.
-- `fee_passage`: Ancient Gates. First outbound and return trip can be free; later crossings charge the Economy-owned passage price.
+- `fee_passage`: Shrine-unlocked Ancient Gates. First outbound and return trip can be free.
+  Later Realm-to-Worldheart outbound trips charge the Economy-owned passage
+  price and store one free return passage. Returning through the linked
+  Worldheart gate consumes that stored return and does not charge again.
 - `always_open`: neutral gates. No lock, schedule, ticket, or return entitlement. Destination may be any configured world.
 
 ## Ancient Gates
@@ -93,7 +96,15 @@ Ancient Gates are not tied to temporary Realm display names. Later crossings use
 ancient_gate.passage
 ```
 
-Payment consumes physical Sigils first, then bank balance.
+Payment consumes physical Sigils first, then bank balance. Return travel does
+not charge currency if the player has a stored return passage from entering the
+Realm-side gate. The return confirmation reports that the return is already
+paid; it does not repeat the first-round-trip message after later paid journeys.
+
+Completing the configured Shrine milestone sets the Realm flag
+`ancient_gate_unlocked` and unlocks the matching Realm route. The unlock appears
+in that Realm's notification feed. This flag also makes the World notification
+icon available to the Realm's citizens.
 
 ## Tickets
 
@@ -106,13 +117,34 @@ portal_ticket.nether
 portal_ticket.end
 ```
 
+## Route Status Icons
+
+Unlocked scheduled routes render compact HUD icons:
+
+- locked routes are invisible
+- closed routes are greyed out
+- open routes are colored
+- hovering shows the local opening or closing countdown
+
+Configure the icon independently from the prompt/ticket icon:
+
+```yaml
+visual:
+  status-icon-item: "minecraft:netherrack"
+```
+
+Nether and End unlocks publish World notifications only to citizens whose Realm
+has unlocked global access. Open/close transitions do not create notification
+cards.
+
 ## Troubleshooting
 
 - Use `/e portal guide <route>` for the current ordered setup workflow.
 - Use `/e portal inspect <route>` to see linkage, arrivals, active state, schedule, and runtime location.
 - Use `/e portal repair <route>` after changing endpoints or if field blocks look stale.
 - If a gate does not open, check for obstructed interior cells and route unlock state.
-- Scheduled routes do not broadcast open/close countdowns in chat; route status is available through API snapshots for future HUD/map consumers.
+- Scheduled routes do not broadcast open/close countdowns in chat; the HUD and
+  future Atlas use synchronized route snapshots.
 
 ## Source-Backed Notes
 

@@ -90,7 +90,7 @@ public final class IdentitySyncService {
         PlayerIdentity identity = identities.resolve(subject);
         RealmDefinition realm = realms.forCitizen(citizen).orElse(null);
         TitleDefinition title = titles.forCitizen(citizen).orElse(null);
-        boolean visible = identities.canSee(viewer, subject);
+        boolean visible = true;
 
         ServerPlayNetworking.send(viewer, new IdentitySyncPayload(
                 subject.getUuid(),
@@ -101,6 +101,7 @@ public final class IdentitySyncService {
                 visible && title != null && title.visibleUnderUsername() ? title.displayName() : "",
                 visible ? identity.leaderText().getString() : "",
                 visible ? identity.color().getName() : "white",
+                visible && realm != null ? realms.officialName(realm) : "",
                 visible && realm != null ? realm.id() : "",
                 visible));
     }

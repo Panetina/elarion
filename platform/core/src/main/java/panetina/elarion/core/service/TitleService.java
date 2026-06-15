@@ -7,6 +7,8 @@ import panetina.elarion.core.model.ProgressionEvent;
 import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.model.TitleOwnershipMode;
 import panetina.elarion.core.model.TitleUnlockRule;
+import panetina.elarion.core.model.ElarionNotificationAction;
+import panetina.elarion.core.model.ElarionNotificationCategory;
 import panetina.elarion.core.storage.TitleClaimStorage;
 import panetina.elarion.core.storage.TitleClaimStorage.TitleClaim;
 import panetina.elarion.core.storage.TitleClaimStorage.TitleClaimState;
@@ -26,6 +28,7 @@ public final class TitleService {
     private final HistoryService history;
     private net.minecraft.server.MinecraftServer server;
     private TitleClaimState claimState = new TitleClaimState();
+    private ElarionNotificationService notifications;
 
     public record TitleOperation(boolean success, String message) {}
 
@@ -44,6 +47,10 @@ public final class TitleService {
     public void bind(net.minecraft.server.MinecraftServer server) {
         this.server = server;
         this.claimState = claimStorage.load(server);
+    }
+
+    public void setNotifications(ElarionNotificationService notifications) {
+        this.notifications = notifications;
     }
 
     public Collection<TitleDefinition> all() {
@@ -107,6 +114,7 @@ public final class TitleService {
                         "title", title.id(),
                         "reason", safe(reason)
                 ), citizenName(citizen) + " received the title " + title.displayName() + ".");
+        notifyTitle(citizen, title, true);
         return new TitleOperation(true, "Granted title " + title.id());
     }
 
@@ -125,7 +133,41 @@ public final class TitleService {
                         "title", title.id(),
                         "reason", safe(reason)
                 ), citizenName(citizen) + " lost the title " + title.displayName() + ".");
+        notifyTitle(citizen, title, false);
         return new TitleOperation(true, "Revoked title " + title.id());
+    }
+
+    private void notifyTitle(CitizenRecord citizen, TitleDefinition title, boolean granted) {
+        if (notifications == null) return;
+        notifications.publishPersonal(
+                citizen.uuid(),
+                ElarionNotificationCategory.PERSONAL,
+                "elarion_core",
+                granted ? "title-unlocked" : "title-revoked",
+                "title:" + title.id() + ":" + (granted ? "granted:" : "revoked:") + System.currentTimeMillis(),
+                granted ? "Title Unlocked" : "Title Revoked",
+                granted
+                        ? "You received the title " + title.displayName() + "."
+                        : "You no longer hold the title " + title.displayName() + ".",
+                "Title",
+                "item:minecraft:name_tag",
+                List.of(new ElarionNotificationAction(ElarionNotificationService.DISMISS, "Dismiss", true)),
+                Map.of("titleId", title.id()),
+                notifications.defaultExpiry());
+        if (granted && title.ownershipMode() != TitleOwnershipMode.UNLIMITED) {
+            notifications.publishWorld(
+                    "elarion_core",
+                    "public-title-unlocked",
+                    "title-public:" + title.id() + ":" + citizen.uuid(),
+                    "A Unique Title Was Claimed",
+                    citizenName(citizen) + " unlocked the title " + title.displayName() + ".",
+                    "World Title",
+                    "item:minecraft:name_tag",
+                    List.of(new ElarionNotificationAction(
+                            ElarionNotificationService.DISMISS, "Dismiss", true)),
+                    Map.of("titleId", title.id(), "citizenId", citizen.uuid().toString()),
+                    notifications.defaultExpiry());
+        }
     }
 
     public TitleOperation setActive(ServerPlayerEntity player, String titleId, UUID actorId, String reason) {

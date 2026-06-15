@@ -9,18 +9,23 @@ import net.minecraft.util.Formatting;
 import panetina.elarion.core.config.CoreConfigManager;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.RealmDefinition;
+import panetina.elarion.core.model.RealmPresentation;
 
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 
 public final class RealmService {
     private static final String TEAM_PREFIX = "elarion_";
     private final CoreConfigManager config;
     private final CitizenService citizens;
     private final Map<String, Optional<RealmDefinition>> worldOwnerCache = new ConcurrentHashMap<>();
+    private final CopyOnWriteArrayList<Function<RealmDefinition, Optional<RealmPresentation>>> presentationProviders =
+            new CopyOnWriteArrayList<>();
     private Map<String, RealmDefinition> cachedRealmSource = Map.of();
 
     public RealmService(CoreConfigManager config, CitizenService citizens) {
@@ -39,6 +44,39 @@ public final class RealmService {
 
     public Optional<RealmDefinition> forCitizen(CitizenRecord citizen) {
         return find(citizen.realmId());
+    }
+
+    public void registerPresentationProvider(Function<RealmDefinition, Optional<RealmPresentation>> provider) {
+        if (provider != null) presentationProviders.add(provider);
+    }
+
+    public RealmPresentation presentation(RealmDefinition realm) {
+        if (realm == null) return RealmPresentation.from(null);
+        for (Function<RealmDefinition, Optional<RealmPresentation>> provider : presentationProviders) {
+            try {
+                Optional<RealmPresentation> presentation = provider.apply(realm);
+                if (presentation != null && presentation.isPresent()) return presentation.get();
+            } catch (RuntimeException ignored) {
+                // Addon presentation hooks must not break Core Realm rendering.
+            }
+        }
+        return RealmPresentation.from(realm);
+    }
+
+    public String displayName(RealmDefinition realm) {
+        return presentation(realm).displayName();
+    }
+
+    public String officialName(RealmDefinition realm) {
+        return presentation(realm).officialName();
+    }
+
+    public String shortName(RealmDefinition realm) {
+        return presentation(realm).shortName();
+    }
+
+    public String prefix(RealmDefinition realm) {
+        return presentation(realm).prefix();
     }
 
     public Optional<RealmDefinition> ownerForWorld(String worldId) {

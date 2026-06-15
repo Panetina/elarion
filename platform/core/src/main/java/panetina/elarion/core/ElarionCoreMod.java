@@ -50,11 +50,17 @@ import panetina.elarion.core.storage.RealmRuntimeStorage;
 import panetina.elarion.core.storage.TitleClaimStorage;
 import panetina.elarion.core.storage.TitleProgressStorage;
 import panetina.elarion.core.storage.DeferredRewardGrantStorage;
+import panetina.elarion.core.storage.NotificationStorage;
 import panetina.elarion.core.network.IdentitySyncRequestPayload;
 import panetina.elarion.core.network.IdentitySyncPayload;
+import panetina.elarion.core.network.NotificationClaimPayload;
+import panetina.elarion.core.network.NotificationDismissPayload;
+import panetina.elarion.core.network.NotificationActionPayload;
+import panetina.elarion.core.network.NotificationSnapshotPayload;
 import panetina.elarion.core.network.UiThemeSyncPayload;
 import panetina.elarion.core.service.ElarionUiThemeService;
 import panetina.elarion.core.service.DeferredRewardGrantService;
+import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.service.CatchTelemetryService;
 import panetina.elarion.core.storage.CatchSummaryStorage;
 import panetina.elarion.core.storage.CatchTelemetryJournalStorage;
@@ -69,6 +75,10 @@ public final class ElarionCoreMod implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(IdentitySyncPayload.ID, IdentitySyncPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(IdentitySyncRequestPayload.ID, IdentitySyncRequestPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(UiThemeSyncPayload.ID, UiThemeSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(NotificationSnapshotPayload.ID, NotificationSnapshotPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(NotificationClaimPayload.ID, NotificationClaimPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(NotificationDismissPayload.ID, NotificationDismissPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(NotificationActionPayload.ID, NotificationActionPayload.CODEC);
 
         CoreConfigManager config = new CoreConfigManager(LOGGER);
         config.load();
@@ -101,12 +111,18 @@ public final class ElarionCoreMod implements ModInitializer {
         RewardActionService rewards = new RewardActionService(config, citizens, titles, abilities, events);
         DeferredRewardGrantService deferredRewards = new DeferredRewardGrantService(
                 new DeferredRewardGrantStorage(LOGGER), rewards, history);
+        ElarionNotificationService notifications =
+                new ElarionNotificationService(new NotificationStorage(LOGGER), citizens);
+        notifications.registerProvider(deferredRewards::snapshotEntries);
+        deferredRewards.setNotificationSync(notifications::sync);
+        titles.setNotifications(notifications);
+        governance.setNotifications(notifications);
         PlayerStatsService playerStats = new PlayerStatsService(new PlayerStatsStorage(LOGGER), titles);
         ProgressionService progression =
                 new ProgressionService(config, citizens, titles, playerStats, new TitleProgressStorage(LOGGER));
         RealmDeliveryService realmDeliveries =
-                new RealmDeliveryService(new RealmDeliveryStorage(LOGGER), citizens, realms, rewards, history,
-                        config.serverIdentity());
+                new RealmDeliveryService(new RealmDeliveryStorage(LOGGER), citizens, realms, rewards,
+                        deferredRewards, notifications, history, config.serverIdentity());
         ElarionCommandRegistry commands = new ElarionCommandRegistry();
         ElarionRegistries registries = new ElarionRegistries();
         ElarionTaskService tasks = new ElarionTaskService(LOGGER, ElarionTaskConfig.loadSettings(LOGGER));
@@ -120,7 +136,27 @@ public final class ElarionCoreMod implements ModInitializer {
         ElarionApi api = new ElarionApi(
                 citizens, realms, titles, abilities, identities, identitySync, nicknames, history, privateMessages,
                 chat, governance, realmSpawns, realmDeliveries, rewards, playerStats, progression, events, commands,
-                registries, tasks, config.serverIdentity(), uiThemes, deferredRewards, catchTelemetry);
+                registries, tasks, config.serverIdentity(), uiThemes, deferredRewards, notifications, catchTelemetry);
+
+        notifications.registerAction("elarion_core:realm_decision_approve", action ->
+                voteOnRealmDecision(governance, action, true));
+        notifications.registerAction("elarion_core:realm_decision_reject", action ->
+                voteOnRealmDecision(governance, action, false));
+
+        ServerPlayNetworking.registerGlobalReceiver(NotificationClaimPayload.ID, (payload, context) ->
+                context.server().execute(() -> deferredRewards.claim(context.player(), payload.grantId())));
+        ServerPlayNetworking.registerGlobalReceiver(NotificationDismissPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    notifications.act(context.player(), payload.notificationId(), ElarionNotificationService.DISMISS);
+                }));
+        ServerPlayNetworking.registerGlobalReceiver(NotificationActionPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    if ("elarion_core:claim_reward".equals(payload.actionId())) {
+                        deferredRewards.claim(context.player(), payload.notificationId());
+                    } else {
+                        notifications.act(context.player(), payload.notificationId(), payload.actionId());
+                    }
+                }));
 
         initializeAddons(api);
         progression.registerEvents();
@@ -129,6 +165,7 @@ public final class ElarionCoreMod implements ModInitializer {
             ServerPlayerEntity player = server == null ? null : server.getPlayerManager().getPlayer(event.citizenId());
             if (player != null) {
                 identitySync.syncSubject(server, player);
+                notifications.sync(player);
             } else if (server != null) {
                 identitySync.syncAll(server);
             }
@@ -144,8 +181,9 @@ public final class ElarionCoreMod implements ModInitializer {
             playerStats.bind(server);
             progression.bind(server);
             governance.bind(server);
-            realmDeliveries.bind(server);
             deferredRewards.bind(server);
+            notifications.bind(server);
+            realmDeliveries.bind(server);
             catchTelemetry.bind(JsonStateStorage.elarionRoot(server));
             realms.initializeScoreboardTeams(server);
             LOGGER.info("Elarion Core bound to server {}", server.getServerMotd());
@@ -156,7 +194,7 @@ public final class ElarionCoreMod implements ModInitializer {
             titles.repair(citizens.getOrCreate(handler.getPlayer()), null);
             realms.applyCurrentScoreboardTeam(handler.getPlayer());
             realmDeliveries.deliverPending(handler.getPlayer());
-            deferredRewards.deliverPending(handler.getPlayer());
+            notifications.sync(handler.getPlayer());
             catchTelemetry.activate(handler.getPlayer().getUuid());
             identitySync.syncAllNow(server);
             uiThemes.sync(handler.getPlayer());
@@ -179,6 +217,7 @@ public final class ElarionCoreMod implements ModInitializer {
             playerStats.saveDirty();
             progression.saveDirty();
             deferredRewards.save();
+            notifications.save();
             history.flush();
             catchTelemetry.shutdown();
             tasks.shutdown();
@@ -223,6 +262,25 @@ public final class ElarionCoreMod implements ModInitializer {
                     throw new IllegalStateException("Failed to initialize Elarion addon " + provider, exception);
                 }
             }
+        }
+    }
+
+    private static ElarionNotificationService.ActionResult voteOnRealmDecision(
+            RealmGovernanceService governance,
+            ElarionNotificationService.ActionContext action,
+            boolean approve
+    ) {
+        String rawId = action.notification().metadata().getOrDefault("decisionId", "");
+        try {
+            boolean accepted = governance.vote(
+                    java.util.UUID.fromString(rawId), action.player().getUuid(), approve);
+            return accepted
+                    ? ElarionNotificationService.ActionResult.success(
+                            approve ? "Approval recorded." : "Rejection recorded.", true)
+                    : ElarionNotificationService.ActionResult.failure(
+                            "That Realm decision is no longer available to you.");
+        } catch (IllegalArgumentException exception) {
+            return ElarionNotificationService.ActionResult.failure("Invalid Realm decision.");
         }
     }
 }

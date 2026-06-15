@@ -36,6 +36,8 @@ Implemented command surface for server owners and OP level 4 operators.
 /random reset ...
 /e reload
 /e realm ...
+/e realm announce <realm> <message...>
+/e realm mail <realm> "<title>" <message...>
 /e citizen ...
 /e title ...
 /e ability ...
@@ -113,6 +115,8 @@ Implemented command surface for server owners and OP level 4 operators.
 /e government identity set <realm> <tag> <display-name...>
 /e government founding complete <realm>
 /e government authority cleanup
+/e government test advance <realm>
+/e government block remove
 /e government office assign <realm> <office> <player>
 /e government office remove <realm> <office> <player>
 ```

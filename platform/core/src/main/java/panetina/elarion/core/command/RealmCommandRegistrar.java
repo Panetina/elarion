@@ -66,7 +66,7 @@ final class RealmCommandRegistrar {
                                 })))
                 .then(literal("list").executes(context -> {
                     String values = api.realms().all().stream()
-                            .map(RealmDefinition::id)
+                            .map(realm -> realm.id() + " (" + api.realms().officialName(realm) + ")")
                             .sorted()
                             .reduce((left, right) -> left + ", " + right)
                             .orElse("(none)");
@@ -153,21 +153,23 @@ final class RealmCommandRegistrar {
                                     api.realms().all().forEach(value -> builder.suggest(value.id()));
                                     return builder.buildFuture();
                                 })
-                                .then(argument("message", StringArgumentType.greedyString())
-                                        .executes(context -> {
-                                            String realm = StringArgumentType.getString(context, "realm");
-                                            if (!api.realmDeliveries().mailRealm(realm,
-                                                    StringArgumentType.getString(context, "message"),
-                                                    context.getSource().getEntity() instanceof ServerPlayerEntity actor
-                                                            ? actor.getUuid()
-                                                            : null)) {
-                                                context.getSource().sendError(Text.literal("Could not send mail."));
-                                                return 0;
-                                            }
-                                            context.getSource().sendFeedback(
-                                                    () -> Text.literal("Sent mail to " + realm), true);
-                                            return 1;
-                                        }))))
+                                .then(argument("title", StringArgumentType.string())
+                                        .then(argument("message", StringArgumentType.greedyString())
+                                                .executes(context -> {
+                                                    String realm = StringArgumentType.getString(context, "realm");
+                                                    if (!api.realmDeliveries().mailRealm(realm,
+                                                            StringArgumentType.getString(context, "title"),
+                                                            StringArgumentType.getString(context, "message"),
+                                                            context.getSource().getEntity() instanceof ServerPlayerEntity actor
+                                                                    ? actor.getUuid()
+                                                                    : null)) {
+                                                        context.getSource().sendError(Text.literal("Could not send mail."));
+                                                        return 0;
+                                                    }
+                                                    context.getSource().sendFeedback(
+                                                            () -> Text.literal("Sent mail notification to " + realm), true);
+                                                    return 1;
+                                                })))))
                 .then(leaderCommands(api))
                 .then(relationshipCommands(api));
     }

@@ -24,6 +24,8 @@ Status labels:
 - [Setup Checklist](admin/setup-checklist.md)
 - [Addon Status](addons/README.md)
 - [Player Guide Index](players/README.md)
+- Project navigation: [../INDEX.md](../INDEX.md)
+- Agent/source map: [../AGENTS.md](../AGENTS.md)
 
 ## Core Admin Guides
 
@@ -35,6 +37,7 @@ Status labels:
 - [Economy](admin/economy.md)
 - [Worlds](admin/worlds.md)
 - [Performance And Security](admin/performance.md)
+- [Addon Status](addons/README.md)
 
 ## Source-Backed Notes
 

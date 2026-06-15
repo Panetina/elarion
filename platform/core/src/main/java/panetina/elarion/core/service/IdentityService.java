@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 public final class IdentityService {
@@ -26,6 +27,7 @@ public final class IdentityService {
     private final RealmService realms;
     private final TitleService titles;
     private final List<Function<ServerPlayerEntity, String>> chatPrefixProviders = new CopyOnWriteArrayList<>();
+    private final List<BiPredicate<String, ServerPlayerEntity>> authorityMarkerProviders = new CopyOnWriteArrayList<>();
     private RealmGovernanceService governance;
 
     public IdentityService(CitizenService citizens, RealmService realms, TitleService titles) {
@@ -42,6 +44,10 @@ public final class IdentityService {
         if (provider != null) chatPrefixProviders.add(provider);
     }
 
+    public void registerAuthorityMarkerProvider(BiPredicate<String, ServerPlayerEntity> provider) {
+        if (provider != null) authorityMarkerProviders.add(provider);
+    }
+
     public PlayerIdentity resolve(ServerPlayerEntity player) {
         CitizenRecord citizen = citizens.getOrCreate(player);
         RealmDefinition realm = realms.forCitizen(citizen).orElse(null);
@@ -50,24 +56,28 @@ public final class IdentityService {
         String baseName = citizen.nickname() == null || citizen.nickname().isBlank()
                 ? player.getGameProfile().getName()
                 : citizen.nickname();
-        String prefix = realm == null ? "" : realm.prefix();
+        String prefix = realm == null ? "" : realms.prefix(realm);
         String suffix = title == null ? "" : title.suffix();
+        boolean authorityMarked = realm != null && isAuthorityMarked(realm.id(), player);
         MutableText display = Text.literal(baseName).formatted(color);
         if (!suffix.isBlank()) display.append(Text.literal(" " + suffix));
         MutableText chatName = Text.empty();
         String externalPrefix = externalPrefix(player);
         if (!externalPrefix.isBlank()) chatName.append(Text.literal(externalPrefix + " ").formatted(Formatting.GRAY));
-        if (citizen.isRealmLeader()) chatName.append(crown()).append(Text.literal(" "));
+        if (authorityMarked) chatName.append(crown()).append(Text.literal(" "));
         chatName.append(Text.literal(baseName).formatted(color));
         if (!suffix.isBlank()) chatName.append(Text.literal(" " + suffix));
         Text titleText = title != null && title.visibleUnderUsername()
                 ? Text.literal(title.displayName())
                 : Text.empty();
-        Text leaderText = citizen.isRealmLeader() ? crown() : Text.empty();
+        Text leaderText = authorityMarked ? crown() : Text.empty();
         VisibilityScope scope = realm == null ? VisibilityScope.REALM : realm.visibilityScope();
         MutableText tabName = Text.empty();
+        if (realm != null) {
+            tabName.append(Text.literal(realms.officialName(realm) + " ").formatted(Formatting.DARK_GRAY));
+        }
         if (!externalPrefix.isBlank()) tabName.append(Text.literal(externalPrefix + " ").formatted(Formatting.GRAY));
-        if (citizen.isRealmLeader()) tabName.append(crown()).append(Text.literal(" "));
+        if (authorityMarked) tabName.append(crown()).append(Text.literal(" "));
         tabName.append(display.copy());
         return new PlayerIdentity(display, chatName, tabName, titleText, leaderText,
                 prefix, suffix, color, scope);
@@ -140,5 +150,19 @@ public final class IdentityService {
             }
         }
         return "";
+    }
+
+    private boolean isAuthorityMarked(String realmId, ServerPlayerEntity player) {
+        if (player == null || realmId == null || realmId.isBlank()) return false;
+        CitizenRecord citizen = citizens.getOrCreate(player);
+        if (citizen.isRealmLeader()) return true;
+        for (BiPredicate<String, ServerPlayerEntity> provider : authorityMarkerProviders) {
+            try {
+                if (provider.test(realmId, player)) return true;
+            } catch (RuntimeException ignored) {
+                // Presentation hooks must not break identity rendering.
+            }
+        }
+        return false;
     }
 }
