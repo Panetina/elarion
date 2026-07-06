@@ -48,6 +48,21 @@ final class ElarionNotificationHudLayout {
         return ElarionUiMetrics.controlHeight(CLAIM_HEIGHT, 4);
     }
 
+    static int boundedDetailDrawerHeight(
+            int contentTop,
+            int contentHeight,
+            int actionBandHeight,
+            int selectedPointerBottom
+    ) {
+        int desired = contentTop + Math.max(1, contentHeight) + 4
+                + Math.max(0, actionBandHeight) + LIST_BOTTOM_MARGIN;
+        return Math.min(MAX_PANEL_HEIGHT, Math.max(desired, selectedPointerBottom));
+    }
+
+    static boolean railPointerVisible(boolean selected, int pointerCenterY, int drawerHeight) {
+        return selected && pointerCenterY >= 0 && pointerCenterY < drawerHeight;
+    }
+
     static Metrics metrics() {
         return new Metrics(
                 RAIL_WIDTH,

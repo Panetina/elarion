@@ -5,21 +5,6 @@ notes here.
 
 ## High Priority
 
-- Continue manual Phase 3 Admin config edit verification in a dev client:
-  `/e panel` now opens, Config/category clicks no longer disconnect, and the
-  Set Realm modal Tab-completes server-authored suggestions. Next verify
-  `core:ui_theme:defaults.font-scale-percent` validate/apply, confirm UI theme
-  sync/reflow, and confirm other config entries keep Apply disabled. Prefer
-  `dev/tools/minecraft-qa.ps1` for command sending, tab clicks, and screenshots.
-- Continue live Notification drawer screenshot QA with populated data. The
-  Realm empty state, selected rail, shell, header, ornaments, and close button
-  were captured on 2026-07-06; selected rows, unread markers, action footer,
-  and detail state still require seeded Realm notifications. Use
-  the dev-server path: `runServer`, `runClientOne`, Multiplayer saved
-  `localhost`, then `dev/tools/capture-minecraft-window.ps1`. Verify rail icons, drawer shell, header title/ornaments,
-  centered close X, selected row, unread marker, action footer, empty state,
-  and detail state. Do not change notification packets, storage, filtering, or
-  action semantics.
 - Continue live Admin Panel screenshot QA with the dev-server path and
   `dev/tools/minecraft-qa.ps1` or `dev/tools/capture-minecraft-window.ps1`.
   Overview, Config summary rows, scoped Config category rows, Players tab Set

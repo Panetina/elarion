@@ -49,6 +49,24 @@ final class ElarionNotificationHudLayoutTest {
         assertTrue(large.rowHeight() <= large.maxPanelHeight() / 4);
     }
 
+    @Test
+    void shortDetailsUseContentHeightAndLongDetailsRemainBounded() {
+        ElarionNotificationHudLayout.Metrics layout = ElarionNotificationHudLayout.metrics();
+
+        int shortDetail = ElarionNotificationHudLayout.boundedDetailDrawerHeight(48, 72, 31, 68);
+        int longDetail = ElarionNotificationHudLayout.boundedDetailDrawerHeight(48, 400, 31, 68);
+
+        assertEquals(161, shortDetail);
+        assertEquals(layout.maxPanelHeight(), longDetail);
+    }
+
+    @Test
+    void selectedRailPointerOnlyShowsWhenItMeetsTheDrawer() {
+        assertTrue(ElarionNotificationHudLayout.railPointerVisible(true, 40, 82));
+        assertTrue(!ElarionNotificationHudLayout.railPointerVisible(true, 112, 82));
+        assertTrue(!ElarionNotificationHudLayout.railPointerVisible(false, 40, 82));
+    }
+
     private static ElarionUiTheme themeWithScale(int fontScalePercent) {
         ElarionUiTheme defaults = ElarionUiTheme.defaults();
         return new ElarionUiTheme(

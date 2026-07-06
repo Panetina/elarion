@@ -68,6 +68,7 @@ Live screenshot QA is now available on this Windows workstation:
 .\gradlew.bat runClientOne
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\capture-minecraft-window.ps1 -Output build\ui-qa\<screen-name>.png
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action command -Command '/e panel'
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action move -X 318 -Y 250
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action scroll -X 655 -Y 375 -Wheel -1 -Count 4
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action capture -Output build\ui-qa\<screen-name>.png
 ```
@@ -81,8 +82,10 @@ which captures the Minecraft window contents even if another desktop window is
 overlapping it. If a local graphics driver returns a black image, make
 Minecraft visible and retry with `-ScreenCapture`.
 `dev/tools/minecraft-qa.ps1` is the faster wrapper for repeated checks: it can
-focus/maximize Minecraft, send a slash command, post client-area clicks and
-mouse-wheel scrolls, and capture screenshots through the same window matcher.
+focus/maximize Minecraft, send a slash command, move the native cursor for
+hover/tooltips, post client-area clicks and mouse-wheel scrolls, and capture
+screenshots through the same window matcher. Focus and input actions preserve
+an already maximized window.
 
 Manual UI entry map:
 
@@ -126,12 +129,15 @@ and Offering systems should not insert rewards directly into inventory. Clicking
 notification row selects it and marks it read without changing row height. The
 drawer footer shows the contextual action band for the selected row: a local
 `View` command plus server-authored actions such as Claim, Go To, Accept,
-Decline, or Dismiss. The action band wraps after four actions and keeps
+Decline, or Dismiss. `View` and `Go To` use the neutral action tone; Claim,
+Accept, and Approve use the green primary tone. The action band wraps after four actions and keeps
 disabled actions visible but muted. `View` opens an in-drawer detail state with
 a back arrow, larger icon, title, status, wrapped body, reward previews, and
-the same server-authored action band. Returning to the list preserves the
-selection and list scroll position. Empty categories stay content-bounded and
-do not draw an empty footer. Selected rows use a neutral dark surface with a
+the same server-authored action band. Short details are content-bounded while
+long details retain the maximum bounded scrolling viewport. Returning to the
+list preserves selection and scroll position. Empty categories stay
+content-bounded and do not draw an empty footer. A lower selected rail slot
+hides its pointer when that pointer would land below the short drawer. Selected rows use a neutral dark surface with a
 narrow category-colored accent rather than a full green selected fill.
 Notification cards are ordered newest-first regardless of read state; unread
 cards use a small marker in addition to the category rail new-message icon.

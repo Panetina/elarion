@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("focus", "maximize", "command", "click", "scroll", "capture")]
+    [ValidateSet("focus", "maximize", "command", "move", "click", "scroll", "capture")]
     [string] $Action,
     [string] $Command,
     [int] $X = 0,
@@ -19,11 +19,26 @@ using System;
 using System.Runtime.InteropServices;
 
 public static class ElarionMinecraftQa {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT {
+        public int X;
+        public int Y;
+    }
+
     [DllImport("user32.dll")]
     public static extern bool SetForegroundWindow(IntPtr hWnd);
 
     [DllImport("user32.dll")]
     public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsIconic(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool ClientToScreen(IntPtr hWnd, ref POINT point);
+
+    [DllImport("user32.dll")]
+    public static extern bool SetCursorPos(int x, int y);
 
     [DllImport("user32.dll")]
     public static extern bool PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -42,16 +57,27 @@ function Get-MinecraftProcess {
 }
 
 function Focus-Minecraft([System.Diagnostics.Process] $Process) {
-    [ElarionMinecraftQa]::ShowWindow($Process.MainWindowHandle, 9) | Out-Null
+    if ([ElarionMinecraftQa]::IsIconic($Process.MainWindowHandle)) {
+        [ElarionMinecraftQa]::ShowWindow($Process.MainWindowHandle, 9) | Out-Null
+    }
     [ElarionMinecraftQa]::SetForegroundWindow($Process.MainWindowHandle) | Out-Null
     Start-Sleep -Milliseconds 120
 }
 
 function Send-MinecraftClick([System.Diagnostics.Process] $Process, [int] $ClickX, [int] $ClickY) {
+    Move-MinecraftCursor $Process $ClickX $ClickY
     $lParam = [IntPtr](($ClickY -shl 16) -bor ($ClickX -band 0xffff))
     [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0200, [IntPtr]::Zero, $lParam) | Out-Null
     [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0201, [IntPtr]1, $lParam) | Out-Null
     [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0202, [IntPtr]::Zero, $lParam) | Out-Null
+}
+
+function Move-MinecraftCursor([System.Diagnostics.Process] $Process, [int] $MoveX, [int] $MoveY) {
+    $point = New-Object ElarionMinecraftQa+POINT
+    $point.X = $MoveX
+    $point.Y = $MoveY
+    [ElarionMinecraftQa]::ClientToScreen($Process.MainWindowHandle, [ref] $point) | Out-Null
+    [ElarionMinecraftQa]::SetCursorPos($point.X, $point.Y) | Out-Null
 }
 
 function Send-MinecraftScroll([System.Diagnostics.Process] $Process, [int] $ScrollX, [int] $ScrollY, [int] $WheelSteps) {
@@ -87,6 +113,12 @@ switch ($Action) {
         Start-Sleep -Milliseconds 80
         $shell.SendKeys("{ENTER}")
         Write-Output "Sent command: $Command"
+    }
+    "move" {
+        Focus-Minecraft $minecraft
+        Move-MinecraftCursor $minecraft $X $Y
+        Start-Sleep -Milliseconds 90
+        Write-Output "Moved cursor to $X,$Y."
     }
     "click" {
         Focus-Minecraft $minecraft

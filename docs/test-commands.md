@@ -28,6 +28,7 @@ target Elarion UI in Minecraft, capture the window:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\capture-minecraft-window.ps1 -Output build\ui-qa\<screen-name>.png
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action command -Command '/e panel'
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action click -X 490 -Y 88
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action move -X 318 -Y 250
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action scroll -X 655 -Y 375 -Wheel -1 -Count 4
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action capture -Output build\ui-qa\admin-panel.png
 ```
@@ -37,8 +38,9 @@ overlapping desktop window should not appear in the output. If the graphics
 driver returns a black image, make the Minecraft window visible and retry with
 `-ScreenCapture`.
 Use `minecraft-qa.ps1` for faster repeated checks. It wraps focus/maximize,
-slash-command sending, client-area clicks, mouse-wheel scrolling, and
-screenshot capture around the same Minecraft window target.
+slash-command sending, native-cursor movement for hover/tooltips, client-area
+clicks, mouse-wheel scrolling, and screenshot capture around the same
+Minecraft window target. Later actions preserve an already maximized window.
 
 Screen entry points for QA:
 

@@ -78,6 +78,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\capture-minecraf
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\capture-minecraft-window.ps1 -Output build\ui-qa\notification-drawer.png
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action command -Command '/e panel'
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action click -X 490 -Y 88
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action move -X 318 -Y 250
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action scroll -X 655 -Y 375 -Wheel -1 -Count 4
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action capture -Output build\ui-qa\admin-panel.png
 ```
@@ -90,8 +91,10 @@ Use the live dev-server path for real UI QA: start `runServer`, start
 window. If `PrintWindow` produces a black image on a driver setup, make the
 Minecraft window visible and retry with `-ScreenCapture`.
 `minecraft-qa.ps1` is the faster wrapper for repeat checks: it can focus or
-maximize Minecraft, send a slash command through chat, post a client-area
-click or mouse-wheel scroll, and delegate screenshots to the capture helper.
+maximize Minecraft, send a slash command through chat, move the native cursor
+for tooltip QA, post a client-area click or mouse-wheel scroll, and delegate
+screenshots to the capture helper. Focus/click actions preserve an already
+maximized window.
 
 Useful UI entry points for manual QA:
 

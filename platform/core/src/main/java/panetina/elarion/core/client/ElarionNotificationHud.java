@@ -278,17 +278,19 @@ public final class ElarionNotificationHud {
     private static void drawIcon(
             DrawContext context, int y, RailIcon icon, boolean unread, boolean selected, ElarionUiStyle style
     ) {
-        drawRailSlot(context, y, selected);
+        boolean pointerVisible = drawerOpen() && ElarionNotificationHudLayout.railPointerVisible(
+                selected, y + DISPLAY_SIZE / 2, drawerHeight());
+        drawRailSlot(context, y, selected, pointerVisible);
         int iconX = (RAIL_WIDTH - ICON_DRAW_SIZE) / 2;
         int iconY = y + (DISPLAY_SIZE - ICON_DRAW_SIZE) / 2;
         drawRailGlyph(context, icon, unread, iconX, iconY, true);
     }
 
-    private static void drawRailSlot(DrawContext context, int y, boolean selected) {
+    private static void drawRailSlot(DrawContext context, int y, boolean selected, boolean pointerVisible) {
         int x = 3;
         int width = RAIL_WIDTH - 6;
         ElarionCivicUi.rowSurface(context, x, y, width, DISPLAY_SIZE, selected, false, false);
-        if (selected) {
+        if (pointerVisible) {
             int centerY = y + DISPLAY_SIZE / 2;
             context.fill(x + width, centerY - 4, x + width + 1, centerY + 5, CIVIC_GOLD_DARK);
             context.fill(x + width + 1, centerY - 3, x + width + 2, centerY + 4, CIVIC_GOLD);
@@ -961,9 +963,18 @@ public final class ElarionNotificationHud {
 
     private static int drawerHeight() {
         if (entries().isEmpty()) {
-            return Math.max(LIST_TOP + EMPTY_CARD_HEIGHT + LIST_BOTTOM_MARGIN, selectedRailPointerBottom());
+            return LIST_TOP + EMPTY_CARD_HEIGHT + LIST_BOTTOM_MARGIN;
         }
-        if (detailOpen()) return MAX_PANEL_HEIGHT;
+        if (detailOpen()) {
+            ElarionNotificationEntry selected = selectedEntry();
+            if (selected == null) return MAX_PANEL_HEIGHT;
+            TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
+            return ElarionNotificationHudLayout.boundedDetailDrawerHeight(
+                    detailContentTop(),
+                    detailContentHeight(renderer, selected),
+                    actionBandHeight(selected),
+                    selectedRailPointerBottom());
+        }
         ElarionNotificationEntry selected = selectedEntry();
         int footer = selected == null ? 0 : actionBandHeight(selected);
         int separation = selected == null ? 0 : 4;
@@ -1082,8 +1093,7 @@ public final class ElarionNotificationHud {
     private static boolean isPrimaryAction(String id, String label) {
         String normalized = actionText(id, label);
         return normalized.contains("claim") || normalized.contains("accept")
-                || normalized.contains("approve") || normalized.contains("view")
-                || normalized.contains("go");
+                || normalized.contains("approve");
     }
 
     private static boolean isDismissAction(String id, String label) {
