@@ -18,13 +18,14 @@ final class UiThemeSyncPayloadTest {
                 15, 16, 17, 18, 19, 20, 21, 22, "elarion:textures/gui/panel.png",
                 "elarion:textures/gui/card.png", "tiled", 23);
         UiThemeSyncPayload payload = new UiThemeSyncPayload(
-                new ElarionUiTheme(640, 420, 55, 18, 7, 20, 16, 5, Map.of("shrine", shrine)));
+                new ElarionUiTheme(640, 420, 55, 125, 18, 7, 20, 16, 5, Map.of("shrine", shrine)));
         PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
 
         UiThemeSyncPayload.CODEC.encode(buffer, payload);
         UiThemeSyncPayload decoded = UiThemeSyncPayload.CODEC.decode(buffer);
 
         assertEquals(payload, decoded);
+        assertEquals(125, decoded.theme().fontScalePercent());
         assertEquals(shrine, decoded.theme().variant("shrine"));
     }
 }

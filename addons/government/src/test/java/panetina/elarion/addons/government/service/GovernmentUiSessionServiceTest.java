@@ -55,4 +55,19 @@ class GovernmentUiSessionServiceTest {
                 10.5D, 64.5D, 10.5D, 1200L).isEmpty());
         assertEquals(0, sessions.size());
     }
+
+    @Test
+    void rejectsBlankUnknownAndWrongSessionIds() {
+        sessions.create(player, "civic_forum", "realm1", "elarion:realm1", new BlockPos(10, 64, 10), 1000L);
+
+        assertTrue(sessions.validate(
+                player, "", "realm1", "civic_forum", "elarion:realm1",
+                10.5D, 64.5D, 10.5D, 1010L).isEmpty());
+        assertTrue(sessions.validate(
+                player, "missing-session", "realm1", "civic_forum", "elarion:realm1",
+                10.5D, 64.5D, 10.5D, 1010L).isEmpty());
+        assertTrue(sessions.validate(
+                player, null, "realm1", "civic_forum", "elarion:realm1",
+                10.5D, 64.5D, 10.5D, 1010L).isEmpty());
+    }
 }

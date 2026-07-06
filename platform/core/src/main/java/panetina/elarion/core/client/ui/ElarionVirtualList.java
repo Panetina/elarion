@@ -16,7 +16,6 @@ public final class ElarionVirtualList {
         this.visibleRows = Math.max(1, visibleRows);
         this.firstVisible = clamp(preferredFirstVisible, 0, maximumFirstVisible());
         selectedIndex = itemCount == 0 ? -1 : clamp(selectedIndex < 0 ? firstVisible : selectedIndex, 0, itemCount - 1);
-        ensureSelectedVisible();
     }
 
     public boolean scroll(int rows) {

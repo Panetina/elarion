@@ -1,0 +1,35 @@
+{
+    "schemaVersion": 1,
+    "id": "elarion_mounts",
+    "version": "${version}",
+    "name": "Elarion Mounts",
+    "icon": "assets/elarion_mounts/icon.png",
+    "description": "Native Fabric rideable mount entities, Collection-menu active mount selection, and converted external mount assets.",
+    "authors": [
+        "Panyel"
+    ],
+    "contributors": [
+        "Panetina Team"
+    ],
+    "license": "MIT",
+    "environment": "*",
+    "entrypoints": {
+        "elarion:addon": [
+            "panetina.elarion.addons.mounts.ElarionMountsAddon"
+        ],
+        "client": [
+            "panetina.elarion.addons.mounts.client.ElarionMountsClient"
+        ]
+    },
+    "mixins": [
+        "elarion_mounts.mixins.json"
+    ],
+    "depends": {
+        "fabricloader": ">=0.16.14",
+        "minecraft": "~1.21.1",
+        "java": ">=21",
+        "fabric-api": "*",
+        "elarion_core": "*",
+        "geckolib": ">=4.8.4"
+    }
+}

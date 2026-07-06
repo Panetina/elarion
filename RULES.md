@@ -47,6 +47,34 @@ Permanent project policy for Elarion.
 - `PLANS.md` is future ideas and design direction.
 - `LORE.md` is the root lore summary.
 - `OPTIMIZATION_TRACKER.md` is the active optimization health tracker.
+- `docs/ai/CURRENT_STATUS.md` is the compact current-state handoff for new
+  AI/new PC recovery.
+- `docs/ai/AI_SEARCH_HINTS.md` is the targeted source lookup guide.
+- `docs/addons/<addon>.md` is the addon technical contract.
+- `docs/systems/<system>.md` is the cross-addon system contract.
+- `wiki/` is the human-readable admin/player manual.
+
+## Documentation Maintenance Matrix
+
+- Ownership, architecture, or source-map changes: update `INDEX.md`,
+  `AGENTS.md`, `CODEX.md`, the relevant `docs/systems/*.md`, and
+  `docs/addons/*.md`.
+- Commands or test commands: update `docs/commands.md`,
+  `docs/test-commands.md` when relevant, `wiki/admin/commands.md`, and the
+  affected admin wiki page.
+- Config, runtime state, APIs, packets, UI behavior, permissions, events, or
+  notifications: update the affected addon/system docs and wiki page.
+- Any new or changed parsed config, config-backed content, addon definition
+  file, or Core definition map must update or add the matching read-only
+  config descriptors, descriptor tests, `docs/config.md`, and affected addon
+  docs in the same slice unless the data is generated-only and not parsed into
+  a typed runtime snapshot. Generated-only YAML must be documented as not ready
+  for truthful descriptor exposure.
+- New addon or changed addon status: update `AGENTS.md`, `INDEX.md`,
+  `CODEX.md`, `docs/addons/README.md`, `wiki/addons/README.md`, and relevant
+  wiki navigation.
+- Current work goes in `TODO.md`; future design goes in `PLANS.md`; do not mix
+  them.
 
 ## Change Rules
 

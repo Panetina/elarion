@@ -137,6 +137,55 @@ public final class OfferingCommands {
                                 }))));
     }
 
+    public static LiteralArgumentBuilder<ServerCommandSource> testCommands(
+            ElarionApi api,
+            OfferingService service
+    ) {
+        return CommandManager.literal("shrine")
+                .then(CommandManager.literal("reset")
+                        .executes(ctx -> run(ctx, () -> {
+                            int count = service.resetAllProgression(playerOrNull(ctx));
+                            CommandOutput.success(ctx.getSource(),
+                                    "Reset all Shrine progression, donations, and Realm Foundation flags for "
+                                            + count + " instance(s). Shrine links and blocks were preserved.",
+                                    true);
+                        }))
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .executes(ctx -> run(ctx, () -> {
+                                    String realm = StringArgumentType.getString(ctx, "realm");
+                                    int count = service.resetRealmProgression(realm, playerOrNull(ctx));
+                                    CommandOutput.success(ctx.getSource(),
+                                            "Reset Shrine progression, donations, and Foundation flags for "
+                                                    + realm + " across " + count
+                                                    + " instance(s). Shrine links and blocks were preserved.",
+                                            true);
+                                }))));
+    }
+
+    public static LiteralArgumentBuilder<ServerCommandSource> realmTestCommands(
+            ElarionApi api,
+            OfferingService service
+    ) {
+        return CommandManager.literal("realm")
+                .then(CommandManager.literal("global")
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .then(CommandManager.argument("state", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                                java.util.List.of("on", "off"), builder))
+                                        .executes(ctx -> run(ctx, () -> {
+                                            String realm = StringArgumentType.getString(ctx, "realm");
+                                            boolean enabled = parseToggle(StringArgumentType.getString(ctx, "state"));
+                                            service.setRealmFlag(realm, OfferingService.GLOBAL_NOTIFICATION_FLAG, enabled);
+                                            CommandOutput.success(ctx.getSource(),
+                                                    "Set global Realm access for " + realm + " to "
+                                                            + (enabled ? "on" : "off") + ".", true);
+                                        })))));
+    }
+
     private static void listProjects(
             CommandContext<ServerCommandSource> ctx,
             OfferingDefinitionService definitions
@@ -286,6 +335,14 @@ public final class OfferingCommands {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private static boolean parseToggle(String raw) {
+        return switch (raw.toLowerCase(Locale.ROOT)) {
+            case "on", "true", "yes", "enabled" -> true;
+            case "off", "false", "no", "disabled" -> false;
+            default -> throw new IllegalArgumentException("Expected on or off.");
+        };
     }
 
     private static ServerPlayerEntity requirePlayer(CommandContext<ServerCommandSource> ctx) {

@@ -10,6 +10,11 @@ Admin guide for runtime diagnostics, TPS triage, and host/modpack profiling.
 
 Optimization exposes live diagnostics. Security exposes an evidence/status foundation. Final confidence still requires testing with the full modpack and host.
 
+The Admin Panel Systems tab exposes the loaded `optimization` config domain as
+a read-only view of Core task budgets and monitoring thresholds. Changes still
+require editing `config/elarion/addons/optimization/performance.yml` and
+restarting the server.
+
 ## Commands
 
 ```text

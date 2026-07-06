@@ -3,6 +3,7 @@ package panetina.elarion.core.service;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,6 +37,18 @@ final class NicknameServiceTest {
     void detectsLookalikeProtectedNames() {
         assertEquals("admin", NicknameService.comparisonKey("\u0410\u0434min"));
         assertEquals("system", NicknameService.comparisonKey("\u0405ystem"));
+    }
+
+    @Test
+    void protectedNameMatchingCanRequireExactTerms() {
+        assertTrue(NicknameService.findProtectedNameMatch(
+                NicknameService.comparisonKey("Admin"), Set.of("admin"), false).orElseThrow().exact());
+        assertTrue(NicknameService.findProtectedNameMatch(
+                NicknameService.comparisonKey("Halo Maker"), Set.of("Halo"), false).isEmpty());
+        NicknameService.ProtectedNameMatch containing = NicknameService.findProtectedNameMatch(
+                NicknameService.comparisonKey("Halo Maker"), Set.of("Halo"), true).orElseThrow();
+        assertEquals("Halo", containing.term());
+        assertFalse(containing.exact());
     }
 
     @Test

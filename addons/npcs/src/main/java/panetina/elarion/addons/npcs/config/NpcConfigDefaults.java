@@ -13,10 +13,10 @@ public final class NpcConfigDefaults {
             config-version: 1
             npcs:
               worldheart_banker:
-                display-name: "Mara, Keeper of %currency_plural%"
+                display-name: "Worldheart Banker"
                 description: "A %capital% banker example. Bank actions are registered later by Economy."
                 skin: dunk_banker
-                portrait: mara_portrait
+                portrait: placeholder_portrait
                 dialogue: worldheart_banker
                 tags:
                   - bank
@@ -33,16 +33,16 @@ public final class NpcConfigDefaults {
             # Supported types: placeholder, texture, player_body.
             config-version: 1
             skins:
-              mara_skin:
-                display-name: "Mara Placeholder Body"
+              placeholder_body:
+                display-name: "Placeholder Body"
                 type: "placeholder"
                 texture: ""
                 player-name: ""
                 fallback-type: "placeholder"
                 fallback-texture: ""
                 adapter: ""
-              mara_player_body:
-                display-name: "Mara Player Body"
+              configured_player_body:
+                display-name: "Configured Player Body"
                 type: "player_body"
                 texture: ""
                 player-name: "Panyel"
@@ -64,7 +64,7 @@ public final class NpcConfigDefaults {
             # Supported types: placeholder, texture, player_head.
             config-version: 1
             portraits:
-              mara_portrait:
+              placeholder_portrait:
                 display-name: "Skin Head Fallback"
                 type: "placeholder"
                 texture: ""

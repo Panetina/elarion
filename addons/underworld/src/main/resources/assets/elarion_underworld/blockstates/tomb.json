@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "facing=north,part_y=0,variant=0": { "model": "elarion_underworld:block/tombstone_1" },
+    "facing=east,part_y=0,variant=0": { "model": "elarion_underworld:block/tombstone_1", "y": 90 },
+    "facing=south,part_y=0,variant=0": { "model": "elarion_underworld:block/tombstone_1", "y": 180 },
+    "facing=west,part_y=0,variant=0": { "model": "elarion_underworld:block/tombstone_1", "y": 270 },
+
+    "facing=north,part_y=0,variant=1": { "model": "elarion_underworld:block/tombstone_2" },
+    "facing=east,part_y=0,variant=1": { "model": "elarion_underworld:block/tombstone_2", "y": 90 },
+    "facing=south,part_y=0,variant=1": { "model": "elarion_underworld:block/tombstone_2", "y": 180 },
+    "facing=west,part_y=0,variant=1": { "model": "elarion_underworld:block/tombstone_2", "y": 270 },
+
+    "facing=north,part_y=0,variant=2": { "model": "elarion_underworld:block/tombstone_3" },
+    "facing=east,part_y=0,variant=2": { "model": "elarion_underworld:block/tombstone_3", "y": 90 },
+    "facing=south,part_y=0,variant=2": { "model": "elarion_underworld:block/tombstone_3", "y": 180 },
+    "facing=west,part_y=0,variant=2": { "model": "elarion_underworld:block/tombstone_3", "y": 270 },
+
+    "facing=north,part_y=1,variant=0": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=east,part_y=1,variant=0": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=south,part_y=1,variant=0": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=west,part_y=1,variant=0": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=north,part_y=1,variant=1": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=east,part_y=1,variant=1": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=south,part_y=1,variant=1": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=west,part_y=1,variant=1": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=north,part_y=1,variant=2": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=east,part_y=1,variant=2": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=south,part_y=1,variant=2": { "model": "elarion_underworld:block/tomb_empty" },
+    "facing=west,part_y=1,variant=2": { "model": "elarion_underworld:block/tomb_empty" }
+  }
+}

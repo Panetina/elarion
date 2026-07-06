@@ -1,5 +1,7 @@
 package panetina.elarion.core.event;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.CatchTelemetryEvent;
 import panetina.elarion.core.model.ElarionDomainEvent;
@@ -10,6 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public final class ElarionEventBus {
+    private static final Logger LOGGER = LoggerFactory.getLogger("elarion_core_events");
+
     public record CitizenChanged(UUID citizenId, CitizenRecord citizen, String reason) {}
     public record ProgressionEvent(String eventId, UUID actorId, String subjectId) {}
 
@@ -39,19 +43,29 @@ public final class ElarionEventBus {
     }
 
     public void emitCitizenChanged(CitizenChanged event) {
-        citizenListeners.forEach(listener -> listener.accept(event));
+        dispatch(citizenListeners, event, "citizen");
     }
 
     public void emitProgression(ProgressionEvent event) {
-        progressionListeners.forEach(listener -> listener.accept(event));
+        dispatch(progressionListeners, event, "progression");
     }
 
     public void emitCatchTelemetry(CatchTelemetryEvent event) {
-        catchTelemetryListeners.forEach(listener -> listener.accept(event));
+        dispatch(catchTelemetryListeners, event, "catch-telemetry");
     }
 
     public void emitDomainEvent(ElarionDomainEvent event) {
         if (event == null) return;
-        domainListeners.forEach(listener -> listener.accept(event));
+        dispatch(domainListeners, event, event.sourceSystem() + ":" + event.eventType());
+    }
+
+    private static <T> void dispatch(List<Consumer<T>> listeners, T event, String eventType) {
+        for (Consumer<T> listener : listeners) {
+            try {
+                listener.accept(event);
+            } catch (RuntimeException exception) {
+                LOGGER.error("Elarion event listener failed for {}", eventType, exception);
+            }
+        }
     }
 }

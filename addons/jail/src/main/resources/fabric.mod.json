@@ -3,6 +3,7 @@
     "id":  "elarion_jail",
     "version":  "${version}",
     "name":  "Elarion Jail",
+    "icon": "assets/elarion_jail/icon.png",
     "description":  "Jail addon shell backed by Elarion Core citizen status.",
     "authors":  [
                     "Panyel"

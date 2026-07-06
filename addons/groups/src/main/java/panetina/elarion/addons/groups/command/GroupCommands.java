@@ -182,6 +182,7 @@ public final class GroupCommands {
         CommandOutput.kv(source, "Public Tag", group.tagHidden() ? "Hidden" : "Shown");
         CommandOutput.kv(source, "Leader", displayCitizen(group.leaderId()));
         CommandOutput.kv(source, "Members", group.members().size());
+        CommandOutput.kv(source, "Confederation Locked", groups.isConfederationLocked(group.id()));
         CommandOutput.kv(source, "Confederation Eligible In Realm", "see Government delegate screen");
     }
 

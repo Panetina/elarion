@@ -55,6 +55,9 @@ final class NpcConfigValidator {
             for (DialogueNode node : dialogue.nodes().values()) {
                 validateConditions("dialogue " + dialogue.id() + " node " + node.id(),
                         node.conditions(), knownCondition, errors);
+                node.variants().forEach(variant -> validateConditions(
+                        "dialogue " + dialogue.id() + " node " + node.id() + " variant " + variant.id(),
+                        variant.conditions(), knownCondition, errors));
                 for (DialogueOption option : node.options()) {
                     if (!option.next().isBlank() && !dialogue.nodes().containsKey(option.next())) {
                         errors.add("dialogue " + dialogue.id() + " option " + option.id()

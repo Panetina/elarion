@@ -1,0 +1,188 @@
+# Underworld Addon
+
+Last reviewed: 2026-07-06
+
+Status: Implemented foundation.
+
+## Purpose
+
+`addons/underworld` owns the first Elarion death loop:
+
+- captures normal-world player deaths
+- moves captured inventory into a persisted corpse record
+- creates a protected persisted Elarion tomb block at the death site
+- sends the player to the configured Underworld world after respawn
+- blocks chat, private messages, group chat, and portal travel while the soul is
+  in the Underworld
+- returns the player after a persisted timer
+- tracks Soul Fractures and hands True Death to Core Character Lifecycle
+
+## Main Source
+
+- `addons/underworld/src/main/java/panetina/elarion/addons/underworld/ElarionUnderworldAddon.java`
+- `addons/underworld/src/main/java/panetina/elarion/addons/underworld/service/UnderworldService.java`
+- `addons/underworld/src/main/java/panetina/elarion/addons/underworld/block/UnderworldTombBlock.java`
+- `addons/underworld/src/main/java/panetina/elarion/addons/underworld/command/DeathCommands.java`
+- `addons/underworld/src/main/java/panetina/elarion/addons/underworld/storage/UnderworldStorage.java`
+
+## Config
+
+- `config/elarion/addons/underworld/underworld.yml`
+- `config/elarion/addons/worlds/worlds.yml`
+
+Config controls timers, Underworld spawn, corpse expiry, PvP loot rules, combat
+tag duration, physical currency tags, excluded loot tags, and Soul Fracture
+limits.
+
+`UnderworldConfigDescriptors` registers the read-only `underworld` config
+domain through `ElarionApi.system().configs()`. It exposes the active service
+snapshot in Underworld, corpse, PvP loot, combat-tag, and Soul Fracture
+categories. `/e death reload` replaces the service config, and descriptor
+suppliers immediately reflect the new snapshot without reparsing YAML during
+Admin Panel discovery. Decimal values are currently displayed as read-only
+strings because Core has no decimal descriptor codec yet.
+
+The actual Underworld dimension must exist as a managed world in `worlds.yml`.
+The default development setup includes `elarion:underworld` as a small VOID
+world with a deepslate-tile platform. `underworld.yml` points at that world with
+`underworld.world-id: "elarion:underworld"` and controls where souls spawn
+inside it.
+
+## Runtime State
+
+- `world/elarion/addon-state/underworld/state.json`
+- `world/elarion/addon-state/underworld/true-death-archive/`
+
+The archive folder retains minimal Underworld-side backup metadata. Canonical
+character archives and reset progress live in Core Character Lifecycle state.
+
+Corpse and recovery-vault stacks preserve the complete 1.21.1 `ItemStack`
+component payload through compressed NBT, with legacy item-ID/count fallback.
+New corpse stacks also store their original source slot so victim recovery can
+restore armor, offhand, selected hotbar, hotbar, and inventory slots when those
+slots are still empty or mergeable.
+
+Corpse records also store the tomb block position, victim Realm id, and selected
+tombstone variant. Tomb block state is derived from that corpse record during
+death capture and startup reconciliation.
+
+## Tomb Blocks
+
+Underworld registers `elarion_underworld:tomb`, a protected 1x1x2 block
+structure. The lower half renders the tomb model and stores the corpse id in a
+block entity; the upper half is an invisible structural reservation block.
+
+The tomb art comes from `C:\Users\Panyel\Desktop\Tombstones\Nexo\pack` and is
+namespaced under `assets/elarion_underworld/`. Imported model footprints:
+
+- `tombstone_1`: visual `0.938 x 1.062 x 0.312` blocks, occupies `1 x 2 x 1`.
+- `tombstone_2`: visual `0.938 x 1.125 x 0.312` blocks, occupies `1 x 2 x 1`.
+- `tombstone_3`: visual `0.938 x 1.875 x 0.438` blocks, occupies `1 x 2 x 1`.
+
+Tombstone selection is deterministic per Realm: a Realm id hashes to one of the
+three variants, so deaths from that Realm consistently leave the same style. If
+a player has no Realm and the world has no Realm owner, the corpse id is used as
+the deterministic fallback seed.
+
+Tombs are owner-protected while the victim has an active Underworld session.
+When the soul returns, the tomb becomes public-lootable and starts its decay
+timer using `corpse-expires-minutes`. When the decay timer finishes, the
+physical tomb structure is destroyed. Decayed leftovers move into the owner's
+recovery vault and the tomb blocks are removed. The tomb block entity mirrors
+only display data for the client floating label: owner display name, access
+state, timer fields, and item count. Corpse state remains canonical in
+persisted Underworld state.
+
+Corpse records store the victim UUID and nickname-first display name captured
+at death so the tomb label and grave recovery UI can show who the grave belongs
+to without doing a lookup on interaction. The display name prefers Core citizen
+nickname, then last known username, then the Minecraft profile name fallback.
+Stored corpse items carry modular source metadata: legacy `sourceType`, vanilla
+slot/equipment coordinates, plus `sourceId` and `sourceLabel` for future
+backpack, trinket, skin, accessory, or other addon-owned slot families. Unknown
+future sources fall back to normal inventory recovery unless their addon later
+contributes a dedicated restore path.
+
+## Commands
+
+Admin:
+
+```text
+/e death reload
+/e death inspect <player>
+/e death corpse list
+/e death corpse inspect <corpseId>
+/e death corpse recover <corpseId> <player>
+/e death vault recover <player>
+/e death underworld send <player> [minutes]
+/e death underworld return <player>
+/e death soul inspect <player>
+/e death soul add-fracture <player>
+/e death soul remove-fracture <player>
+/e death soul clear-fractures <player>
+```
+
+Development test:
+
+```text
+/e test death send <player> <minutes>
+/e test death return <player>
+/e test death fracture <player>
+/e test death fracture add <player>
+/e test death fracture remove <player>
+/e test death clear <player>
+/e test death reset-state
+```
+
+The client receives a compact status sync payload while a session or Soul
+Fracture state exists. The HUD renders only while the player is bound to the
+Underworld and shows the remaining return timer. Soul Fracture marks belong in
+identity/tablist presentation, not in the death timer overlay.
+
+## Ownership
+
+Underworld owns death capture, corpse state, recovery vaults, Underworld
+sessions, Soul Fractures, and the trigger into Core Character Lifecycle.
+
+Core owns the shared player restriction API used to block chat and travel.
+Portals still own route state and teleport validation. Economy still owns bank
+balances; Underworld only reads physical currency items/tags when selecting PvP
+loot.
+
+## Events And Notifications
+
+Underworld emits Core domain events:
+
+- `corpse-created`
+- `player-sent-to-underworld`
+- `player-returned-from-underworld`
+- `underworld-death`
+- `soul-fractured`
+- `true-death`
+- `pvp-loot-claimed`
+- `corpse-recovered`
+
+Current notifications are intentionally minimal. True Death broadcasts in chat;
+ordinary death, recovery, and loot actions use direct player feedback to avoid
+notification spam. Future Chronicle, newspaper, Government succession, Jail, or
+website bridge consumers should listen to the domain events.
+
+## Recovery Guarantees
+
+- Tomb interaction opens a server-authored Elarion recovery screen.
+- The client grave recovery screen extends Core `ElarionScreen` and uses the
+  shared Core civic shell, status chip, item-slot, and action-button helpers.
+  It remains presentation-only; corpse access, item restoration, and inventory
+  mutation are revalidated and executed server-side.
+- Claims are revalidated by corpse ID, player ownership, world, and range.
+- Victim recovery tries original empty/mergeable slots first, then normal
+  inventory. Full inventories leave unmoved stacks in persisted storage; items
+  are never dropped as a fallback.
+- Empty corpses are removed immediately, preventing repeated recovery.
+- After protection ends, other players may loot remaining tomb contents until
+  decay. Decayed corpse contents move to the owner's persisted recovery vault.
+- Startup reconciliation restores missing tomb blocks from active corpse records.
+
+Government succession and addon cleanup run through Core's journaled character
+reset handlers. Rich character genealogy and a player-facing recovery-vault
+screen remain future work.

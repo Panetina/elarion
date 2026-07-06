@@ -211,20 +211,44 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertExecutes("e government inspect republic", 4);
         commands.assertExecutes("e government inspect confederation", 4);
         commands.assertExecutes("e government state realm1", 4);
+        commands.assertExecutes("e government proposals realm1", 4);
+        commands.assertExecutes("e government laws realm1", 4);
         commands.assertExecutes("e government gates realm1", 4);
         commands.assertExecutes("e government identity set realm1 OAK Oak", 4);
+        government.states().setVotedColor("realm1", "gold");
+        commands.assertExecutes("e government state realm1", 4);
+        commands.assertExecutes("e government gates realm1", 4);
         commands.assertExecutes("e government set-form realm1 republic", 4);
+        UUID president = UUID.randomUUID();
+        government.states().assignOffice("realm1", "president", president);
         commands.assertExecutes("e government founding complete realm1", 4);
         commands.assertExecutes("e government authority cleanup", 4);
         context.assertEquals("republic", government.states().realm("realm1").activeGovernmentFormId(),
                 "OP dev government form command should update government addon state only");
         context.assertEquals("Oak", government.states().realm("realm1").votedDisplayName(),
                 "OP dev identity command should update Government identity overlay only");
+        context.assertEquals("gold", government.states().realm("realm1").votedColor(),
+                "Government color vote state should update Realm presentation");
+        context.assertTrue(government.states().realm("realm1").officeHolders()
+                        .getOrDefault("president", java.util.Set.of()).contains(president),
+                "Government office assignment should persist in Realm government state");
         context.assertTrue(government.gates("realm1").foundingElectionComplete(),
                 "OP dev founding command should mark founding election complete");
         commands.assertFails("e government forms", 0);
         commands.assertFails("e government inspect missing_form", 4);
+        commands.assertFails("e government proposal inspect realm1 missing_proposal", 4);
+        commands.assertFails("e government law archive realm1 missing_law", 4);
+        commands.assertFails("e government law restore realm1 missing_law", 4);
         commands.assertFails("e government office assign realm1 president missing_player", 4);
+        commands.assertFails("e test government advance realm1", 4);
+        commands.assertExecutes("e government reset realm1", 4);
+        commands.assertFails("e government reset realm1", 0);
+        context.assertEquals("", government.states().realm("realm1").activeGovernmentFormId(),
+                "Government admin reset should clear the active form for only the targeted Realm");
+        commands.assertExecutes("e test government reset realm1", 4);
+        commands.assertFails("e test government reset realm1", 0);
+        context.assertEquals("", government.states().realm("realm1").activeGovernmentFormId(),
+                "Government test reset should clear the active form for only the targeted Realm");
 
         var lobby = worlds.resolve("lobby");
         var realmWorld = worlds.resolve("realm_world_1");

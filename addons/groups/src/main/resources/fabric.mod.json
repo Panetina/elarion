@@ -3,6 +3,7 @@
   "id": "elarion_groups",
   "version": "${version}",
   "name": "Elarion Groups",
+  "icon": "assets/elarion_groups/icon.png",
   "description": "Reusable public group, tag, invite, and group chat foundation for Elarion.",
   "authors": [
     "Panyel"

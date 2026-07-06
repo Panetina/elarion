@@ -4,6 +4,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 import java.util.UUID;
 
@@ -19,15 +20,15 @@ public record NpcDialoguePromptSubmitPayload(
     public static final PacketCodec<PacketByteBuf, NpcDialoguePromptSubmitPayload> CODEC = PacketCodec.of(
             (payload, buffer) -> {
                 buffer.writeUuid(payload.npcId());
-                buffer.writeString(payload.nodeId());
-                buffer.writeString(payload.optionId());
-                buffer.writeString(payload.value());
+                ElarionPacketCodecs.writeString(buffer, payload.nodeId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.optionId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.value(), 16);
             },
             buffer -> new NpcDialoguePromptSubmitPayload(
                     buffer.readUuid(),
-                    buffer.readString(128),
-                    buffer.readString(128),
-                    buffer.readString(16))
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 16))
     );
 
     public NpcDialoguePromptSubmitPayload {

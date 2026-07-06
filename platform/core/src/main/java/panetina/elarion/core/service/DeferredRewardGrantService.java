@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import panetina.elarion.core.model.DeferredRewardGrant;
 import panetina.elarion.core.model.ElarionNotificationAction;
 import panetina.elarion.core.model.ElarionNotificationCategory;
@@ -167,7 +168,11 @@ public final class DeferredRewardGrantService {
             if ("item".equals(type)) {
                 String id = action.parameters().getOrDefault("id", "");
                 int count = parsePositive(action.parameters().getOrDefault("count", "1"), 1);
-                previews.add(new ElarionNotificationRewardPreview(shortItemName(id), "item:" + id, count));
+                previews.add(new ElarionNotificationRewardPreview(
+                        previewItemLabel(id, action.parameters()),
+                        "item:" + id,
+                        count,
+                        itemTooltipLines(action.parameters())));
             } else if (type.contains("currency") && type.contains("reward")) {
                 int amount = parsePositive(action.parameters().getOrDefault("amount", "0"), 0);
                 previews.add(new ElarionNotificationRewardPreview("Sigils",
@@ -197,6 +202,57 @@ public final class DeferredRewardGrantService {
             builder.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
         }
         return builder.isEmpty() ? path : builder.toString();
+    }
+
+    private static String previewItemLabel(String id, Map<String, String> parameters) {
+        String display = parameters.getOrDefault("display-label", parameters.getOrDefault("name", ""));
+        return display == null || display.isBlank() ? shortItemName(id) : display.trim();
+    }
+
+    private static List<String> itemTooltipLines(Map<String, String> parameters) {
+        List<String> lines = new ArrayList<>();
+        String customName = parameters.getOrDefault("name", "");
+        if (customName != null && !customName.isBlank()) lines.add(customName.trim());
+        String raw = parameters.getOrDefault("enchants", parameters.getOrDefault("enchantments", ""));
+        if (raw != null && !raw.isBlank()) {
+            for (String entry : raw.split(",")) {
+                String visible = enchantmentTooltipLine(entry);
+                if (!visible.isBlank()) lines.add(visible);
+                if (lines.size() >= 8) break;
+            }
+        }
+        return List.copyOf(lines);
+    }
+
+    private static String enchantmentTooltipLine(String raw) {
+        if (raw == null) return "";
+        String trimmed = raw.trim();
+        int separator = trimmed.lastIndexOf(':');
+        if (separator <= 0 || separator >= trimmed.length() - 1) return "";
+        Identifier id = Identifier.tryParse(trimmed.substring(0, separator).trim());
+        String level = trimmed.substring(separator + 1).trim();
+        if (id == null || level.isBlank()) return "";
+        return shortItemName(id.getPath()) + " " + enchantmentLevelLabel(level);
+    }
+
+    private static String enchantmentLevelLabel(String raw) {
+        try {
+            return switch (Integer.parseInt(raw)) {
+                case 1 -> "I";
+                case 2 -> "II";
+                case 3 -> "III";
+                case 4 -> "IV";
+                case 5 -> "V";
+                case 6 -> "VI";
+                case 7 -> "VII";
+                case 8 -> "VIII";
+                case 9 -> "IX";
+                case 10 -> "X";
+                default -> raw;
+            };
+        } catch (NumberFormatException exception) {
+            return raw;
+        }
     }
 
     public enum ClaimResult {

@@ -6,9 +6,22 @@ public record ElarionScaledLayout(
     public static ElarionScaledLayout fit(
             int screenWidth, int screenHeight, int logicalWidth, int logicalHeight, int margin, int minimumScalePercent
     ) {
+        return fit(screenWidth, screenHeight, logicalWidth, logicalHeight, margin, minimumScalePercent, 1.0F);
+    }
+
+    public static ElarionScaledLayout fit(
+            int screenWidth,
+            int screenHeight,
+            int logicalWidth,
+            int logicalHeight,
+            int margin,
+            int minimumScalePercent,
+            float maximumScale
+    ) {
         int safeWidth = Math.max(1, screenWidth - margin * 2);
         int safeHeight = Math.max(1, screenHeight - margin * 2);
-        float scale = Math.min(1.0F, Math.min(
+        float cap = Math.max(0.25F, Math.min(1.0F, maximumScale));
+        float scale = Math.min(cap, Math.min(
                 safeWidth / (float) Math.max(1, logicalWidth),
                 safeHeight / (float) Math.max(1, logicalHeight)));
         float preferredMinimum = Math.max(0.25F, Math.min(1.0F, minimumScalePercent / 100.0F));

@@ -1,6 +1,6 @@
 # Optimization Addon Contract
 
-Last reviewed: 2026-06-11
+Last reviewed: 2026-07-05
 
 Author: Panyel  
 Team: Panetina Team
@@ -31,6 +31,14 @@ config/elarion/addons/optimization/performance.yml
 ```
 
 Core reads task budgets from this file before addons initialize.
+
+`PerformanceConfigDescriptors` registers the read-only `optimization` config
+domain after Core has loaded the task service. The domain explicitly declares
+`platform:core` ownership and exposes only parsed host metadata, task budgets,
+and monitoring thresholds from `ElarionTaskService.snapshot()`. Live queue
+counters and ignored compatibility notes are not config entries. There is no
+runtime reload path, so all entries are restart-required. Decimal values remain
+read-only strings until Core gains a decimal descriptor codec.
 
 ## Commands
 

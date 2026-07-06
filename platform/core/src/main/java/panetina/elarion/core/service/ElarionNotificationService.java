@@ -79,6 +79,10 @@ public final class ElarionNotificationService {
         syncRealm(normalized);
     }
 
+    public synchronized boolean isWorldRealmEligible(String realmId) {
+        return worldEligibleRealms.contains(clean(realmId));
+    }
+
     public synchronized void registerAction(String actionId, NotificationActionHandler handler) {
         String normalized = clean(actionId);
         if (normalized.isBlank() || handler == null) throw new IllegalArgumentException("Notification action is required.");

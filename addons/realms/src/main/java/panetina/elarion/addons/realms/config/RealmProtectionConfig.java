@@ -42,19 +42,29 @@ public record RealmProtectionConfig(
             extra-container-blocks: []
             """;
 
+    public static RealmProtectionConfig defaults() {
+        return new RealmProtectionConfig(
+                Set.of("elarion:lobby", "elarion:worldheart"),
+                false,
+                true,
+                1000L,
+                Set.of(),
+                Set.of());
+    }
+
     public static RealmProtectionConfig load() {
         Path path = AddonConfigFiles.writeDefault("realms", "protection.yml", DEFAULT_CONFIG);
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             Object loaded = new Yaml().load(reader);
             Map<?, ?> root = loaded instanceof Map<?, ?> map ? map : Map.of();
+            RealmProtectionConfig defaults = defaults();
             return new RealmProtectionConfig(
-                    strings(root.get("shared-world-ids"),
-                            Set.of("elarion:lobby", "elarion:worldheart")),
-                    bool(root.get("operator-bypass"), false),
-                    bool(root.get("protect-explosion-blocks"), true),
-                    number(root.get("feedback-cooldown-millis"), 1000L),
-                    strings(root.get("extra-ally-interactable-blocks"), Set.of()),
-                    strings(root.get("extra-container-blocks"), Set.of())
+                    strings(root.get("shared-world-ids"), defaults.sharedWorldIds()),
+                    bool(root.get("operator-bypass"), defaults.operatorBypass()),
+                    bool(root.get("protect-explosion-blocks"), defaults.protectExplosionBlocks()),
+                    number(root.get("feedback-cooldown-millis"), defaults.feedbackCooldownMillis()),
+                    strings(root.get("extra-ally-interactable-blocks"), defaults.extraAllyInteractableBlocks()),
+                    strings(root.get("extra-container-blocks"), defaults.extraContainerBlocks())
             );
         } catch (IOException | RuntimeException exception) {
             throw new IllegalStateException("Unable to load Realm protection config " + path, exception);

@@ -29,8 +29,10 @@ final class AnglingFishingTriggerServiceTest {
         assertFalse(first.sessionId().equals(second.sessionId()));
         assertEquals(second, fixture.sessions.active(actorId).orElseThrow());
 
-        var result = fixture.triggers.complete(actorId).orElseThrow();
+        var completed = fixture.triggers.complete(actorId).orElseThrow();
+        var result = completed.result();
         assertEquals(second.eventId(), result.eventId());
+        assertEquals(context(actorId).baitId(), completed.baitId());
         assertEquals(List.of(result.toTelemetryEvent()), fixture.emitted);
         assertTrue(fixture.sessions.active(actorId).isEmpty());
         assertTrue(fixture.triggers.complete(actorId).isEmpty());
@@ -58,6 +60,21 @@ final class AnglingFishingTriggerServiceTest {
         assertTrue(fixture.sessions.active(actorId).isEmpty());
         assertTrue(fixture.emitted.isEmpty());
         assertFalse(fixture.triggers.cancel(actorId));
+    }
+
+    @Test
+    void cancellationAllowsFreshCastAfterReconnect() {
+        var fixture = fixture();
+        UUID actorId = UUID.randomUUID();
+        var first = fixture.triggers.begin(context(actorId), 0).orElseThrow();
+
+        assertTrue(fixture.triggers.cancel(actorId));
+        var second = fixture.triggers.beginIfAbsent(context(actorId), 0).orElseThrow();
+
+        assertFalse(first.sessionId().equals(second.sessionId()));
+        assertEquals(second, fixture.sessions.active(actorId).orElseThrow());
+        assertEquals(1, fixture.sessions.activeCount());
+        assertTrue(fixture.emitted.isEmpty());
     }
 
     private static Fixture fixture() {
@@ -91,7 +108,7 @@ final class AnglingFishingTriggerServiceTest {
                 Identifier.of("minecraft", "overworld"),
                 Identifier.of("minecraft", "river"),
                 Identifier.of("minecraft", "water"),
-                null,
+                Identifier.of("elarion_angling", "placeholder_bait_item"),
                 63,
                 6_000,
                 false,

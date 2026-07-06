@@ -25,6 +25,10 @@ config/elarion/addons/portals/routes.yml
 config/elarion/addons/portals/ui.yml
 ```
 
+Ancient Gate descriptions can use `%realm_display%`, `%realm_official%`, and
+`%realm_tag%`. Use `%realm_official%` when the text should follow the current
+Government form, such as `Kingdom of Oak`.
+
 ## A/B Gate Model
 
 ```text
@@ -106,6 +110,11 @@ Completing the configured Shrine milestone sets the Realm flag
 in that Realm's notification feed. This flag also makes the World notification
 icon available to the Realm's citizens.
 
+Resetting the Realm's Shrine progression reverses that project-owned unlock:
+the `ancient_gate_unlocked` flag is cleared, the matching route is locked, and
+the old gate-unlocked notification is resolved. Rebuilding the Shrine unlocks
+the route again and creates a fresh notification.
+
 ## Tickets
 
 Portal tickets are physical route-bound items in the Economy creative tab. The Portal Surveyor is command-only through `/e portal wand`.
@@ -119,12 +128,17 @@ portal_ticket.end
 
 ## Route Status Icons
 
-Unlocked scheduled routes render compact HUD icons:
+Unlocked scheduled routes render compact HUD icons in the reserved accessory
+space below the notification category rail. They are not notification
+categories and do not create notification cards when the route opens or closes.
 
 - locked routes are invisible
 - closed routes are greyed out
 - open routes are colored
 - hovering shows the local opening or closing countdown
+- the colored bottom bar shrinks as an open window approaches closure
+- Portal icons resize with the notification rail on small windows
+- route icons and visual caches clear when disconnecting from a server
 
 Configure the icon independently from the prompt/ticket icon:
 

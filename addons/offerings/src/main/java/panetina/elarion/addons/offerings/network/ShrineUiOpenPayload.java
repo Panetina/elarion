@@ -4,6 +4,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,15 +48,15 @@ public record ShrineUiOpenPayload(
 
     public static final PacketCodec<PacketByteBuf, ShrineUiOpenPayload> CODEC = PacketCodec.of(
             (payload, buffer) -> {
-                buffer.writeString(payload.instanceId());
-                buffer.writeString(payload.projectId());
-                buffer.writeString(payload.title());
-                buffer.writeString(payload.subtitle());
-                buffer.writeString(payload.description());
-                buffer.writeString(payload.status());
-                buffer.writeString(payload.levelText());
-                buffer.writeString(payload.icon());
-                buffer.writeString(payload.themeVariant());
+                ElarionPacketCodecs.writeString(buffer, payload.instanceId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.projectId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.title(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.subtitle(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.description(), 4096);
+                ElarionPacketCodecs.writeString(buffer, payload.status(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.levelText(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.icon(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.themeVariant(), 64);
                 buffer.writeVarInt(payload.logicalWidth());
                 buffer.writeVarInt(payload.logicalHeight());
                 buffer.writeVarInt(payload.minimumScalePercent());
@@ -70,27 +71,27 @@ public record ShrineUiOpenPayload(
                 payload.requirementRows().forEach(row -> RequirementRow.write(row, buffer));
                 writeRows(payload.rewardRows(), buffer);
                 writeDonationRows(payload.historyRows(), buffer);
-                buffer.writeString(payload.rewardsPlaceholder());
-                buffer.writeString(payload.historyPlaceholder());
-                buffer.writeString(payload.contributionPlaceholder());
-                buffer.writeString(payload.resultMessage());
+                ElarionPacketCodecs.writeString(buffer, payload.rewardsPlaceholder(), 512);
+                ElarionPacketCodecs.writeString(buffer, payload.historyPlaceholder(), 512);
+                ElarionPacketCodecs.writeString(buffer, payload.contributionPlaceholder(), 512);
+                ElarionPacketCodecs.writeString(buffer, payload.resultMessage(), 512);
                 buffer.writeBoolean(payload.resultError());
                 buffer.writeBoolean(payload.completed());
-                buffer.writeString(payload.eventTitle());
-                buffer.writeString(payload.eventBody());
-                buffer.writeString(payload.eventLockedBody());
+                ElarionPacketCodecs.writeString(buffer, payload.eventTitle(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.eventBody(), 512);
+                ElarionPacketCodecs.writeString(buffer, payload.eventLockedBody(), 512);
                 buffer.writeBoolean(payload.eventsUnlocked());
             },
             buffer -> {
-                String instanceId = buffer.readString(128);
-                String projectId = buffer.readString(128);
-                String title = buffer.readString(256);
-                String subtitle = buffer.readString(256);
-                String description = buffer.readString(4096);
-                String status = buffer.readString(64);
-                String level = buffer.readString(128);
-                String icon = buffer.readString(256);
-                String variant = buffer.readString(64);
+                String instanceId = ElarionPacketCodecs.readString(buffer, 128);
+                String projectId = ElarionPacketCodecs.readString(buffer, 128);
+                String title = ElarionPacketCodecs.readString(buffer, 256);
+                String subtitle = ElarionPacketCodecs.readString(buffer, 256);
+                String description = ElarionPacketCodecs.readString(buffer, 4096);
+                String status = ElarionPacketCodecs.readString(buffer, 64);
+                String level = ElarionPacketCodecs.readString(buffer, 128);
+                String icon = ElarionPacketCodecs.readString(buffer, 256);
+                String variant = ElarionPacketCodecs.readString(buffer, 64);
                 int width = buffer.readVarInt();
                 int height = buffer.readVarInt();
                 int scale = buffer.readVarInt();
@@ -101,7 +102,7 @@ public record ShrineUiOpenPayload(
                 int closeWidth = buffer.readVarInt();
                 long current = buffer.readVarLong();
                 long required = buffer.readVarLong();
-                int requirementCount = buffer.readVarInt();
+                int requirementCount = ElarionPacketCodecs.readBoundedCount(buffer, 256);
                 List<RequirementRow> requirements = new ArrayList<>();
                 for (int index = 0; index < requirementCount; index++) {
                     requirements.add(RequirementRow.read(buffer));
@@ -110,9 +111,11 @@ public record ShrineUiOpenPayload(
                         instanceId, projectId, title, subtitle, description, status, level, icon, variant,
                         width, height, scale, summaryWidth, tabHeight, rowHeight, iconSize, closeWidth,
                         current, required, requirements, readRows(buffer), readDonationRows(buffer),
-                        buffer.readString(512), buffer.readString(512), buffer.readString(512),
-                        buffer.readString(512), buffer.readBoolean(), buffer.readBoolean(),
-                        buffer.readString(256), buffer.readString(512), buffer.readString(512),
+                        ElarionPacketCodecs.readString(buffer, 512), ElarionPacketCodecs.readString(buffer, 512),
+                        ElarionPacketCodecs.readString(buffer, 512),
+                        ElarionPacketCodecs.readString(buffer, 512), buffer.readBoolean(), buffer.readBoolean(),
+                        ElarionPacketCodecs.readString(buffer, 256), ElarionPacketCodecs.readString(buffer, 512),
+                        ElarionPacketCodecs.readString(buffer, 512),
                         buffer.readBoolean());
             });
 
@@ -128,7 +131,7 @@ public record ShrineUiOpenPayload(
     }
 
     private static List<DisplayRow> readRows(PacketByteBuf buffer) {
-        int count = buffer.readVarInt();
+        int count = ElarionPacketCodecs.readBoundedCount(buffer, 512);
         List<DisplayRow> rows = new ArrayList<>();
         for (int index = 0; index < count; index++) rows.add(DisplayRow.read(buffer));
         return List.copyOf(rows);
@@ -140,7 +143,7 @@ public record ShrineUiOpenPayload(
     }
 
     private static List<DonationRow> readDonationRows(PacketByteBuf buffer) {
-        int count = buffer.readVarInt();
+        int count = ElarionPacketCodecs.readBoundedCount(buffer, 512);
         List<DonationRow> rows = new ArrayList<>();
         for (int index = 0; index < count; index++) rows.add(DonationRow.read(buffer));
         return List.copyOf(rows);
@@ -162,11 +165,11 @@ public record ShrineUiOpenPayload(
             boolean complete
     ) {
         static void write(RequirementRow row, PacketByteBuf buffer) {
-            buffer.writeString(row.key());
-            buffer.writeString(row.type());
-            buffer.writeString(row.id());
-            buffer.writeString(row.label());
-            buffer.writeString(row.icon());
+            ElarionPacketCodecs.writeString(buffer, row.key(), 256);
+            ElarionPacketCodecs.writeString(buffer, row.type(), 32);
+            ElarionPacketCodecs.writeString(buffer, row.id(), 256);
+            ElarionPacketCodecs.writeString(buffer, row.label(), 256);
+            ElarionPacketCodecs.writeString(buffer, row.icon(), 256);
             buffer.writeVarLong(row.current());
             buffer.writeVarLong(row.required());
             buffer.writeBoolean(row.complete());
@@ -174,8 +177,10 @@ public record ShrineUiOpenPayload(
 
         static RequirementRow read(PacketByteBuf buffer) {
             return new RequirementRow(
-                    buffer.readString(256), buffer.readString(32), buffer.readString(256), buffer.readString(256),
-                    buffer.readString(256), buffer.readVarLong(), buffer.readVarLong(), buffer.readBoolean());
+                    ElarionPacketCodecs.readString(buffer, 256), ElarionPacketCodecs.readString(buffer, 32),
+                    ElarionPacketCodecs.readString(buffer, 256), ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 256), buffer.readVarLong(), buffer.readVarLong(),
+                    buffer.readBoolean());
         }
     }
 
@@ -190,20 +195,23 @@ public record ShrineUiOpenPayload(
             boolean disabled
     ) {
         static void write(DisplayRow row, PacketByteBuf buffer) {
-            buffer.writeString(row.id());
-            buffer.writeString(row.kind());
-            buffer.writeString(row.label());
-            buffer.writeString(row.body());
-            buffer.writeString(row.icon());
+            ElarionPacketCodecs.writeString(buffer, row.id(), 128);
+            ElarionPacketCodecs.writeString(buffer, row.kind(), 32);
+            ElarionPacketCodecs.writeString(buffer, row.label(), 256);
+            ElarionPacketCodecs.writeString(buffer, row.body(), 1024);
+            ElarionPacketCodecs.writeString(buffer, row.icon(), 256);
             buffer.writeVarInt(row.count());
-            buffer.writeString(row.enchantments());
+            ElarionPacketCodecs.writeString(buffer, row.enchantments(), 1024);
             buffer.writeBoolean(row.disabled());
         }
 
         static DisplayRow read(PacketByteBuf buffer) {
-            return new DisplayRow(buffer.readString(128), buffer.readString(32),
-                    buffer.readString(256), buffer.readString(1024), buffer.readString(256),
-                    buffer.readVarInt(), buffer.readString(1024), buffer.readBoolean());
+            return new DisplayRow(ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 32),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 1024),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    buffer.readVarInt(), ElarionPacketCodecs.readString(buffer, 1024), buffer.readBoolean());
         }
     }
 
@@ -217,19 +225,21 @@ public record ShrineUiOpenPayload(
             String timestamp
     ) {
         static void write(DonationRow row, PacketByteBuf buffer) {
-            buffer.writeString(row.id());
-            buffer.writeString(row.contributor());
+            ElarionPacketCodecs.writeString(buffer, row.id(), 128);
+            ElarionPacketCodecs.writeString(buffer, row.contributor(), 256);
             buffer.writeInt(row.contributorColor());
             buffer.writeVarLong(row.amount());
-            buffer.writeString(row.offeringLabel());
+            ElarionPacketCodecs.writeString(buffer, row.offeringLabel(), 256);
             buffer.writeInt(row.offeringColor());
-            buffer.writeString(row.timestamp());
+            ElarionPacketCodecs.writeString(buffer, row.timestamp(), 128);
         }
 
         static DonationRow read(PacketByteBuf buffer) {
             return new DonationRow(
-                    buffer.readString(128), buffer.readString(256), buffer.readInt(),
-                    buffer.readVarLong(), buffer.readString(256), buffer.readInt(), buffer.readString(128));
+                    ElarionPacketCodecs.readString(buffer, 128), ElarionPacketCodecs.readString(buffer, 256),
+                    buffer.readInt(),
+                    buffer.readVarLong(), ElarionPacketCodecs.readString(buffer, 256), buffer.readInt(),
+                    ElarionPacketCodecs.readString(buffer, 128));
         }
     }
 }

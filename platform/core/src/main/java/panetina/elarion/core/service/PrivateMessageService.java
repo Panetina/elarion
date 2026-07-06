@@ -20,6 +20,7 @@ public final class PrivateMessageService {
     private final HistoryService history;
     private final ChatService chat;
     private final ServerIdentityConfig serverIdentity;
+    private final PlayerRestrictionService restrictions;
     private final Map<UUID, UUID> lastPrivateMessageSender = new ConcurrentHashMap<>();
 
     public PrivateMessageService(
@@ -29,7 +30,8 @@ public final class PrivateMessageService {
             RealmGovernanceService governance,
             HistoryService history,
             ChatService chat,
-            ServerIdentityConfig serverIdentity
+            ServerIdentityConfig serverIdentity,
+            PlayerRestrictionService restrictions
     ) {
         this.realms = realms;
         this.citizens = citizens;
@@ -38,10 +40,17 @@ public final class PrivateMessageService {
         this.history = history;
         this.chat = chat;
         this.serverIdentity = serverIdentity;
+        this.restrictions = restrictions;
     }
 
     public boolean privateMessage(ServerPlayerEntity sender, ServerPlayerEntity recipient, String message) {
         if (message == null || message.isBlank()) return false;
+        if (restrictions.denyWithMessage(sender, PlayerRestrictionService.PRIVATE_MESSAGE)) return false;
+        if (restrictions.isRestricted(recipient, PlayerRestrictionService.PRIVATE_MESSAGE)) {
+            sender.sendMessage(Text.literal("That player cannot receive private messages right now.")
+                    .formatted(Formatting.RED), false);
+            return false;
+        }
 
         String senderRealmId = citizens.getOrCreate(sender).realmId();
         String recipientRealmId = citizens.getOrCreate(recipient).realmId();

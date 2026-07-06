@@ -13,7 +13,11 @@ public enum ElarionNotificationCategory {
 
     public static ElarionNotificationCategory parse(String raw) {
         if (raw == null || raw.isBlank()) return PERSONAL;
-        return valueOf(raw.trim().toUpperCase(Locale.ROOT));
+        try {
+            return valueOf(raw.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ignored) {
+            return PERSONAL;
+        }
     }
 
     public boolean matchesFilter(String filter) {

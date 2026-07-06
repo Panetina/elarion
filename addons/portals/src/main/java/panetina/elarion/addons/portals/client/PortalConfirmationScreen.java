@@ -1,15 +1,18 @@
 package panetina.elarion.addons.portals.client;
+import panetina.elarion.core.client.ui.ElarionUiTypography;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import panetina.elarion.addons.portals.network.PortalTravelConfirmPayload;
 import panetina.elarion.addons.portals.network.PortalTravelPromptPayload;
+import panetina.elarion.core.client.ui.ElarionCivicColors;
+import panetina.elarion.core.client.ui.ElarionCivicUi;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
+import panetina.elarion.core.client.ui.ElarionScreen;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
 import panetina.elarion.core.client.ui.ElarionUiThemes;
@@ -18,7 +21,7 @@ import panetina.elarion.core.model.ElarionUiThemeVariant;
 import java.time.Duration;
 import java.time.Instant;
 
-public final class PortalConfirmationScreen extends Screen {
+public final class PortalConfirmationScreen extends ElarionScreen {
     private final PortalTravelPromptPayload payload;
     private ElarionScaledLayout layout;
     private ElarionUiThemeVariant theme;
@@ -39,11 +42,6 @@ public final class PortalConfirmationScreen extends Screen {
     }
 
     @Override
-    public boolean shouldPause() {
-        return false;
-    }
-
-    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         context.fill(0, 0, width, height, theme.backgroundOverlayColor());
         double mx = layout.logicalX(mouseX);
@@ -51,23 +49,24 @@ public final class PortalConfirmationScreen extends Screen {
         context.getMatrices().push();
         context.getMatrices().translate(layout.screenX(), layout.screenY(), 0);
         context.getMatrices().scale(layout.scale(), layout.scale(), 1);
-        ElarionUiRenderer.panel(context, 0, 0, payload.logicalWidth(), payload.logicalHeight(), theme);
-        ElarionUiRenderer.headerBand(context, 3, 3, payload.logicalWidth() - 6, 36, style);
+        ElarionCivicUi.attachedShell(context, 0, 0, payload.logicalWidth(), payload.logicalHeight(), 42);
+        ElarionCivicUi.headerOrnament(context, payload.logicalWidth() / 2 - 88, 22, true);
+        ElarionCivicUi.headerOrnament(context, payload.logicalWidth() / 2 + 88, 22, false);
         String heading = "Enter " + payload.gateName() + "?";
-        context.drawText(textRenderer, heading,
-                (payload.logicalWidth() - textRenderer.getWidth(heading)) / 2,
+        ElarionUiTypography.draw(context, textRenderer, heading,
+                (payload.logicalWidth() - ElarionUiTypography.width(textRenderer, heading)) / 2,
                 15, theme.titleColor(), false);
-        ElarionUiRenderer.borderedBox(context, 18, 49,
-                payload.logicalWidth() - 36, 78, style);
+        ElarionCivicUi.messageBody(context, 18, 49, payload.logicalWidth() - 36, 78,
+                payload.allowed() ? ElarionCivicColors.ACTIVE_GREEN : ElarionCivicColors.REJECT_RED);
         drawGateIcon(context, 32, 64);
         int requirementColor = payload.requirementColor() != 0
                 ? payload.requirementColor()
                 : payload.allowed() ? theme.textColor() : theme.warningColor();
-        context.drawText(textRenderer, payload.requirement(), 78, 63, requirementColor, false);
+        ElarionUiTypography.draw(context, textRenderer, payload.requirement(), 78, 63, requirementColor, false);
         String timing = payload.closesAt() <= 0 ? "Open continuously." : "Closes in " + remaining() + ".";
-        context.drawText(textRenderer, timing, 78, 81, theme.mutedColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, timing, 78, 81, theme.mutedColor(), false);
         if (!payload.message().isBlank()) {
-            context.drawText(textRenderer,
+            ElarionUiTypography.draw(context, textRenderer,
                     ElarionUiRenderer.ellipsize(textRenderer, payload.message(), payload.logicalWidth() - 104),
                     78, 99, payload.allowed() ? theme.textColor() : theme.errorColor(), false);
         }
@@ -78,11 +77,14 @@ public final class PortalConfirmationScreen extends Screen {
         int closeX = confirmX + payload.confirmButtonWidth() + gap;
         boolean confirmHover = inside(mx, my, confirmX, buttonY, payload.confirmButtonWidth(), 20);
         boolean closeHover = inside(mx, my, closeX, buttonY, payload.closeButtonWidth(), 20);
-        ElarionUiRenderer.compactButton(context, textRenderer, confirmX, buttonY,
-                payload.confirmButtonWidth(), 20, "Yes",
-                confirmHover, payload.allowed() && !submitted, style);
-        ElarionUiRenderer.compactButton(context, textRenderer, closeX, buttonY,
-                payload.closeButtonWidth(), 20, "No", closeHover, true, style);
+        ElarionCivicUi.compactActionButton(context, textRenderer, confirmX, buttonY,
+                payload.confirmButtonWidth(), 20, "Yes", confirmHover, false,
+                payload.allowed() && !submitted,
+                payload.allowed() && !submitted ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.MUTED,
+                style);
+        ElarionCivicUi.compactActionButton(context, textRenderer, closeX, buttonY,
+                payload.closeButtonWidth(), 20, "No", closeHover, false, true,
+                ElarionCivicUi.Tone.NORMAL, style);
         context.getMatrices().pop();
     }
 
@@ -117,7 +119,8 @@ public final class PortalConfirmationScreen extends Screen {
     }
 
     private void drawGateIcon(DrawContext context, int x, int y) {
-        ElarionUiRenderer.borderedBox(context, x, y, 32, 32, style);
+        ElarionCivicUi.thinBox(context, x, y, 32, 32,
+                ElarionCivicColors.ROOT_SURFACE, ElarionCivicColors.GOLD_BORDER);
         Identifier id = Identifier.tryParse(payload.iconItem());
         if (id != null && Registries.ITEM.containsId(id)) {
             context.drawItem(new ItemStack(Registries.ITEM.get(id)), x + 8, y + 8);

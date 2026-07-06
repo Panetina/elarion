@@ -15,6 +15,7 @@ import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.ElarionNotificationAction;
 import panetina.elarion.core.model.ElarionNotificationCategory;
 import panetina.elarion.core.service.ElarionNotificationService;
+import panetina.elarion.core.service.PlayerRestrictionService;
 import panetina.elarion.core.model.CitizenRecord;
 
 import java.util.Collection;
@@ -252,6 +253,25 @@ public final class GroupService {
         return group;
     }
 
+    public void resetCharacter(UUID accountId) {
+        GroupRecord group = groupFor(accountId).orElse(null);
+        state.invites.entrySet().removeIf(entry -> accountId.equals(entry.getValue().invitedPlayer())
+                || accountId.equals(entry.getValue().invitedBy()));
+        if (group == null) {
+            save();
+            return;
+        }
+        if (group.leaderId().equals(accountId)) {
+            delete(group.id(), accountId);
+            return;
+        }
+        LinkedHashSet<UUID> members = new LinkedHashSet<>(group.members());
+        members.remove(accountId);
+        state.groups.put(group.id(), group.withMembers(members));
+        state.playerGroups.remove(accountId);
+        save();
+    }
+
     private void expireInvites() {
         long now = System.currentTimeMillis();
         boolean changed = state.invites.entrySet().removeIf(entry ->
@@ -291,8 +311,13 @@ public final class GroupService {
         save();
     }
 
+    public boolean isConfederationLocked(String groupId) {
+        return state.confederationLockedGroups.contains(normalizeId(groupId));
+    }
+
     public boolean sendGroupMessage(ServerPlayerEntity sender, String message) {
         if (message == null || message.isBlank()) return false;
+        if (api.system().restrictions().denyWithMessage(sender, PlayerRestrictionService.GROUP_CHAT)) return false;
         GroupRecord group = groupFor(sender.getUuid())
                 .orElseThrow(() -> new IllegalArgumentException("You are not in a group."));
         Text output = Text.literal("[GC:" + group.tag() + "] ").formatted(Formatting.DARK_AQUA)

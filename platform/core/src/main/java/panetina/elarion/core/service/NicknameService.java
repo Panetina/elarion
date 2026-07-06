@@ -6,6 +6,7 @@ import panetina.elarion.core.model.CitizenRecord;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -64,14 +65,12 @@ public final class NicknameService {
             return Validation.invalid("Nickname must contain at least one letter.");
         }
         if (config.nicknameProtectionEnabled()) {
-            for (String protectedName : protectedNames()) {
-                String protectedKey = comparisonKey(protectedName);
-                if (protectedKey.isBlank()) continue;
-                boolean matches = key.equals(protectedKey)
-                        || config.nicknameRejectContainingProtectedName() && key.contains(protectedKey);
-                if (matches) {
-                    return Validation.invalid("That nickname uses protected official presentation.");
-                }
+            Optional<ProtectedNameMatch> protectedMatch = findProtectedNameMatch(
+                    key, protectedNames(), config.nicknameRejectContainingProtectedName());
+            if (protectedMatch.isPresent()) {
+                ProtectedNameMatch match = protectedMatch.get();
+                return Validation.invalid("That nickname " + (match.exact() ? "matches" : "contains")
+                        + " protected term: " + match.term() + ".");
             }
         }
 
@@ -112,6 +111,26 @@ public final class NicknameService {
             });
         }
         return names;
+    }
+
+    static Optional<ProtectedNameMatch> findProtectedNameMatch(
+            String comparisonKey,
+            Set<String> protectedNames,
+            boolean rejectContaining
+    ) {
+        if (comparisonKey == null || comparisonKey.isBlank() || protectedNames == null) return Optional.empty();
+        for (String protectedName : protectedNames) {
+            String protectedKey = comparisonKey(protectedName);
+            if (protectedKey.isBlank()) continue;
+            if (comparisonKey.equals(protectedKey)) return Optional.of(new ProtectedNameMatch(protectedName, true));
+            if (rejectContaining && comparisonKey.contains(protectedKey)) {
+                return Optional.of(new ProtectedNameMatch(protectedName, false));
+            }
+        }
+        return Optional.empty();
+    }
+
+    record ProtectedNameMatch(String term, boolean exact) {
     }
 
     public static String comparisonKey(String value) {

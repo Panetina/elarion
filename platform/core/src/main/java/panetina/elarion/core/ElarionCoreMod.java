@@ -19,7 +19,12 @@ import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.api.ElarionCommandRegistry;
 import panetina.elarion.core.command.ElarionCommands;
+import panetina.elarion.core.command.CharacterCommands;
+import panetina.elarion.core.config.CoreConfigDescriptors;
 import panetina.elarion.core.config.CoreConfigManager;
+import panetina.elarion.core.config.CoreUiThemeFontScaleConfigApplier;
+import panetina.elarion.core.config.ElarionConfigApplyRegistry;
+import panetina.elarion.core.config.ElarionConfigRegistry;
 import panetina.elarion.core.event.ElarionEventBus;
 import panetina.elarion.core.service.AbilityService;
 import panetina.elarion.core.service.ChatService;
@@ -39,6 +44,7 @@ import panetina.elarion.core.service.PlayerStatsService;
 import panetina.elarion.core.service.ProgressionService;
 import panetina.elarion.core.service.ElarionTaskService;
 import panetina.elarion.core.service.ElarionTaskConfig;
+import panetina.elarion.core.service.PlayerRestrictionService;
 import panetina.elarion.core.registry.ElarionRegistries;
 import panetina.elarion.core.storage.CitizenStorage;
 import panetina.elarion.core.storage.ChronicleArchiveStorage;
@@ -62,9 +68,30 @@ import panetina.elarion.core.service.ElarionUiThemeService;
 import panetina.elarion.core.service.DeferredRewardGrantService;
 import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.service.CatchTelemetryService;
+import panetina.elarion.core.service.CoreTitleCollectionProvider;
 import panetina.elarion.core.storage.CatchSummaryStorage;
 import panetina.elarion.core.storage.CatchTelemetryJournalStorage;
 import panetina.elarion.core.storage.JsonStateStorage;
+import panetina.elarion.core.storage.CharacterLifecycleStorage;
+import panetina.elarion.core.service.CharacterLifecycleService;
+import panetina.elarion.core.network.CharacterCreationRequirementPayload;
+import panetina.elarion.core.network.CharacterRealmAssignmentPayload;
+import panetina.elarion.core.network.CharacterCreationSubmitPayload;
+import panetina.elarion.core.network.CharacterCreationStatusRequestPayload;
+import panetina.elarion.core.network.CollectionActionPayload;
+import panetina.elarion.core.network.CollectionOpenPayload;
+import panetina.elarion.core.network.CollectionOpenRequestPayload;
+import panetina.elarion.core.service.ElarionCollectionService;
+import panetina.elarion.core.network.AdminPanelActionPayload;
+import panetina.elarion.core.network.AdminPanelOpenPayload;
+import panetina.elarion.core.network.AdminPanelOpenRequestPayload;
+import panetina.elarion.core.network.ElarionConfigEditOpenPayload;
+import panetina.elarion.core.network.ElarionConfigEditRequestPayload;
+import panetina.elarion.core.network.ElarionConfigEditResultPayload;
+import panetina.elarion.core.service.ElarionAdminPanelService;
+import panetina.elarion.core.service.ElarionConfigApplyService;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class ElarionCoreMod implements ModInitializer {
     public static final String MOD_ID = "elarion_core";
@@ -79,9 +106,27 @@ public final class ElarionCoreMod implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(NotificationClaimPayload.ID, NotificationClaimPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NotificationDismissPayload.ID, NotificationDismissPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NotificationActionPayload.ID, NotificationActionPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                CharacterCreationRequirementPayload.ID, CharacterCreationRequirementPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                CharacterRealmAssignmentPayload.ID, CharacterRealmAssignmentPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(
+                CharacterCreationSubmitPayload.ID, CharacterCreationSubmitPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(
+                CharacterCreationStatusRequestPayload.ID, CharacterCreationStatusRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(CollectionOpenPayload.ID, CollectionOpenPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(CollectionOpenRequestPayload.ID, CollectionOpenRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(CollectionActionPayload.ID, CollectionActionPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(AdminPanelOpenPayload.ID, AdminPanelOpenPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(AdminPanelOpenRequestPayload.ID, AdminPanelOpenRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(AdminPanelActionPayload.ID, AdminPanelActionPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ElarionConfigEditOpenPayload.ID, ElarionConfigEditOpenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ElarionConfigEditResultPayload.ID, ElarionConfigEditResultPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ElarionConfigEditRequestPayload.ID, ElarionConfigEditRequestPayload.CODEC);
 
         CoreConfigManager config = new CoreConfigManager(LOGGER);
         config.load();
+        AtomicReference<MinecraftServer> activeServer = new AtomicReference<>();
 
         ElarionEventBus events = new ElarionEventBus();
         CitizenService citizens = new CitizenService(new CitizenStorage(LOGGER), config, events);
@@ -89,7 +134,7 @@ public final class ElarionCoreMod implements ModInitializer {
         HistoryService history = new HistoryService(
                 config, new HistoryStorage(LOGGER), new HistoryIndexStorage(LOGGER),
                 new ChronicleArchiveStorage(LOGGER), events);
-        TitleService titles = new TitleService(config, citizens, new TitleClaimStorage(LOGGER), history);
+        TitleService titles = new TitleService(config, citizens, new TitleClaimStorage(LOGGER), history, events);
         AbilityService abilities = new AbilityService(titles);
         config.titles().values().forEach(title -> title.abilities().forEach(abilities::register));
         IdentityService identities = new IdentityService(citizens, realms, titles);
@@ -98,15 +143,19 @@ public final class ElarionCoreMod implements ModInitializer {
         RealmGovernanceService governance =
                 new RealmGovernanceService(new RealmRuntimeStorage(LOGGER), realms, citizens, history);
         identities.setGovernance(governance);
+        PlayerRestrictionService restrictions = new PlayerRestrictionService();
+        identities.setRestrictions(restrictions);
+        CharacterLifecycleService characters = new CharacterLifecycleService(
+                LOGGER, new CharacterLifecycleStorage(LOGGER), citizens, realms, nicknames, events, restrictions);
         ServerPlayNetworking.registerGlobalReceiver(IdentitySyncRequestPayload.ID, (payload, context) -> {
             if (payload.requested()) {
                 context.server().execute(() -> identitySync.syncAllNow(context.server()));
             }
         });
-        ChatService chat = new ChatService(config, citizens, realms, identities, history, governance);
+        ChatService chat = new ChatService(config, citizens, realms, identities, history, governance, restrictions);
         PrivateMessageService privateMessages =
                 new PrivateMessageService(realms, citizens, identities, governance, history, chat,
-                        config.serverIdentity());
+                        config.serverIdentity(), restrictions);
         RealmSpawnService realmSpawns = new RealmSpawnService(citizens, realms, history, config.serverIdentity());
         RewardActionService rewards = new RewardActionService(config, citizens, titles, abilities, events);
         DeferredRewardGrantService deferredRewards = new DeferredRewardGrantService(
@@ -120,13 +169,36 @@ public final class ElarionCoreMod implements ModInitializer {
         PlayerStatsService playerStats = new PlayerStatsService(new PlayerStatsStorage(LOGGER), titles);
         ProgressionService progression =
                 new ProgressionService(config, citizens, titles, playerStats, new TitleProgressStorage(LOGGER));
+        characters.registerResetHandler("elarion_core_titles",
+                context -> titles.retireUniqueClaims(context.accountId(), context.reason()));
+        characters.registerResetHandler("elarion_core_progression", context -> {
+            playerStats.reset(context.accountId());
+            progression.resetProgress(context.accountId(), "");
+        });
         RealmDeliveryService realmDeliveries =
                 new RealmDeliveryService(new RealmDeliveryStorage(LOGGER), citizens, realms, rewards,
                         deferredRewards, notifications, history, config.serverIdentity());
         ElarionCommandRegistry commands = new ElarionCommandRegistry();
+        commands.registerAdminSubcommand(() -> CharacterCommands.admin(characters));
+        commands.registerTestSubcommand(() -> CharacterCommands.test(characters));
+        commands.registerHelpDescription("/e character ...", "Inspect character lifecycle and archives.");
+        commands.registerHelpDescription("/e test character ...", "Development character lifecycle controls.");
         ElarionRegistries registries = new ElarionRegistries();
         ElarionTaskService tasks = new ElarionTaskService(LOGGER, ElarionTaskConfig.loadSettings(LOGGER));
+        ElarionCollectionService collections = new ElarionCollectionService();
+        ElarionAdminPanelService adminPanel = new ElarionAdminPanelService();
+        ElarionConfigRegistry configRegistry = new ElarionConfigRegistry();
+        ElarionConfigApplyRegistry configApplyRegistry = new ElarionConfigApplyRegistry();
+        ElarionConfigApplyService configApplyService =
+                new ElarionConfigApplyService(configRegistry, configApplyRegistry);
+        CoreConfigDescriptors.register(configRegistry, config);
+        adminPanel.bindConfigApplyExecutor(configApplyService);
+        collections.registerTab(new CoreTitleCollectionProvider(citizens, titles));
         ElarionUiThemeService uiThemes = new ElarionUiThemeService(config);
+        CoreUiThemeFontScaleConfigApplier.register(configApplyRegistry::register, config, () -> {
+            MinecraftServer server = activeServer.get();
+            if (server != null) uiThemes.syncAll(server);
+        });
         CatchTelemetryService catchTelemetry = new CatchTelemetryService(
                 new CatchTelemetryJournalStorage(),
                 new CatchSummaryStorage(),
@@ -136,7 +208,19 @@ public final class ElarionCoreMod implements ModInitializer {
         ElarionApi api = new ElarionApi(
                 citizens, realms, titles, abilities, identities, identitySync, nicknames, history, privateMessages,
                 chat, governance, realmSpawns, realmDeliveries, rewards, playerStats, progression, events, commands,
-                registries, tasks, config.serverIdentity(), uiThemes, deferredRewards, notifications, catchTelemetry);
+                registries, tasks, collections, adminPanel, configRegistry, configApplyRegistry::register,
+                config.serverIdentity(), uiThemes, deferredRewards, notifications, restrictions, catchTelemetry,
+                characters);
+        adminPanel.bindApi(api);
+
+        ServerPlayNetworking.registerGlobalReceiver(CharacterCreationSubmitPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    CharacterLifecycleService.SubmissionResult result = characters.submit(
+                            context.player(), payload.nonce(), payload.displayName(), payload.biography());
+                    if (!result.success()) characters.sync(context.player(), result.message());
+                }));
+        ServerPlayNetworking.registerGlobalReceiver(CharacterCreationStatusRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> characters.sync(context.player(), "")));
 
         notifications.registerAction("elarion_core:realm_decision_approve", action ->
                 voteOnRealmDecision(governance, action, true));
@@ -157,8 +241,28 @@ public final class ElarionCoreMod implements ModInitializer {
                         notifications.act(context.player(), payload.notificationId(), payload.actionId());
                     }
                 }));
+        ServerPlayNetworking.registerGlobalReceiver(CollectionOpenRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> collections.open(context.player())));
+        ServerPlayNetworking.registerGlobalReceiver(CollectionActionPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    ElarionCollectionService.ActionResult result = collections.act(
+                            context.player(), payload.tabId(), payload.entryId(), payload.actionId());
+                    collections.open(context.player(), payload.tabId(), result.message());
+                }));
+        ServerPlayNetworking.registerGlobalReceiver(AdminPanelOpenRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> adminPanel.open(
+                        context.player(), payload.selectedTabId(), payload.selectedRowId(), "")));
+        ServerPlayNetworking.registerGlobalReceiver(AdminPanelActionPayload.ID, (payload, context) ->
+                context.server().execute(() -> adminPanel.act(
+                        context.player(), payload.providerId(), payload.actionId(), payload.targetId(),
+                        payload.parameters(), payload.confirmed())));
+        ServerPlayNetworking.registerGlobalReceiver(ElarionConfigEditRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    ElarionConfigEditResultPayload result = adminPanel.validateConfigEdit(context.player(), payload);
+                    ServerPlayNetworking.send(context.player(), result);
+                    adminPanel.open(context.player(), "configs", "", result.message());
+                }));
 
-        initializeAddons(api);
         progression.registerEvents();
         events.onCitizenChanged(event -> {
             MinecraftServer server = citizens.server();
@@ -175,7 +279,9 @@ public final class ElarionCoreMod implements ModInitializer {
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            activeServer.set(server);
             citizens.bind(server);
+            characters.bind(server);
             history.bind(server);
             titles.bind(server);
             playerStats.bind(server);
@@ -185,12 +291,14 @@ public final class ElarionCoreMod implements ModInitializer {
             notifications.bind(server);
             realmDeliveries.bind(server);
             catchTelemetry.bind(JsonStateStorage.elarionRoot(server));
+            configApplyService.bind(JsonStateStorage.elarionRoot(server));
             realms.initializeScoreboardTeams(server);
             LOGGER.info("Elarion Core bound to server {}", server.getServerMotd());
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             citizens.markSeen(handler.getPlayer());
+            characters.onJoin(handler.getPlayer());
             titles.repair(citizens.getOrCreate(handler.getPlayer()), null);
             realms.applyCurrentScoreboardTeam(handler.getPlayer());
             realmDeliveries.deliverPending(handler.getPlayer());
@@ -212,6 +320,7 @@ public final class ElarionCoreMod implements ModInitializer {
             history.tick();
             identitySync.tick(server);
             catchTelemetry.tick();
+            characters.tick();
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             playerStats.saveDirty();
@@ -220,6 +329,9 @@ public final class ElarionCoreMod implements ModInitializer {
             notifications.save();
             history.flush();
             catchTelemetry.shutdown();
+            characters.save();
+            configApplyService.unbind();
+            activeServer.set(null);
             tasks.shutdown();
         });
 
@@ -237,6 +349,7 @@ public final class ElarionCoreMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 ElarionCommands.register(dispatcher, registryAccess, api, config, commands));
 
+        initializeAddons(api);
         LOGGER.info("Elarion Core initialized");
     }
 

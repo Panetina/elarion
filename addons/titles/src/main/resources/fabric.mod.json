@@ -3,6 +3,7 @@
     "id":  "elarion_titles",
     "version":  "${version}",
     "name":  "Elarion Titles",
+    "icon": "assets/elarion_titles/icon.png",
     "description":  "Title rendering addon backed by Elarion Core identity and abilities.",
     "authors":  [
                     "Panyel"

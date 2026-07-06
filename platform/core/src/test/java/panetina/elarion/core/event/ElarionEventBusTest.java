@@ -52,6 +52,22 @@ final class ElarionEventBusTest {
         assertNull(received.get());
     }
 
+    @Test
+    void failingDomainListenerDoesNotBlockOtherListeners() {
+        ElarionEventBus bus = new ElarionEventBus();
+        AtomicReference<ElarionDomainEvent> received = new AtomicReference<>();
+        bus.onDomainEvent(event -> {
+            throw new IllegalStateException("expected test failure");
+        });
+        bus.onDomainEvent(received::set);
+        ElarionDomainEvent event = ElarionDomainEvent.of(
+                "elarion_test", "isolated", null, "", "", "", Map.of());
+
+        bus.emitDomainEvent(event);
+
+        assertEquals(event, received.get());
+    }
+
     private static CatchTelemetryEvent catchEvent() {
         return new CatchTelemetryEvent(
                 UUID.randomUUID(),

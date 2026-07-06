@@ -8,8 +8,13 @@ Manual checks to run after server-facing changes.
 
 - Run `.\gradlew.bat build`.
 - Start the dev server with `.\gradlew.bat :dev:runServer`.
+- For live UI QA, start `.\gradlew.bat runClientOne` and join Multiplayer
+  using the saved `localhost` server entry.
 - Confirm Core and all enabled addons initialize without config errors.
 - Check `dev/run/logs/latest.log` for startup exceptions and repeated warnings.
+- If the client reports `ZipFile invalid LOC header` or another corrupted class
+  artifact after recent UI/workflow changes, close every running dev client and
+  server, then run `.\gradlew.bat clean build` before restarting.
 
 ## In-Game Smoke Tests
 

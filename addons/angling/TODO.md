@@ -78,24 +78,66 @@ in `PLANS.md`.
   catches.
 - [x] Add Angling to the aggregate `dev` runtime and verify dedicated-server
   classloading, datapack discovery, addon initialization, and mixin application.
+- [x] Manually smoke-test a connected-player cast/retrieve path: feedback was
+  visible and no Angling errors were reported.
+- [x] Fix reconnect stale-cast behavior by treating disconnect as a hard
+  cancellation: cancel the Angling session, discard the vanilla bobber, clear
+  the player hook, and clear feedback cooldowns.
+- [x] Manually retest disconnect while a rod is cast: reconnect starts clean,
+  and the player must cast again before catching normally.
+- [x] Specify custom placeholder reward identity, delivery ordering,
+  inventory-full handling, duplicate prevention, and recovery before adding
+  any item or inventory mutation.
+- [x] Implement the smallest placeholder reward vertical slice: one placeholder
+  item, deterministic Core deferred reward grant, session removal only after
+  telemetry and reward enqueue acceptance, vanilla loot suppression on custom
+  completion, and retry/idempotency tests.
+- [x] Manually verify the first placeholder reward path: vanilla loot was
+  suppressed, Core reward notification appeared, claiming granted the
+  placeholder item, and no upstream content was exposed.
+- [x] Fix the placeholder reward smoke-test regressions: accepted custom
+  completion now removes the vanilla bobber, and Core item rewards no longer
+  mark a deferred grant delivered when inventory insertion leaves a remainder.
+- [x] Manually retest the fixed placeholder reward loop: after catch the rod
+  returns immediately; full-inventory claim keeps the grant pending; after
+  room is made, retry claims the same grant exactly once.
+- [x] Port the first safe reference-informed condition layer using
+  Elarion-owned placeholder condition IDs for fluid, dimension, weather, time,
+  elevation, biome, and bait presence.
+- [x] Move the packaged placeholder fish from the legacy always-true condition
+  onto real neutral water and overworld conditions.
+- [x] Add a small placeholder-only fish data set that exercises built-in
+  conditions with neutral IDs and placeholder translation keys only.
+- [x] Add placeholder bait context foundation: a technical placeholder bait item
+  can be detected from player hands and fed into condition selection.
+- [x] Replace current fish display-name placeholders with original working
+  names and add `VISUAL_ASSET_REDIRECT.md` for visual replacement tracking.
+- [x] Add named catch reward delivery: the claimed placeholder catch item now
+  snapshots the resolved fish display name.
+- [x] Add original temporary item icons and working item names for catch and
+  bait items, indexed for later replacement.
+- [x] Add the first bait-use policy: cast sessions capture the bait ID and
+  successful custom catches consume one matching bait item after Core telemetry
+  and reward enqueue acceptance.
+- [x] Add current fish-specific reward item identities, names, generated
+  models, and temporary icons, with replacement paths indexed.
 
 ## Next
 
 - [ ] Run the remaining in-world fishing smoke scenarios with a connected
-  player: cast, unavailable selection, accepted catch, disconnect, and
-  telemetry-failure retry.
-- [ ] Specify custom placeholder reward identity, delivery ordering,
-  inventory-full handling, duplicate prevention, and recovery before adding
-  any item or inventory mutation.
+  player: unavailable selection, telemetry-failure retry, bait consumption, and
+  fish-specific reward items.
+- [ ] Add the next server-owned fishing foundation only after smoke validation:
+  placeholder catch quantity/rarity result shaping, whichever is smaller and
+  avoids UI.
 - [ ] Keep selecting Fabric-native variants when translating NeoForge systems;
   do not preserve upstream architecture where Fabric has a cleaner boundary.
 - [ ] Add CI for build, tests, datagen validation, dedicated-server startup,
   and `scripts/check-project-policy.ps1`.
 - [ ] Audit every upstream dependency for Fabric availability, purpose,
   license, optionality, and replacement strategy.
-- [ ] Continue the first playable vertical slice after selection is proven:
-  one server-authoritative session, one placeholder reward, and minimal client
-  feedback.
+- [ ] Continue the playable vertical slice only after unavailable-selection and
+  telemetry-failure retry are validated.
 
 ## Blocked on Manual Content
 

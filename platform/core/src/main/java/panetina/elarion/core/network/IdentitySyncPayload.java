@@ -18,6 +18,7 @@ public record IdentitySyncPayload(
         String color,
         String realmName,
         String realmId,
+        boolean tabVisible,
         boolean visible
 ) implements CustomPayload {
     public static final Id<IdentitySyncPayload> ID =
@@ -26,28 +27,30 @@ public record IdentitySyncPayload(
     public static final PacketCodec<PacketByteBuf, IdentitySyncPayload> CODEC = PacketCodec.of(
             (payload, buffer) -> {
                 buffer.writeUuid(payload.uuid());
-                buffer.writeString(payload.username());
-                buffer.writeString(payload.nickname());
-                buffer.writeString(payload.prefix());
-                buffer.writeString(payload.suffix());
-                buffer.writeString(payload.title());
-                buffer.writeString(payload.leaderLabel());
-                buffer.writeString(payload.color());
-                buffer.writeString(payload.realmName());
-                buffer.writeString(payload.realmId());
+                ElarionPacketCodecs.writeString(buffer, payload.username(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.nickname(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.prefix(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.suffix(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.title(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.leaderLabel(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.color(), 32);
+                ElarionPacketCodecs.writeString(buffer, payload.realmName(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.realmId(), 128);
+                buffer.writeBoolean(payload.tabVisible());
                 buffer.writeBoolean(payload.visible());
             },
             buffer -> new IdentitySyncPayload(
                     buffer.readUuid(),
-                    buffer.readString(64),
-                    buffer.readString(128),
-                    buffer.readString(128),
-                    buffer.readString(128),
-                    buffer.readString(128),
-                    buffer.readString(128),
-                    buffer.readString(32),
-                    buffer.readString(128),
-                    buffer.readString(128),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 32),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    buffer.readBoolean(),
                     buffer.readBoolean())
     );
 
@@ -55,4 +58,5 @@ public record IdentitySyncPayload(
     public Id<? extends CustomPayload> getId() {
         return ID;
     }
+
 }

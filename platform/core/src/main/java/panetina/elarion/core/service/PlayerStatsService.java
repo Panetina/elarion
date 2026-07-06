@@ -58,8 +58,16 @@ public final class PlayerStatsService {
     }
 
     public void saveDirty() {
-        requireServer();
+        if (server == null) return;
         dirty.flush(this::save);
+    }
+
+    public void reset(UUID uuid) {
+        requireServer();
+        PlayerStats fresh = new PlayerStats(uuid);
+        cache.put(uuid, fresh);
+        dirty.remove(uuid);
+        storage.save(server, fresh);
     }
 
     private void requireServer() {

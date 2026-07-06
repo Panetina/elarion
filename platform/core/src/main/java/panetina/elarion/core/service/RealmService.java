@@ -79,6 +79,10 @@ public final class RealmService {
         return presentation(realm).prefix();
     }
 
+    public String color(RealmDefinition realm) {
+        return presentation(realm).color();
+    }
+
     public Optional<RealmDefinition> ownerForWorld(String worldId) {
         if (worldId == null || worldId.isBlank()) return Optional.empty();
         Map<String, RealmDefinition> current = config.realms();
@@ -126,7 +130,7 @@ public final class RealmService {
     private void applyScoreboardTeam(ServerPlayerEntity player, RealmDefinition realm) {
         Scoreboard scoreboard = player.getServer().getScoreboard();
         removeElarionTeam(player);
-        Team team = getOrCreateColorTeam(scoreboard, realm.color());
+        Team team = getOrCreateColorTeam(scoreboard, color(realm));
         scoreboard.addScoreHolderToTeam(player.getGameProfile().getName(), team);
     }
 

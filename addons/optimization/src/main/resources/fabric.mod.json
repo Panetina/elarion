@@ -3,6 +3,7 @@
     "id": "elarion_optimization",
     "version": "${version}",
     "name": "Elarion Optimization",
+    "icon": "assets/elarion_optimization/icon.png",
     "description": "Performance diagnostics and bounded work queue integration for Elarion.",
     "authors": [
         "Panyel"

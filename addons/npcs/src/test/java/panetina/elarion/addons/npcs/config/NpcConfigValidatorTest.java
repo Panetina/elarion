@@ -15,6 +15,7 @@ import panetina.elarion.addons.npcs.model.NpcUiConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Path;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -256,6 +257,14 @@ final class NpcConfigValidatorTest {
         assertEquals(List.of("bank", "worldheart"), definition.tags());
         assertEquals("elarion.bank.use", definition.requiredAbility());
         assertEquals(8.0D, definition.interactionRangeBlocks());
+    }
+
+    @Test
+    void nestedDialoguePathBecomesStableSlashId() {
+        assertEquals("quest_pack/mara",
+                NpcConfigLoader.dialogueId(
+                        Path.of("dialogues"),
+                        Path.of("dialogues", "quest_pack", "mara.yml")));
     }
 
     private static DialogueDefinition dialogue(String id, String root, String next, String action) {

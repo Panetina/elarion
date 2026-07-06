@@ -32,6 +32,111 @@ public final class CoreConfigManager {
             "gold", "gray", "dark_gray", "blue", "green", "aqua", "red",
             "light_purple", "yellow", "white");
     private static final Map<String, String> DEFAULT_FILES = CoreConfigDefaultFiles.FILES;
+    private static final Map<String, String> GOVERNMENT_TITLE_DEFAULTS = Map.of(
+            "government_monarch", """
+                      government_monarch:
+                        description: "Active authority title for a Realm monarch."
+                        display-name: "Monarch"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """,
+            "government_heir", """
+                      government_heir:
+                        description: "Active authority title for a Realm heir."
+                        display-name: "Heir"
+                        prefix: ""
+                        suffix: ""
+                        priority: 60
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """,
+            "government_president", """
+                      government_president:
+                        description: "Active authority title for a Realm president."
+                        display-name: "President"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """,
+            "government_councilor", """
+                      government_councilor:
+                        description: "Active authority title for a Realm councilor."
+                        display-name: "Councilor"
+                        prefix: ""
+                        suffix: ""
+                        priority: 60
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """,
+            "government_high_cleric", """
+                      government_high_cleric:
+                        description: "Active authority title for a Realm theocratic leader."
+                        display-name: "Holy Priest"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """,
+            "government_synod_member", """
+                      government_synod_member:
+                        description: "Active authority title for a Realm synod member."
+                        display-name: "Synod Member"
+                        prefix: ""
+                        suffix: ""
+                        priority: 60
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """,
+            "government_delegate", """
+                      government_delegate:
+                        description: "Active authority title for a confederation delegate."
+                        display-name: "Delegate"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """,
+            "government_officer", """
+                      government_officer:
+                        description: "Active authority title for an appointed Realm officer."
+                        display-name: "Officer"
+                        prefix: ""
+                        suffix: ""
+                        priority: 50
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                    """);
 
     private final Logger logger;
     private final Yaml yaml = new Yaml();
@@ -249,6 +354,7 @@ public final class CoreConfigManager {
             CoreConfigDefaults.write(coreConfigDir, DEFAULT_FILES);
             appendNicknamePolicyDefaults(coreConfigDir.resolve("identity.yml"));
             appendNicknameProtectionDefaults(coreConfigDir.resolve("identity.yml"));
+            appendGovernmentTitleDefaults(coreConfigDir.resolve("titles.yml"));
             CoreConfigHistorySupport.appendDefaults(coreConfigDir.resolve("history.yml"));
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to create Elarion configuration", exception);
@@ -281,6 +387,7 @@ public final class CoreConfigManager {
         }
         migrateChatConfig();
         migrateIdentityConfig();
+        migrateTitleConfig();
         migrateHistoryConfig();
     }
 
@@ -332,8 +439,10 @@ public final class CoreConfigManager {
         int logicalHeight = boundedInt(dimensions, "logical-height", defaults.logicalHeight(), 180, 720);
         int minimumScale = boundedInt(dimensions, "minimum-scale-percent",
                 defaults.minimumScalePercent(), 25, 100);
+        int fontScale = boundedInt(dimensions, "font-scale-percent",
+                defaults.fontScalePercent(), 100, 150);
         return new ElarionUiTheme(
-                logicalWidth, logicalHeight, minimumScale,
+                logicalWidth, logicalHeight, minimumScale, fontScale,
                 boundedInt(dimensions, "padding", defaults.padding(), 4, 48),
                 boundedInt(dimensions, "gap", defaults.gap(), 1, 32),
                 boundedInt(dimensions, "row-height", defaults.rowHeight(), 10, 64),
@@ -522,6 +631,29 @@ public final class CoreConfigManager {
         }
     }
 
+    private void migrateTitleConfig() {
+        Path path = coreConfigDir.resolve("titles.yml");
+        try {
+            appendGovernmentTitleDefaults(path);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to migrate " + path, exception);
+        }
+    }
+
+    private static void appendGovernmentTitleDefaults(Path path) throws IOException {
+        String content = Files.readString(path, StandardCharsets.UTF_8);
+        StringBuilder addition = new StringBuilder();
+        for (Map.Entry<String, String> entry : GOVERNMENT_TITLE_DEFAULTS.entrySet()) {
+            String id = entry.getKey();
+            if (content.lines().anyMatch(line -> line.trim().equals(id + ":"))) continue;
+            addition.append(System.lineSeparator()).append(entry.getValue());
+        }
+        if (!addition.isEmpty()) {
+            Files.writeString(path, addition.toString(), StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.APPEND);
+        }
+    }
+
     private static void appendNicknamePolicyDefaults(Path path) throws IOException {
         String content = Files.readString(path, StandardCharsets.UTF_8);
         if (content.lines().anyMatch(line -> line.trim().equals("nickname-policy:"))) return;
@@ -560,7 +692,7 @@ public final class CoreConfigManager {
                   enabled: true
                   protect-realm-presentation: true
                   protect-title-presentation: true
-                  reject-containing-protected-name: true
+                  reject-containing-protected-name: false
                 """, StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND);
     }
 

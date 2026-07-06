@@ -29,6 +29,7 @@ public final class ElarionOptimizationAddon implements ElarionAddon {
     @Override
     public void initialize(ElarionApi api) {
         AddonConfigFiles.writeDefault("optimization", "performance.yml", ElarionTaskConfig.DEFAULT_CONFIG);
+        PerformanceConfigDescriptors.register(api.system().configs(), api.system().tasks()::snapshot);
         api.system().abilities().register("elarion.optimization.admin");
         PerformanceSampler sampler = new PerformanceSampler(api);
         api.system().commands().registerAdminSubcommand(() -> perfCommand(api, sampler));

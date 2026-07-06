@@ -3,6 +3,7 @@
     "id":  "elarion_government",
     "version":  "${version}",
     "name":  "Elarion Government",
+    "icon": "assets/elarion_government/icon.png",
     "description":  "Government addon shell backed by Elarion Core realms, abilities, and progression.",
     "authors":  [
                     "Panyel"

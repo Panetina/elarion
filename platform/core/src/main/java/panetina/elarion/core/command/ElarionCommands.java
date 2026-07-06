@@ -36,6 +36,7 @@ public final class ElarionCommands {
                 .then(CitizenCommandRegistrar.register(api))
                 .then(TitleCommandRegistrar.register(api))
                 .then(AbilityCommandRegistrar.register(api))
+                .then(AdminPanelCommandRegistrar.register(api))
                 .then(RewardCommandRegistrar.register(api))
                 .then(ProgressionCommandRegistrar.register(api))
                 .then(HistoryCommandRegistrar.register(api))
@@ -65,6 +66,13 @@ public final class ElarionCommands {
                         ElarionPerformanceMonitor.record("core-reload", System.nanoTime() - started);
                     }
                 }));
+
+        LiteralArgumentBuilder<ServerCommandSource> testRoot = literal("test")
+                .requires(source -> source.hasPermissionLevel(4));
+        for (Supplier<LiteralArgumentBuilder<ServerCommandSource>> extension : extensions.testCommands()) {
+            testRoot.then(extension.get());
+        }
+        root.then(testRoot);
 
         for (Supplier<LiteralArgumentBuilder<ServerCommandSource>> extension : extensions.adminCommands()) {
             root.then(extension.get());

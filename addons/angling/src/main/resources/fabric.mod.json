@@ -3,6 +3,7 @@
     "id": "elarion_angling",
     "version": "${version}",
     "name": "Elarion Angling",
+    "icon": "assets/elarion_angling/icon.png",
     "description": "Fishing addon shell for future Elarion catch definitions, sessions, and Core-owned progression integration.",
     "authors": [
         "Panyel"

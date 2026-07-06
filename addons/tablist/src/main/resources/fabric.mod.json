@@ -3,6 +3,7 @@
     "id":  "elarion_tablist",
     "version":  "${version}",
     "name":  "Elarion Tablist",
+    "icon": "assets/elarion_tablist/icon.png",
     "description":  "Tab list rendering shell backed by Elarion Core identity and visibility.",
     "authors":  [
                     "Panyel"

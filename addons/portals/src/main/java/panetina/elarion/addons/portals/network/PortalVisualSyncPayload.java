@@ -8,6 +8,7 @@ import panetina.elarion.addons.portals.model.PortalAxis;
 import panetina.elarion.addons.portals.model.PortalBounds;
 import panetina.elarion.addons.portals.model.PortalEndpoint;
 import panetina.elarion.addons.portals.model.PortalRouteSnapshot;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public record PortalVisualSyncPayload(List<Entry> entries) implements CustomPayl
                 payload.entries().forEach((entry) -> entry.write(buffer));
             },
             buffer -> {
-                int size = buffer.readVarInt();
+                int size = ElarionPacketCodecs.readBoundedCount(buffer, 1024);
                 List<Entry> entries = new ArrayList<>(size);
                 for (int index = 0; index < size; index++) entries.add(Entry.read(buffer));
                 return new PortalVisualSyncPayload(entries);
@@ -59,8 +60,8 @@ public record PortalVisualSyncPayload(List<Entry> entries) implements CustomPayl
         }
 
         void write(PacketByteBuf buffer) {
-            buffer.writeString(routeId);
-            buffer.writeString(worldId);
+            ElarionPacketCodecs.writeString(buffer, routeId, 128);
+            ElarionPacketCodecs.writeString(buffer, worldId, 256);
             buffer.writeVarInt(bounds.minX());
             buffer.writeVarInt(bounds.minY());
             buffer.writeVarInt(bounds.minZ());
@@ -70,21 +71,21 @@ public record PortalVisualSyncPayload(List<Entry> entries) implements CustomPayl
             buffer.writeEnumConstant(bounds.axis());
             buffer.writeBoolean(active);
             buffer.writeInt(argb);
-            buffer.writeString(texture);
+            ElarionPacketCodecs.writeString(buffer, texture, 256);
         }
 
         static Entry read(PacketByteBuf buffer) {
-            String route = buffer.readString(128);
-            String world = buffer.readString(256);
+            String route = ElarionPacketCodecs.readString(buffer, 128);
+            String world = ElarionPacketCodecs.readString(buffer, 256);
             int minX = buffer.readVarInt();
             int minY = buffer.readVarInt();
             int minZ = buffer.readVarInt();
             int maxX = buffer.readVarInt();
             int maxY = buffer.readVarInt();
             int maxZ = buffer.readVarInt();
-            PortalAxis axis = buffer.readEnumConstant(PortalAxis.class);
+            PortalAxis axis = ElarionPacketCodecs.readEnumOrDefault(buffer, PortalAxis.class, PortalAxis.X);
             return new Entry(route, world, new PortalBounds(minX, minY, minZ, maxX, maxY, maxZ, axis),
-                    buffer.readBoolean(), buffer.readInt(), buffer.readString(256));
+                    buffer.readBoolean(), buffer.readInt(), ElarionPacketCodecs.readString(buffer, 256));
         }
     }
 }

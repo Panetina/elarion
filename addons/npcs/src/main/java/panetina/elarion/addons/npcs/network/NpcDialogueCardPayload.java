@@ -1,6 +1,7 @@
 package panetina.elarion.addons.npcs.network;
 
 import net.minecraft.network.PacketByteBuf;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 public record NpcDialogueCardPayload(
         String id,
@@ -11,9 +12,9 @@ public record NpcDialogueCardPayload(
         boolean disabled
 ) {
     public static void write(NpcDialogueCardPayload card, PacketByteBuf buffer) {
-        buffer.writeString(card.id());
-        buffer.writeString(card.label());
-        buffer.writeString(card.icon());
+        ElarionPacketCodecs.writeString(buffer, card.id(), 128);
+        ElarionPacketCodecs.writeString(buffer, card.label(), 256);
+        ElarionPacketCodecs.writeString(buffer, card.icon(), 256);
         buffer.writeVarInt(card.count());
         buffer.writeVarLong(card.currencyAmount());
         buffer.writeBoolean(card.disabled());
@@ -21,9 +22,9 @@ public record NpcDialogueCardPayload(
 
     public static NpcDialogueCardPayload read(PacketByteBuf buffer) {
         return new NpcDialogueCardPayload(
-                buffer.readString(128),
-                buffer.readString(256),
-                buffer.readString(256),
+                ElarionPacketCodecs.readString(buffer, 128),
+                ElarionPacketCodecs.readString(buffer, 256),
+                ElarionPacketCodecs.readString(buffer, 256),
                 buffer.readVarInt(),
                 buffer.readVarLong(),
                 buffer.readBoolean());

@@ -10,6 +10,7 @@ public record OfferingInstance(
         String id,
         String projectId,
         String activeLevelId,
+        String displayNameOverride,
         OfferingScope scope,
         String realmId,
         String worldId,
@@ -21,8 +22,30 @@ public record OfferingInstance(
         Map<String, Long> contributorTotals,
         Set<String> completedMilestones,
         long createdAt,
-        long completedAt
+        long completedAt,
+        long resetGeneration
 ) {
+    public OfferingInstance(
+            String id,
+            String projectId,
+            String activeLevelId,
+            OfferingScope scope,
+            String realmId,
+            String worldId,
+            int x,
+            int y,
+            int z,
+            String anchorId,
+            Map<String, Long> progress,
+            Map<String, Long> contributorTotals,
+            Set<String> completedMilestones,
+            long createdAt,
+            long completedAt
+    ) {
+        this(id, projectId, activeLevelId, "", scope, realmId, worldId, x, y, z, anchorId,
+                progress, contributorTotals, completedMilestones, createdAt, completedAt, 0L);
+    }
+
     public OfferingInstance(
             String id,
             String projectId,
@@ -39,14 +62,15 @@ public record OfferingInstance(
             long createdAt,
             long completedAt
     ) {
-        this(id, projectId, "", scope, realmId, worldId, x, y, z, anchorId,
-                progress, contributorTotals, completedMilestones, createdAt, completedAt);
+        this(id, projectId, "", "", scope, realmId, worldId, x, y, z, anchorId,
+                progress, contributorTotals, completedMilestones, createdAt, completedAt, 0L);
     }
 
     public OfferingInstance {
         id = id == null ? "" : id;
         projectId = projectId == null ? "" : projectId;
         activeLevelId = activeLevelId == null ? "" : activeLevelId;
+        displayNameOverride = displayNameOverride == null ? "" : displayNameOverride.trim();
         scope = scope == null ? OfferingScope.REALM : scope;
         realmId = realmId == null ? "" : realmId;
         worldId = worldId == null ? "" : worldId;
@@ -55,6 +79,7 @@ public record OfferingInstance(
         contributorTotals = contributorTotals == null ? new LinkedHashMap<>() : new LinkedHashMap<>(contributorTotals);
         completedMilestones = completedMilestones == null ? new LinkedHashSet<>() : new LinkedHashSet<>(completedMilestones);
         createdAt = createdAt <= 0 ? System.currentTimeMillis() : createdAt;
+        resetGeneration = Math.max(0L, resetGeneration);
     }
 
     public boolean completed() {
@@ -68,32 +93,44 @@ public record OfferingInstance(
         if (contributor != null) {
             nextContributors.merge(contributor.toString(), amount, Long::sum);
         }
-        return new OfferingInstance(id, projectId, activeLevelId, scope, realmId, worldId, x, y, z, anchorId,
-                nextProgress, nextContributors, completedMilestones, createdAt, completedAt);
+        return new OfferingInstance(id, projectId, activeLevelId, displayNameOverride, scope, realmId, worldId,
+                x, y, z, anchorId, nextProgress, nextContributors, completedMilestones, createdAt, completedAt,
+                resetGeneration);
     }
 
     public OfferingInstance withCompletion(long time, Set<String> milestones) {
-        return new OfferingInstance(id, projectId, activeLevelId, scope, realmId, worldId, x, y, z, anchorId,
-                progress, contributorTotals, milestones, createdAt, time);
+        return new OfferingInstance(id, projectId, activeLevelId, displayNameOverride, scope, realmId, worldId,
+                x, y, z, anchorId, progress, contributorTotals, milestones, createdAt, time, resetGeneration);
     }
 
     public OfferingInstance withCompletedMilestones(Set<String> milestones) {
-        return new OfferingInstance(id, projectId, activeLevelId, scope, realmId, worldId, x, y, z, anchorId,
-                progress, contributorTotals, milestones, createdAt, completedAt);
+        return new OfferingInstance(id, projectId, activeLevelId, displayNameOverride, scope, realmId, worldId,
+                x, y, z, anchorId, progress, contributorTotals, milestones, createdAt, completedAt, resetGeneration);
     }
 
     public OfferingInstance withAnchor(String nextAnchorId) {
-        return new OfferingInstance(id, projectId, activeLevelId, scope, realmId, worldId, x, y, z, nextAnchorId,
-                progress, contributorTotals, completedMilestones, createdAt, completedAt);
+        return new OfferingInstance(id, projectId, activeLevelId, displayNameOverride, scope, realmId, worldId,
+                x, y, z, nextAnchorId, progress, contributorTotals, completedMilestones, createdAt, completedAt,
+                resetGeneration);
+    }
+
+    public OfferingInstance withDisplayNameOverride(String displayName) {
+        return new OfferingInstance(id, projectId, activeLevelId, displayName, scope, realmId, worldId,
+                x, y, z, anchorId, progress, contributorTotals, completedMilestones, createdAt, completedAt,
+                resetGeneration);
     }
 
     public OfferingInstance advanceToLevel(String nextLevelId) {
-        return new OfferingInstance(id, projectId, nextLevelId, scope, realmId, worldId, x, y, z, anchorId,
-                Map.of(), contributorTotals, Set.of(), createdAt, 0L);
+        return new OfferingInstance(id, projectId, nextLevelId, displayNameOverride, scope, realmId, worldId,
+                x, y, z, anchorId, Map.of(), contributorTotals, Set.of(), createdAt, 0L, resetGeneration);
+    }
+
+    public OfferingInstance reset(String firstLevelId) {
+        return new OfferingInstance(id, projectId, firstLevelId, "", scope, realmId, worldId, x, y, z, anchorId,
+                Map.of(), Map.of(), Set.of(), createdAt, 0L, resetGeneration + 1L);
     }
 
     public OfferingInstance reset() {
-        return new OfferingInstance(id, projectId, activeLevelId, scope, realmId, worldId, x, y, z, anchorId,
-                Map.of(), Map.of(), Set.of(), createdAt, 0L);
+        return reset("");
     }
 }

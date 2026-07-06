@@ -2,6 +2,7 @@ package panetina.elarion.core.service;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.text.Text;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -19,10 +20,13 @@ import panetina.elarion.core.model.RewardAction;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class RewardActionService {
+    static final int MAX_CUSTOM_ITEM_NAME_LENGTH = 80;
+
     private static final Set<String> BUILT_IN_ACTION_TYPES = Set.of(
             "message",
             "item",
@@ -118,6 +122,7 @@ public final class RewardActionService {
             }
             Item item = Registries.ITEM.get(id);
             ItemStack prototype = new ItemStack(item, count);
+            applyCustomName(prototype, action.parameters());
             applyEnchantments(context, prototype, action.parameters());
             if (!canFit(context.player().getInventory(), prototype, count)) {
                 return false;
@@ -127,7 +132,7 @@ public final class RewardActionService {
                 int stackCount = Math.min(remaining, item.getMaxCount());
                 ItemStack stack = prototype.copy();
                 stack.setCount(stackCount);
-                if (!context.player().getInventory().insertStack(stack)) {
+                if (!context.player().getInventory().insertStack(stack) || !stack.isEmpty()) {
                     return false;
                 }
                 remaining -= stackCount;
@@ -177,6 +182,21 @@ public final class RewardActionService {
         });
     }
 
+    static void applyCustomName(ItemStack stack, Map<String, String> parameters) {
+        customItemName(parameters).ifPresent(name ->
+                stack.set(DataComponentTypes.CUSTOM_NAME, name));
+    }
+
+    static Optional<Text> customItemName(Map<String, String> parameters) {
+        String raw = parameters.getOrDefault("name", "");
+        if (raw == null || raw.isBlank()) return Optional.empty();
+        String name = raw.trim();
+        if (name.length() > MAX_CUSTOM_ITEM_NAME_LENGTH) {
+            name = name.substring(0, MAX_CUSTOM_ITEM_NAME_LENGTH);
+        }
+        return Optional.of(Text.literal(name));
+    }
+
     private static void applyEnchantments(Context context, ItemStack stack, Map<String, String> parameters) {
         String raw = parameters.getOrDefault("enchants", parameters.getOrDefault("enchantments", ""));
         if (raw == null || raw.isBlank()) return;
@@ -202,11 +222,16 @@ public final class RewardActionService {
     private static boolean canFit(PlayerInventory inventory, ItemStack prototype, int count) {
         if (prototype.isEmpty() || count < 1) return false;
         int remaining = count;
-        for (int slot = 0; slot < inventory.size(); slot++) {
-            ItemStack existing = inventory.getStack(slot);
+        for (ItemStack existing : inventory.main) {
             if (existing.isEmpty()) {
                 remaining -= Math.min(remaining, prototype.getMaxCount());
             } else if (ItemStack.areItemsAndComponentsEqual(existing, prototype)) {
+                remaining -= Math.max(0, Math.min(existing.getMaxCount(), prototype.getMaxCount()) - existing.getCount());
+            }
+            if (remaining <= 0) return true;
+        }
+        for (ItemStack existing : inventory.offHand) {
+            if (ItemStack.areItemsAndComponentsEqual(existing, prototype)) {
                 remaining -= Math.max(0, Math.min(existing.getMaxCount(), prototype.getMaxCount()) - existing.getCount());
             }
             if (remaining <= 0) return true;

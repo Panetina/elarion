@@ -7,7 +7,11 @@ Active optimization health tracker for Elarion.
 The repo has already moved through the major architecture cleanup pass. Keep
 this file focused on remaining performance and operational risks.
 
-Last audit: `.\gradlew.bat build` passed.
+Last broad build audit: `.\gradlew.bat build` passed.
+
+Last project-revamp audit slice: 2026-07-05, Phase 0 Slice 2 documentation-only
+Configuration/Admin Panel audit. See
+`docs/reports/CONFIG_ADMIN_AUDIT.md`.
 
 ## Active Risks
 
@@ -18,15 +22,25 @@ Last audit: `.\gradlew.bat build` passed.
   growing duplicate screen stacks.
 - Command and GameTest coverage should expand when a subsystem gains new
   persistence or public interaction paths.
-- Government currently scans vote state every server tick. This is acceptable at
-  development scale, but should move to an interval or deadline queue before
-  many Realms/elections are live.
 - Government UI mutations are now session-bound to a recently opened Civic
   Forum or Seat block through a small tested session service. Add command/GameTest
   coverage before expanding authority actions.
 - Portal player checks are chunk-indexed and run every 5 ticks, but
   `PortalRouteService` is now large enough that travel, scheduling, indexing,
   and admin repair should be split before adding more route behavior.
+- Worlds routing/border checks now use event routing plus a one-second safety
+  sweep. Profile before large public tests if lobby/world enforcement expands.
+- The typed config registry and future Admin Panel config browser must describe
+  existing loader snapshots; they should not parse every config file on
+  ordinary client UI open.
+- Addon reload safety is inconsistent. Before exposing config edits in the
+  Admin Panel, each editable domain needs explicit reload/rollback behavior so
+  bad config cannot partially apply runtime values.
+- The future placeholder registry must expose bounded, side-effect-free
+  resolution. It should not scan storage or mutate state while formatting text.
+- The future Citizen Profile aggregation API must request bounded
+  addon-provided sections. It should not copy all addon state into Core or
+  synchronize private data and hide it client-side.
 
 ## Completed Themes
 
@@ -39,6 +53,15 @@ Last audit: `.\gradlew.bat build` passed.
   screens.
 - Notification HUD placeholder chat messages were removed from player-facing
   clicks.
+- Economy recent transaction queries now stream monthly transaction files and
+  keep only a bounded newest-match window instead of loading full files.
+- Government expired vote resolution now runs on a one-second interval instead
+  of scanning all vote state every server tick.
+- Portal legacy route migration moved out of `PortalRouteService`.
+- Government text, category, color, and ID validation moved out of
+  `GovernmentStateService`.
+- Dirty worktree classification is recorded in
+  `docs/reports/WORKTREE_CLEANUP_AUDIT.md`.
 
 ## Keep Watching
 

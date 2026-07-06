@@ -17,7 +17,7 @@ public abstract class PlayerListHudMixin {
             CallbackInfoReturnable<Text> cir
     ) {
         ClientIdentityCache.find(entry.getProfile().getId())
-                .ifPresent(identity -> cir.setReturnValue(identity.visible()
+                .ifPresent(identity -> cir.setReturnValue(identity.tabVisible()
                         ? identity.tabName()
                         : identity.hiddenTabName()));
     }

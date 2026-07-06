@@ -1,6 +1,6 @@
 # Core Contract
 
-Last reviewed: 2026-06-15
+Last reviewed: 2026-07-06
 
 Author: Panyel  
 Team: Panetina Team
@@ -19,12 +19,19 @@ Team: Panetina Team
 - player stats
 - task queues
 - shared registries
+- read-only config descriptor registry
 - shared UI theme and notification HUD rail
+- modular Collection menu shell, Pets placeholder tab, and Core-owned Titles
+  collection tab
+- Admin Panel shell, `/e panel`, packets, and provider registry for OP testing
+  and repair actions
 - canonical data exported to the web/bridge layer
 - active-citizen recency truth
 - durable claimable reward grants and delivery receipts
 - notification categories and notification snapshot/claim payloads
 - durable notification storage, audience snapshots, and action dispatch
+- canonical account-to-character lifecycle, dead-character archives, reserved
+  RP names, and restart-safe True Death reset coordination
 
 ## Public API
 
@@ -36,6 +43,79 @@ Use grouped facades from `ElarionApi` for new work:
 - progression
 - system
 
+`ElarionApi.system().configs()` exposes the server-side read-only
+`ElarionConfigRegistry`. Current registered domains include `core`, with
+UI theme, server identity, Realm definition, title/title-progression
+definition, reward definition, citizen/activity, chat, identity/nickname, and
+history descriptors backed by the current validated `CoreConfigManager`
+snapshot; `groups`, backed by the
+current validated Groups config snapshot; `economy`, backed by the current
+validated Economy transaction config and service-price snapshots; and `worlds`,
+backed by the current validated Worlds manager snapshot; and `portals`, backed
+by current Portal route and UI definition snapshots; and `offerings`, backed
+by current Offering project and Shrine UI definition snapshots; and
+`government`, backed by current Government settings and form definition
+snapshots; and `npcs`, backed by current NPC definition, visual profile,
+dialogue summary, and UI snapshots; and `quests`, backed by current quest
+package metadata and graph summaries; and `realms`, backed by the loaded Realm
+protection config snapshot; and `mounts`, backed by loaded Collection row and
+detail text; and `underworld`, backed by the active Underworld service config
+snapshot; and `optimization`, backed by Core-owned task settings surfaced by
+the Optimization addon. Addons should register future domains through this
+registry instead of adding separate discovery systems.
+
+Core also owns config mutation-readiness contracts:
+`ElarionConfigChangeRequest`, `ElarionConfigChangeResult`,
+`ElarionConfigChangeError`, `ElarionConfigChangeValidator`,
+`ElarionConfigApplyRegistrar`, `ElarionConfigApplyRegistry`,
+`ElarionConfigApplier`, `ElarionConfigPreparedChange`,
+`ElarionConfigApplyCapability`, `ElarionConfigApplyContext`, and
+`ElarionConfigApplyReadiness`, plus the non-executable
+`ElarionConfigApplyReadinessProvider`. Core also owns config edit transport contracts:
+`ElarionConfigEditTarget`,
+`ElarionConfigEditControl`, `ElarionConfigEditOpenPayload`,
+`ElarionConfigEditRequestPayload`, and `ElarionConfigEditResultPayload`.
+These records and codecs model future edit requests, typed control snapshots,
+and validation/apply results only. The validator resolves requests against the
+descriptor registry, checks permission metadata, parses raw submitted values,
+runs entry validators, and detects stale expected-current values. The inert
+apply registry can explicitly bind an edit target to capability metadata and
+an applier and can report descriptor-aware readiness. Core constructs one
+canonical registry and exposes only a method-reference
+`ElarionConfigApplyRegistrar` through
+`ElarionApi.system().configAppliers()`. Consumers cannot retrieve executable
+registrations. Core currently registers one production backend applier for
+`core:ui_theme:defaults.font-scale-percent`; addon production appliers do not
+exist yet. Admin receives only the executor facade/readiness provider and uses
+it for target-specific disabled reasons. The visible Admin Apply button remains
+disabled until the UI enablement slice approves click behavior.
+
+The applier contract is transactional: owner code prepares without mutation,
+then a future Core coordinator may commit and invoke idempotent rollback if a
+later mandatory step fails. Core now contains the unwired coordinator and
+structured audit sink/record contracts. It revalidates under a process-global
+lock and prepares a write-ahead audit session before owner commit. Session
+terminal operations distinguish committed, rolled-back, and failed outcomes.
+Core also contains the unbound JSONL audit journal sink with synchronous
+append+force and bounded unresolved-tail recovery. `ElarionConfigApplyService`
+binds the journal to the active world on server start, routes Admin readiness,
+blocks execution if recovery is unsafe, and can delegate backend apply requests
+to the coordinator when ready. Admin sees it through
+`ElarionConfigApplyExecutor`, not coordinator/registry internals. The first
+registered backend target writes `config/elarion/core/ui_theme.yml`, reloads
+Core config, and resyncs UI themes. The client Apply control is enabled only
+for server-authored apply-available controls with a matching latest validation
+result. Config edit controls carry separate input editability and Apply
+availability metadata.
+
+## Addon Lifecycle
+
+Core registers its server lifecycle bind/stop/tick callbacks before it
+initializes custom addon entrypoints. Addon `SERVER_STARTED` callbacks may rely
+on Core services such as citizens, titles, notifications, history, and
+character lifecycle already being bound to the active server. Addons still own
+their feature state and must not duplicate Core-owned truth.
+
 ## Runtime State
 
 ```text
@@ -46,8 +126,20 @@ world/elarion/progression/
 world/elarion/title-claims.json
 world/elarion/reward-grants.json
 world/elarion/notifications/notifications.json
+world/elarion/core/characters/state.json
 world/elarion/addon-state/realms/
 ```
+
+Character Lifecycle requires one preservation confirmation from existing
+citizens and fresh character creation from new accounts. Its mandatory client
+screen waits until no other mod screen is active and never replaces an external
+screen. The character name and biography inputs use the shared Core text-input
+helper; failed validation preserves the local fields, and the biography box
+scrolls internally. New Realm-less characters are automatically placed into the
+least-populated starter Realm among `realm1`, `realm2`, and `realm3`, with
+random tie-breaking. The Realm-choice panel is currently presentation-only and
+keeps future manual selection disabled. Addons register idempotent cleanup handlers through
+`ElarionApi.characters()`; they must not create another character manager.
 
 `config/elarion/core/activity.yml` controls the default active-citizen recency
 window. Citizen records persist `lastSeenAt`; online players are active and
@@ -68,17 +160,98 @@ Government entries delivered to a snapshotted Realm audience. World contains
 global-stage events such as Nether/End route unlocks and constrained title
 claims. The World icon and feed are hidden until the citizen belongs to a Realm
 with the Offering-owned `ancient_gate_unlocked` flag. Neutral players and
-citizens of pre-global Realms do not receive World entries. Quests is a
-placeholder for future accepted, assigned, and random quests.
+citizens of pre-global Realms do not receive World entries. Quest-category
+entries are published by the Quests addon for meaningful quest outcomes and
+reminders.
 
 The drawer uses a compact brown/gold Minecraft-style notification center. The
 left HUD icons are the only category selectors: envelope for Personal, Realm
 icon for Realm, World icon for global events, and Quest icon for Quests. The panel is narrow/tall with a
 vertical virtualized card list, no top text tab row, no visible scrollbar, and
 no close button. It closes through ESC or the inventory key.
+Cards are ordered newest-first regardless of read state. Marking a card read
+does not move it; unread cards use stronger accents in the list in addition to
+the rail icon's new-message state.
+
+Core owns ordered HUD composition through `ElarionHudOverlayRegistry`.
+Addon status elements render before the notification drawer and foreground
+tooltips render afterward. The combined stack is drawn above chat text so chat
+cannot obscure notification cards or addon tooltips.
 
 Reward cards can expand in-place to show compact item/currency preview icons
 with count overlays.
+
+## Admin Panel
+
+Core owns `/e panel`, the Admin Panel packets, the themed
+`ElarionAdminPanelScreen`, and the provider registry exposed through
+`ElarionApi.system().adminPanel()`. The panel is OP level 4 only and requires
+an in-game player source. Addons contribute rows/actions through providers and
+remain authoritative for their own reset or repair behavior.
+
+The V1 tabs are Overview, Players, Systems, Config, Realms, and Danger Zone.
+Player tools cover online-player inspection, teleport helpers, Realm
+assignment, nickname edits, title/ability edits, character lifecycle repair,
+and addon-contributed player actions such as mount grants or Underworld
+cleanup. Single-field player actions can carry server-authored Tab completion
+suggestions; current Core suggestions cover Realm IDs, title IDs, and
+registered abilities, while addon providers can attach scoped suggestions such
+as Mount IDs. The client only cycles these supplied values and the server
+validates every mutation. Destructive actions use a second click-confirm
+modal. `Reset Everything` is runtime-only: it invokes
+registered provider resets and must preserve configs, world files, placed
+blocks, NPC placements, portal endpoints, and player inventories.
+
+The Config tab shows read-only config descriptor rows from
+`ElarionApi.system().configs()`. It shows domain summary rows, per-category
+detail rows, and stable per-entry rows for OP discovery. The tab is scoped for
+packet safety: opening Config sends only domain/category summaries, and
+selecting a category asks the server for that category's entry rows. Admin
+Panel payloads also cap tab, row, action, and suggestion counts before writing
+the custom payload. These rows expose descriptor metadata, current/default
+values, bounds, choices, reload/restart markers, permissions, and validation
+errors. Entry rows expose a preview-only `Validate Value` action that submits
+one proposed raw value to the server and returns the
+`ElarionConfigChangeValidator` result. It does not write files, apply values,
+reload config, emit audit events, change runtime state, add typed edit
+controls, change packet schemas, or touch persistence. The Systems tab remains
+for provider-owned testing and repair rows.
+
+True editing still requires a dedicated config packet/model, apply service,
+audit path, and reload/rollback policy. Do not convert the preview action into
+an edit/save path.
+
+The proposed edit protocol is Core-owned and separate from generic Admin Panel
+actions. It carries config edit targets, typed control metadata,
+expected-current values, proposed raw values, structured result errors,
+reload/restart policy, and audit preview text. The packet records/codecs exist,
+their payload types are registered, and Core now handles validation-only config
+edit requests from OP level 4 admins. Addon config domains remain read-only
+until the owning addon registers an explicit reload-safe applier or edit
+provider.
+
+Config edit open and result payloads are S2C; config edit requests are C2S.
+The C2S receiver OP-gates on the server, delegates to Core Admin/config
+dispatch, returns `ElarionConfigEditResultPayload`, refreshes the Admin Panel
+message, and can route server-side `APPLY` through the audit-backed apply
+executor for registered production backend targets. The visible client sends
+Apply only after a matching successful validation result for an apply-available
+control. The client registers a result receiver that stores the last
+structured result in passive client state and clears it on join/disconnect.
+The client also registers an open-payload receiver that stores the current
+server-authored edit control and clears stale validation results when a new
+control opens. Config entry rows expose `Open Editor`; the server resolves the
+selected descriptor and sends a disabled `ElarionConfigEditOpenPayload` with
+server-authored input/apply availability. The Admin Panel renders the open
+control in a detail shell with Close, descriptor metadata, proposed-value input,
+server-side Validate, structured validation-result display, and Apply. Applied
+results close the edit shell to avoid stale current values after reload/sync.
+The first production applier is limited to
+`core:ui_theme:defaults.font-scale-percent`; it writes `ui_theme.yml`,
+reloads Core, resyncs theme packets, and rolls back the exact previous file on
+failure. Old development files missing the scalar are migrated in place by
+inserting it under `defaults`; duplicate `font-scale-percent` lines are
+rejected.
 
 `/e realm reward`, `/e realm give`, and Offering/Shrine reward milestones queue
 claimable reward notifications. Rewards are inserted or paid only after the
@@ -90,9 +263,27 @@ Government founding results, and Offering/Shrine level changes also publish
 Realm notification entries. Realm mail/news remain until the recipient presses
 Dismiss.
 
-Future Quest systems must publish quest entries through Core notification APIs
-instead of creating a separate HUD stack. Quest gameplay, quest storage, and
-quest commands are not implemented in Core.
+Quest systems publish quest entries through Core notification APIs instead of
+creating a separate HUD stack. Quest gameplay, quest storage, and quest
+commands are owned by `addons/quests`, not Core.
+
+## Collection Menu
+
+Core owns the shared Collection menu shell, `/collection`, the `C` key opener,
+generic collection networking, the empty Pets placeholder tab, and the Titles
+tab. Addons may contribute additional tabs through
+`ElarionApi.system().collections()`, but the player-facing mutation remains
+server-authoritative through the provider action callback.
+
+Current pinned tab order is Mounts, Pets, then Titles. The Titles tab is backed
+by existing `TitleService` and citizen title state; Collection does not own or
+duplicate title unlocks, active title, or title persistence.
+
+Government authority titles are normal Core title definitions. The Government
+addon temporarily unlocks and activates them while a citizen holds an office,
+then revokes the temporary unlock when the rank is gone. Core remains the
+source of truth for title definitions, active title storage, and rendering;
+Government owns the office-to-title restore pointer in Government runtime state.
 
 ## Notification Event Matrix
 
@@ -106,7 +297,18 @@ quest commands are not implemented in Core.
 | Realm governance | Realm/Government | relationship decisions with Approve/Reject and final results |
 | Offerings | Realm or World | configured milestone notices and Shrine progression notices |
 | Portals | Realm or World | Ancient Gate unlocks are Realm; scheduled Nether/End unlocks are World |
-| Quests | Quest | reserved; no gameplay publisher yet |
+| Quests | Quest | questline notifications and reminders |
+
+Title announcement policy is ownership-driven:
+
+- `UNLIMITED`: Personal grant/revoke notification only.
+- `ONE_PER_PLAYER`: Personal notification plus a World announcement for each
+  citizen's first successful unlock.
+- `GLOBALLY_UNIQUE`: Personal notification plus one World announcement for
+  the successful claimant.
+
+World delivery still requires the recipient's Realm to have global notification
+access. Existing unlocks are not replayed when a title definition changes.
 
 Informational notifications expire after 30 days by default. Actionable
 notifications remain available until their owning domain action expires or
@@ -145,6 +347,20 @@ must document:
 
 New addons must use Core notifications and domain events instead of creating a
 second inbox, HUD rail, event poller, or cross-addon runtime-file dependency.
+
+Current stable event identifiers include:
+
+- `title-granted`
+- `title-revoked`
+- `portal-route-unlocked`
+- `portal-route-locked`
+- `portal-window-opened`
+- `portal-window-closed`
+- `realm-global-access-changed`
+
+The event bus isolates listeners: one failing consumer is logged and cannot
+break the authoritative mutation or prevent other listeners from receiving the
+event.
 
 ## External Bridge Contract
 

@@ -1,0 +1,13 @@
+{
+  "itemGroup.elarion_mounts.mounts": "Elarion Mounts",
+  "entity.elarion_mounts.mount": "Elarion Mount",
+  "item.elarion_mounts.airship_whistle": "Airship Whistle",
+  "item.elarion_mounts.bee_whistle": "Bee Whistle",
+  "item.elarion_mounts.chinese_dragon_whistle": "Chinese Dragon Whistle",
+  "item.elarion_mounts.ghast_whistle": "Ghast Whistle",
+  "item.elarion_mounts.hot_air_balloon_whistle": "Hot Air Balloon Whistle",
+  "item.elarion_mounts.scifi_bike_whistle": "Sci-Fi Bike Whistle",
+  "item.elarion_mounts.wyvern_whistle": "Wyvern Whistle",
+  "category.elarion_mounts.mounts": "Elarion Mounts",
+  "key.elarion_mounts.dismount": "Summon/Dismount Active Mount"
+}

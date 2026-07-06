@@ -34,6 +34,7 @@ final class OfferingStorageTest {
 
         assertEquals(1, loaded.instances.size());
         assertEquals(25L, loaded.instances.get("council_hall_1").progress().get("currency"));
+        assertEquals(0L, loaded.instances.get("council_hall_1").resetGeneration());
         assertEquals(contributor, loaded.donations.get("council_hall_1").getFirst().contributorId());
         assertEquals(25L, loaded.donations.get("council_hall_1").getFirst().amount());
     }

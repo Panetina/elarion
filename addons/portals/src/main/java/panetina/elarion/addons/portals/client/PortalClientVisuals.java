@@ -16,6 +16,10 @@ public final class PortalClientVisuals {
         entries = payload.entries();
     }
 
+    public static void clear() {
+        entries = List.of();
+    }
+
     public static int color(BlockPos pos) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || pos == null) return 0xFFFFFFFF;

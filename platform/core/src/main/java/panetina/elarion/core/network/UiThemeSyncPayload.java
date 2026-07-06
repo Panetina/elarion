@@ -21,6 +21,7 @@ public record UiThemeSyncPayload(ElarionUiTheme theme) implements CustomPayload 
         buffer.writeVarInt(theme.logicalWidth());
         buffer.writeVarInt(theme.logicalHeight());
         buffer.writeVarInt(theme.minimumScalePercent());
+        buffer.writeVarInt(theme.fontScalePercent());
         buffer.writeVarInt(theme.padding());
         buffer.writeVarInt(theme.gap());
         buffer.writeVarInt(theme.rowHeight());
@@ -34,22 +35,23 @@ public record UiThemeSyncPayload(ElarionUiTheme theme) implements CustomPayload 
         int width = buffer.readVarInt();
         int height = buffer.readVarInt();
         int scale = buffer.readVarInt();
+        int fontScale = buffer.readVarInt();
         int padding = buffer.readVarInt();
         int gap = buffer.readVarInt();
         int row = buffer.readVarInt();
         int button = buffer.readVarInt();
         int scrollbar = buffer.readVarInt();
-        int count = buffer.readVarInt();
+        int count = ElarionPacketCodecs.readBoundedCount(buffer, 32);
         Map<String, ElarionUiThemeVariant> variants = new LinkedHashMap<>();
         for (int index = 0; index < count; index++) {
             ElarionUiThemeVariant variant = readVariant(buffer);
             variants.put(variant.id(), variant);
         }
-        return new ElarionUiTheme(width, height, scale, padding, gap, row, button, scrollbar, variants);
+        return new ElarionUiTheme(width, height, scale, fontScale, padding, gap, row, button, scrollbar, variants);
     }
 
     private static void writeVariant(ElarionUiThemeVariant value, PacketByteBuf buffer) {
-        buffer.writeString(value.id());
+        ElarionPacketCodecs.writeString(buffer, value.id(), 64);
         buffer.writeInt(value.panelColor());
         buffer.writeInt(value.headerColor());
         buffer.writeInt(value.insetColor());
@@ -72,22 +74,23 @@ public record UiThemeSyncPayload(ElarionUiTheme theme) implements CustomPayload 
         buffer.writeInt(value.progressCompleteColor());
         buffer.writeInt(value.scrollbarTrackColor());
         buffer.writeInt(value.scrollbarThumbColor());
-        buffer.writeString(value.panelTexture());
-        buffer.writeString(value.cardTexture());
-        buffer.writeString(value.textureMode());
+        ElarionPacketCodecs.writeString(buffer, value.panelTexture(), 256);
+        ElarionPacketCodecs.writeString(buffer, value.cardTexture(), 256);
+        ElarionPacketCodecs.writeString(buffer, value.textureMode(), 16);
         buffer.writeInt(value.textureTint());
     }
 
     private static ElarionUiThemeVariant readVariant(PacketByteBuf buffer) {
         return new ElarionUiThemeVariant(
-                buffer.readString(64),
+                ElarionPacketCodecs.readString(buffer, 64),
                 buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt(),
                 buffer.readInt(), buffer.readInt(), buffer.readInt(),
                 buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt(),
                 buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt(),
                 buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt(),
                 buffer.readInt(), buffer.readInt(), buffer.readInt(),
-                buffer.readString(256), buffer.readString(256), buffer.readString(16), buffer.readInt());
+                ElarionPacketCodecs.readString(buffer, 256), ElarionPacketCodecs.readString(buffer, 256),
+                ElarionPacketCodecs.readString(buffer, 16), buffer.readInt());
     }
 
     @Override

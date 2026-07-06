@@ -1,6 +1,6 @@
 # Economy Addon Contract
 
-Last reviewed: 2026-06-11
+Last reviewed: 2026-07-05
 
 Author: Panyel  
 Team: Panetina Team
@@ -106,6 +106,13 @@ IDs and call `ElarionEconomyApi.servicePrice(id)`. Current Portal keys are
 `portal_ticket.nether`, `portal_ticket.end`, and `ancient_gate.passage`.
 Future Governor adjustments can therefore change current prices without moving
 route ownership into Economy.
+
+Economy registers a read-only config descriptor domain named `economy` through
+`ElarionApi.system().configs()`. The descriptors read the active
+`EconomyTransactionService.config()` and `EconomyPricingService.definitions()`
+snapshots, so Admin Panel discovery does not parse config files. The domain
+exposes persistence, query, Governor, and service-price metadata. Config
+editing and reload-atomicity fixes remain future approved Config/Admin slices.
 
 ## Command Presentation
 

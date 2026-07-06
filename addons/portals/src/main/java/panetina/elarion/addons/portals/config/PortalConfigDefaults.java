@@ -59,7 +59,7 @@ public final class PortalConfigDefaults {
 
               realm1:
                 display-name: "Ancient Gate"
-                description: "An ancient passage between Realm 1 and %capital%."
+                description: "An ancient passage between %realm_official% and %capital%."
                 source-dimension: "elarion:realm_world_1"
                 destination-dimension: "elarion:lobby"
                 enabled: true
@@ -78,7 +78,7 @@ public final class PortalConfigDefaults {
 
               realm2:
                 display-name: "Ancient Gate"
-                description: "An ancient passage between Realm 2 and %capital%."
+                description: "An ancient passage between %realm_official% and %capital%."
                 source-dimension: "elarion:realm_world_2"
                 destination-dimension: "elarion:lobby"
                 enabled: true
@@ -97,7 +97,7 @@ public final class PortalConfigDefaults {
 
               realm3:
                 display-name: "Ancient Gate"
-                description: "An ancient passage between Realm 3 and %capital%."
+                description: "An ancient passage between %realm_official% and %capital%."
                 source-dimension: "elarion:realm_world_3"
                 destination-dimension: "elarion:lobby"
                 enabled: true

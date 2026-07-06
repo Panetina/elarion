@@ -1,0 +1,7 @@
+﻿{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "elarion_underworld:block/tombstones/tombstone_1"
+  },
+  "elements": []
+}

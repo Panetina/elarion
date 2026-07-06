@@ -3,6 +3,7 @@
     "id": "elarion_npcs",
     "version": "${version}",
     "name": "Elarion NPCs",
+    "icon": "assets/elarion_npcs/icon.png",
     "description": "Static placeable NPCs, dialogue trees, and registry-driven interaction hooks for Elarion.",
     "authors": [
         "Panyel"

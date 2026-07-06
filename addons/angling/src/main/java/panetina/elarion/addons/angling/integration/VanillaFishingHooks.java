@@ -8,6 +8,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import panetina.elarion.addons.angling.condition.AnglingBaitContextResolver;
 import panetina.elarion.addons.angling.condition.AnglingConditionContext;
 import panetina.elarion.addons.angling.service.AnglingFeedbackService;
 import panetina.elarion.addons.angling.service.AnglingFishingTriggerService;
@@ -58,7 +59,7 @@ public final class VanillaFishingHooks {
                         dimensionId,
                         biomeId,
                         fluidId,
-                        null,
+                        AnglingBaitContextResolver.resolve(player).orElse(null),
                         pos.getY(),
                         timeOfDay,
                         world.isRaining(),
@@ -74,11 +75,18 @@ public final class VanillaFishingHooks {
         }
     }
 
+    public static void onPlayerDisconnected(ServerPlayerEntity player) {
+        Objects.requireNonNull(player, "player");
+        requireTriggers().cancel(player.getUuid());
+        removeBobber(player);
+        requireFeedback().clear(player.getUuid());
+    }
+
     public static boolean beforeVanillaFishingLoot(FishingBobberEntity bobber) {
         if (bobber.getPlayerOwner() instanceof ServerPlayerEntity player) {
-            boolean accepted;
+            AnglingFishingTriggerService.CompletedCatch completed;
             try {
-                accepted = requireTriggers().complete(player.getUuid()).isPresent();
+                completed = requireTriggers().complete(player.getUuid()).orElse(null);
             } catch (RuntimeException exception) {
                 LOGGER.error(
                         "Blocked vanilla fishing loot because catch telemetry was not accepted for {}",
@@ -86,9 +94,36 @@ public final class VanillaFishingHooks {
                         exception);
                 return false;
             }
-            if (accepted) sendAcceptedFeedback(player);
+            if (completed != null) {
+                consumeBait(player, completed.baitId());
+                sendAcceptedFeedback(player);
+                removeBobber(player);
+                return false;
+            }
         }
         return true;
+    }
+
+    private static void consumeBait(ServerPlayerEntity player, Identifier baitId) {
+        if (baitId == null) return;
+        try {
+            if (!AnglingBaitContextResolver.consumeOne(player, baitId)) {
+                LOGGER.debug("No matching Angling bait remained to consume for {}", player.getUuid());
+            }
+        } catch (RuntimeException exception) {
+            LOGGER.warn(
+                    "Unable to consume Angling bait for {}",
+                    player.getUuid(),
+                    exception);
+        }
+    }
+
+    private static void removeBobber(ServerPlayerEntity player) {
+        FishingBobberEntity bobber = player.fishHook;
+        if (bobber != null) {
+            bobber.discard();
+            player.fishHook = null;
+        }
     }
 
     private static void sendAcceptedFeedback(ServerPlayerEntity player) {

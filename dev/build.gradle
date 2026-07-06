@@ -21,6 +21,8 @@ dependencies {
             ':addons:security',
             ':addons:optimization',
             ':addons:npcs',
+            ':addons:mounts',
+            ':addons:quests',
             ':addons:angling'
     ].each { addonPath ->
         implementation(project(path: addonPath, configuration: 'namedElements')) {
@@ -30,6 +32,7 @@ dependencies {
 
     runtimeOnly 'org.yaml:snakeyaml:2.2'
     modRuntimeOnly 'xyz.nucleoid:fantasy:0.6.3+1.21'
+    modRuntimeOnly 'software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4'
 }
 
 loom {

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import panetina.elarion.addons.economy.api.ElarionEconomyApi;
 import panetina.elarion.addons.economy.command.EconomyCommands;
 import panetina.elarion.addons.economy.config.EconomyConfig;
+import panetina.elarion.addons.economy.config.EconomyConfigDescriptors;
 import panetina.elarion.addons.economy.registry.EconomyNpcActions;
 import panetina.elarion.addons.economy.registry.EconomyRewardActions;
 import panetina.elarion.addons.economy.service.EconomyGovernorService;
@@ -38,7 +39,23 @@ public final class ElarionEconomyAddon implements ElarionAddon {
         EconomyInventoryService inventory = new EconomyInventoryService(transactions);
         EconomyGovernorService governor = new EconomyGovernorService(transactions);
         EconomyPricingService pricing = new EconomyPricingService();
+        api.characters().registerResetHandler("elarion_economy", context -> {
+            var source = panetina.elarion.addons.economy.model.EconomyAccount.player(context.accountId());
+            long balance = transactions.balance(source);
+            if (balance <= 0L) return;
+            var destination = context.realmId().isBlank()
+                    ? panetina.elarion.addons.economy.model.EconomyAccount.BURN
+                    : panetina.elarion.addons.economy.model.EconomyAccount.realm(context.realmId());
+            var type = context.realmId().isBlank()
+                    ? panetina.elarion.addons.economy.model.EconomyTransactionType.SINK
+                    : panetina.elarion.addons.economy.model.EconomyTransactionType.TRANSFER;
+            var result = transactions.execute(type, source, destination, balance, context.accountId(),
+                    "True Death estate settlement", "elarion_characters",
+                    Map.of("characterId", context.characterId(), "reason", context.reason()));
+            if (!result.successful()) throw new IllegalStateException(result.message());
+        });
         new ElarionEconomyApi(transactions, inventory, governor, pricing);
+        EconomyConfigDescriptors.register(api.system().configs(), transactions::config, pricing::definitions);
         EconomyNpcActions.register(api, transactions, inventory);
         EconomyRewardActions.register(api, transactions);
 

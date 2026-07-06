@@ -114,6 +114,29 @@ final class EconomyTransactionServiceTest {
     }
 
     @Test
+    void recentQueriesReturnNewestMatchesWithoutChangingBalances() {
+        UUID first = UUID.randomUUID();
+        UUID second = UUID.randomUUID();
+        EconomyTransactionService service = service(new EconomyStorage(
+                LoggerFactory.getLogger("economy-test"), root), new ArrayList<>());
+
+        assertTrue(service.reward(EconomyAccount.player(first), 10L, null,
+                "First reward", "elarion:test").successful());
+        assertTrue(service.reward(EconomyAccount.player(second), 20L, null,
+                "Second reward", "elarion:test").successful());
+        assertTrue(service.sink(EconomyAccount.player(second), 5L, second,
+                "Second sink", "elarion:test").successful());
+
+        List<EconomyTransaction> recent = service.recent(transaction -> true, 2);
+
+        assertEquals(2, recent.size());
+        assertEquals("Second sink", recent.get(0).reason());
+        assertEquals("Second reward", recent.get(1).reason());
+        assertEquals(10L, service.balance(EconomyAccount.player(first)));
+        assertEquals(15L, service.balance(EconomyAccount.player(second)));
+    }
+
+    @Test
     void failedJournalWriteCannotChangeBalances() {
         EconomyStorage failing = new EconomyStorage(LoggerFactory.getLogger("economy-test"), root) {
             @Override

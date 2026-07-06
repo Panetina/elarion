@@ -5,6 +5,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 import panetina.elarion.addons.portals.model.PortalRouteSnapshot;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public record PortalRouteStatusSyncPayload(List<Entry> routes) implements Custom
                 payload.routes.forEach(entry -> entry.write(buffer));
             },
             buffer -> {
-                int size = buffer.readVarInt();
+                int size = ElarionPacketCodecs.readBoundedCount(buffer, 512);
                 List<Entry> entries = new ArrayList<>(size);
                 for (int index = 0; index < size; index++) entries.add(Entry.read(buffer));
                 return new PortalRouteStatusSyncPayload(entries);
@@ -61,25 +62,26 @@ public record PortalRouteStatusSyncPayload(List<Entry> routes) implements Custom
         }
 
         void write(PacketByteBuf buffer) {
-            buffer.writeString(routeId);
-            buffer.writeString(displayName);
-            buffer.writeString(mode);
+            ElarionPacketCodecs.writeString(buffer, routeId, 128);
+            ElarionPacketCodecs.writeString(buffer, displayName, 256);
+            ElarionPacketCodecs.writeString(buffer, mode, 64);
             buffer.writeBoolean(unlocked);
             buffer.writeBoolean(complete);
             buffer.writeBoolean(active);
             buffer.writeLong(opensAt);
             buffer.writeLong(closesAt);
-            buffer.writeString(iconItem);
-            buffer.writeString(statusIconItem);
+            ElarionPacketCodecs.writeString(buffer, iconItem, 256);
+            ElarionPacketCodecs.writeString(buffer, statusIconItem, 256);
             buffer.writeInt(argb);
         }
 
         static Entry read(PacketByteBuf buffer) {
             return new Entry(
-                    buffer.readString(128), buffer.readString(256), buffer.readString(64),
+                    ElarionPacketCodecs.readString(buffer, 128), ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 64),
                     buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(),
-                    buffer.readLong(), buffer.readLong(), buffer.readString(256),
-                    buffer.readString(256), buffer.readInt());
+                    buffer.readLong(), buffer.readLong(), ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 256), buffer.readInt());
         }
     }
 }

@@ -22,4 +22,24 @@ final class PortalRouteStatusSyncPayloadTest {
 
         assertEquals(payload, PortalRouteStatusSyncPayload.CODEC.decode(buffer));
     }
+
+    @Test
+    void clampsLongRouteStatusText() {
+        String longText = "x".repeat(500);
+        PortalRouteStatusSyncPayload payload = new PortalRouteStatusSyncPayload(List.of(
+                new PortalRouteStatusSyncPayload.Entry(
+                        longText, longText, longText,
+                        true, true, false, 100L, 200L,
+                        longText, longText, 0xFFA82929)));
+        PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
+
+        PortalRouteStatusSyncPayload.CODEC.encode(buffer, payload);
+        PortalRouteStatusSyncPayload decoded = PortalRouteStatusSyncPayload.CODEC.decode(buffer);
+
+        PortalRouteStatusSyncPayload.Entry entry = decoded.routes().getFirst();
+        assertEquals(128, entry.routeId().length());
+        assertEquals(256, entry.displayName().length());
+        assertEquals(64, entry.mode().length());
+        assertEquals(256, entry.iconItem().length());
+    }
 }

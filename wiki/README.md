@@ -42,6 +42,14 @@ Status labels:
 ## Source-Backed Notes
 
 - Project ownership map: [../INDEX.md](../INDEX.md)
+- Current AI/new PC handoff snapshot: [../docs/ai/CURRENT_STATUS.md](../docs/ai/CURRENT_STATUS.md)
 - Current implementation work: [../TODO.md](../TODO.md)
 - Future design book: [../PLANS.md](../PLANS.md)
 - Technical docs: [../docs/](../docs/)
+
+## Maintenance Rule
+
+When commands, configs, UI behavior, permissions, events, notifications, or
+addon status change, update the affected wiki page in the same pass as the
+technical docs. Use [../RULES.md](../RULES.md) for the canonical documentation
+maintenance matrix.

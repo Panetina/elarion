@@ -4,6 +4,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public record NpcVisualSyncPayload(List<Entry> entries) implements CustomPayload
                 payload.entries().forEach(entry -> entry.write(buffer));
             },
             buffer -> {
-                int count = buffer.readVarInt();
+                int count = ElarionPacketCodecs.readBoundedCount(buffer, 512);
                 List<Entry> entries = new ArrayList<>();
                 for (int index = 0; index < count; index++) {
                     entries.add(Entry.read(buffer));
@@ -56,36 +57,36 @@ public record NpcVisualSyncPayload(List<Entry> entries) implements CustomPayload
         private void write(PacketByteBuf buffer) {
             buffer.writeUuid(npcId);
             buffer.writeUuid(entityId);
-            buffer.writeString(commandId);
-            buffer.writeString(displayName);
-            buffer.writeString(skinType);
-            buffer.writeString(skinTexture);
-            buffer.writeString(skinPlayerName);
-            buffer.writeString(skinFallbackType);
-            buffer.writeString(skinFallbackTexture);
-            buffer.writeString(portraitType);
-            buffer.writeString(portraitTexture);
-            buffer.writeString(portraitPlayerName);
-            buffer.writeString(portraitFallbackType);
-            buffer.writeString(portraitFallbackTexture);
+            ElarionPacketCodecs.writeString(buffer, commandId, 128);
+            ElarionPacketCodecs.writeString(buffer, displayName, 128);
+            ElarionPacketCodecs.writeString(buffer, skinType, 64);
+            ElarionPacketCodecs.writeString(buffer, skinTexture, 256);
+            ElarionPacketCodecs.writeString(buffer, skinPlayerName, 64);
+            ElarionPacketCodecs.writeString(buffer, skinFallbackType, 64);
+            ElarionPacketCodecs.writeString(buffer, skinFallbackTexture, 256);
+            ElarionPacketCodecs.writeString(buffer, portraitType, 64);
+            ElarionPacketCodecs.writeString(buffer, portraitTexture, 256);
+            ElarionPacketCodecs.writeString(buffer, portraitPlayerName, 64);
+            ElarionPacketCodecs.writeString(buffer, portraitFallbackType, 64);
+            ElarionPacketCodecs.writeString(buffer, portraitFallbackTexture, 256);
         }
 
         private static Entry read(PacketByteBuf buffer) {
             return new Entry(
                     buffer.readUuid(),
                     buffer.readUuid(),
-                    buffer.readString(128),
-                    buffer.readString(128),
-                    buffer.readString(64),
-                    buffer.readString(256),
-                    buffer.readString(64),
-                    buffer.readString(64),
-                    buffer.readString(256),
-                    buffer.readString(64),
-                    buffer.readString(256),
-                    buffer.readString(64),
-                    buffer.readString(64),
-                    buffer.readString(256));
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 256));
         }
     }
 }

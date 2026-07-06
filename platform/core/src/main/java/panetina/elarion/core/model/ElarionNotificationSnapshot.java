@@ -18,8 +18,8 @@ public record ElarionNotificationSnapshot(List<ElarionNotificationEntry> entries
         int safeLimit = Math.max(0, limit);
         return entries.stream()
                 .filter(entry -> entry.category().matchesFilter(filter))
-                .sorted(Comparator.comparing(ElarionNotificationEntry::unread).reversed()
-                        .thenComparing(ElarionNotificationEntry::createdAt, Comparator.reverseOrder()))
+                .sorted(Comparator.comparing(ElarionNotificationEntry::createdAt, Comparator.reverseOrder())
+                        .thenComparing(ElarionNotificationEntry::id))
                 .limit(safeLimit)
                 .toList();
     }

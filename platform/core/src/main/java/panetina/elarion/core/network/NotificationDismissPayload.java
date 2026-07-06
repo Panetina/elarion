@@ -10,8 +10,8 @@ public record NotificationDismissPayload(String notificationId) implements Custo
             new Id<>(Identifier.of("elarion_core", "notification_dismiss"));
 
     public static final PacketCodec<PacketByteBuf, NotificationDismissPayload> CODEC = PacketCodec.of(
-            (payload, buffer) -> buffer.writeString(payload.notificationId()),
-            buffer -> new NotificationDismissPayload(buffer.readString(256)));
+            (payload, buffer) -> ElarionPacketCodecs.writeString(buffer, payload.notificationId(), 256),
+            buffer -> new NotificationDismissPayload(ElarionPacketCodecs.readString(buffer, 256)));
 
     public NotificationDismissPayload {
         notificationId = notificationId == null ? "" : notificationId;

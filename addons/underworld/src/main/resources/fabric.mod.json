@@ -3,6 +3,7 @@
     "id":  "elarion_underworld",
     "version":  "${version}",
     "name":  "Elarion Underworld",
+    "icon": "assets/elarion_underworld/icon.png",
     "description":  "Underworld addon shell backed by Elarion Core citizen status.",
     "authors":  [
                     "Panyel"
@@ -12,6 +13,9 @@
     "entrypoints":  {
                         "elarion:addon":  [
                                               "panetina.elarion.addons.underworld.ElarionUnderworldAddon"
+                                          ],
+                        "client": [
+                                              "panetina.elarion.addons.underworld.client.ElarionUnderworldClient"
                                           ]
                     },
     "depends":  {

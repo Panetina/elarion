@@ -18,6 +18,7 @@ final class AnglingFishingSessionTest {
 
         assertEquals(0, session.completionStartedAt());
         assertEquals(150, completing.completionStartedAt());
+        assertEquals(session.baitId(), completing.baitId());
         assertTrue(completing.completionPending());
         assertEquals(completing, completing.beginCompletion(175));
     }
@@ -34,6 +35,7 @@ final class AnglingFishingSessionTest {
                 session.worldId(),
                 session.dimensionId(),
                 session.biomeId(),
+                session.baitId(),
                 100,
                 100,
                 0));
@@ -50,6 +52,7 @@ final class AnglingFishingSessionTest {
                 Identifier.of("minecraft", "overworld"),
                 Identifier.of("minecraft", "overworld"),
                 Identifier.of("minecraft", "river"),
+                Identifier.of("elarion_angling", "placeholder_bait_item"),
                 100,
                 200,
                 0);

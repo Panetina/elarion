@@ -1,6 +1,7 @@
 package panetina.elarion.addons.npcs.network;
 
 import net.minecraft.network.PacketByteBuf;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 public record NpcDialogueOptionPayload(
         String id,
@@ -11,21 +12,21 @@ public record NpcDialogueOptionPayload(
         int promptMaxDigits
 ) {
     public static void write(NpcDialogueOptionPayload option, PacketByteBuf buffer) {
-        buffer.writeString(option.id());
-        buffer.writeString(option.buttonText());
-        buffer.writeString(option.playerText());
-        buffer.writeString(option.promptType());
-        buffer.writeString(option.promptQuestion());
+        ElarionPacketCodecs.writeString(buffer, option.id(), 128);
+        ElarionPacketCodecs.writeString(buffer, option.buttonText(), 512);
+        ElarionPacketCodecs.writeString(buffer, option.playerText(), 512);
+        ElarionPacketCodecs.writeString(buffer, option.promptType(), 64);
+        ElarionPacketCodecs.writeString(buffer, option.promptQuestion(), 512);
         buffer.writeVarInt(option.promptMaxDigits());
     }
 
     public static NpcDialogueOptionPayload read(PacketByteBuf buffer) {
         return new NpcDialogueOptionPayload(
-                buffer.readString(128),
-                buffer.readString(512),
-                buffer.readString(512),
-                buffer.readString(64),
-                buffer.readString(512),
+                ElarionPacketCodecs.readString(buffer, 128),
+                ElarionPacketCodecs.readString(buffer, 512),
+                ElarionPacketCodecs.readString(buffer, 512),
+                ElarionPacketCodecs.readString(buffer, 64),
+                ElarionPacketCodecs.readString(buffer, 512),
                 buffer.readVarInt());
     }
 

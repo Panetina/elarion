@@ -3,6 +3,7 @@
     "id": "elarion_economy",
     "version": "${version}",
     "name": "Elarion Economy",
+    "icon": "assets/elarion_economy/icon.png",
     "description": "Audited currency, wallets, Realm treasuries, and economy monitoring for Elarion.",
     "authors": [
         "Panyel"

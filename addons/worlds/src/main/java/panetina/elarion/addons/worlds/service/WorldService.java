@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class WorldService {
+    private static final int PLAYER_ROUTING_SWEEP_INTERVAL_TICKS = 20;
     private final Logger logger;
     private final ElarionApi api;
     private final WorldsConfigManager config;
@@ -49,6 +50,7 @@ public final class WorldService {
     private final List<PendingHistory> pendingHistory = new ArrayList<>();
     private MinecraftServer server;
     private boolean applyingConfiguration;
+    private long ticks;
 
     public WorldService(Logger logger, ElarionApi api, WorldsConfigManager config) {
         this.logger = logger;
@@ -324,7 +326,9 @@ public final class WorldService {
     }
 
     private void tick(MinecraftServer server) {
+        ticks++;
         flushHistory();
+        if (ticks % PLAYER_ROUTING_SWEEP_INTERVAL_TICKS != 0) return;
         ServerWorld lobby = config.enforceLobby() ? resolveWorld(config.lobbyDestination()) : null;
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             String realmId = api.realm().citizens().getOrCreate(player).realmId();

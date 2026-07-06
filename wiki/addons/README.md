@@ -12,6 +12,7 @@ Tracked addon overview for admins and future wiki expansion.
 | Economy | `Implemented` | [Economy](../admin/economy.md) |
 | Offerings | `Implemented` | [Offerings](../admin/offerings.md) |
 | NPCs | `Implemented`, `Manual verification needed` | [NPCs](../admin/npcs.md) |
+| Quests | `Implemented foundation`, `Authoring needed` | [Quests](../admin/quests.md) |
 | Portals | `Implemented` | [Portals](../admin/portals.md) |
 | Government | `Implemented foundation` | [Government](../admin/government.md) |
 | Groups | `Implemented foundation` | [Groups](../admin/groups.md) |
@@ -25,7 +26,8 @@ Tracked addon overview for admins and future wiki expansion.
 | Jail | `Shell` | [Commands](../admin/commands.md) |
 | Newspapers | `Shell` | [Commands](../admin/commands.md) |
 | Tablist | `Shell` | [Commands](../admin/commands.md) |
-| Underworld | `Shell` | [Commands](../admin/commands.md) |
+| Underworld | `Implemented foundation`, `Manual verification needed` | [Commands](../admin/commands.md) |
+| Mounts | `Implemented V5 collection foundation`, `Focused tests passing` | [Commands](../admin/commands.md) |
 | Voice Chat Hooks | `Shell` | [Commands](../admin/commands.md) |
 
 ## Shell Or Future Addons
@@ -46,3 +48,9 @@ unless Angling porting is explicitly resumed.
 
 - Project index: [../../INDEX.md](../../INDEX.md)
 - Source modules: [../../addons/](../../addons/)
+
+## Maintenance
+
+When an addon changes status or gets new admin-facing commands/configuration,
+update this table, the affected admin guide, and the matching technical addon
+doc. Use [../../RULES.md](../../RULES.md) for the canonical maintenance matrix.

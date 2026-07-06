@@ -29,6 +29,7 @@ public final class IdentityService {
     private final List<Function<ServerPlayerEntity, String>> chatPrefixProviders = new CopyOnWriteArrayList<>();
     private final List<BiPredicate<String, ServerPlayerEntity>> authorityMarkerProviders = new CopyOnWriteArrayList<>();
     private RealmGovernanceService governance;
+    private PlayerRestrictionService restrictions;
 
     public IdentityService(CitizenService citizens, RealmService realms, TitleService titles) {
         this.citizens = citizens;
@@ -38,6 +39,10 @@ public final class IdentityService {
 
     public void setGovernance(RealmGovernanceService governance) {
         this.governance = governance;
+    }
+
+    public void setRestrictions(PlayerRestrictionService restrictions) {
+        this.restrictions = restrictions;
     }
 
     public void registerChatPrefixProvider(Function<ServerPlayerEntity, String> provider) {
@@ -52,7 +57,7 @@ public final class IdentityService {
         CitizenRecord citizen = citizens.getOrCreate(player);
         RealmDefinition realm = realms.forCitizen(citizen).orElse(null);
         TitleDefinition title = titles.forCitizen(citizen).orElse(null);
-        Formatting color = realm == null ? Formatting.WHITE : color(realm.color());
+        Formatting color = realm == null ? Formatting.WHITE : color(realms.color(realm));
         String baseName = citizen.nickname() == null || citizen.nickname().isBlank()
                 ? player.getGameProfile().getName()
                 : citizen.nickname();
@@ -73,9 +78,6 @@ public final class IdentityService {
         Text leaderText = authorityMarked ? crown() : Text.empty();
         VisibilityScope scope = realm == null ? VisibilityScope.REALM : realm.visibilityScope();
         MutableText tabName = Text.empty();
-        if (realm != null) {
-            tabName.append(Text.literal(realms.officialName(realm) + " ").formatted(Formatting.DARK_GRAY));
-        }
         if (!externalPrefix.isBlank()) tabName.append(Text.literal(externalPrefix + " ").formatted(Formatting.GRAY));
         if (authorityMarked) tabName.append(crown()).append(Text.literal(" "));
         tabName.append(display.copy());
@@ -85,6 +87,7 @@ public final class IdentityService {
 
     public boolean canSee(ServerPlayerEntity viewer, ServerPlayerEntity subject) {
         if (viewer.getUuid().equals(subject.getUuid()) || viewer.hasPermissionLevel(4)) return true;
+        if (restrictions != null && restrictions.isRestricted(subject, PlayerRestrictionService.NAMEPLATE)) return false;
 
         CitizenRecord viewerCitizen = citizens.getOrCreate(viewer);
         CitizenRecord subjectCitizen = citizens.getOrCreate(subject);

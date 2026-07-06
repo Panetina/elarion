@@ -3,6 +3,7 @@
     "id":  "elarion_voicechat_hooks",
     "version":  "${version}",
     "name":  "Elarion Voice Chat Hooks",
+    "icon": "assets/elarion_voicechat_hooks/icon.png",
     "description":  "Voice chat integration shell backed by Elarion Core status and visibility.",
     "authors":  [
                     "Panyel"

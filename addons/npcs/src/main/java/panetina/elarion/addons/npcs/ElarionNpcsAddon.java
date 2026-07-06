@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.addons.npcs.api.ElarionNpcApi;
 import panetina.elarion.addons.npcs.command.NpcCommands;
+import panetina.elarion.addons.npcs.config.NpcConfigDescriptors;
 import panetina.elarion.addons.npcs.config.NpcConfigLoader;
 import panetina.elarion.addons.npcs.entity.ElarionNpcEntities;
 import panetina.elarion.addons.npcs.entity.ElarionNpcEntity;
@@ -27,6 +28,8 @@ import panetina.elarion.addons.npcs.storage.NpcPlacementStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public final class ElarionNpcsAddon implements ElarionAddon {
     private static final Logger LOGGER = LoggerFactory.getLogger("elarion_npcs");
 
@@ -41,6 +44,7 @@ public final class ElarionNpcsAddon implements ElarionAddon {
         PayloadTypeRegistry.playC2S().register(NpcDialogueDismissPayload.ID, NpcDialogueDismissPayload.CODEC);
 
         NpcDefinitionService definitions = new NpcDefinitionService(LOGGER, new NpcConfigLoader(LOGGER));
+        AtomicBoolean configDomainRegistered = new AtomicBoolean();
         NpcPlacementService placements = new NpcPlacementService(
                 LOGGER, definitions, new NpcPlacementStorage(LOGGER));
         NpcInteractionService interactions = new NpcInteractionService(api, definitions, placements);
@@ -78,6 +82,15 @@ public final class ElarionNpcsAddon implements ElarionAddon {
         });
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             definitions.load(api);
+            if (configDomainRegistered.compareAndSet(false, true)) {
+                NpcConfigDescriptors.register(
+                        api.system().configs(),
+                        definitions::npcs,
+                        definitions::skins,
+                        definitions::portraits,
+                        definitions::dialogues,
+                        definitions::ui);
+            }
             placements.bind(server);
             // Managed worlds open in other SERVER_STARTED handlers. Reconcile
             // on the first server-queue drain so their NPCs can spawn.

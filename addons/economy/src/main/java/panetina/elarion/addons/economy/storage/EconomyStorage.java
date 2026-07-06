@@ -10,6 +10,7 @@ import panetina.elarion.addons.economy.model.EconomyTransaction;
 import panetina.elarion.core.service.ElarionPerformanceMonitor;
 import panetina.elarion.core.storage.JsonStateStorage;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
@@ -19,6 +20,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -83,11 +85,7 @@ public class EconomyStorage {
         List<Path> files = transactionFiles(server, maxMonths);
         List<EconomyTransaction> result = new ArrayList<>();
         for (Path file : files) {
-            List<EconomyTransaction> entries = readFile(file);
-            for (int index = entries.size() - 1; index >= 0 && result.size() < limit; index--) {
-                EconomyTransaction transaction = entries.get(index);
-                if (filter.test(transaction)) result.add(transaction);
-            }
+            collectRecent(file, filter, limit, result);
             if (result.size() >= limit) break;
         }
         return List.copyOf(result);
@@ -124,8 +122,9 @@ public class EconomyStorage {
 
     private List<EconomyTransaction> readFile(Path file) {
         List<EconomyTransaction> result = new ArrayList<>();
-        try {
-            for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
                 if (line.isBlank()) continue;
                 try {
                     EconomyTransaction transaction = GSON.fromJson(line, EconomyTransaction.class);
@@ -138,6 +137,38 @@ public class EconomyStorage {
             logger.error("Failed to read Economy transactions {}", file, exception);
         }
         return result;
+    }
+
+    private void collectRecent(
+            Path file,
+            Predicate<EconomyTransaction> filter,
+            int limit,
+            List<EconomyTransaction> result
+    ) {
+        int remaining = limit - result.size();
+        if (remaining <= 0) return;
+        ArrayDeque<EconomyTransaction> newestInFile = new ArrayDeque<>(remaining);
+        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) continue;
+                try {
+                    EconomyTransaction transaction = GSON.fromJson(line, EconomyTransaction.class);
+                    if (transaction != null && filter.test(transaction)) {
+                        if (newestInFile.size() == remaining) newestInFile.removeFirst();
+                        newestInFile.addLast(transaction);
+                    }
+                } catch (RuntimeException exception) {
+                    logger.warn("Skipping invalid Economy transaction in {}", file, exception);
+                }
+            }
+        } catch (IOException exception) {
+            logger.error("Failed to read Economy transactions {}", file, exception);
+        }
+        List<EconomyTransaction> entries = new ArrayList<>(newestInFile);
+        for (int index = entries.size() - 1; index >= 0 && result.size() < limit; index--) {
+            result.add(entries.get(index));
+        }
     }
 
     private Path stateFile(MinecraftServer server) {

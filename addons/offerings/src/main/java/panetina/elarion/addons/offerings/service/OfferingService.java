@@ -22,6 +22,7 @@ import panetina.elarion.addons.offerings.model.OfferingScope;
 import panetina.elarion.addons.offerings.storage.OfferingState;
 import panetina.elarion.addons.offerings.storage.OfferingStorage;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.model.ElarionDomainEvent;
 import panetina.elarion.core.registry.ActionContext;
 import panetina.elarion.core.registry.MilestoneContext;
 import panetina.elarion.core.registry.RegistryExecutionContext;
@@ -52,6 +53,7 @@ public final class OfferingService {
     private final OfferingStorage storage;
     private OfferingState state = new OfferingState();
     private MinecraftServer server;
+    private boolean completionResumePending;
 
     public OfferingService(
             Logger logger,
@@ -68,11 +70,19 @@ public final class OfferingService {
     public synchronized void bind(MinecraftServer server) {
         this.server = server;
         state = storage.load(server);
+        refreshGlobalAccessProjection();
+        // Completion resume can emit history/reward events. Core binds history
+        // after addon SERVER_STARTED handlers, so run it from the tick hook once
+        // Core history is available.
+        completionResumePending = true;
+    }
+
+    public synchronized void tick(MinecraftServer server) {
+        if (!completionResumePending || this.server != server || !api.history().isBound()) {
+            return;
+        }
+        completionResumePending = false;
         resumeIncompleteCompletions();
-        api.notifications().replaceWorldEligibleRealms(state.realmFlags.entrySet().stream()
-                .filter(entry -> entry.getValue().contains(GLOBAL_NOTIFICATION_FLAG))
-                .map(Map.Entry::getKey)
-                .toList());
     }
 
     public synchronized void save() {
@@ -97,6 +107,20 @@ public final class OfferingService {
 
     public synchronized Optional<OfferingAnchor> findAnchor(String id) {
         return Optional.ofNullable(state.anchors.get(id));
+    }
+
+    public synchronized OfferingInstance setDisplayNameOverride(
+            String instanceId,
+            String displayName,
+            ServerPlayerEntity actor
+    ) {
+        OfferingInstance current = requireInstance(instanceId);
+        OfferingInstance updated = current.withDisplayNameOverride(displayName);
+        state.instances.put(updated.id(), updated);
+        save();
+        history("display-name-updated", actorId(actor), updated,
+                Map.of("displayNameOverride", updated.displayNameOverride()));
+        return updated;
     }
 
     public synchronized Optional<OfferingAnchor> findAnchorAt(String worldId, BlockPos pos) {
@@ -327,11 +351,46 @@ public final class OfferingService {
     }
 
     public synchronized OfferingInstance reset(String instanceId, ServerPlayerEntity actor) {
-        OfferingInstance reset = requireInstance(instanceId).reset();
+        OfferingInstance current = requireInstance(instanceId);
+        revertProjectSideEffects(current, actor);
+        OfferingInstance reset = resetInstance(current);
         state.instances.put(reset.id(), reset);
         state.donations.remove(instanceId);
         save();
+        refreshGlobalAccessProjection();
         history("project-reset", actorId(actor), reset, Map.of());
+        return reset;
+    }
+
+    public synchronized int resetRealmProgression(String realmId, ServerPlayerEntity actor) {
+        String normalizedRealm = realmId == null ? "" : realmId.trim().toLowerCase(java.util.Locale.ROOT);
+        int reset = 0;
+        for (OfferingInstance instance : List.copyOf(state.instances.values())) {
+            if (!normalizedRealm.equals(instance.realmId())) continue;
+            revertProjectSideEffects(instance, actor);
+            OfferingInstance updated = resetInstance(instance);
+            state.instances.put(updated.id(), updated);
+            state.donations.remove(updated.id());
+            history("project-reset", actorId(actor), updated, Map.of("test-reset", "true"));
+            reset++;
+        }
+        save();
+        refreshGlobalAccessProjection();
+        return reset;
+    }
+
+    public synchronized int resetAllProgression(ServerPlayerEntity actor) {
+        int reset = 0;
+        for (OfferingInstance instance : List.copyOf(state.instances.values())) {
+            revertProjectSideEffects(instance, actor);
+            OfferingInstance updated = resetInstance(instance);
+            state.instances.put(updated.id(), updated);
+            history("project-reset", actorId(actor), updated, Map.of("test-reset", "true"));
+            reset++;
+        }
+        state.donations.clear();
+        save();
+        refreshGlobalAccessProjection();
         return reset;
     }
 
@@ -354,6 +413,16 @@ public final class OfferingService {
         return state.realmFlags.getOrDefault(realmId, Set.of()).contains(flag);
     }
 
+    public synchronized boolean setRealmFlag(String realmId, String flag, boolean enabled) {
+        RegistryExecutionResult result = setRealmFlagInternal(realmId, flag, enabled);
+        if (!result.success()) {
+            throw new IllegalArgumentException(result.message().isBlank() ? "Could not update Realm flag." : result.message());
+        }
+        save();
+        refreshGlobalAccessProjection();
+        return hasRealmFlag(realmId, flag);
+    }
+
     private OfferingProjectDefinition requireProject(String projectId) {
         return definitions.find(projectId)
                 .filter(OfferingProjectDefinition::enabled)
@@ -364,6 +433,49 @@ public final class OfferingService {
         OfferingInstance instance = state.instances.get(instanceId);
         if (instance == null) throw new IllegalArgumentException("Unknown project instance " + instanceId);
         return instance;
+    }
+
+    private OfferingInstance resetInstance(OfferingInstance instance) {
+        OfferingProjectDefinition project = requireProject(instance.projectId());
+        return instance.reset(project.firstLevel().id());
+    }
+
+    private void revertProjectSideEffects(OfferingInstance instance, ServerPlayerEntity actor) {
+        OfferingProjectDefinition project = requireProject(instance.projectId());
+        for (OfferingProjectLevel level : project.levels()) {
+            for (OfferingMilestone milestone : level.milestones()) {
+                if ("elarion:set_realm_flag".equals(milestone.type())) {
+                    String flag = milestone.parameters().get("flag");
+                    if (flag != null && !flag.isBlank()) {
+                        setRealmFlagInternal(instance.realmId(), flag, false);
+                    }
+                } else if ("elarion:portal_unlock".equals(milestone.type())) {
+                    lockPortalMilestone(instance, milestone, actor);
+                }
+            }
+        }
+    }
+
+    private void lockPortalMilestone(
+            OfferingInstance instance,
+            OfferingMilestone milestone,
+            ServerPlayerEntity actor
+    ) {
+        if (!api.registries().actions().contains("elarion:portal_lock")) return;
+        Map<String, String> parameters = new LinkedHashMap<>(milestone.parameters());
+        parameters.putIfAbsent("project", instance.projectId());
+        parameters.putIfAbsent("instance", instance.id());
+        parameters.putIfAbsent("realm", instance.realmId());
+        parameters.putIfAbsent("world", instance.worldId());
+        parameters.putIfAbsent("route", instance.realmId());
+        RegistryExecutionContext execution = new RegistryExecutionContext(
+                api, server, actor, actorId(actor), instance.realmId(), null, instance.realmId(),
+                instance.worldId(), "elarion_offerings", parameters);
+        RegistryExecutionResult result = api.registries().execute(new ActionContext(
+                execution, "elarion:portal_lock", parameters));
+        if (!result.success()) {
+            logger.warn("offering reset could not lock portal route for {}: {}", instance.id(), result.message());
+        }
     }
 
     private OfferingInstance create(
@@ -582,7 +694,8 @@ public final class OfferingService {
             return;
         }
         for (panetina.elarion.core.model.CitizenRecord citizen : rewardRecipients(instance)) {
-            String grantId = "offering:" + instance.id() + ":" + milestone.id() + ":" + citizen.uuid();
+            String grantId = "offering:" + instance.id() + ":g" + instance.resetGeneration()
+                    + ":" + milestone.id() + ":" + citizen.uuid();
             api.deferredRewards().enqueue(grantId, citizen.uuid(), "elarion_offerings",
                     rewardId, actions);
         }
@@ -661,8 +774,8 @@ public final class OfferingService {
                 api, server, actor, actorId(actor), instance.realmId(), null, instance.realmId(),
                 instance.worldId(), "elarion_offerings", parameters);
         RegistryExecutionResult result = switch (milestone.type()) {
-            case "elarion:set_realm_flag" -> setRealmFlag(instance.realmId(), parameters.get("flag"), true);
-            case "elarion:clear_realm_flag" -> setRealmFlag(instance.realmId(), parameters.get("flag"), false);
+            case "elarion:set_realm_flag" -> setRealmFlagInternal(instance.realmId(), parameters.get("flag"), true);
+            case "elarion:clear_realm_flag" -> setRealmFlagInternal(instance.realmId(), parameters.get("flag"), false);
             case "elarion:run_reward" -> api.registries().execute(new MilestoneContext(execution,
                     "elarion:run_reward", parameters));
             case "elarion:emit_history" -> api.registries().execute(new MilestoneContext(execution,
@@ -691,7 +804,7 @@ public final class OfferingService {
         String title = parameters.getOrDefault("title", "Offering Milestone");
         String body = parameters.getOrDefault("body", "A Shrine milestone was completed.");
         String icon = parameters.getOrDefault("icon", "item:minecraft:amethyst_shard");
-        String dedupe = "offering:" + instance.id() + ":" + milestone.id();
+        String dedupe = "offering:" + instance.id() + ":g" + instance.resetGeneration() + ":" + milestone.id();
         var actions = List.of(new panetina.elarion.core.model.ElarionNotificationAction(
                 panetina.elarion.core.service.ElarionNotificationService.DISMISS, "Dismiss", true));
         if (world) {
@@ -713,16 +826,42 @@ public final class OfferingService {
         return RegistryExecutionResult.ok("Notification published.");
     }
 
-    private RegistryExecutionResult setRealmFlag(String realmId, String flag, boolean enabled) {
+    private RegistryExecutionResult setRealmFlagInternal(String realmId, String flag, boolean enabled) {
         if (realmId == null || realmId.isBlank()) return RegistryExecutionResult.failure("realm flag needs a Realm");
         if (flag == null || flag.isBlank()) return RegistryExecutionResult.failure("realm flag needs a flag");
         state.realmFlags.computeIfAbsent(realmId, ignored -> new LinkedHashSet<>());
-        if (enabled) state.realmFlags.get(realmId).add(flag);
-        else state.realmFlags.get(realmId).remove(flag);
+        boolean changed = enabled
+                ? state.realmFlags.get(realmId).add(flag)
+                : state.realmFlags.get(realmId).remove(flag);
         if (GLOBAL_NOTIFICATION_FLAG.equals(flag)) {
             api.notifications().setWorldRealmEligible(realmId, enabled);
+            if (server != null) {
+                api.identitySync().syncAll(server);
+            }
+            if (changed) {
+                api.system().events().emitDomainEvent(ElarionDomainEvent.of(
+                        "elarion_offerings",
+                        "realm-global-access-changed",
+                        null,
+                        realmId,
+                        "realm",
+                        realmId,
+                        Map.of(
+                                "flag", flag,
+                                "enabled", Boolean.toString(enabled))));
+            }
         }
         return RegistryExecutionResult.ok();
+    }
+
+    private void refreshGlobalAccessProjection() {
+        api.notifications().replaceWorldEligibleRealms(state.realmFlags.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(GLOBAL_NOTIFICATION_FLAG))
+                .map(Map.Entry::getKey)
+                .toList());
+        if (server != null) {
+            api.identitySync().syncAll(server);
+        }
     }
 
     private void history(String type, UUID actorId, OfferingInstance instance, Map<String, String> metadata) {

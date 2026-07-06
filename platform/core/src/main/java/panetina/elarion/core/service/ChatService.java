@@ -24,6 +24,7 @@ public final class ChatService {
     private final IdentityService identities;
     private final HistoryService history;
     private final RealmGovernanceService governance;
+    private final PlayerRestrictionService restrictions;
     private final Map<UUID, Long> lastYellAt = new ConcurrentHashMap<>();
     private final Set<UUID> chatSpies = ConcurrentHashMap.newKeySet();
 
@@ -33,7 +34,8 @@ public final class ChatService {
             RealmService realms,
             IdentityService identities,
             HistoryService history,
-            RealmGovernanceService governance
+            RealmGovernanceService governance,
+            PlayerRestrictionService restrictions
     ) {
         this.config = config;
         this.citizens = citizens;
@@ -41,10 +43,12 @@ public final class ChatService {
         this.identities = identities;
         this.history = history;
         this.governance = governance;
+        this.restrictions = restrictions;
     }
 
     public boolean sendRealmMessage(ServerPlayerEntity sender, String message) {
         if (message == null || message.isBlank()) return false;
+        if (restrictions.denyWithMessage(sender, PlayerRestrictionService.CHAT)) return false;
         CitizenRecord senderCitizen = citizens.getOrCreate(sender);
         RealmDefinition realm = realms.forCitizen(senderCitizen).orElse(null);
         if (realm == null) {
@@ -71,6 +75,7 @@ public final class ChatService {
 
     public boolean sendAllianceMessage(ServerPlayerEntity sender, String message) {
         if (message == null || message.isBlank()) return false;
+        if (restrictions.denyWithMessage(sender, PlayerRestrictionService.CHAT)) return false;
         CitizenRecord senderCitizen = citizens.getOrCreate(sender);
         RealmDefinition realm = realms.forCitizen(senderCitizen).orElse(null);
         if (realm == null) {
@@ -148,6 +153,7 @@ public final class ChatService {
 
     public boolean sendLocalMessage(ServerPlayerEntity sender, String message) {
         if (message == null || message.isBlank()) return false;
+        if (restrictions.denyWithMessage(sender, PlayerRestrictionService.CHAT)) return false;
         return sendProximityMessage(
                 sender,
                 message,
@@ -161,6 +167,7 @@ public final class ChatService {
 
     public boolean sendWhisperMessage(ServerPlayerEntity sender, String message) {
         if (message == null || message.isBlank()) return false;
+        if (restrictions.denyWithMessage(sender, PlayerRestrictionService.CHAT)) return false;
         return sendProximityMessage(
                 sender,
                 message,
@@ -174,6 +181,7 @@ public final class ChatService {
 
     public boolean sendYellMessage(ServerPlayerEntity sender, String message) {
         if (message == null || message.isBlank()) return false;
+        if (restrictions.denyWithMessage(sender, PlayerRestrictionService.CHAT)) return false;
         long now = System.currentTimeMillis();
         long cooldownMillis = config.yellChatCooldownSeconds() * 1000L;
         long availableAt = lastYellAt.getOrDefault(sender.getUuid(), 0L) + cooldownMillis;

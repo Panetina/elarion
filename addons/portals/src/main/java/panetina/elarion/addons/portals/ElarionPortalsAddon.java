@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.addons.portals.api.ElarionPortalsApi;
 import panetina.elarion.addons.portals.command.PortalCommands;
+import panetina.elarion.addons.portals.config.PortalConfigDescriptors;
 import panetina.elarion.addons.portals.model.PortalTravelDirection;
 import panetina.elarion.addons.portals.network.PortalScreenClosePayload;
 import panetina.elarion.addons.portals.network.PortalRouteStatusSyncPayload;
@@ -48,6 +49,7 @@ public final class ElarionPortalsAddon implements ElarionAddon {
         PortalRouteService routes = new PortalRouteService(
                 LOGGER, api, definitions, new PortalStorage(LOGGER));
         new ElarionPortalsApi(definitions, routes);
+        PortalConfigDescriptors.register(api.system().configs(), definitions::all, definitions::ui);
         PortalActions.register(api, definitions, routes);
 
         api.system().abilities().register("elarion.portal.manage");

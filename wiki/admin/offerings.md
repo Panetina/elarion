@@ -10,7 +10,7 @@ Admin guide for Shrine of Foundation projects and Offering verification.
 
 Manual verification passed for item Offerings, banked currency Offerings, UI interaction, completion, Realm-citizen rewards, offline deferred rewards, restart persistence, reset/delete, and rejection paths.
 
-Offerings owns Shrine blocks, project definitions, project instances, progress, donation records, and milestones.
+Offerings owns Shrine blocks, project definitions, project instances, progress, donation records, milestones, and optional per-instance display-name overrides.
 
 Definitions:
 
@@ -54,6 +54,28 @@ Use remove if you want to delete the linked Shrine and its instance:
 ```text
 /e offerings shrine remove
 ```
+
+Reset Shrine progression for testing without deleting Shrine blocks or links:
+
+```text
+/e test shrine reset
+/e test shrine reset realm1
+/e test realm global realm1 on
+/e test realm global realm1 off
+```
+
+This clears Offering progress, donation history, display-name overrides, and
+Offering-owned Realm flags such as Foundation gates. Reset instances return to
+their first configured project level, and the Shrine title falls back to that
+level presentation such as `Foundation I`. It also reverses project-owned
+milestone side effects such as Shrine-unlocked Ancient Gate routes. It
+preserves Shrine blocks, Shrine links, NPC placements, Quest state, and
+Government state.
+
+Use `/e test realm global <realm> on|off` when you need to manually toggle the
+Offering-owned global-access flag without resetting Shrine progress. This is a
+development/admin override for testing world notifications, tablist visibility,
+and global-stage portal/title behavior.
 
 ## Verification
 

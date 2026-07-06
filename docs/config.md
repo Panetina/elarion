@@ -1,6 +1,6 @@
 # Elarion Config And State
 
-Last reviewed: 2026-06-11
+Last reviewed: 2026-07-06
 
 Author: Panyel  
 Team: Panetina Team
@@ -14,9 +14,11 @@ tags, prefixes, colors, visibility, and spawns remain in `realms.yml`.
 
 Shared visual tokens live in `config/elarion/core/ui_theme.yml`. Core validates
 and synchronizes immutable `default`, `npc`, and `shrine` theme variants on
-join and successful reload. Addon UI files may define layout and behavior, but
-must not duplicate shared colors, textures, borders, buttons, or progress
-styles.
+join and successful reload. The shared `defaults.font-scale-percent` value is
+server-wide, defaults to `100`, and accepts `100-150`; failed reloads preserve
+the previous valid theme snapshot. Addon UI files may define layout and
+behavior, but must not duplicate shared colors, textures, borders, buttons,
+typography scaling, or progress styles.
 
 `default` is the canonical Elarion visual language. Semantic variants such as
 `npc` and `shrine` inherit it and should override only presentation values that
@@ -59,6 +61,301 @@ Core can validate only Core-owned config at Core startup. Addon-owned config
 must validate addon-owned references after the addon has registered its
 definitions and executable handlers.
 
+## Config Descriptor Registry
+
+Core now owns a read-only config descriptor registry exposed through
+`ElarionApi.system().configs()`. The registry describes validated runtime
+config snapshots; it must not parse config files when an admin opens a UI.
+
+The first registered domains are:
+
+- `core`, backed by `CoreConfigDescriptors`. It exposes selected
+  `ui_theme.yml`, `server_identity.yml`, Realm definitions, title definitions,
+  title-progression definitions, reward definitions, citizen/activity, chat,
+  identity/nickname, and history values with stable IDs, labels, descriptions,
+  owner module, source files, reload command, type codecs, default/current
+  display values, bounds, permissions, and reload/restart markers. Scalar and
+  existing definition rows remain supplier-backed across successful
+  `/e reload` operations. Dynamic Realm, title, progression-region,
+  unlock-rule, reward, and reward-action rows are fixed to the IDs/indexes
+  present when the domain is registered.
+- `groups`, backed by `GroupConfigDescriptors`. It exposes read-only
+  `groups.yml` values from the current validated `GroupService.config()`
+  snapshot.
+- `economy`, backed by `EconomyConfigDescriptors`. It exposes read-only
+  `economy.yml` values from `EconomyTransactionService.config()` and
+  `service_prices.yml` metadata from `EconomyPricingService.definitions()`.
+  Built-in service price IDs compare current values against shipped defaults;
+  custom price IDs default to their current validated value.
+- `worlds`, backed by `WorldsConfigDescriptors`. It exposes read-only
+  `worlds.yml` metadata from the loaded `WorldsConfigManager`: schema,
+  lobby routing, current world keys/counts, and per-world identity/type/rule
+  summaries. Dynamic world entries are descriptor rows for the worlds present
+  when the domain is registered; summary values continue to read the active
+  manager snapshot.
+- `portals`, backed by `PortalConfigDescriptors`. It exposes read-only
+  `routes.yml` and `ui.yml` metadata from the loaded Portal definition
+  service: route IDs, modes, source/destination dimensions, Economy price keys,
+  schedule settings, visual settings, and prompt UI sizing. Dynamic route
+  entries are descriptor rows for routes present when the domain is registered;
+  route values continue to read the active definition snapshot.
+- `offerings`, backed by `OfferingConfigDescriptors`. It exposes read-only
+  Shrine UI and project metadata from `OfferingDefinitionService`: project IDs,
+  scopes, repeatability flags, requirement/milestone/level counts, presentation
+  fields, and Shrine UI sizing/placeholders. `society.yml` is reported as a
+  reserved V1 surface because it is currently generated but not parsed into a
+  runtime model.
+- `government`, backed by `GovernmentConfigDescriptors`. It exposes read-only
+  Government settings and form metadata from `GovernmentDefinitionService`:
+  authority cleanup timing, form IDs, display fields, authority offices,
+  office counts/holder limits, configured action groups, and transitions.
+  Dynamic form entries are descriptor rows for the forms present when the
+  domain is registered; values continue to read the active definition snapshot.
+- `npcs`, backed by `NpcConfigDescriptors`. It exposes read-only NPC
+  definitions, skin and portrait profiles, dialogue graph summaries, and UI
+  settings from `NpcDefinitionService`. The domain registers after the first
+  successful definition load. Dynamic NPC, profile, and dialogue rows are
+  fixed to the IDs present at registration; their values continue to read the
+  active definition snapshot. Decimal range values are currently exposed as
+  strings because the shared descriptor registry has no decimal codec yet.
+- `quests`, backed by `QuestConfigDescriptors`. It exposes read-only quest
+  package metadata and graph summaries from `QuestDefinitionService`: scope,
+  root stage, version, tags, actors, variables, stages, evidence, endings,
+  reusable conditions/consequences, authoring keys, and metadata keys. Dynamic
+  questline rows are fixed to IDs present at registration; values continue to
+  read the active atomic definition snapshot.
+- `realms`, backed by `RealmConfigDescriptors`. It exposes the loaded
+  `protection.yml` snapshot: shared world IDs, operator bypass, explosion block
+  protection, denial-feedback cooldown, and additional mechanism/container
+  block IDs. Realms has no live reload path, so these entries are explicitly
+  non-runtime-reloadable and restart-required.
+- `mounts`, backed by `MountConfigDescriptors`. It exposes the four loaded
+  Collection text fields for each of the seven registered mount types, plus
+  bounded mount count/ID summaries. Mounts has no live config reload path, so
+  these entries are non-runtime-reloadable and restart-required.
+- `underworld`, backed by `UnderworldConfigDescriptors`. It exposes the active
+  `UnderworldService.config()` snapshot across Underworld, corpse, PvP loot,
+  combat-tag, and Soul Fracture categories. `/e death reload` replaces the
+  service snapshot, so values are supplier-backed and runtime-reloadable.
+  Decimal settings remain read-only string descriptors until Core gains a
+  decimal codec.
+- `optimization`, backed by `PerformanceConfigDescriptors`. It exposes the
+  Core-owned task settings loaded from `performance.yml`: host metadata, worker
+  and server-apply budgets, sampling controls, warning thresholds, and headroom
+  thresholds. Core loads these settings before addons initialize, so the domain
+  declares `platform:core` ownership and all entries are restart-required.
+
+Current descriptor types live under
+`platform/core/src/main/java/panetina/elarion/core/config/`:
+
+- `ElarionConfigRegistry`
+- `ElarionConfigDomain`
+- `ElarionConfigCategory`
+- `ElarionConfigEntry`
+- `ElarionConfigCodec`
+- `ElarionConfigValidator`
+- `ElarionConfigPermission`
+- `ElarionConfigChangeRequest`
+- `ElarionConfigChangeResult`
+- `ElarionConfigChangeError`
+- `ElarionConfigChangeValidator`
+- `ElarionConfigEditTarget`
+- `ElarionConfigEditControl`
+- `ElarionConfigApplyRegistrar`
+- `ElarionConfigApplyRegistry`
+- `ElarionConfigApplyExecutor`
+- `ElarionConfigApplier`
+- `ElarionConfigPreparedChange`
+- `ElarionConfigApplyCapability`
+- `ElarionConfigApplyContext`
+- `ElarionConfigApplyReadiness`
+- `ElarionConfigApplyReadinessProvider`
+- `ElarionConfigApplyAuditRecord`
+- `ElarionConfigApplyAuditSink`
+- `ElarionConfigApplyAuditSession`
+- `ElarionConfigApplyAuditPhase`
+- `ElarionConfigApplyAuditJournal`
+- `ElarionConfigApplyCoordinator`
+- `ElarionConfigApplyService`
+
+The registry is read-only. Addon config files currently parsed into runtime
+models have descriptor coverage. Core scalar manager settings, Realm
+definition summaries, title definitions, title-progression definitions, and
+reward definitions have descriptor coverage. Generated-only Core abilities,
+Jail, and Security YAML need typed runtime loaders before they can truthfully
+expose current-value descriptors.
+Config mutation request/result/error records and a pure validation helper now
+exist. The validator resolves a request against the registry, checks write
+permission metadata, detects stale expected-current values, parses the
+submitted raw value through the entry codec, runs the entry validator, and
+returns a validated/rejected result.
+
+Core also defines a config apply registration contract. An explicit
+`ElarionConfigEditTarget` registration binds capability metadata and one
+`ElarionConfigApplier`; duplicate registrations are rejected. Capability
+metadata declares the audit event type, affected files, runtime-reload support,
+restart-required support, or a disabled reason. Descriptor-aware readiness
+lookup blocks unknown targets, missing/disabled appliers, and entries whose
+reload/restart policy is not supported. Ready results require non-empty audit
+and affected-file declarations. Core constructs one canonical registry and
+exposes only the non-castable `ElarionConfigApplyRegistrar` method-reference
+facade through `ElarionApi.system().configAppliers()`. Addons can register but
+cannot look up or invoke executable appliers. Core registers one production
+backend target, `core:ui_theme:defaults.font-scale-percent`; addon production
+registrations do not exist yet. Admin cannot access executable registration
+lookup.
+
+Core binds the narrow `ElarionConfigApplyExecutor` facade into the Admin
+service. The facade exposes readiness and backend apply execution, not concrete
+registry lookup. The config edit shell uses readiness to explain missing,
+disabled, or policy-unsafe targets. The client Apply button remains
+non-interactive until a separate UI enablement slice approves click behavior.
+
+Appliers use a transactional preparation contract. `prepare(context)` returns
+an `ElarionConfigPreparedChange`; preparation must not mutate authoritative
+files or runtime snapshots. Its `commit()` operation may perform the owner
+mutation, and `rollback()` must restore the prior state. The provided
+`ElarionConfigPreparedChange.of(...)` helper permits one successful commit,
+prevents commit after rollback, and invokes rollback at most once. Applied
+results require an audit event type and can preserve validated reload/restart
+flags.
+
+Core now has an internal, unwired `ElarionConfigApplyCoordinator`. It uses one
+fair process-global mutation lock, reruns validation and readiness under that
+lock, resolves trusted descriptor records, and prepares the owner transaction.
+Before commit it asks the mandatory audit sink to prepare a write-ahead
+`ElarionConfigApplyAuditSession`. Trusted commit then requires the session's
+COMMITTED terminal operation. Commit, owner-result, or audit-terminal failure
+invokes rollback and records ROLLED_BACK; rollback failure records FAILED.
+Audit preparation failure rolls back prepared resources before commit.
+
+`ElarionConfigApplyAuditJournal` is the unbound durable audit sink for this
+contract. It writes versioned JSONL records with PREPARED, COMMITTED,
+ROLLED_BACK, and FAILED phases, synchronously appends and forces each record,
+and exposes bounded unresolved-tail recovery for startup diagnostics before
+production apply execution is enabled. Its target path helper resolves to
+`world/elarion/core/audit/config-changes.jsonl` when passed the Elarion world
+root.
+
+`ElarionConfigApplyService` owns production lifecycle for the future apply
+path. Core constructs it with the canonical descriptor registry and concrete
+apply registry, binds it on server start using the active world Elarion root,
+and routes Admin readiness through it. The service refuses ready targets while
+unbound, when bounded audit recovery is truncated, or when unresolved PREPARED
+journal records exist. It does not expose coordinator, registry lookup, or
+journal mutation through the public addon API. Its backend `apply(...)` method
+returns `UNSUPPORTED` while unbound/unsafe and delegates to the coordinator only
+when execution is ready. The first production backend applier is registered
+for `core:ui_theme:defaults.font-scale-percent`; it writes
+`config/elarion/core/ui_theme.yml`, reloads Core config, and resyncs UI themes
+through the existing Core UI theme service. The Admin screen can send Apply
+only for a server-authored ready target with a matching latest validation
+result.
+
+Admin binds the config apply service through the narrow
+`ElarionConfigApplyExecutor` facade. The facade exposes readiness lookup and
+backend apply execution only; it does not expose coordinator, concrete registry
+lookup, or journal mutation. Server-side `Intent.APPLY` now dispatches through
+that executor after OP checks. The only production target currently registered
+is `core:ui_theme:defaults.font-scale-percent`.
+
+Config edit controls now separate `inputEditable` from `applyAvailable`.
+`disabledReason` explains why the proposed-value input is disabled, while
+`applyDisabledReason` explains why Apply is unavailable. The legacy
+`editable()` method remains a compatibility alias for `inputEditable()`.
+The Admin screen enables Apply only when the open control is apply-available,
+the latest result is `VALIDATED`, the result has `canApply=true`, and the
+validated old/new values still match the current control and proposed input.
+
+`jail.yml` and `security.yml` are currently generated placeholders, not loaded
+runtime configuration. They must not be presented as active current-value
+domains until their owning addons have typed loaders and validated snapshots.
+
+## Descriptor Maintenance Rule
+
+Every future slice that adds or changes parsed config, config-backed content,
+addon definition files, or Core definition maps must update the matching
+read-only descriptor domain and focused descriptor tests in the same slice.
+Descriptor discovery must read current values from the owning validated runtime
+snapshot or service, never by reparsing files during Admin Panel discovery.
+
+Generated-only YAML is not enough for descriptor coverage. If a file is only
+written as a placeholder/default and is not parsed into a typed runtime model,
+document that boundary and add the typed loader first before exposing current
+values in the descriptor registry.
+
+## Admin Panel Discovery
+
+The Core Admin Panel includes a dedicated read-only Config tab over registered
+descriptor domains. Each domain appears as a server-authored summary row, each
+domain category appears as its own read-only detail row, and each descriptor
+entry appears as its own stable entry row. Domain rows show owner, source
+files, reload command, category/entry counts, reload/static counts,
+restart-required counts, validation status, and category summaries. Category
+rows show scoped entry details with current/default display values, bounds,
+choices, reload/restart markers, and validation errors. Entry rows show one
+setting's path, description, current/default values, type, bounds, choices,
+permissions, runtime marker, and current validation state.
+
+Entry rows expose a preview-only `Validate Value` action. The action submits
+one proposed raw value through the existing generic Admin Panel action payload,
+calls `ElarionConfigChangeValidator` on the server, and returns a short
+valid/invalid message. It does not write files, apply values, reload config,
+emit audit events, or change runtime state. This browser still uses the
+existing row/detail packet model only and does not parse files when opened.
+
+The Systems tab remains for provider-owned testing and repair rows. Config
+writes, typed editing, page/category provider contracts, reload orchestration,
+and packet schema changes remain deferred.
+
+Page/category provider contracts and broader addon config editing remain future
+slices. Editing must not be enabled through the generic Admin Panel validation
+action. Addon domains need explicit, proven reload-safe appliers before their
+entries can become editable.
+
+The edit protocol is separate from `AdminPanelActionPayload`. Core now has
+records and packet codecs for config edit targets, edit-control snapshots,
+edit requests, and edit results:
+
+- `ElarionConfigEditTarget`
+- `ElarionConfigEditControl`
+- `ElarionConfigEditOpenPayload`
+- `ElarionConfigEditRequestPayload`
+- `ElarionConfigEditResultPayload`
+
+These records carry one descriptor target, typed control metadata, the current
+display value shown to the admin, the proposed raw value, structured
+validation/apply results, reload/restart policy, audit preview text, and
+bounded errors. Their payload types are registered. Core also registers a C2S
+receiver for `ElarionConfigEditRequestPayload`: OP level 4 admins can request
+descriptor validation, and server-side `APPLY` dispatches through the
+audit-backed apply executor when the target has a ready production backend
+applier. The visible Admin client sends Apply only after a matching successful
+validation result for an apply-available control. Client receivers store the
+last `ElarionConfigEditResultPayload` and current
+`ElarionConfigEditOpenPayload` control in passive client state for future edit
+UI use. Config entry rows expose `Open Editor`, which asks the OP-gated server
+action to resolve the selected descriptor and send a server-authored edit
+control. The Admin Panel renders that control in a detail shell with Close,
+descriptor metadata, a proposed-value input, server-side Validate, structured
+validation-result display, and Apply. A visible descriptor is not automatically
+editable: the owning domain must register an explicit applier or edit provider
+before values can be written or applied.
+
+Registered config edit packet directions:
+`ElarionConfigEditOpenPayload` and `ElarionConfigEditResultPayload` are S2C,
+and `ElarionConfigEditRequestPayload` is C2S. The C2S receiver delegates to
+Core Admin/config service code, converts validation requests into
+`ElarionConfigChangeRequest`, runs `ElarionConfigChangeValidator`, returns an
+`ElarionConfigEditResultPayload`, and refreshes the Admin Panel Config tab with
+a server-authored message. The client receiver records the structured result
+and clears it on join/disconnect. The open-payload receiver records the current
+server-authored edit control and clears stale validation results when a new
+control opens. The detail shell sends `VALIDATE` for validation and sends
+`APPLY` only when the server-authored control and latest validation result
+match exactly. Applied results close the open edit shell so stale current values
+are not reused after reload/sync.
+
 ## Addon Validation Pattern
 
 New addon config loaders should follow the same sequence:
@@ -92,10 +389,37 @@ Validation tests should cover at least:
 - reload failure preserving previous valid state when the loader supports live
   reload
 
-Current coverage exists for Core cross-file references, Worlds config, and NPC
-dialogue/action/prompt validation. Economy, Portals, Offerings, Government,
-Trade, Adventure Guild, and Ledger should add equivalent tests as their config
-surfaces become real.
+Current coverage exists for Core cross-file references, Worlds config, NPC
+dialogue/action/prompt validation, and Quest default/round-trip validation.
+Economy, Portals, Offerings, Government, Trade, Adventure Guild, and Ledger
+should add equivalent tests as their config surfaces become real.
+
+## Quest Config
+
+Questline definitions live in:
+
+```text
+config/elarion/addons/quests/questlines/<quest-id>/
+config/elarion/addons/quests/questlines/<quest-id>.yml
+```
+
+Folder packages are preferred for new questlines and may contain `quest.yml`,
+`actors.yml`, `variables.yml`, `stages.yml`, `evidence.yml`, `endings.yml`,
+`conditions.yml`, `consequences.yml`, and `authoring.yml`. Legacy single-file
+questlines remain supported. Supported V1 scopes are `realm`, `global`,
+`world`, and `player`. Variables are typed as `integer`, `boolean`, or
+`string` and scoped as `shared` or `player`.
+
+Runtime quest state lives in:
+
+```text
+world/elarion/addon-state/quests/state.json
+```
+
+Runtime state stores compact questline records, player records, flags,
+variables, evidence, endings, actor bindings, and scheduled consequences. It
+must not copy NPC dialogue definitions, NPC placement ownership, Offering
+project definitions, Government state, or Core citizen/title truth.
 
 ## Portal Config
 
@@ -281,6 +605,38 @@ public-query:
 Future newspaper, ledger, NPC rumor, and GUI search implementations should
 consume `api.publicHistory()` and only add dedicated indexes after real usage
 shows the generic bounded composition path is not selective enough.
+
+## Mounts Config
+
+Mount Collection display text lives in:
+
+```text
+config/elarion/addons/mounts/collection.yml
+```
+
+Each mount entry can define the locked/unlocked row text and locked/unlocked
+detail text used by the Core Collection screen. Realm vendor text may use the
+`{realm}` token. Runtime unlocks and active mount choices remain in world
+state, not config.
+
+`MountConfigDescriptors` exposes the loaded text snapshot through the read-only
+Admin Panel config browser. The descriptor surface is bounded by
+`ElarionMountType`; it does not expose collection unlock state, active mounts,
+or summon sessions.
+
+The Admin Panel Config tab loads descriptor rows in bounded scopes. Opening the
+tab sends domain/category summaries only; selecting a category asks the server
+for that category's entry rows. Do not rely on the client having every
+descriptor entry in the initial `/e panel` payload.
+
+The only production Admin Panel Apply target currently registered is
+`core:ui_theme:defaults.font-scale-percent`. It validates through the Core
+descriptor, writes `config/elarion/core/ui_theme.yml` with a temp-file replace,
+reloads Core config, resyncs UI theme snapshots, and rolls back on failed
+reload. Stale development copies of `ui_theme.yml` that predate
+`font-scale-percent` are repaired by inserting the missing scalar into the
+existing `defaults` block; duplicate scalar lines are rejected without
+mutation.
 
 ## Economy Config
 

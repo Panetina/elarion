@@ -1,0 +1,11 @@
+{
+  "id": "elarion_angling:placeholder_fish_003",
+  "translation_key": "fish.elarion_angling.placeholder_fish_003",
+  "rarity": "PLACEHOLDER_UNCOMMON",
+  "weight": 6,
+  "conditions": [
+    "condition/fluid_water",
+    "condition/dimension_overworld",
+    "condition/weather_raining"
+  ]
+}

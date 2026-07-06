@@ -53,6 +53,25 @@ final class DeferredRewardGrantServiceTest {
     }
 
     @Test
+    void rewardPreviewIncludesConfiguredEnchantmentsForTooltip() {
+        DeferredRewardGrantService service = new DeferredRewardGrantService(
+                new DeferredRewardGrantStorage(LoggerFactory.getLogger("test")),
+                null,
+                null);
+        UUID recipient = UUID.randomUUID();
+
+        service.enqueue("grant-enchanted", recipient, "elarion_offerings", "enchanted_reward",
+                List.of(new RewardAction("item", Map.of(
+                        "id", "minecraft:diamond_sword",
+                        "count", "1",
+                        "enchants", "minecraft:sharpness:5,minecraft:unbreaking:3"))));
+
+        var reward = service.snapshot(recipient).entries().getFirst().rewards().getFirst();
+
+        assertEquals(List.of("Sharpness V", "Unbreaking III"), reward.tooltipLines());
+    }
+
+    @Test
     void snapshotContainsOnlyRewardEntriesOwnedByThisService() {
         DeferredRewardGrantService service = new DeferredRewardGrantService(
                 new DeferredRewardGrantStorage(LoggerFactory.getLogger("test")),

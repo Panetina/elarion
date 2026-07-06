@@ -34,14 +34,56 @@ final class OfferingInstanceTest {
     void resetKeepsIdentityAndAnchorButClearsProgress() {
         OfferingInstance instance = base()
                 .withProgress("currency", 5, UUID.randomUUID())
+                .withDisplayNameOverride("Sorina's Stone")
+                .advanceToLevel("foundation_iii")
+                .withProgress("items:minecraft:stone", 10, UUID.randomUUID())
                 .withCompletion(System.currentTimeMillis(), Set.of("m1"))
                 .withAnchor("anchor_1")
                 .reset();
 
         assertEquals("instance_1", instance.id());
         assertEquals("anchor_1", instance.anchorId());
+        assertEquals("", instance.activeLevelId());
+        assertEquals("", instance.displayNameOverride());
         assertEquals(Map.of(), instance.progress());
+        assertEquals(1L, instance.resetGeneration());
         assertFalse(instance.completed());
+    }
+
+    @Test
+    void resetCanRestoreFirstConfiguredLevel() {
+        OfferingInstance instance = base()
+                .withDisplayNameOverride("Sorina's Stone")
+                .advanceToLevel("foundation_iii")
+                .withProgress("items:minecraft:stone", 10, UUID.randomUUID())
+                .reset("foundation_i");
+
+        assertEquals("foundation_i", instance.activeLevelId());
+        assertEquals("", instance.displayNameOverride());
+        assertEquals(Map.of(), instance.progress());
+        assertEquals(1L, instance.resetGeneration());
+        assertFalse(instance.completed());
+    }
+
+    @Test
+    void displayNameOverrideSurvivesProgressAndLevelAdvancement() {
+        OfferingInstance instance = base()
+                .withDisplayNameOverride("Sorina's Stone")
+                .withProgress("item:minecraft:stone", 5, UUID.randomUUID())
+                .advanceToLevel("foundation_ii");
+
+        assertEquals("Sorina's Stone", instance.displayNameOverride());
+    }
+
+    @Test
+    void resetGenerationSurvivesProgressAndAdvancement() {
+        OfferingInstance instance = base()
+                .reset("foundation_i")
+                .withProgress("item:minecraft:stone", 5, UUID.randomUUID())
+                .advanceToLevel("foundation_ii")
+                .withCompletion(System.currentTimeMillis(), Set.of("m1"));
+
+        assertEquals(1L, instance.resetGeneration());
     }
 
     private static OfferingInstance base() {

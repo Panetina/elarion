@@ -36,7 +36,7 @@ public final class GovernmentConfigDefaults {
                 max-holders: 1
                 description: "Reserved successor placeholder. Succession mechanics are future work."
               - id: officer
-                display-name: "Officer"
+                display-name: "Crown Officer"
                 max-holders: 3
                 description: "Appointed authority placeholder for future law enforcement systems."
 
@@ -76,11 +76,11 @@ public final class GovernmentConfigDefaults {
                 max-holders: 1
                 description: "The elected head of a republic."
               - id: council_member
-                display-name: "Council Member"
+                display-name: "Councilor"
                 max-holders: 3
                 description: "Elected council authority."
               - id: officer
-                display-name: "Officer"
+                display-name: "Civic Officer"
                 max-holders: 3
                 description: "Appointed authority placeholder for future law enforcement systems."
 
@@ -106,7 +106,7 @@ public final class GovernmentConfigDefaults {
     public static final String THEOCRACY_FORM = """
             id: theocracy
             display-name: "Theocracy"
-            description: "A High Priest and Synod govern through religious authority."
+            description: "Citizens first define a Realm faith, then elect one High Priest. The High Priest appoints up to three Synod Members after founding."
             official-name-template: "Holy %realm%"
             enabled: true
             authority-offices:
@@ -118,13 +118,13 @@ public final class GovernmentConfigDefaults {
               - id: high_priest
                 display-name: "High Priest"
                 max-holders: 1
-                description: "The spiritual authority of a theocracy."
+                description: "The primary spiritual authority and public voice of the Realm faith."
               - id: synod_member
                 display-name: "Synod Member"
                 max-holders: 3
-                description: "Elected religious council authority."
+                description: "One of up to three council members who advise, check, and represent the Realm faith."
               - id: officer
-                display-name: "Officer"
+                display-name: "Temple Officer"
                 max-holders: 3
                 description: "Appointed authority placeholder for future law enforcement systems."
 
@@ -164,7 +164,7 @@ public final class GovernmentConfigDefaults {
                 max-holders: 3
                 description: "Elected representative of an eligible registered group."
               - id: officer
-                display-name: "Officer"
+                display-name: "Confederation Officer"
                 max-holders: 3
                 description: "Appointed authority placeholder for future law enforcement systems."
 

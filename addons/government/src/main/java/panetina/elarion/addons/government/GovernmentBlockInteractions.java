@@ -9,18 +9,25 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import panetina.elarion.addons.government.model.GovernmentCivicScreen;
 import panetina.elarion.addons.government.model.GovernmentFormDefinition;
+import panetina.elarion.addons.government.model.GovernmentFoundingPhase;
 import panetina.elarion.addons.government.model.GovernmentGateStatus;
+import panetina.elarion.addons.government.model.GovernmentLawRecord;
+import panetina.elarion.addons.government.model.GovernmentOfficeTermRecord;
+import panetina.elarion.addons.government.model.GovernmentProposalRecord;
+import panetina.elarion.addons.government.model.GovernmentProposalStatus;
 import panetina.elarion.addons.government.model.GovernmentVoteOption;
 import panetina.elarion.addons.government.model.GovernmentVoteState;
 import panetina.elarion.addons.government.model.GovernmentVoteType;
 import panetina.elarion.addons.government.model.RealmGovernmentState;
 import panetina.elarion.addons.government.network.GovernmentUiActionPayload;
+import panetina.elarion.addons.government.network.GovernmentUiFeedbackPayload;
 import panetina.elarion.addons.government.network.GovernmentUiOpenPayload;
 import panetina.elarion.addons.government.service.GovernmentDefinitionService;
 import panetina.elarion.addons.government.service.GovernmentStateService;
 import panetina.elarion.addons.government.service.GovernmentUiSessionService;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.CitizenRecord;
+import panetina.elarion.core.model.PublicHistoryEntry;
 import panetina.elarion.core.model.RealmDefinition;
 
 import java.util.ArrayList;
@@ -29,13 +36,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class GovernmentBlockInteractions {
-    private static final int LOGICAL_WIDTH = 520;
-    private static final int LOGICAL_HEIGHT = 360;
-    private static final int MINIMUM_SCALE_PERCENT = 60;
+    private static final int LOGICAL_WIDTH = 760;
+    private static final int LOGICAL_HEIGHT = 500;
+    private static final int MINIMUM_SCALE_PERCENT = 55;
     private static final double INTERACTION_RANGE_SQUARED = 64.0D;
     private static final long SESSION_TTL_MILLIS = 5 * 60 * 1000L;
+    private static final Pattern UUID_TEXT_PATTERN = Pattern.compile(
+            "\\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\b");
     private static final GovernmentUiSessionService SESSIONS =
             new GovernmentUiSessionService(SESSION_TTL_MILLIS, INTERACTION_RANGE_SQUARED);
 
@@ -75,7 +86,9 @@ public final class GovernmentBlockInteractions {
         String screenType = payload.screenType() == null ? "" : payload.screenType();
         GovernmentUiSessionService.Session session = validateSession(player, payload.sessionId(), realmId, screenType);
         if (session == null) {
-            player.sendMessage(Text.literal("Open the civic block again before using that action."), false);
+            String message = "Open the civic block again before using that action.";
+            player.sendMessage(Text.literal(message), false);
+            ServerPlayNetworking.send(player, new GovernmentUiFeedbackPayload(message));
             return;
         }
         String message;
@@ -85,6 +98,10 @@ public final class GovernmentBlockInteractions {
                     states.proposeRealmName(player, realmId, payload.value(), payload.secondaryValue());
                     message = "Name proposal submitted.";
                 }
+                case "propose_faith" -> {
+                    states.proposeFaithIdentity(player, realmId, payload.value(), payload.secondaryValue());
+                    message = "Faith proposal submitted.";
+                }
                 case "vote" -> {
                     states.castVote(player, realmId, voteType(payload.screenType()), payload.targetId());
                     message = "Your ballot was recorded.";
@@ -93,9 +110,124 @@ public final class GovernmentBlockInteractions {
                     states.nominateForFoundingElection(player, realmId);
                     message = "Your founding candidacy was added.";
                 }
+                case "back", "open_parent" -> {
+                    if (screenType.startsWith("seat_module_")) {
+                        sendSeatSnapshot(api, definitions, states, player, realmId, session, "");
+                    } else {
+                        sendCivicSnapshot(api, definitions, states, player, realmId, session, "");
+                    }
+                    return;
+                }
                 case "open_module" -> {
-                    sendSeatSnapshot(api, definitions, states, player, realmId, session,
-                            "That module is visible now, but its gameplay logic is future work.");
+                    if (isCivicScreen(screenType)) {
+                        if (!"civic_features".equals(screenType) && !screenType.startsWith("civic_module_")) {
+                            sendCivicSnapshot(api, definitions, states, player, realmId, session,
+                                    foundingRequirementMessage(states, definitions, player, realmId));
+                            return;
+                        }
+                        sendCivicModuleSnapshot(api, definitions, states, player, realmId, session,
+                                payload.targetId(), "");
+                    } else {
+                        sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                                payload.targetId(), "");
+                    }
+                    return;
+                }
+                case "create_proposal" -> {
+                    states.createProposal(player, realmId, payload.targetId(), payload.value(), payload.secondaryValue());
+                    sendCivicModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "proposals", "Proposal submitted.");
+                    return;
+                }
+                case "approve_proposal" -> {
+                    states.reviewProposal(player, realmId, payload.targetId(), true);
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "review", "Proposal review recorded.");
+                    return;
+                }
+                case "reject_proposal" -> {
+                    states.reviewProposal(player, realmId, payload.targetId(), false);
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "review", "Proposal review recorded.");
+                    return;
+                }
+                case "ratify_proposal" -> {
+                    states.ratifyProposal(player, realmId, payload.targetId(), true);
+                    if ("civic_features".equals(screenType)) {
+                        sendCivicSnapshot(api, definitions, states, player, realmId, session,
+                                "Your law vote was recorded.");
+                    } else {
+                        sendCivicModuleSnapshot(api, definitions, states, player, realmId, session,
+                                "proposals", "Your law vote was recorded.");
+                    }
+                    return;
+                }
+                case "oppose_proposal" -> {
+                    states.ratifyProposal(player, realmId, payload.targetId(), false);
+                    if ("civic_features".equals(screenType)) {
+                        sendCivicSnapshot(api, definitions, states, player, realmId, session,
+                                "Your law vote was recorded.");
+                    } else {
+                        sendCivicModuleSnapshot(api, definitions, states, player, realmId, session,
+                                "proposals", "Your law vote was recorded.");
+                    }
+                    return;
+                }
+                case "archive_law" -> {
+                    states.archiveRecord(player, realmId, payload.targetId());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "laws", "Law archived.");
+                    return;
+                }
+                case "archive_record" -> {
+                    states.archiveRecord(player, realmId, payload.targetId());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            moduleFromScreen(screenType), "Record archived.");
+                    return;
+                }
+                case "restore_record" -> {
+                    states.restoreRecord(player, realmId, payload.targetId());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "archive", "Record restored.");
+                    return;
+                }
+                case "finalize_proposal" -> {
+                    GovernmentProposalRecord finalized = states.finalizeProposal(
+                            player, realmId, payload.targetId(), payload.value(), payload.secondaryValue());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            moduleFromCategory(finalized.category()), "Proposal finalized into an official record.");
+                    return;
+                }
+                case "add_law_record", "add_notice_record", "add_rule_record", "add_project_record" -> {
+                    String category = directRecordCategory(payload.action());
+                    GovernmentLawRecord created = states.createDirectRecord(player, realmId, category,
+                            payload.value(), payload.secondaryValue());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            moduleFromCategory(category), "Record created.");
+                    return;
+                }
+                case "send_notice" -> {
+                    states.sendNotice(player, realmId, payload.value(), payload.secondaryValue());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            moduleFromScreen(screenType), "Notice sent.");
+                    return;
+                }
+                case "appoint_office" -> {
+                    states.appointOffice(player, realmId, payload.targetId(), payload.value());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "offices", "Office appointed.");
+                    return;
+                }
+                case "remove_office" -> {
+                    states.removeOfficeByActor(player, realmId, payload.targetId(), payload.value());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "offices", "Office holder removed.");
+                    return;
+                }
+                case "resign_office" -> {
+                    states.resignOffice(player, realmId, payload.targetId());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "offices", "Office resigned.");
                     return;
                 }
                 default -> message = "Unknown Government UI action.";
@@ -104,7 +236,7 @@ public final class GovernmentBlockInteractions {
             message = exception.getMessage() == null ? "Government action failed." : exception.getMessage();
         }
 
-        if ("seat_of_rule".equals(screenType)) {
+        if ("seat_of_rule".equals(screenType) || screenType.startsWith("seat_module_")) {
             sendSeatSnapshot(api, definitions, states, player, realmId, session, message);
         } else {
             sendCivicSnapshot(api, definitions, states, player, realmId, session, message);
@@ -165,6 +297,11 @@ public final class GovernmentBlockInteractions {
             player.sendMessage(Text.literal("Only citizens of this Realm may use its Seat of Rule."), false);
             return;
         }
+        if (!states.canOpenSeatOfRule(player, realm.get().id())) {
+            player.sendMessage(Text.literal("Only the Realm ruler or an elected Confederation delegate may open the Seat of Rule. Council and Synod actions arrive through notifications.")
+                    .formatted(net.minecraft.util.Formatting.RED), false);
+            return;
+        }
         sendSeatSnapshot(api, definitions, states, player, realm.get().id(),
                 createSession(player, "seat_of_rule", realm.get().id(), world, pos), message);
     }
@@ -184,6 +321,7 @@ public final class GovernmentBlockInteractions {
         GovernmentGateStatus gates = states.gates(realm.id());
         GovernmentCivicScreen screen = states.currentCivicScreen(realm.id());
         boolean eligible = states.eligibleCitizen(player, realm.id());
+        String lockMessage = gates.screenLockMessage(screen);
         boolean locked = false;
         boolean voted = false;
         long voteEndsAt = 0L;
@@ -209,7 +347,7 @@ public final class GovernmentBlockInteractions {
                 voted = hasVoted(vote, player.getUuid());
                 voteEndsAt = vote.map(candidate -> proposalEnded ? candidate.endsAt : candidate.proposalEndsAt)
                         .orElse(0L);
-                String phase = locked ? "Locked until Foundation I"
+                String phase = locked ? lockMessage
                         : !proposalEnded ? proposalActive ? "Proposal phase" : "Waiting for the first proposal"
                         : vote.map(candidate -> candidate.active(now)).orElse(false) ? "Voting phase"
                         : "Voting is ready";
@@ -224,39 +362,78 @@ public final class GovernmentBlockInteractions {
                 Optional<GovernmentVoteState> vote = states.existingVote(realm.id(), GovernmentVoteType.GOVERNMENT_FORM);
                 voted = hasVoted(vote, player.getUuid());
                 voteEndsAt = vote.map(candidate -> candidate.endsAt).orElse(0L);
-                rows.add(row("rules", "Rules",
+                rows.add(row("government_form", "Government Form",
                         "The first vote starts a 24h window. Plurality wins; ties trigger a runoff.",
-                        locked ? "Locked until Foundation II" : eligible ? "Ready" : "Active citizens only",
+                        locked ? gates.governmentVoteLockMessage() : eligible ? "Ready" : "Active citizens only",
                         !locked && eligible, false));
                 boolean formRowsUnlocked = !locked && eligible;
                 String activeFormId = state.activeGovernmentFormId();
-                forms = definitions.forms().stream()
-                        .filter(GovernmentFormDefinition::enabled)
-                        .map(form -> row(form.id(), form.displayName(), form.description(),
-                                selected(vote, player.getUuid(), form.id()) ? "Your vote" : "Vote",
-                                formRowsUnlocked, form.id().equals(activeFormId)))
-                        .toList();
+                forms = governmentFormRows(definitions, vote, player.getUuid(), formRowsUnlocked, activeFormId);
             }
-            case FOUNDING_ELECTION -> {
-                title = "Founding Election";
-                subtitle = "Choose the first authority holders for " + formName(definitions, state) + ".";
-                locked = !gates.foundingElectionUnlocked();
-                primaryAction = !locked && eligible ? "nominate_self" : "";
-                Optional<GovernmentVoteState> vote = states.existingVote(realm.id(), GovernmentVoteType.FOUNDING_ELECTION);
+            case REALM_COLOR -> {
+                title = "Realm Color";
+                subtitle = "Choose the public color for " + api.realms().officialName(realm) + ".";
+                Optional<GovernmentVoteState> vote = states.existingVote(realm.id(), GovernmentVoteType.REALM_COLOR);
                 voted = hasVoted(vote, player.getUuid());
                 voteEndsAt = vote.map(candidate -> candidate.endsAt).orElse(0L);
-                rows.add(row("rules", "Rules",
-                        "Nominate yourself, then approve candidates. Multi-seat offices accept multiple approvals.",
-                        locked ? "Locked until Foundation III" : eligible ? "Ready" : "Active citizens only",
-                        !locked && eligible, false));
-                offices = voteRows(vote, player.getUuid(), !locked && eligible, "No candidates have nominated yet.");
+                boolean colorRowsUnlocked = eligible;
+                rows.add(row("realm_color", "Realm Color",
+                        "The first vote starts a 24h window. The winning vanilla color is applied after resolution.",
+                        eligible ? "Ready" : "Active citizens only",
+                        eligible, false));
+                forms = colorRows(states, vote, player.getUuid(), colorRowsUnlocked, state.votedColor());
+            }
+            case THEOCRACY_FAITH -> {
+                title = "Founding Faith";
+                Optional<GovernmentVoteState> vote = states.existingVote(realm.id(), GovernmentVoteType.THEOCRACY_FAITH);
+                long now = System.currentTimeMillis();
+                boolean proposalEnded = vote.map(candidate -> candidate.proposalEnded(now)).orElse(false);
+                boolean proposalActive = vote.map(candidate -> candidate.proposalActive(now)).orElse(false);
+                boolean alreadyProposed = vote.map(candidate -> candidate.options.values().stream()
+                        .anyMatch(option -> player.getUuid().equals(option.proposedBy))).orElse(false);
+                locked = !gates.theocracyFaithUnlocked();
+                primaryAction = !locked && eligible && !proposalEnded && !alreadyProposed ? "propose_faith" : "";
+                voted = hasVoted(vote, player.getUuid());
+                voteEndsAt = vote.map(candidate -> proposalEnded ? candidate.endsAt : candidate.proposalEndsAt)
+                        .orElse(0L);
+                String phase = locked ? gates.theocracyFaithLockMessage()
+                        : !proposalEnded ? proposalActive ? "Faith proposal phase" : "Waiting for first faith proposal"
+                        : vote.map(candidate -> candidate.active(now)).orElse(false) ? "Faith voting phase"
+                        : "Faith voting is ready";
+                subtitle = phase + " - define the religion before electing High Priest and Synod.";
+                rows.addAll(nameProposalRows(vote, player.getUuid(), !locked && eligible && proposalEnded,
+                        "No faith identities proposed yet."));
+            }
+            case FOUNDING_ELECTION -> {
+                GovernmentFoundingPhase phase = states.foundingPhase(player, realm.id());
+                title = phase.title().isBlank() ? foundingElectionStageTitle(state) : phase.title();
+                locked = !gates.foundingElectionUnlocked();
+                Optional<GovernmentVoteState> vote = states.existingVote(realm.id(), GovernmentVoteType.FOUNDING_ELECTION);
+                long now = System.currentTimeMillis();
+                boolean nominationEnded = phase.votingOpen();
+                primaryAction = phase.canNominate() ? "nominate_self" : "";
+                voted = hasVoted(vote, player.getUuid());
+                voteEndsAt = vote.map(candidate -> nominationEnded ? candidate.endsAt : candidate.proposalEndsAt)
+                        .orElse(0L);
+                String status = locked ? gates.foundingElectionLockMessage()
+                        : phase.votingOpen() && vote.map(candidate -> candidate.active(now)).orElse(false) ? phase.phaseLabel()
+                        : phase.nominationsOpen() ? phase.phaseLabel()
+                        : phase.nominationReason();
+                subtitle = status + " - " + foundingElectionSubtitle(definitions, state);
+                rows.add(expandableRow("leadership_election", title,
+                        foundingElectionRules(state),
+                        locked ? gates.foundingElectionLockMessage()
+                                : phase.canNominate() ? "Nominate"
+                                : phase.votingOpen() ? "Vote"
+                                : phase.nominationReason(),
+                        !locked && eligible && (phase.canNominate() || phase.votingOpen()), false));
+                offices = voteRows(vote, player.getUuid(), !locked && eligible && nominationEnded,
+                        "No candidates have nominated yet.");
             }
             case CITIZEN_FEATURES -> {
-                title = "Citizen Civic Features";
-                subtitle = "Founding is complete. Citizen modules can now be built out.";
-                rows.add(row("complete", "Founding Complete",
-                        "The Realm has a name, a government form, and founding authority holders.",
-                        "Unlocked", true, true));
+                title = "Current Votes";
+                subtitle = "Active citizen votes and recent results for " + api.realms().officialName(realm) + ".";
+                rows.addAll(currentVoteRows(api, states, player.getUuid(), realm.id()));
                 modules = citizenModules();
             }
             default -> throw new IllegalStateException("Unhandled Civic screen " + screen);
@@ -265,8 +442,12 @@ public final class GovernmentBlockInteractions {
         send(player, new GovernmentUiOpenPayload(
                 screenId(screen), title, subtitle, realm.id(), api.realms().officialName(realm), "default",
                 LOGICAL_WIDTH, LOGICAL_HEIGHT, MINIMUM_SCALE_PERCENT,
-                locked, eligible, voted, voteEndsAt, fallbackMessage(message, locked, eligible), primaryAction,
-                session.id(),
+                locked, eligible, voted, voteEndsAt,
+                fallbackMessage(message, locked, eligible, lockMessage), primaryAction,
+                session.id(), screenId(screen), "", screenId(screen), title, true, false,
+                "civic_forum", "current_votes", formLabel(definitions, state),
+                authorityLabel(api, definitions, state), "Citizen Assembly",
+                selectedColor(realm, state), "civic_crest", "",
                 rows, forms, offices, modules));
     }
 
@@ -284,34 +465,31 @@ public final class GovernmentBlockInteractions {
         RealmGovernmentState state = states.realm(realm.id());
         GovernmentGateStatus gates = states.gates(realm.id());
         boolean locked = !gates.seatOfRuleUnlocked();
+        String lockMessage = gates.seatOfRuleLockMessage();
         List<GovernmentUiOpenPayload.Row> status = new ArrayList<>();
         List<GovernmentUiOpenPayload.Row> formRows = new ArrayList<>();
         List<GovernmentUiOpenPayload.Row> officeRows = new ArrayList<>();
-        List<GovernmentUiOpenPayload.Row> modules = new ArrayList<>();
+        String primaryAction = "";
 
         if (locked) {
             status.add(row("seat_locked", "Seat Locked",
-                    "Complete Foundation III and finish the founding election in the Civic Forum.",
+                    lockMessage,
                     "Locked", false, false));
         } else if (state.activeGovernmentFormId().isBlank()) {
             status.add(row("missing_form", "No Government Chosen",
                     "The Civic Forum must finish the government form vote first.", "Waiting", false, false));
         } else {
             GovernmentFormDefinition form = definitions.require(state.activeGovernmentFormId());
-            status.add(row("authority", api.realms().officialName(realm),
-                    "Authority-facing modules for the Realm.", "Active", true, true));
             formRows.add(row(form.id(), form.displayName(), form.description(), "Current", true, true));
             if (state.officeHolders().isEmpty()) {
                 officeRows.add(row("vacant", "Offices", "No offices are currently filled.", "Vacant", true, false));
             } else {
-                state.officeHolders().forEach((office, holders) -> officeRows.add(row(office,
-                        officeLabel(form, office), holderNames(api, holders),
-                        holders.size() + " holder(s)", true, !holders.isEmpty())));
+                officeRows.addAll(officeRows(api, states, form, state));
             }
-            modules.add(row("notices", "Notices", "Authority notices and announcements shell.", "Open", true, false));
-            modules.add(row("laws", "Laws", "Law records and law proposals are future modules.", "Future", true, false));
-            modules.add(row("proposals", "Proposals", "Authority proposal handling is future work.", "Future", true, false));
-            modules.add(row("offices", "Office Management", "Appointments and removals are future UI work.", "Future", true, false));
+            boolean canReviewProposals = states.canReviewProposals(player, realm.id());
+            status.addAll(proposalRows(api, states.proposals(realm.id()), canReviewProposals, player.getUuid(),
+                    states, player, realm.id()));
+            primaryAction = states.isAuthority(realm.id(), player.getUuid()) ? "send_notice" : "";
         }
 
         send(player, new GovernmentUiOpenPayload(
@@ -320,8 +498,192 @@ public final class GovernmentBlockInteractions {
                 realm.id(), api.realms().officialName(realm), "default",
                 LOGICAL_WIDTH, LOGICAL_HEIGHT, MINIMUM_SCALE_PERCENT,
                 locked, states.eligibleCitizen(player, realm.id()), false, 0L,
-                fallbackMessage(message, locked, true), "", session.id(),
-                status, formRows, officeRows, modules));
+                fallbackMessage(message, locked, true, lockMessage), primaryAction, session.id(),
+                "seat_of_rule", "", "seat_of_rule", "Seat of Rule", true, false,
+                "seat_of_rule", "review", formLabel(definitions, state),
+                authorityLabel(api, definitions, state), "Authority Seat",
+                selectedColor(realm, state), "seat_crest", "",
+                status, formRows, officeRows, List.of()));
+    }
+
+    private static void sendCivicModuleSnapshot(
+            ElarionApi api,
+            GovernmentDefinitionService definitions,
+            GovernmentStateService states,
+            ServerPlayerEntity player,
+            String realmId,
+            GovernmentUiSessionService.Session session,
+            String moduleId,
+            String message
+    ) {
+        RealmDefinition realm = api.realms().find(realmId)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Realm " + realmId));
+        if (states.currentCivicScreen(realm.id()) != GovernmentCivicScreen.CITIZEN_FEATURES) {
+            sendCivicSnapshot(api, definitions, states, player, realm.id(), session,
+                    foundingRequirementMessage(states, definitions, player, realm.id()));
+            return;
+        }
+        String module = normalizeCivicModule(moduleId);
+        List<GovernmentUiOpenPayload.Row> rows;
+        String title;
+        String subtitle;
+        String primaryAction = "";
+        if ("laws".equals(module)) {
+            title = "Active Laws";
+            subtitle = "Read the current civic records for " + api.realms().officialName(realm) + ".";
+            rows = recordRows(api, states.laws(realm.id()), false, true, "laws");
+        } else if ("projects".equals(module)) {
+            title = "Projects";
+            subtitle = "Read approved Realm project records.";
+            rows = recordRows(api, states.laws(realm.id()), false, true, "realm_project");
+        } else if ("offices".equals(module)) {
+            title = "Offices";
+            subtitle = "Current authority holders for " + api.realms().officialName(realm) + ".";
+            RealmGovernmentState government = states.realm(realm.id());
+            if (government.activeGovernmentFormId().isBlank()) {
+                rows = List.of(row("empty", "No Offices", "The Realm has not chosen a Government form yet.", "Waiting", false, false));
+            } else {
+                GovernmentFormDefinition form = definitions.require(government.activeGovernmentFormId());
+                rows = officeRows(api, states, form, government);
+            }
+        } else if ("history".equals(module)) {
+            title = "Civic History";
+            subtitle = "Government chronicle entries for " + api.realms().officialName(realm) + ".";
+            rows = historyRows(api, states.governmentHistory(realm.id(), 40), states.laws(realm.id()), false);
+        } else {
+            title = "Citizen Proposals";
+            subtitle = "Submit and follow citizen proposals for " + api.realms().officialName(realm) + ".";
+            rows = proposalRows(api, states.proposals(realm.id()), false, player.getUuid(), states, player, realm.id());
+            primaryAction = states.eligibleCitizen(player, realm.id()) ? "create_proposal" : "";
+        }
+        send(player, new GovernmentUiOpenPayload(
+                "civic_module_" + module, title, subtitle, realm.id(), api.realms().officialName(realm), "default",
+                LOGICAL_WIDTH, LOGICAL_HEIGHT, MINIMUM_SCALE_PERCENT,
+                false, states.eligibleCitizen(player, realm.id()), false, 0L,
+                fallbackMessage(message, false, states.eligibleCitizen(player, realm.id()), ""), primaryAction,
+                session.id(), "civic_module_" + module, "civic_features", "civic_features", title, false, true,
+                "civic_forum", module, formLabel(definitions, states.realm(realm.id())),
+                authorityLabel(api, definitions, states.realm(realm.id())), "Citizen Assembly",
+                selectedColor(realm, states.realm(realm.id())), "civic_crest", "",
+                rows, List.of(), "offices".equals(module) ? rows : List.of(), citizenModules()));
+    }
+
+    private static void sendSeatModuleSnapshot(
+            ElarionApi api,
+            GovernmentDefinitionService definitions,
+            GovernmentStateService states,
+            ServerPlayerEntity player,
+            String realmId,
+            GovernmentUiSessionService.Session session,
+            String moduleId,
+            String message
+    ) {
+        RealmDefinition realm = api.realms().find(realmId)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Realm " + realmId));
+        GovernmentFormDefinition form = definitions.require(states.realm(realm.id()).activeGovernmentFormId());
+        String module = normalizeSeatModule(moduleId);
+        List<GovernmentUiOpenPayload.Row> rows;
+        String title;
+        String subtitle;
+        String primaryAction = "";
+        boolean directRecords = states.canDirectCreateRecords(player, realm.id());
+        boolean canReviewProposals = states.canReviewProposals(player, realm.id());
+        if ("laws".equals(module)) {
+            title = "Laws";
+            subtitle = "Create, read, and archive active laws.";
+            rows = recordRows(api, states.laws(realm.id()), true, true, "laws");
+            primaryAction = directRecords ? "add_law_record" : "";
+        } else if ("projects".equals(module)) {
+            title = "Projects";
+            subtitle = "Approved Realm project records.";
+            rows = recordRows(api, states.laws(realm.id()), true, true, "realm_project");
+            primaryAction = directRecords ? "add_project_record" : "";
+        } else if ("archive".equals(module)) {
+            title = "Archive";
+            subtitle = "Archived records and Government chronicle entries.";
+            rows = historyRows(api, states.governmentHistory(realm.id(), 60), states.laws(realm.id()), true);
+        } else if ("offices".equals(module)) {
+            title = "Offices";
+            subtitle = "Authority holders, tenure, and office tools.";
+            rows = officeRows(api, states, form, states.realm(realm.id()));
+        } else {
+            title = "Review";
+            subtitle = "Approve or reject pending citizen proposals.";
+            rows = proposalRows(api, states.proposals(realm.id()), canReviewProposals, player.getUuid(),
+                    states, player, realm.id());
+            primaryAction = states.isAuthority(realm.id(), player.getUuid()) ? "send_notice" : "";
+        }
+        send(player, new GovernmentUiOpenPayload(
+                "seat_module_" + module, title, subtitle, realm.id(), api.realms().officialName(realm), "default",
+                LOGICAL_WIDTH, LOGICAL_HEIGHT, MINIMUM_SCALE_PERCENT,
+                false, states.eligibleCitizen(player, realm.id()), false, 0L,
+                fallbackMessage(message, false, true, ""), primaryAction, session.id(),
+                "seat_module_" + module, "seat_of_rule", "seat_of_rule", title, false, true,
+                "seat_of_rule", module, formLabel(definitions, states.realm(realm.id())),
+                authorityLabel(api, definitions, states.realm(realm.id())), "Authority Seat",
+                selectedColor(realm, states.realm(realm.id())), "seat_crest", "",
+                rows, List.of(), "offices".equals(module) ? rows : List.of(), List.of()));
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> currentVoteRows(
+            ElarionApi api,
+            GovernmentStateService states,
+            UUID viewer,
+            String realmId
+    ) {
+        long now = System.currentTimeMillis();
+        long recentCutoff = now - 24L * 60L * 60L * 1000L;
+        List<GovernmentUiOpenPayload.Row> rows = new ArrayList<>();
+        List<GovernmentProposalRecord> proposals = states.proposals(realmId);
+        proposals.stream()
+                .filter(proposal -> proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION)
+                .forEach(proposal -> rows.add(proposalVoteRow(api, states, proposal, viewer, "active_vote")));
+        proposals.stream()
+                .filter(proposal -> proposal.resolvedAt() >= recentCutoff)
+                .filter(proposal -> proposal.status() == GovernmentProposalStatus.ENACTED
+                        || proposal.status() == GovernmentProposalStatus.REJECTED)
+                .forEach(proposal -> rows.add(proposalVoteRow(api, states, proposal, viewer, "recent_vote")));
+        if (rows.isEmpty()) {
+            return List.of(row("empty", "No Active Votes",
+                    "No active citizen votes are open. Recent Government outcomes appear here for 24 hours.",
+                    "Empty", false, false));
+        }
+        return rows;
+    }
+
+    private static GovernmentUiOpenPayload.Row proposalVoteRow(
+            ElarionApi api,
+            GovernmentStateService states,
+            GovernmentProposalRecord proposal,
+            UUID viewer,
+            String kind
+    ) {
+        boolean ratification = proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION;
+        long approvals = proposal.citizenVotes().values().stream().filter(Boolean::booleanValue).count();
+        long rejections = proposal.citizenVotes().values().stream().filter(value -> !value).count();
+        long threshold = ratification ? Math.max(1, states.activeCitizenThreshold(proposal.realmId())) : 0L;
+        String title = !proposal.finalTitle().isBlank() ? proposal.finalTitle() : proposal.title();
+        String body = uiTextForDisplay(api, !proposal.finalBody().isBlank() ? proposal.finalBody() : proposal.body());
+        String actor = citizenName(api, proposal.authorId());
+        return new GovernmentUiOpenPayload.Row(
+                proposal.id(),
+                uiTextForDisplay(api, title),
+                categoryLabel(proposal.category()) + " - " + body,
+                ratification ? (proposal.citizenVotes().containsKey(viewer) ? "Voted" : "Active")
+                        : statusLabel(proposal.status()),
+                ratification,
+                proposal.status() == GovernmentProposalStatus.ENACTED,
+                proposal.citizenVotes().containsKey(viewer),
+                approvals + rejections,
+                kind,
+                iconForCategory(proposal.category()),
+                categoryLabel(proposal.category()),
+                actor,
+                ratification ? "Citizen vote" : statusLabel(proposal.status()),
+                approvals,
+                rejections,
+                threshold,
+                ratification ? proposal.resolvedAt() : proposal.resolvedAt());
     }
 
     private static List<GovernmentUiOpenPayload.Row> voteRows(
@@ -333,11 +695,20 @@ public final class GovernmentBlockInteractions {
         if (vote.isEmpty() || vote.get().options.isEmpty()) {
             return List.of(row("empty", "Nothing Submitted", emptyMessage, "Waiting", false, false));
         }
-        return vote.get().options.values().stream()
-                .sorted(Comparator.comparing(option -> option.createdAt))
-                .map(option -> row(option.id, option.title, option.body,
-                        selected(vote, viewer, option.id) ? "Your vote" : "Vote",
-                        unlocked, vote.get().winnerIds.contains(option.id)))
+        GovernmentVoteState state = vote.get();
+        java.util.Map<String, Long> counts = voteCounts(state);
+        return state.options.values().stream()
+                .sorted(voteOptionComparator(state, counts))
+                .map(option -> {
+                    long count = counts.getOrDefault(option.id, 0L);
+                    boolean ownCandidate = viewer != null && viewer.equals(option.proposedBy);
+                    String stateLabel = unlocked ? voteCountLabel(count)
+                            : ownCandidate ? "You are nominated" : "Candidate";
+                    return choiceRow(option.id, option.title, option.body,
+                            stateLabel,
+                            unlocked, state.winnerIds.contains(option.id),
+                            selected(vote, viewer, option.id) || ownCandidate && !unlocked, count);
+                })
                 .toList();
     }
 
@@ -352,16 +723,75 @@ public final class GovernmentBlockInteractions {
         }
         java.util.Map<String, Long> counts = voteCounts(vote.get());
         return vote.get().options.values().stream()
-                .sorted(Comparator
-                        .<GovernmentVoteOption>comparingLong(option -> counts.getOrDefault(option.id, 0L))
-                        .reversed()
-                        .thenComparing(option -> option.createdAt))
+                .sorted(voteOptionComparator(vote.get(), counts))
                 .map(option -> {
                     boolean selected = selected(vote, viewer, option.id);
-                    return row(option.id, "Name: " + option.title, "Tag: [" + option.tag + "]",
-                            selected ? "Your vote" : votingUnlocked ? "Vote" : "Proposed",
-                            votingUnlocked, selected);
+                    boolean faith = vote.get().type == GovernmentVoteType.THEOCRACY_FAITH;
+                    long count = counts.getOrDefault(option.id, 0L);
+                    return choiceRow(option.id,
+                            (faith ? "Faith: " : "Name: ") + option.title,
+                            (faith ? "Mark: [" : "Tag: [") + option.tag + "]",
+                            votingUnlocked ? voteCountLabel(count) : "Proposed",
+                            votingUnlocked, vote.get().winnerIds.contains(option.id),
+                            selected, count);
                 })
+                .toList();
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> governmentFormRows(
+            GovernmentDefinitionService definitions,
+            Optional<GovernmentVoteState> vote,
+            UUID viewer,
+            boolean votingUnlocked,
+            String activeFormId
+    ) {
+        if (vote.isPresent() && !vote.get().options.isEmpty()) {
+            GovernmentVoteState state = vote.get();
+            java.util.Map<String, Long> counts = voteCounts(state);
+            return state.options.values().stream()
+                    .sorted(voteOptionComparator(state, counts))
+                    .map(option -> {
+                        long count = counts.getOrDefault(option.id, 0L);
+                        String formId = option.formId.isBlank() ? option.id : option.formId;
+                        return choiceRow(option.id, option.title, option.body,
+                                voteCountLabel(count), votingUnlocked, formId.equals(activeFormId),
+                                selected(vote, viewer, option.id), count);
+                    })
+                    .toList();
+        }
+        return definitions.forms().stream()
+                .filter(GovernmentFormDefinition::enabled)
+                .map(form -> choiceRow(form.id(), form.displayName(), form.description(),
+                        "Vote", votingUnlocked, form.id().equals(activeFormId), false, 0L))
+                .toList();
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> colorRows(
+            GovernmentStateService states,
+            Optional<GovernmentVoteState> vote,
+            UUID viewer,
+            boolean votingUnlocked,
+            String currentColor
+    ) {
+        if (vote.isPresent() && !vote.get().options.isEmpty()) {
+            GovernmentVoteState state = vote.get();
+            java.util.Map<String, Long> counts = voteCounts(state);
+            return state.options.values().stream()
+                    .sorted(voteOptionComparator(state, counts))
+                    .map(option -> {
+                        boolean selected = selected(vote, viewer, option.id);
+                        boolean current = option.id.equals(currentColor);
+                        long count = counts.getOrDefault(option.id, 0L);
+                        return choiceRow(option.id, option.title, option.body,
+                                voteCountLabel(count), votingUnlocked, current,
+                                selected, count);
+                    })
+                    .toList();
+        }
+        return states.realmColorOptions().stream()
+                .map(color -> choiceRow(color, colorLabel(color),
+                        "Apply " + colorLabel(color) + " to Realm text and markers.",
+                        "Vote", votingUnlocked, color.equals(currentColor), false, 0L))
                 .toList();
     }
 
@@ -375,20 +805,394 @@ public final class GovernmentBlockInteractions {
         return counts;
     }
 
+    private static Comparator<GovernmentVoteOption> voteOptionComparator(
+            GovernmentVoteState vote,
+            java.util.Map<String, Long> counts
+    ) {
+        return Comparator
+                .<GovernmentVoteOption>comparingLong(option -> counts.getOrDefault(option.id, 0L))
+                .reversed()
+                .thenComparingLong(option -> option.createdAt)
+                .thenComparing(option -> option.id);
+    }
+
+    private static String voteCountLabel(long count) {
+        return count == 1L ? "1 vote" : count + " votes";
+    }
+
+    private static String colorLabel(String color) {
+        String normalized = color == null ? "" : color.trim().toLowerCase(java.util.Locale.ROOT).replace(' ', '_');
+        String[] parts = normalized.split("_");
+        StringBuilder builder = new StringBuilder();
+        for (String part : parts) {
+            if (part.isBlank()) continue;
+            if (!builder.isEmpty()) builder.append(' ');
+            builder.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return builder.isEmpty() ? "Color" : builder.toString();
+    }
+
     private static List<GovernmentUiOpenPayload.Row> citizenModules() {
         return List.of(
-                row("laws", "Laws", "Citizen law visibility and voting hooks are future work.", "Future", true, false),
-                row("proposals", "Proposals", "Citizen proposal creation is future work.", "Future", true, false),
-                row("notices", "Notices", "Realm public notices are future work.", "Future", true, false),
-                row("offices", "Offices", "View authority holders and future office requests.", "Future", true, false)
+                navigationRow("proposals", "Proposals", "Create and track citizen proposals.", "Open", true, false),
+                navigationRow("laws", "Laws", "Read active law and civic records.", "Open", true, false),
+                navigationRow("projects", "Projects", "Read approved project records.", "Open", true, false),
+                navigationRow("offices", "Offices", "View current authority holders.", "Open", true, false),
+                navigationRow("history", "History", "Read archived civic records.", "Open", true, false)
         );
     }
 
-    private static String fallbackMessage(String message, boolean locked, boolean eligible) {
+    static List<GovernmentUiOpenPayload.Row> seatModuleRows(GovernmentFormDefinition form) {
+        List<GovernmentUiOpenPayload.Row> rows = new ArrayList<>();
+        rows.add(navigationRow("review", "Review", "Review pending citizen proposals.", "Open", true, false));
+        rows.add(navigationRow("laws", "Laws", "View and archive active laws.", "Open", true, false));
+        rows.add(navigationRow("projects", "Projects", "View approved project records.", "Open", true, false));
+        rows.add(navigationRow("offices", "Offices", "View and manage authority holders.", "Open", true, false));
+        rows.add(navigationRow("archive", "Archive", "Restore archived civic records.", "Open", true, false));
+        return rows;
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> officeRows(
+            ElarionApi api,
+            GovernmentStateService states,
+            GovernmentFormDefinition form,
+            RealmGovernmentState government
+    ) {
+        if (form == null || form.offices().isEmpty()) {
+            return List.of(row("empty", "No Offices", "This Government form has no configured offices.", "Empty", false, false));
+        }
+        List<GovernmentUiOpenPayload.Row> rows = new ArrayList<>();
+        for (var office : form.offices()) {
+            Set<UUID> holders = government.officeHolders().getOrDefault(office.id(), Set.of());
+            String names = holderNames(api, holders);
+            boolean filled = !holders.isEmpty();
+            List<GovernmentOfficeTermRecord> terms = states.activeOfficeTerms(government.realmId(), office.id());
+            long chosenAt = terms.stream().mapToLong(GovernmentOfficeTermRecord::chosenAt).filter(value -> value > 0L)
+                    .min().orElse(government.foundingElectionCompletedAt());
+            long approved = terms.stream().mapToLong(GovernmentOfficeTermRecord::approvedCount).sum();
+            long rejected = terms.stream().mapToLong(GovernmentOfficeTermRecord::rejectedCount).sum();
+            String body = office.description();
+            rows.add(new GovernmentUiOpenPayload.Row(
+                    office.id(),
+                    office.displayName().isBlank() ? office.id() : office.displayName(),
+                    body,
+                    filled ? "Filled" : "Vacant",
+                    true,
+                    filled,
+                    false,
+                    holders.size(),
+                    "office",
+                    "office",
+                    "Office",
+                    names,
+                    filled ? "Elected " + timeLabel(chosenAt) : "Vacant",
+                    approved,
+                    rejected,
+                    office.maxHolders(),
+                    chosenAt));
+        }
+        return rows;
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> proposalRows(
+            ElarionApi api,
+            List<GovernmentProposalRecord> proposals,
+            boolean authorityView,
+            UUID viewer,
+            GovernmentStateService states,
+            ServerPlayerEntity player,
+            String realmId
+    ) {
+        if (proposals.isEmpty()) {
+            return List.of(row("empty", "No Proposals", "No citizen proposals are recorded yet.", "Waiting", false, false));
+        }
+        List<GovernmentProposalRecord> visible = proposals.stream()
+                .filter(GovernmentBlockInteractions::visibleProposal)
+                .toList();
+        if (visible.isEmpty()) {
+            return List.of(row("empty", "No Active Proposals",
+                    "Approved records now live in Laws, Rules, Notices, or Projects.", "Empty", false, false));
+        }
+        return visible.stream()
+                .map(proposal -> {
+                    boolean canAct = authorityView && states.canActOnProposal(player, realmId, proposal);
+                    String title = proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
+                            && !proposal.finalTitle().isBlank()
+                            ? proposal.finalTitle()
+                            : proposal.title();
+                    String body = proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
+                            && !proposal.finalBody().isBlank()
+                            ? proposal.finalBody()
+                            : proposal.body();
+                    String state = proposal.status() == GovernmentProposalStatus.PENDING
+                            ? canAct ? "Review" : "Pending"
+                            : proposal.status() == GovernmentProposalStatus.FINAL_TEXT_REVIEW
+                            ? canAct ? "Review" : "Wording review"
+                            : proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
+                            ? authorityView ? "Citizen Vote"
+                            : proposal.citizenVotes().containsKey(viewer) ? "Voted" : "Ratify"
+                            : proposal.status() == GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION
+                            ? canAct ? "Finalize" : "Approved"
+                            : statusLabel(proposal.status());
+                    boolean unlocked = canAct
+                            || (!authorityView && proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION);
+                    long approveCount = authorityView
+                            ? proposal.reviewVotes().values().stream().filter(Boolean::booleanValue).count()
+                            : proposal.citizenVotes().values().stream().filter(Boolean::booleanValue).count();
+                    long rejectCount = authorityView
+                            ? proposal.reviewVotes().values().stream().filter(value -> !value).count()
+                            : proposal.citizenVotes().values().stream().filter(value -> !value).count();
+                    long threshold = proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
+                            ? Math.max(1, states.activeCitizenThreshold(realmId))
+                            : 0L;
+                    String actor = citizenName(api, proposal.authorId());
+                    return actionRow(proposal.id(), uiTextForDisplay(api, title),
+                            categoryLabel(proposal.category()) + " - " + uiTextForDisplay(api, body),
+                            state,
+                            unlocked,
+                            proposal.status() == GovernmentProposalStatus.ENACTED,
+                            iconForCategory(proposal.category()), categoryLabel(proposal.category()), actor,
+                            proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
+                                    ? "Citizen vote" : authorityView ? "Authority review" : "Proposal",
+                            approveCount, rejectCount, threshold, proposal.createdAt());
+                })
+                .toList();
+    }
+
+    private static boolean visibleProposal(GovernmentProposalRecord proposal) {
+        return proposal.status() == GovernmentProposalStatus.PENDING
+                || proposal.status() == GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION
+                || proposal.status() == GovernmentProposalStatus.FINAL_TEXT_REVIEW
+                || proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION;
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> lawRows(ElarionApi api, List<GovernmentLawRecord> laws, boolean authorityView) {
+        return recordRows(api, laws, authorityView, true, "");
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> recordRows(
+            ElarionApi api,
+            List<GovernmentLawRecord> laws,
+            boolean authorityView,
+            boolean active,
+            String category
+    ) {
+        List<GovernmentLawRecord> records = laws.stream()
+                .filter(law -> law.active() == active)
+                .filter(law -> recordMatchesCategory(law, category))
+                .toList();
+        if (records.isEmpty()) {
+            return List.of(row("empty", active ? "No Active Records" : "No Archived Records",
+                    active ? "No active civic records are recorded yet." : "No archived civic records are recorded yet.",
+                    "Empty", false, false));
+        }
+        return records.stream()
+                .map(law -> {
+                    String state = authorityView ? active ? "Archive" : "Restore" : active ? "Active" : "Archived";
+                    return new GovernmentUiOpenPayload.Row(law.id(), uiTextForDisplay(api, law.title()),
+                        categoryLabel(law.category()) + " - " + uiTextForDisplay(api, law.body()),
+                        state, true, active, false, 0L,
+                        authorityView ? "record_action" : "record",
+                        iconForCategory(law.category()), categoryLabel(law.category()),
+                        citizenName(api, law.enactedBy()),
+                        active ? "Active" : "Archived",
+                        0L, 0L, 0L, law.enactedAt());
+                })
+                .toList();
+    }
+
+    private static boolean recordMatchesCategory(GovernmentLawRecord law, String category) {
+        if (category == null || category.isBlank()) return true;
+        if ("laws".equals(category)) return "law".equals(law.category()) || "civic_rule".equals(law.category());
+        return category.equals(law.category()) || "civic_rule".equals(category) && "other".equals(law.category());
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> historyRows(
+            ElarionApi api,
+            List<PublicHistoryEntry> history,
+            List<GovernmentLawRecord> laws,
+            boolean authorityView
+    ) {
+        List<GovernmentUiOpenPayload.Row> rows = new ArrayList<>();
+        for (PublicHistoryEntry entry : history) {
+            rows.add(new GovernmentUiOpenPayload.Row(
+                    entry.eventId().toString(),
+                    historyTitle(entry),
+                    uiTextForDisplay(api, entry.text()),
+                    timeLabel(entry.timestamp()),
+                    true,
+                    true,
+                    false,
+                    0L,
+                    "history",
+                    iconForHistory(entry),
+                    "History",
+                    historyActorName(api, entry),
+                    historyDetailLabel(entry),
+                    0L,
+                    0L,
+                    0L,
+                    entry.timestamp()));
+        }
+        if (authorityView) {
+            List<GovernmentUiOpenPayload.Row> archived = recordRows(api, laws, true, false, "");
+            if (!archived.isEmpty() && !"empty".equals(archived.getFirst().id())) rows.addAll(archived);
+        }
+        if (!rows.isEmpty()) return rows;
+        return List.of(row("empty", "No Civic History",
+                "No civic records have been created yet.", "Empty", false, false));
+    }
+
+    private static String formLabel(GovernmentDefinitionService definitions, RealmGovernmentState state) {
+        if (state == null || state.activeGovernmentFormId().isBlank()) return "Unchosen";
+        return definitions.form(state.activeGovernmentFormId())
+                .map(GovernmentFormDefinition::displayName)
+                .filter(label -> !label.isBlank())
+                .orElse(state.activeGovernmentFormId());
+    }
+
+    private static String authorityLabel(
+            ElarionApi api,
+            GovernmentDefinitionService definitions,
+            RealmGovernmentState state
+    ) {
+        if (state == null || state.activeGovernmentFormId().isBlank()) return "Unchosen";
+        GovernmentFormDefinition form = definitions.require(state.activeGovernmentFormId());
+        return authorityLabel(form, state, uuid -> api.citizens().find(uuid)
+                .map(GovernmentBlockInteractions::citizenName)
+                .orElse("Unknown Citizen"));
+    }
+
+    static String authorityLabel(
+            GovernmentFormDefinition form,
+            RealmGovernmentState state,
+            java.util.function.Function<UUID, String> nameResolver
+    ) {
+        if (form == null || state == null || state.activeGovernmentFormId().isBlank()) return "Unchosen";
+        String officeId = primaryOfficeId(form);
+        String officeLabel = officeLabel(form, officeId);
+        Set<UUID> holders = state.officeHolders().getOrDefault(officeId, Set.of());
+        int maxHolders = Math.max(1, officeMaxHolders(form, officeId));
+        if (holders.isEmpty()) return officeLabel + " Vacant";
+        List<String> names = holders.stream()
+                .map(uuid -> nameResolver.apply(uuid))
+                .filter(name -> name != null && !name.isBlank())
+                .sorted()
+                .toList();
+        if (holders.size() == 1 && !names.isEmpty()) return officeLabel + " " + names.getFirst();
+        String plural = officeLabel.endsWith("s") ? officeLabel : officeLabel + "s";
+        return plural + " " + holders.size() + "/" + maxHolders;
+    }
+
+    private static String primaryOfficeId(GovernmentFormDefinition form) {
+        return switch (form.id()) {
+            case "monarchy" -> "monarch";
+            case "republic" -> "president";
+            case "theocracy" -> "high_priest";
+            case "confederation" -> "delegate";
+            default -> form.authorityOffices().stream()
+                    .filter(office -> !"officer".equals(office))
+                    .findFirst()
+                    .orElseGet(() -> form.offices().isEmpty() ? "office" : form.offices().getFirst().id());
+        };
+    }
+
+    private static int officeMaxHolders(GovernmentFormDefinition form, String officeId) {
+        return form.offices().stream()
+                .filter(office -> office.id().equals(officeId))
+                .findFirst()
+                .map(office -> Math.max(1, office.maxHolders()))
+                .orElse(1);
+    }
+
+    private static String selectedColor(RealmDefinition realm, RealmGovernmentState state) {
+        if (state != null && !state.votedColor().isBlank()) return state.votedColor();
+        return realm == null || realm.color() == null || realm.color().isBlank() ? "white" : realm.color();
+    }
+
+    private static String statusLabel(GovernmentProposalStatus status) {
+        String lower = status.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+    }
+
+    private static String categoryLabel(String category) {
+        String normalized = category == null ? "" : category.replace('_', ' ');
+        if (normalized.isBlank()) return "Proposal";
+        return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
+    }
+
+    private static String directRecordCategory(String action) {
+        return switch (action) {
+            case "add_law_record" -> "law";
+            case "add_notice_record" -> "public_notice";
+            case "add_rule_record" -> "civic_rule";
+            case "add_project_record" -> "realm_project";
+            default -> "other";
+        };
+    }
+
+    private static String moduleFromCategory(String category) {
+        return switch (category) {
+            case "law", "civic_rule" -> "laws";
+            case "public_notice" -> "review";
+            case "realm_project" -> "projects";
+            default -> "laws";
+        };
+    }
+
+    private static String moduleFromScreen(String screenType) {
+        if (screenType == null) return "laws";
+        if (screenType.startsWith("seat_module_")) return normalizeSeatModule(screenType.substring("seat_module_".length()));
+        if (screenType.startsWith("civic_module_")) return normalizeCivicModule(screenType.substring("civic_module_".length()));
+        return "laws";
+    }
+
+    private static String normalizeCivicModule(String moduleId) {
+        return switch (moduleId == null ? "" : moduleId) {
+            case "laws", "rules", "notices" -> "laws";
+            case "projects" -> "projects";
+            case "offices" -> "offices";
+            case "history", "archive" -> "history";
+            default -> "proposals";
+        };
+    }
+
+    private static String normalizeSeatModule(String moduleId) {
+        return switch (moduleId == null ? "" : moduleId) {
+            case "laws", "rules" -> "laws";
+            case "projects" -> "projects";
+            case "offices" -> "offices";
+            case "archive", "history" -> "archive";
+            case "notices" -> "review";
+            default -> "review";
+        };
+    }
+
+    private static String fallbackMessage(String message, boolean locked, boolean eligible, String lockMessage) {
         if (message != null && !message.isBlank()) return message;
-        if (locked) return "";
+        if (locked) return lockMessage == null ? "" : lockMessage;
         if (!eligible) return "Only active citizens of this Realm can use this civic action.";
         return "";
+    }
+
+    private static String foundingRequirementMessage(
+            GovernmentStateService states,
+            GovernmentDefinitionService definitions,
+            ServerPlayerEntity player,
+            String realmId
+    ) {
+        RealmGovernmentState government = states.realm(realmId);
+        if (government.activeGovernmentFormId().isBlank()) {
+            return "Finish founding first: choose a Government form before proposals, laws, projects, offices, and history open.";
+        }
+        GovernmentFormDefinition form = definitions.require(government.activeGovernmentFormId());
+        GovernmentFoundingPhase phase = states.foundingPhase(player, realmId);
+        if ("republic".equals(form.id()) && government.officeHolders().containsKey("president")
+                && government.officeHolders().getOrDefault("council_member", Set.of()).isEmpty()) {
+            return "Finish founding first: nominate and elect at least one Councilor before proposals, laws, projects, offices, and history open.";
+        }
+        String reason = phase.nominationReason().isBlank() ? phase.phaseLabel() : phase.nominationReason();
+        return "Finish founding first: " + reason;
     }
 
     private static boolean hasVoted(Optional<GovernmentVoteState> vote, UUID viewer) {
@@ -402,7 +1206,9 @@ public final class GovernmentBlockInteractions {
     private static GovernmentVoteType voteType(String screenType) {
         return switch (screenType) {
             case "civic_name" -> GovernmentVoteType.REALM_NAME;
+            case "civic_color" -> GovernmentVoteType.REALM_COLOR;
             case "civic_form" -> GovernmentVoteType.GOVERNMENT_FORM;
+            case "civic_theocracy_faith" -> GovernmentVoteType.THEOCRACY_FAITH;
             case "civic_election" -> GovernmentVoteType.FOUNDING_ELECTION;
             default -> throw new IllegalArgumentException("That screen does not accept votes.");
         };
@@ -411,7 +1217,9 @@ public final class GovernmentBlockInteractions {
     private static String screenId(GovernmentCivicScreen screen) {
         return switch (screen) {
             case REALM_NAME -> "civic_name";
+            case REALM_COLOR -> "civic_color";
             case GOVERNMENT_FORM -> "civic_form";
+            case THEOCRACY_FAITH -> "civic_theocracy_faith";
             case FOUNDING_ELECTION -> "civic_election";
             case CITIZEN_FEATURES -> "civic_features";
         };
@@ -450,7 +1258,7 @@ public final class GovernmentBlockInteractions {
             String screenType
     ) {
         if (player == null || sessionId == null || sessionId.isBlank()) return null;
-        String expectedBlock = "seat_of_rule".equals(screenType) ? "seat_of_rule" : "civic_forum";
+        String expectedBlock = expectedBlockForScreen(screenType);
         String playerWorld = player.getWorld().getRegistryKey().getValue().toString();
         GovernmentUiSessionService.Session session = SESSIONS.validate(
                 player.getUuid(),
@@ -469,9 +1277,62 @@ public final class GovernmentBlockInteractions {
         return session;
     }
 
+    static String expectedBlockForScreen(String screenType) {
+        String safeScreen = screenType == null ? "" : screenType;
+        return "seat_of_rule".equals(safeScreen) || safeScreen.startsWith("seat_module_")
+                ? "seat_of_rule" : "civic_forum";
+    }
+
+    static boolean isCivicScreen(String screenType) {
+        return "civic_forum".equals(expectedBlockForScreen(screenType));
+    }
+
     private static String formName(GovernmentDefinitionService definitions, RealmGovernmentState state) {
         if (state.activeGovernmentFormId().isBlank()) return "the selected Government form";
         return definitions.require(state.activeGovernmentFormId()).displayName();
+    }
+
+    private static String foundingElectionSubtitle(
+            GovernmentDefinitionService definitions,
+            RealmGovernmentState state
+    ) {
+        if ("republic".equals(state.activeGovernmentFormId())) {
+            if (!state.officeHolders().containsKey("president")) {
+                return "Elect one President first. Council elections open after the President is chosen.";
+            }
+            return "Elect up to three Councilors. Each citizen may approve three different candidates.";
+        }
+        if ("theocracy".equals(state.activeGovernmentFormId())) {
+            String faith = state.faithDisplayName().isBlank() ? "the founding faith" : state.faithDisplayName();
+            return "Elect one High Priest to lead " + faith
+                    + ". Synod Members are appointed by the High Priest after founding.";
+        }
+        if ("confederation".equals(state.activeGovernmentFormId())) {
+            return "Elect up to three group Delegates. Each citizen may approve three different candidates.";
+        }
+        return "Choose the first authority holders for " + formName(definitions, state) + ".";
+    }
+
+    private static String foundingElectionStageTitle(RealmGovernmentState state) {
+        return switch (state.activeGovernmentFormId()) {
+            case "republic" -> state.officeHolders().containsKey("president")
+                    ? "Councilor Election" : "President Election";
+            case "monarchy" -> "Monarch Election";
+            case "theocracy" -> "High Priest Election";
+            case "confederation" -> "Delegate Election";
+            default -> "Leadership Election";
+        };
+    }
+
+    private static String foundingElectionRules(RealmGovernmentState state) {
+        return switch (state.activeGovernmentFormId()) {
+            case "republic" -> state.officeHolders().containsKey("president")
+                    ? "Councilor nominations run first. Voting opens after nominations close. Each citizen may approve up to three Councilor candidates."
+                    : "President nominations run first. Voting opens after nominations close. Each citizen may approve one President candidate.";
+            case "theocracy" -> "High Priest nominations run first. Voting opens after nominations close. The High Priest chooses Synod Members after founding.";
+            case "confederation" -> "Delegate nominations run first. Voting opens after nominations close. Each citizen may approve up to three different Delegate candidates.";
+            default -> "Nominations run first. Voting opens after nominations close. Multi-seat offices accept multiple approvals.";
+        };
     }
 
     private static GovernmentUiOpenPayload.Row row(
@@ -482,7 +1343,165 @@ public final class GovernmentBlockInteractions {
             boolean unlocked,
             boolean complete
     ) {
-        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete);
+        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete, "static");
+    }
+
+    private static GovernmentUiOpenPayload.Row choiceRow(
+            String id,
+            String title,
+            String body,
+            String state,
+            boolean unlocked,
+            boolean complete
+    ) {
+        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete, "choice");
+    }
+
+    private static GovernmentUiOpenPayload.Row choiceRow(
+            String id,
+            String title,
+            String body,
+            String state,
+            boolean unlocked,
+            boolean complete,
+            boolean selectedByViewer,
+            long voteCount
+    ) {
+        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete,
+                selectedByViewer, voteCount, "choice");
+    }
+
+    private static GovernmentUiOpenPayload.Row navigationRow(
+            String id,
+            String title,
+            String body,
+            String state,
+            boolean unlocked,
+            boolean complete
+    ) {
+        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete, "navigation");
+    }
+
+    private static GovernmentUiOpenPayload.Row expandableRow(
+            String id,
+            String title,
+            String body,
+            String state,
+            boolean unlocked,
+            boolean complete
+    ) {
+        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete, "expandable");
+    }
+
+    private static GovernmentUiOpenPayload.Row actionRow(
+            String id,
+            String title,
+            String body,
+            String state,
+            boolean unlocked,
+            boolean complete
+    ) {
+        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete, "action_detail");
+    }
+
+    private static GovernmentUiOpenPayload.Row actionRow(
+            String id,
+            String title,
+            String body,
+            String state,
+            boolean unlocked,
+            boolean complete,
+            String iconId,
+            String category,
+            String actorName,
+            String metricLabel,
+            long approveCount,
+            long rejectCount,
+            long threshold,
+            long createdAt
+    ) {
+        return new GovernmentUiOpenPayload.Row(id, title, body, state, unlocked, complete,
+                false, approveCount + rejectCount, "action_detail", iconId, category, actorName, metricLabel,
+                approveCount, rejectCount, threshold, createdAt);
+    }
+
+    private static String iconForCategory(String category) {
+        return switch (category == null ? "" : category) {
+            case "law" -> "law";
+            case "public_notice" -> "notice";
+            case "civic_rule" -> "office";
+            case "realm_project" -> "published_record";
+            default -> "proposal";
+        };
+    }
+
+    private static String iconForHistory(PublicHistoryEntry entry) {
+        String type = entry == null ? "" : entry.type();
+        if (type.contains("office") || type.contains("election")) return "office";
+        if (type.contains("record") || type.contains("law")) return "law";
+        if (type.contains("color")) return "realm_color";
+        if (type.contains("name")) return "realm_name";
+        if (type.contains("notice")) return "notice";
+        if (type.contains("proposal")) return "proposal";
+        return "history";
+    }
+
+    private static String historyTitle(PublicHistoryEntry entry) {
+        if (entry == null || entry.type().isBlank()) return "Government Event";
+        String friendly = switch (entry.type()) {
+            case "founding-nominated" -> "Candidate Nominated";
+            case "founding-election-phase-resolved" -> "Election Phase Completed";
+            case "founding-election-resolved" -> "Founding Election Completed";
+            case "proposal-created" -> "Citizen Proposal Submitted";
+            case "proposal-approved" -> "Proposal Approved";
+            case "proposal-citizen-ratification-opened" -> "Citizen Vote Opened";
+            case "vote-resolved" -> "Founding Vote Resolved";
+            case "realm-name-chosen" -> "Realm Name Chosen";
+            case "realm-color-chosen" -> "Realm Color Chosen";
+            case "government-form-chosen" -> "Government Form Chosen";
+            case "theocracy-faith-chosen" -> "Founding Faith Chosen";
+            case "monarchy-succession" -> "Monarch Succeeded";
+            case "monarchy-vacancy" -> "Monarchy Became Vacant";
+            default -> "";
+        };
+        if (!friendly.isBlank()) return friendly;
+        String[] parts = entry.type().replace('_', '-').split("-");
+        StringBuilder builder = new StringBuilder();
+        for (String part : parts) {
+            if (part.isBlank()) continue;
+            if (!builder.isEmpty()) builder.append(' ');
+            builder.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return builder.isEmpty() ? "Government Event" : builder.toString();
+    }
+
+    private static String historyActorName(ElarionApi api, PublicHistoryEntry entry) {
+        if (entry == null || entry.actorId() == null) return "Realm Government";
+        return api.citizens().find(entry.actorId())
+                .map(GovernmentBlockInteractions::citizenName)
+                .orElse("Former citizen");
+    }
+
+    private static String historyDetailLabel(PublicHistoryEntry entry) {
+        if (entry == null) return "Civic record";
+        return switch (entry.type()) {
+            case "founding-nominated" -> "Entered the founding election";
+            case "founding-election-phase-resolved", "founding-election-resolved" -> "Election result recorded";
+            case "proposal-created" -> "Proposal entered public record";
+            case "vote-resolved" -> "Winning choice recorded";
+            default -> "Government chronicle";
+        };
+    }
+
+    private static String timeLabel(long timestamp) {
+        if (timestamp <= 0L) return "Unknown";
+        long seconds = Math.max(0L, (System.currentTimeMillis() - timestamp) / 1000L);
+        long days = seconds / 86_400L;
+        if (days > 0L) return days + "d ago";
+        long hours = seconds / 3_600L;
+        if (hours > 0L) return hours + "h ago";
+        long minutes = seconds / 60L;
+        return minutes <= 0L ? "Now" : minutes + "m ago";
     }
 
     private static String officeLabel(GovernmentFormDefinition form, String officeId) {
@@ -496,9 +1515,7 @@ public final class GovernmentBlockInteractions {
     private static String holderNames(ElarionApi api, Set<UUID> holders) {
         if (holders == null || holders.isEmpty()) return "No citizens assigned.";
         return holders.stream()
-                .map(uuid -> api.citizens().find(uuid)
-                        .map(GovernmentBlockInteractions::citizenName)
-                        .orElse(uuid.toString()))
+                .map(uuid -> citizenName(api, uuid))
                 .sorted()
                 .toList()
                 .stream()
@@ -506,12 +1523,39 @@ public final class GovernmentBlockInteractions {
                 .orElse("");
     }
 
+    private static String citizenName(ElarionApi api, UUID uuid) {
+        if (api == null || uuid == null) return "";
+        return api.citizens().find(uuid)
+                .map(GovernmentBlockInteractions::citizenName)
+                .filter(name -> !name.isBlank())
+                .orElse("Unknown Citizen");
+    }
+
     private static String citizenName(CitizenRecord citizen) {
         if (citizen.nickname() != null && !citizen.nickname().isBlank()) return citizen.nickname();
         if (citizen.lastKnownUsername() != null && !citizen.lastKnownUsername().isBlank()) {
             return citizen.lastKnownUsername();
         }
-        return citizen.uuid().toString();
+        return "Unknown Citizen";
+    }
+
+    static String uiTextForDisplay(ElarionApi api, String text) {
+        if (text == null || text.isBlank()) return "";
+        Matcher matcher = UUID_TEXT_PATTERN.matcher(text);
+        StringBuilder builder = new StringBuilder();
+        while (matcher.find()) {
+            String replacement = "Unknown Citizen";
+            try {
+                UUID uuid = UUID.fromString(matcher.group());
+                String name = citizenName(api, uuid);
+                if (!name.isBlank()) replacement = name;
+            } catch (IllegalArgumentException ignored) {
+                // Keep the UI player-facing even if malformed persisted text looks UUID-like.
+            }
+            matcher.appendReplacement(builder, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(builder);
+        return builder.toString();
     }
 
     private static void send(ServerPlayerEntity player, GovernmentUiOpenPayload payload) {

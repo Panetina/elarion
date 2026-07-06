@@ -23,10 +23,20 @@ public final class RealmIdentityRules {
         if (name.length() < NAME_MIN_LENGTH || name.length() > NAME_MAX_LENGTH) {
             throw new IllegalArgumentException("Realm name must be 3-24 characters.");
         }
-        if (name.split(" ").length > NAME_MAX_WORDS) {
-            throw new IllegalArgumentException("Realm name may contain at most two words.");
+        String[] words = name.split(" ");
+        if (words.length < 1 || words.length > NAME_MAX_WORDS) {
+            throw new IllegalArgumentException("Realm name must contain one or two words.");
         }
-        String reserved = Arrays.stream(name.toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))
+        for (String word : words) {
+            if (word.isBlank() || !word.codePoints().allMatch(Character::isLetter)) {
+                throw new IllegalArgumentException("Realm name words may only contain letters.");
+            }
+        }
+        String formatted = Arrays.stream(words)
+                .map(RealmIdentityRules::titleCaseWord)
+                .reduce((left, right) -> left + " " + right)
+                .orElse("");
+        String reserved = Arrays.stream(formatted.toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))
                 .filter(RESERVED_WORDS::contains)
                 .findFirst()
                 .orElse("");
@@ -34,7 +44,7 @@ public final class RealmIdentityRules {
             throw new IllegalArgumentException(
                     "Realm names cannot contain government or settlement terms such as " + reserved + ".");
         }
-        return name;
+        return formatted;
     }
 
     public static String validateTag(String value) {
@@ -43,5 +53,15 @@ public final class RealmIdentityRules {
             throw new IllegalArgumentException("Realm tag must be 2-6 uppercase letters or numbers.");
         }
         return tag;
+    }
+
+    private static String titleCaseWord(String word) {
+        String lower = word.toLowerCase(Locale.ROOT);
+        int first = lower.codePointAt(0);
+        int firstLength = Character.charCount(first);
+        StringBuilder builder = new StringBuilder();
+        builder.appendCodePoint(Character.toTitleCase(first));
+        builder.append(lower.substring(firstLength));
+        return builder.toString();
     }
 }

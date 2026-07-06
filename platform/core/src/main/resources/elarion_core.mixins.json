@@ -13,6 +13,7 @@
     "SuggestionsBuilderAccessor"
   ],
   "client": [
+    "client.ChatScreenNotificationMixin",
     "client.ClientCommandSourceMixin",
     "client.InGameHudNotificationMixin",
     "client.KeyboardNotificationHudMixin",

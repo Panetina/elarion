@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.addons.groups.api.ElarionGroupsApi;
 import panetina.elarion.addons.groups.command.GroupCommands;
+import panetina.elarion.addons.groups.config.GroupConfigDescriptors;
 import panetina.elarion.addons.groups.config.GroupConfigLoader;
 import panetina.elarion.addons.groups.service.GroupService;
 import panetina.elarion.addons.groups.storage.GroupStorage;
@@ -18,6 +19,8 @@ public final class ElarionGroupsAddon implements ElarionAddon {
     @Override
     public void initialize(ElarionApi api) {
         GroupService groups = new GroupService(api, new GroupStorage(LOGGER), GroupConfigLoader.load());
+        GroupConfigDescriptors.register(api.system().configs(), groups::config);
+        api.characters().registerResetHandler("elarion_groups", context -> groups.resetCharacter(context.accountId()));
         new ElarionGroupsApi(groups);
         api.notifications().registerAction("elarion_groups:accept_invite", context -> {
             String groupId = context.notification().metadata().getOrDefault("groupId", "");

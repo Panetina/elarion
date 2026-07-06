@@ -14,6 +14,7 @@ final class CoreConfigDefaultFiles {
                       logical-width: 480
                       logical-height: 340
                       minimum-scale-percent: 60
+                      font-scale-percent: 100
                       padding: 16
                       gap: 8
                       row-height: 18
@@ -193,6 +194,94 @@ final class CoreConfigDefaultFiles {
                         hidden-from-discovery: true
                         abilities:
                           - "elarion.portal.foreign_access"
+                      government_monarch:
+                        description: "Active authority title for a Realm monarch."
+                        display-name: "Monarch"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                      government_heir:
+                        description: "Active authority title for a Realm heir."
+                        display-name: "Heir"
+                        prefix: ""
+                        suffix: ""
+                        priority: 60
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                      government_president:
+                        description: "Active authority title for a Realm president."
+                        display-name: "President"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                      government_councilor:
+                        description: "Active authority title for a Realm councilor."
+                        display-name: "Councilor"
+                        prefix: ""
+                        suffix: ""
+                        priority: 60
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                      government_high_cleric:
+                        description: "Active authority title for a Realm theocratic leader."
+                        display-name: "Holy Priest"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                      government_synod_member:
+                        description: "Active authority title for a Realm synod member."
+                        display-name: "Synod Member"
+                        prefix: ""
+                        suffix: ""
+                        priority: 60
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                      government_delegate:
+                        description: "Active authority title for a confederation delegate."
+                        display-name: "Delegate"
+                        prefix: ""
+                        suffix: ""
+                        priority: 70
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
+                      government_officer:
+                        description: "Active authority title for an appointed Realm officer."
+                        display-name: "Officer"
+                        prefix: ""
+                        suffix: ""
+                        priority: 50
+                        visible-under-username: true
+                        acquisition-mode: "ADMIN_ONLY"
+                        ownership-mode: "UNLIMITED"
+                        hidden-from-discovery: true
+                        abilities: []
                       goblin_slayer:
                         description: "Earned after slaying enough configured goblins."
                         display-name: "Goblin Slayer"
@@ -223,7 +312,7 @@ final class CoreConfigDefaultFiles {
                         priority: 50
                         visible-under-username: true
                         acquisition-mode: "PROGRESSION"
-                        ownership-mode: "UNLIMITED"
+                        ownership-mode: "ONE_PER_PLAYER"
                         hidden-from-discovery: false
                         abilities:
                           - "elarion.survival.aquatic"
@@ -334,7 +423,7 @@ final class CoreConfigDefaultFiles {
                       enabled: true
                       protect-realm-presentation: true
                       protect-title-presentation: true
-                      reject-containing-protected-name: true
+                      reject-containing-protected-name: false
                     title:
                       render-under-username: true
                     """),

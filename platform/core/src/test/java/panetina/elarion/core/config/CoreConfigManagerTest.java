@@ -29,6 +29,11 @@ final class CoreConfigManagerTest {
                 config.titles().get("citizen").ownershipMode());
         assertTrue(config.titles().get("aquatic").activeEffects().stream()
                 .anyMatch(effect -> effect.parameters().get("id").equals("minecraft:water_breathing")));
+        assertEquals(panetina.elarion.core.model.TitleOwnershipMode.ONE_PER_PLAYER,
+                config.titles().get("aquatic").ownershipMode());
+        assertEquals("Monarch", config.titles().get("government_monarch").displayName());
+        assertEquals("Holy Priest", config.titles().get("government_high_cleric").displayName());
+        assertEquals("Councilor", config.titles().get("government_councilor").displayName());
         assertTrue(config.titleUnlockRules().containsKey("goblin_slayer"));
         assertEquals("modded_goblin_kills", config.titleUnlockRules().get("goblin_slayer").statKey());
         assertTrue(config.progressionRegions().containsKey("maze_end"));
@@ -49,15 +54,36 @@ final class CoreConfigManagerTest {
         assertEquals(200, config.publicHistoryMaxLimit());
         assertEquals("Elarion", config.serverIdentity().serverName());
         assertEquals("1 sigil", config.serverIdentity().currencyAmount(1));
+        assertTrue(!config.nicknameRejectContainingProtectedName());
         assertTrue(Files.exists(tempDir.resolve("server_identity.yml")));
         assertTrue(Files.exists(tempDir.resolve("ui_theme.yml")));
         assertEquals(0xFFC08A32, config.uiTheme().variant("shrine").borderColor());
+        assertEquals(100, config.uiTheme().fontScalePercent());
         assertEquals(config.uiTheme().variant("default"), config.uiTheme().variant("missing"));
         try (var files = Files.list(tempDir)) {
             for (Path file : files.filter(path -> path.toString().endsWith(".yml")).toList()) {
                 assertTrue(Files.readString(file).contains("config-version: 1"), file.toString());
             }
         }
+    }
+
+    @Test
+    void reloadsBoundedServerWideFontScaleAndKeepsPreviousValueOnFailure() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+        Path theme = tempDir.resolve("ui_theme.yml");
+        String original = Files.readString(theme, StandardCharsets.UTF_8);
+
+        Files.writeString(theme, original.replace("font-scale-percent: 100", "font-scale-percent: 125"),
+                StandardCharsets.UTF_8);
+        config.load();
+        assertEquals(125, config.uiTheme().fontScalePercent());
+
+        Files.writeString(theme, original.replace("font-scale-percent: 100", "font-scale-percent: 151"),
+                StandardCharsets.UTF_8);
+        ConfigValidationException exception = assertThrows(ConfigValidationException.class, config::load);
+        assertTrue(exception.errors().stream().anyMatch(error -> error.contains("font-scale-percent")));
+        assertEquals(125, config.uiTheme().fontScalePercent());
     }
 
     @Test
@@ -156,5 +182,22 @@ final class CoreConfigManagerTest {
         config.load();
 
         assertTrue(config.rewards().containsKey("test_economy_reward"));
+    }
+
+    @Test
+    void migratesMissingGovernmentAuthorityTitlesIntoExistingTitleConfig() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+        Path titles = tempDir.resolve("titles.yml");
+        String content = Files.readString(titles, StandardCharsets.UTF_8);
+        int start = content.indexOf("  government_monarch:");
+        int end = content.indexOf("  government_heir:", start);
+        assertTrue(start > 0 && end > start);
+        Files.writeString(titles, content.substring(0, start) + content.substring(end), StandardCharsets.UTF_8);
+
+        config.load();
+
+        assertEquals("Monarch", config.titles().get("government_monarch").displayName());
+        assertTrue(Files.readString(titles, StandardCharsets.UTF_8).contains("government_monarch:"));
     }
 }

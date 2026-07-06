@@ -94,8 +94,10 @@ public final class ElarionUiRenderer {
         }
         String visible = ellipsize(renderer, label, Math.max(1, width - 10));
         int color = active ? style.textColor() : style.mutedColor();
-        context.drawText(renderer, visible, x + Math.max(4, (width - renderer.getWidth(visible)) / 2),
-                y + Math.max(3, (height - 8) / 2) + (pressed ? 1 : 0), color, false);
+        ElarionUiTypography.draw(context, renderer, visible,
+                x + Math.max(4, (width - ElarionUiTypography.width(renderer, visible)) / 2),
+                y + Math.max(2, (height - ElarionUiTypography.fontHeight(renderer)) / 2) + (pressed ? 1 : 0),
+                color, false);
     }
 
     public static void tab(
@@ -107,8 +109,10 @@ public final class ElarionUiRenderer {
         beveledBox(context, x, y, width, height, fill,
                 selected ? theme.titleColor() : theme.borderColor(), style);
         String visible = ellipsize(renderer, label, width - 8);
-        context.drawText(renderer, visible, x + (width - renderer.getWidth(visible)) / 2,
-                y + Math.max(3, (height - 8) / 2), selected ? style.titleColor() : style.textColor(), false);
+        ElarionUiTypography.draw(context, renderer, visible,
+                x + (width - ElarionUiTypography.width(renderer, visible)) / 2,
+                y + Math.max(2, (height - ElarionUiTypography.fontHeight(renderer)) / 2),
+                selected ? style.titleColor() : style.textColor(), false);
     }
 
     public static void progressBar(
@@ -124,8 +128,9 @@ public final class ElarionUiRenderer {
         context.fill(x + 2, y + 2, x + 2 + fillWidth, y + height - 2,
                 ratio >= 1.0F ? theme.progressCompleteColor() : theme.progressFillColor());
         String label = current + " / " + required + "  " + Math.round(ratio * 100.0F) + "%";
-        context.drawText(renderer, label, x + (width - renderer.getWidth(label)) / 2,
-                y + Math.max(2, (height - 8) / 2), theme.textColor(), true);
+        ElarionUiTypography.drawCentered(context, renderer, label, x + width / 2,
+                y + Math.max(2, (height - ElarionUiTypography.fontHeight(renderer)) / 2),
+                theme.textColor(), true);
     }
 
     public static void scrollbar(
@@ -155,8 +160,8 @@ public final class ElarionUiRenderer {
     ) {
         borderedBox(context, x, y, width, height, style);
         boolean named = speaker != null && !speaker.isBlank();
-        if (named) context.drawText(renderer, speaker, x + 7, y + 6, style.titleColor(), false);
-        int textY = named ? y + 20 : y + 7;
+        if (named) ElarionUiTypography.draw(context, renderer, speaker, x + 7, y + 6, style.titleColor(), false);
+        int textY = named ? y + 9 + ElarionUiTypography.lineHeight() : y + 7;
         wrappedClipped(context, renderer, Text.literal(message), x + 7, textY, width - 14,
                 named ? height - 26 : height - 14, messageColor, style.mutedColor());
     }
@@ -168,8 +173,8 @@ public final class ElarionUiRenderer {
         borderedBox(context, x, y, size, size, style);
         int inner = size - 12;
         beveledBox(context, x + 6, y + 6, inner, inner, style.insetColor(), style);
-        context.drawText(renderer, fallback, x + (size - renderer.getWidth(fallback)) / 2,
-                y + size / 2 - 4, style.mutedColor(), false);
+        ElarionUiTypography.drawCentered(context, renderer, fallback, x + size / 2,
+                y + (size - ElarionUiTypography.fontHeight(renderer)) / 2, style.mutedColor(), false);
     }
 
     public static void currencyBadge(
@@ -190,16 +195,17 @@ public final class ElarionUiRenderer {
         int textY = y + 11;
         int maxTextWidth = width - 36;
 
-        if (renderer.getWidth(prefix) >= maxTextWidth) {
+        if (ElarionUiTypography.width(renderer, prefix) >= maxTextWidth) {
             String label = ellipsize(renderer, prefix + value, maxTextWidth);
-            context.drawText(renderer, label, textX, textY, style.textColor(), false);
+            ElarionUiTypography.draw(context, renderer, label, textX, textY, style.textColor(), false);
             return;
         }
 
-        String visibleValue = ellipsize(renderer, value, maxTextWidth - renderer.getWidth(prefix));
+        String visibleValue = ellipsize(renderer, value, maxTextWidth - ElarionUiTypography.width(renderer, prefix));
 
-        context.drawText(renderer, prefix, textX, textY, style.textColor(), false);
-        context.drawText(renderer, visibleValue, textX + renderer.getWidth(prefix), textY, 0xFF9696D1, false);
+        ElarionUiTypography.draw(context, renderer, prefix, textX, textY, style.textColor(), false);
+        ElarionUiTypography.draw(context, renderer, visibleValue,
+                textX + ElarionUiTypography.width(renderer, prefix), textY, 0xFF9696D1, false);
     }
 
     public static void relationBar(
@@ -208,11 +214,11 @@ public final class ElarionUiRenderer {
     ) {
         String text = label == null || label.isBlank() ? "Relation: Neutral" : label;
         int barWidth = Math.min(96, Math.max(52, width / 4));
-        int barX = x + renderer.getWidth(text) + 8;
+        int barX = x + ElarionUiTypography.width(renderer, text) + 8;
         int clamped = Math.max(-100, Math.min(100, value));
         int fillWidth = (barWidth * (clamped + 100)) / 200;
         int color = clamped >= 0 ? style.relationGoodColor() : style.relationBadColor();
-        context.drawText(renderer, text, x, y, color, false);
+        ElarionUiTypography.draw(context, renderer, text, x, y, color, false);
         beveledBox(context, barX, y + 1, barWidth, 8, style.insetColor(), style);
         context.fill(barX + 2, y + 3, barX + Math.max(2, fillWidth - 1), y + 7, color);
     }
@@ -229,12 +235,13 @@ public final class ElarionUiRenderer {
             ElarionUiCard card = cards.get(index);
             beveledBox(context, cardX, y, cardWidth, 30,
                     card.disabled() ? style.buttonDisabledColor() : style.cardColor(), style);
-            context.drawText(renderer, ellipsize(renderer,
+            ElarionUiTypography.draw(context, renderer, ellipsize(renderer,
                     card.label() + (card.count() > 0 ? " x" + card.count() : ""), cardWidth - 10),
                     cardX + 5, y + 5, style.textColor(), false);
             if (card.currencyAmount() != 0) {
                 context.drawTexture(CURRENCY, cardX + 5, y + 17, 0, 0, 8, 8, 16, 16);
-                context.drawText(renderer, String.valueOf(card.currencyAmount()), cardX + 16, y + 17,
+                ElarionUiTypography.draw(context, renderer, String.valueOf(card.currencyAmount()), cardX + 16,
+                        y + 7 + ElarionUiTypography.lineHeight(),
                         style.feedbackColor(), false);
             }
         }
@@ -257,21 +264,12 @@ public final class ElarionUiRenderer {
             DrawContext context, TextRenderer renderer, Text text, int x, int y,
             int maxWidth, int maxHeight, int color, int mutedColor
     ) {
-        if (maxHeight <= 0 || maxWidth <= 0) return;
-        List<OrderedText> lines = renderer.wrapLines(text, maxWidth);
-        int maxLines = Math.max(1, maxHeight / 10);
-        int count = Math.min(lines.size(), maxLines);
-        for (int index = 0; index < count; index++) {
-            context.drawText(renderer, lines.get(index), x, y + index * 10, color, false);
-        }
-        if (lines.size() > count) context.drawText(renderer, "...", x, y + (count - 1) * 10, mutedColor, false);
+        ElarionUiTypography.wrappedClipped(
+                context, renderer, text, x, y, maxWidth, maxHeight, color, mutedColor);
     }
 
     public static String ellipsize(TextRenderer renderer, String text, int maximumWidth) {
-        String value = text == null ? "" : text;
-        if (renderer.getWidth(value) <= maximumWidth) return value;
-        int allowed = Math.max(0, maximumWidth - renderer.getWidth("..."));
-        return renderer.trimToWidth(value, allowed) + "...";
+        return ElarionUiTypography.ellipsize(renderer, text, maximumWidth);
     }
 
     public static void beveledBox(
@@ -280,7 +278,7 @@ public final class ElarionUiRenderer {
         beveledBox(context, x, y, width, height, fill, style.borderColor(), style);
     }
 
-    private static void beveledBox(
+    public static void beveledBox(
             DrawContext context, int x, int y, int width, int height, int fill,
             int border, ElarionUiStyle style
     ) {

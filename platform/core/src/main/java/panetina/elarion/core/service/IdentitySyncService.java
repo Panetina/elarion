@@ -91,6 +91,7 @@ public final class IdentitySyncService {
         RealmDefinition realm = realms.forCitizen(citizen).orElse(null);
         TitleDefinition title = titles.forCitizen(citizen).orElse(null);
         boolean visible = true;
+        boolean tabVisible = tabVisible(viewer, subject);
 
         ServerPlayNetworking.send(viewer, new IdentitySyncPayload(
                 subject.getUuid(),
@@ -103,6 +104,29 @@ public final class IdentitySyncService {
                 visible ? identity.color().getName() : "white",
                 visible && realm != null ? realms.officialName(realm) : "",
                 visible && realm != null ? realm.id() : "",
+                tabVisible,
                 visible));
+    }
+
+    private boolean tabVisible(ServerPlayerEntity viewer, ServerPlayerEntity subject) {
+        CitizenRecord viewerCitizen = citizens.getOrCreate(viewer);
+        CitizenRecord subjectCitizen = citizens.getOrCreate(subject);
+        return tabVisible(viewer.getUuid(), viewerCitizen.realmId(), viewer.hasPermissionLevel(4),
+                subject.getUuid(), subjectCitizen.realmId());
+    }
+
+    static boolean tabVisible(
+            UUID viewerId,
+            String viewerRealm,
+            boolean viewerAdmin,
+            UUID subjectId,
+            String subjectRealm
+    ) {
+        if (viewerId != null && viewerId.equals(subjectId)) return true;
+        if (viewerAdmin) return true;
+        String viewer = viewerRealm == null ? "" : viewerRealm.trim();
+        String subject = subjectRealm == null ? "" : subjectRealm.trim();
+        if (viewer.isBlank() || subject.isBlank()) return true;
+        return viewer.equals(subject);
     }
 }

@@ -81,7 +81,23 @@ public final class ElarionOfferingsApi {
         return service.progress(instanceId);
     }
 
+    public OfferingInstance setDisplayNameOverride(String instanceId, String displayName, ServerPlayerEntity actor) {
+        return service.setDisplayNameOverride(instanceId, displayName, actor);
+    }
+
     public boolean hasRealmFlag(String realmId, String flag) {
         return service.hasRealmFlag(realmId, flag);
+    }
+
+    public boolean setRealmFlag(String realmId, String flag, boolean enabled) {
+        return service.setRealmFlag(realmId, flag, enabled);
+    }
+
+    public int resetRealmProgression(String realmId, ServerPlayerEntity actor) {
+        return service.resetRealmProgression(realmId, actor);
+    }
+
+    public int resetAllProgression(ServerPlayerEntity actor) {
+        return service.resetAllProgression(actor);
     }
 }

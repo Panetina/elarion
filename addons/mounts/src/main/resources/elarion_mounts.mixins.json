@@ -1,0 +1,20 @@
+{
+    "required": true,
+    "package": "panetina.elarion.addons.mounts.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "PlayerEntityMixin"
+    ],
+    "client": [
+        "CameraMixin",
+        "ClientPlayerEntityMixin",
+        "EntityRenderDispatcherMixin",
+        "GameOptionsMixin",
+        "GameRendererMixin",
+        "LivingEntityRendererAccessor",
+        "PlayerEntityRendererAccessor"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

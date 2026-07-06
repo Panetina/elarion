@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 public final class TitleClaimStorage {
@@ -44,14 +46,17 @@ public final class TitleClaimStorage {
 
     public static final class TitleClaimState {
         private final Map<String, TitleClaim> claims = new LinkedHashMap<>();
+        private final Set<String> retiredTitles = new LinkedHashSet<>();
 
         public Map<String, TitleClaim> claims() { return claims; }
+        public Set<String> retiredTitles() { return retiredTitles; }
     }
 
     public record TitleClaim(UUID owner, long claimedAt, String reason) {}
 
     private static final class StoredState {
         Map<String, StoredClaim> claims = new LinkedHashMap<>();
+        Set<String> retiredTitles = new LinkedHashSet<>();
 
         static StoredState from(TitleClaimState state) {
             StoredState stored = new StoredState();
@@ -62,6 +67,7 @@ public final class TitleClaimStorage {
                 storedClaim.reason = claim.reason();
                 stored.claims.put(title, storedClaim);
             });
+            stored.retiredTitles.addAll(state.retiredTitles());
             return stored;
         }
 
@@ -75,6 +81,7 @@ public final class TitleClaimStorage {
                 } catch (IllegalArgumentException | NullPointerException ignored) {
                 }
             });
+            if (retiredTitles != null) state.retiredTitles().addAll(retiredTitles);
             return state;
         }
     }

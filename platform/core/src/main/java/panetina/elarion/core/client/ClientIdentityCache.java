@@ -27,6 +27,7 @@ public final class ClientIdentityCache {
                 color == null ? Formatting.WHITE : color,
                 payload.realmName(),
                 payload.realmId(),
+                payload.tabVisible(),
                 payload.visible()));
     }
 
@@ -41,6 +42,17 @@ public final class ClientIdentityCache {
     public static boolean isKnownHidden(UUID uuid) {
         ClientIdentity identity = IDENTITIES.get(uuid);
         return identity != null && !identity.visible();
+    }
+
+    public static boolean isKnownTabHidden(UUID uuid) {
+        ClientIdentity identity = IDENTITIES.get(uuid);
+        return identity != null && !identity.tabVisible();
+    }
+
+    public static boolean shouldHideTabEntry(UUID uuid) {
+        ClientIdentity identity = IDENTITIES.get(uuid);
+        if (identity != null) return !identity.tabVisible();
+        return false;
     }
 
     public static void clear() {

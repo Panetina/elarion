@@ -34,4 +34,26 @@ final class ShrineUiOpenPayloadTest {
 
         assertEquals(payload, decoded);
     }
+
+    @Test
+    void clampsLongShrineUiText() {
+        String longText = "x".repeat(5000);
+        ShrineUiOpenPayload payload = new ShrineUiOpenPayload(
+                longText, longText, longText, longText, longText, longText, longText,
+                longText, longText, 640, 420, 60, 150, 22, 24, 48, 100,
+                12, 64, List.of(), List.of(), List.of(),
+                longText, longText, longText, longText, false, false,
+                longText, longText, longText, false);
+        PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
+
+        ShrineUiOpenPayload.CODEC.encode(buffer, payload);
+        ShrineUiOpenPayload decoded = ShrineUiOpenPayload.CODEC.decode(buffer);
+
+        assertEquals(128, decoded.instanceId().length());
+        assertEquals(128, decoded.projectId().length());
+        assertEquals(256, decoded.title().length());
+        assertEquals(4096, decoded.description().length());
+        assertEquals(512, decoded.resultMessage().length());
+        assertEquals(512, decoded.eventBody().length());
+    }
 }

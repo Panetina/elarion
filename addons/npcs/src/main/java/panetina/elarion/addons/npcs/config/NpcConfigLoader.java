@@ -12,6 +12,7 @@ import panetina.elarion.addons.npcs.model.DialogueDefinition;
 import panetina.elarion.addons.npcs.model.DialogueNode;
 import panetina.elarion.addons.npcs.model.DialogueOption;
 import panetina.elarion.addons.npcs.model.DialoguePrompt;
+import panetina.elarion.addons.npcs.model.DialogueTextVariant;
 import panetina.elarion.addons.npcs.model.NpcDefinition;
 import panetina.elarion.addons.npcs.model.NpcPortraitProfile;
 import panetina.elarion.addons.npcs.model.NpcSkinProfile;
@@ -154,13 +155,14 @@ public final class NpcConfigLoader {
         Map<String, DialogueDefinition> result = new LinkedHashMap<>();
         Path directory = root.resolve("dialogues");
         if (Files.notExists(directory)) return result;
-        try (var stream = Files.list(directory)) {
-            stream.filter(path -> path.getFileName().toString().endsWith(".yml")
-                    || path.getFileName().toString().endsWith(".yaml"))
+        try (var stream = Files.walk(directory)) {
+            stream.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().endsWith(".yml")
+                            || path.getFileName().toString().endsWith(".yaml"))
                     .sorted()
                     .forEach(path -> {
                         Map<String, Object> value = map(readYaml(path, errors), path.toString(), errors);
-                        String id = string(value, "id", stripExtension(path.getFileName().toString()));
+                        String id = string(value, "id", dialogueId(directory, path));
                         Map<String, DialogueNode> nodes = new LinkedHashMap<>();
                         map(value.get("nodes"), "dialogue " + id + " nodes", errors)
                                 .forEach((nodeId, rawNode) -> {
@@ -171,6 +173,7 @@ public final class NpcConfigLoader {
                                             string(node, "sound", ""),
                                             string(node, "voice", ""),
                                             conditions(node.get("conditions"), errors),
+                                            variants(node.get("variants"), errors),
                                             options(node.get("options"), errors)));
                                 });
                         result.put(id, new DialogueDefinition(id, string(value, "root", ""), nodes));
@@ -179,6 +182,12 @@ public final class NpcConfigLoader {
             errors.add("Failed to list NPC dialogue configs: " + exception.getMessage());
         }
         return result;
+    }
+
+    static String dialogueId(Path root, Path path) {
+        Path relative = root.relativize(path);
+        String id = stripExtension(relative.toString());
+        return id.replace('\\', '/');
     }
 
     private NpcUiConfig loadUi(List<String> errors) {
@@ -232,6 +241,22 @@ public final class NpcConfigLoader {
                     actions(option.get("actions"), errors),
                     prompt(option.get("prompt"), errors),
                     bool(option, "close", false)));
+        }
+        return result;
+    }
+
+    private List<DialogueTextVariant> variants(Object raw, List<String> errors) {
+        List<DialogueTextVariant> result = new ArrayList<>();
+        int index = 0;
+        for (Object object : list(raw)) {
+            Map<String, Object> variant = map(object, "dialogue text variant", errors);
+            String id = string(variant, "id", "variant_" + index++);
+            result.add(new DialogueTextVariant(
+                    id,
+                    text(variant, "text", ""),
+                    string(variant, "sound", ""),
+                    string(variant, "voice", ""),
+                    conditions(variant.get("conditions"), errors)));
         }
         return result;
     }

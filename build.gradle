@@ -9,6 +9,9 @@ allprojects {
 
 def structuralProjects = [':platform', ':addons', ':tests']
 def modProjects = subprojects.findAll { !structuralProjects.contains(it.path) }
+def exportableModProjects = modProjects.findAll {
+    it.path == ':platform:core' || it.path.startsWith(':addons:')
+}
 
 configure(modProjects) {
     apply plugin: 'fabric-loom'
@@ -17,6 +20,7 @@ configure(modProjects) {
     repositories {
         mavenCentral()
         maven { url = 'https://maven.nucleoid.xyz/' }
+        maven { url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
     }
 
     base {
@@ -89,4 +93,33 @@ tasks.register('runGameTests') {
     group = 'verification'
     description = 'Runs Elarion server GameTests in a headless Minecraft test server.'
     dependsOn ':tests:gametest:runGameTestServer'
+}
+
+def cleanExportModsTask = tasks.register('cleanExportMods', Delete) {
+    group = 'distribution'
+    description = 'Deletes the aggregated Elarion Core/addon mod export folder.'
+    delete layout.buildDirectory.dir('export/mods')
+}
+
+def exportModsTask = tasks.register('exportMods', Copy) {
+    group = 'distribution'
+    description = 'Builds and copies Elarion Core plus every addon jar into build/export/mods.'
+    into layout.buildDirectory.dir('export/mods')
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+
+    exportableModProjects.each { modProject ->
+        def remapJar = modProject.tasks.named('remapJar')
+        dependsOn remapJar
+        from(remapJar.flatMap { it.archiveFile })
+    }
+}
+
+exportModsTask.configure {
+    mustRunAfter cleanExportModsTask
+}
+
+tasks.register('rebuildExportMods') {
+    group = 'distribution'
+    description = 'Cleans, rebuilds, and exports Elarion Core plus every addon jar into build/export/mods.'
+    dependsOn cleanExportModsTask, exportModsTask
 }

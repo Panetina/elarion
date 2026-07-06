@@ -3,6 +3,7 @@
     "id":  "elarion_realms",
     "version":  "${version}",
     "name":  "Elarion Realms",
+    "icon": "assets/elarion_realms/icon.png",
     "description":  "Realm addon shell backed by Elarion Core realm state.",
     "authors":  [
                     "Panyel"

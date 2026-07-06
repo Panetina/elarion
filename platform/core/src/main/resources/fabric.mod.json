@@ -3,6 +3,7 @@
     "id":  "elarion_core",
     "version":  "${version}",
     "name":  "Elarion Core",
+    "icon": "assets/elarion_core/icon.png",
     "description":  "Canonical platform core for Elarion realms, citizens, identities, abilities, chat, and progression hooks.",
     "authors":  [
                     "Panyel"

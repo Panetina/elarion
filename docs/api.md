@@ -1,6 +1,6 @@
 # Elarion API
 
-Last reviewed: 2026-06-10
+Last reviewed: 2026-07-06
 
 Author: Panyel  
 Team: Panetina Team
@@ -21,13 +21,45 @@ for new addon work.
 - `api.publicHistory()`: Chronicle archives and composed public-memory feeds
   for newspapers, ledgers, NPC rumors, and GUI search.
 - `api.system()`: abilities, events, admin command registration, registries,
-  and task queues.
+  task queues, read-only config descriptors, and config-applier registration.
 - `api.uiThemes()`: current Core-owned UI theme snapshot and bounded join/reload
-  synchronization. Addons own screen composition, not shared visual tokens.
+  synchronization, including the server-wide Elarion font scale. Addons own
+  screen composition, not shared visual or typography tokens.
+- `api.characters()`: canonical account/character lifecycle, archives, mandatory
+  creation state, and stable idempotent True Death reset-handler registration.
 
 Client screens compose primitives from `panetina.elarion.core.client.ui`.
 This is a small render API extracted from real NPC and Shrine screens, not a
 declarative framework.
+
+## Config Extension Boundary
+
+Use `api.system().configs()` to register and inspect read-only config
+descriptors. Use `api.system().configAppliers()` only to register an explicit
+owner applier after the matching descriptor and validated runtime snapshot
+exist.
+
+`configAppliers()` returns `ElarionConfigApplyRegistrar`, not the concrete
+apply registry. It supports registration only. Addons cannot retrieve or invoke
+another domain's applier, and registration does not make Admin Panel Apply
+operational. Registered `ElarionConfigApplier` implementations prepare an
+`ElarionConfigPreparedChange`; preparation must not mutate authoritative state.
+The prepared transaction exposes one commit and idempotent rollback. No
+addon production appliers are registered yet. Core registers one production
+backend applier for `core:ui_theme:defaults.font-scale-percent`.
+
+`ElarionConfigApplyCoordinator`, its audit session, and the JSONL audit journal
+are Core execution infrastructure, not addon invocation APIs. Addons register
+owner transactions; they do not call the coordinator or audit other domains.
+Core owns production lifecycle through `ElarionConfigApplyService`, which is
+not exposed through the public API. The audit sink prepares a write-ahead
+session before owner commit; the session then records committed, rolled-back,
+or failed outcome. Admin server-side APPLY packets can dispatch through the
+narrow `ElarionConfigApplyExecutor` facade after OP checks. The Admin client
+can send Apply only for a server-authored apply-available control after a
+matching latest validation result with `canApply=true`. Addons still receive
+only the registration-only `configAppliers()` API. Config edit controls carry
+separate server-authored input and apply availability state.
 
 ## Web And Bridge Boundary
 
@@ -119,6 +151,15 @@ Core reward to online or offline players.
 Grant IDs must be deterministic for the source outcome. Delivery persists
 completed action indexes after each successful action and retains delivered
 receipts so restart/retry cannot pay the same grant twice.
+
+Item reward actions are no-loss: Core only marks the action complete after the
+full stack is inserted. If inventory capacity is insufficient, the grant stays
+pending and the player can claim again after making room.
+
+Item reward actions accept optional `name` text. When present, Core applies it
+as the delivered stack's custom display name before insertion. This is intended
+for snapshotted rewards such as Angling catches where the reward item should
+show the resolved catch name.
 
 When adding a new addon, start from the grouped facade that owns the concern.
 Only use direct service getters when the facade does not yet expose the required

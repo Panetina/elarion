@@ -3,6 +3,7 @@
     "id":  "elarion_worlds",
     "version":  "${version}",
     "name":  "Elarion Worlds",
+    "icon": "assets/elarion_worlds/icon.png",
     "description":  "Persistent managed worlds, per-world borders, and configurable world ecology for Elarion.",
     "authors":  [
                     "Panyel"

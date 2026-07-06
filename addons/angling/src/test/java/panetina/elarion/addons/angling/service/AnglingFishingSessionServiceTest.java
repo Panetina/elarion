@@ -43,6 +43,9 @@ final class AnglingFishingSessionServiceTest {
         assertEquals(150, result.occurredAt());
         assertEquals(AnglingRarity.PLACEHOLDER_COMMON.id(), result.rarityId());
         assertEquals(List.of(result.toTelemetryEvent()), fixture.emitted);
+        assertEquals(1, fixture.grants.size());
+        assertEquals(AnglingRewardDeliveryService.grantId(session.eventId()),
+                fixture.grants.getFirst().grantId());
         assertTrue(fixture.sessions.active(actorId).isEmpty());
     }
 
@@ -58,6 +61,7 @@ final class AnglingFishingSessionServiceTest {
                 fixture.sessions.complete(actorId, session.sessionId()));
         var pending = fixture.sessions.active(actorId).orElseThrow();
         assertEquals(150, pending.completionStartedAt());
+        assertTrue(fixture.grants.isEmpty());
 
         fixture.failEmission.set(false);
         fixture.clock.set(175);
@@ -66,6 +70,35 @@ final class AnglingFishingSessionServiceTest {
         assertEquals(session.eventId(), result.eventId());
         assertEquals(150, result.occurredAt());
         assertEquals(1, fixture.emitted.size());
+        assertEquals(1, fixture.grants.size());
+    }
+
+    @Test
+    void failedRewardEnqueueRetainsStableCompletionForRetry() {
+        Fixture fixture = fixture();
+        UUID actorId = UUID.randomUUID();
+        var session = fixture.sessions.start(context(actorId), 0, 1_000).orElseThrow();
+        fixture.failReward.set(true);
+        fixture.clock.set(150);
+
+        assertThrows(IllegalStateException.class, () ->
+                fixture.sessions.complete(actorId, session.sessionId()));
+        var pending = fixture.sessions.active(actorId).orElseThrow();
+        assertEquals(150, pending.completionStartedAt());
+        assertEquals(1, fixture.emitted.size());
+        assertTrue(fixture.grants.isEmpty());
+
+        fixture.failReward.set(false);
+        fixture.clock.set(175);
+        var result = fixture.sessions.complete(actorId, session.sessionId());
+
+        assertEquals(session.eventId(), result.eventId());
+        assertEquals(150, result.occurredAt());
+        assertEquals(2, fixture.emitted.size());
+        assertEquals(1, fixture.grants.size());
+        assertEquals(AnglingRewardDeliveryService.grantId(session.eventId()),
+                fixture.grants.getFirst().grantId());
+        assertTrue(fixture.sessions.active(actorId).isEmpty());
     }
 
     @Test
@@ -139,6 +172,8 @@ final class AnglingFishingSessionServiceTest {
                 new FishCandidateSelector(definitions, new AnglingConditionRegistry());
         List<CatchTelemetryEvent> emitted = new ArrayList<>();
         AtomicBoolean failEmission = new AtomicBoolean();
+        AtomicBoolean failReward = new AtomicBoolean();
+        List<AnglingRewardDeliveryService.AnglingRewardGrant> grants = new ArrayList<>();
         AnglingCatchResolutionService catchResolution = new AnglingCatchResolutionService(
                 definitions,
                 event -> {
@@ -149,13 +184,19 @@ final class AnglingFishingSessionServiceTest {
                 () -> 100);
         AtomicLong clock = new AtomicLong(100);
         AtomicLong sessionCounter = new AtomicLong();
+        AnglingRewardDeliveryService rewardDelivery = new AnglingRewardDeliveryService(grant -> {
+            if (failReward.get()) throw new IllegalStateException("test reward enqueue failure");
+            grants.add(grant);
+            return true;
+        });
         AnglingFishingSessionService sessions = new AnglingFishingSessionService(
                 selector,
                 catchResolution,
+                rewardDelivery,
                 () -> new UUID(0, sessionCounter.incrementAndGet()),
                 UUID::randomUUID,
                 clock::get);
-        return new Fixture(definitions, sessions, emitted, failEmission, clock);
+        return new Fixture(definitions, sessions, emitted, grants, failEmission, failReward, clock);
     }
 
     private static AnglingConditionContext context(UUID actorId) {
@@ -176,7 +217,9 @@ final class AnglingFishingSessionServiceTest {
             FishDefinitionRepository definitions,
             AnglingFishingSessionService sessions,
             List<CatchTelemetryEvent> emitted,
+            List<AnglingRewardDeliveryService.AnglingRewardGrant> grants,
             AtomicBoolean failEmission,
+            AtomicBoolean failReward,
             AtomicLong clock
     ) {
     }

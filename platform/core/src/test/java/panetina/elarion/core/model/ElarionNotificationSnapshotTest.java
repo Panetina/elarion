@@ -57,7 +57,12 @@ class ElarionNotificationSnapshotTest {
     }
 
     @Test
-    void unreadEntriesSortBeforeReadThenNewestFirst() {
+    void unknownCategoryParsesAsPersonalFallback() {
+        assertEquals(ElarionNotificationCategory.PERSONAL, ElarionNotificationCategory.parse("old-addon-category"));
+    }
+
+    @Test
+    void entriesSortNewestFirstRegardlessOfUnreadState() {
         ElarionNotificationEntry oldUnread = entry("old-unread", ElarionNotificationCategory.PERSONAL, true, 10L);
         ElarionNotificationEntry newRead = entry("new-read", ElarionNotificationCategory.PERSONAL, false, 30L);
         ElarionNotificationEntry newUnread = entry("new-unread", ElarionNotificationCategory.PERSONAL, true, 20L);
@@ -65,7 +70,7 @@ class ElarionNotificationSnapshotTest {
         ElarionNotificationSnapshot snapshot =
                 new ElarionNotificationSnapshot(List.of(oldUnread, newRead, newUnread));
 
-        assertEquals(List.of("new-unread", "old-unread", "new-read"),
+        assertEquals(List.of("new-read", "new-unread", "old-unread"),
                 snapshot.filtered("personal", 10).stream().map(ElarionNotificationEntry::id).toList());
     }
 

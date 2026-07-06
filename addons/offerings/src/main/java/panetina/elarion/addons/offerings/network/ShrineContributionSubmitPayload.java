@@ -4,6 +4,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 public record ShrineContributionSubmitPayload(
         String instanceId,
@@ -15,12 +16,14 @@ public record ShrineContributionSubmitPayload(
 
     public static final PacketCodec<PacketByteBuf, ShrineContributionSubmitPayload> CODEC = PacketCodec.of(
             (payload, buffer) -> {
-                buffer.writeString(payload.instanceId(), 128);
-                buffer.writeString(payload.requirementKey(), 256);
-                buffer.writeString(payload.rawAmount(), 10);
+                ElarionPacketCodecs.writeString(buffer, payload.instanceId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.requirementKey(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.rawAmount(), 10);
             },
             buffer -> new ShrineContributionSubmitPayload(
-                    buffer.readString(128), buffer.readString(256), buffer.readString(10)));
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 10)));
 
     @Override
     public Id<? extends CustomPayload> getId() {

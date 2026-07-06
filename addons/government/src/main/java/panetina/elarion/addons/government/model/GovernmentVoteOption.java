@@ -43,6 +43,31 @@ public final class GovernmentVoteOption {
         return option;
     }
 
+    public static GovernmentVoteOption realmColor(String id, String title, String body) {
+        GovernmentVoteOption option = new GovernmentVoteOption();
+        option.id = id;
+        option.title = title;
+        option.body = body;
+        option.createdAt = System.currentTimeMillis();
+        return option;
+    }
+
+    public static GovernmentVoteOption faithIdentity(
+            String id,
+            String displayName,
+            String tag,
+            UUID proposedBy
+    ) {
+        GovernmentVoteOption option = new GovernmentVoteOption();
+        option.id = id;
+        option.title = displayName;
+        option.body = "Faith mark: " + tag;
+        option.tag = tag;
+        option.proposedBy = proposedBy;
+        option.createdAt = System.currentTimeMillis();
+        return option;
+    }
+
     public static GovernmentVoteOption candidate(
             String id,
             String title,

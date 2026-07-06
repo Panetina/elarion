@@ -29,10 +29,12 @@ import panetina.elarion.addons.portals.model.PortalTravelDirection;
 import panetina.elarion.addons.portals.storage.PortalState;
 import panetina.elarion.addons.portals.storage.PortalStorage;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.model.ElarionDomainEvent;
 import panetina.elarion.core.model.ElarionNotificationAction;
 import panetina.elarion.core.model.ElarionNotificationCategory;
 import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.service.ElarionPerformanceMonitor;
+import panetina.elarion.core.service.PlayerRestrictionService;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -85,46 +87,12 @@ public final class PortalRouteService {
     public void bind(MinecraftServer server) {
         this.server = server;
         state = storage.load(server);
-        migrateLegacyRouteIds();
+        PortalStateMigration.migrateLegacyRouteIds(state);
         definitions.all().forEach(definition ->
                 state.routes.computeIfAbsent(definition.id(), PortalRouteState::new));
         dirty = true;
         save();
         rebuildIndex();
-    }
-
-    private void migrateLegacyRouteIds() {
-        migrateLegacyRouteId("ancient_oak", "realm1");
-        migrateLegacyRouteId("ancient_sky", "realm2");
-        migrateLegacyRouteId("ancient_earth", "realm3");
-    }
-
-    private void migrateLegacyRouteId(String legacyId, String routeId) {
-        PortalRouteState legacy = state.routes.remove(legacyId);
-        if (legacy != null && !state.routes.containsKey(routeId)) {
-            legacy.routeId = routeId;
-            state.routes.put(routeId, legacy);
-        }
-        Map<String, PortalReturnEntitlement> migratedEntitlements = new LinkedHashMap<>();
-        state.entitlements.entrySet().removeIf(entry -> {
-            PortalReturnEntitlement entitlement = entry.getValue();
-            if (!legacyId.equals(entitlement.routeId())) return false;
-            PortalReturnEntitlement migrated = new PortalReturnEntitlement(
-                    entitlement.playerId(), routeId, entitlement.createdAt(), entitlement.sourceWindowStart());
-            migratedEntitlements.put(entitlementKey(entitlement.playerId(), routeId), migrated);
-            return true;
-        });
-        state.entitlements.putAll(migratedEntitlements);
-
-        Map<String, PortalFreePassageState> migratedPassages = new LinkedHashMap<>();
-        state.freePassages.entrySet().removeIf(entry -> {
-            if (!entry.getKey().endsWith("|" + legacyId)) return false;
-            String migratedKey = entry.getKey().substring(
-                    0, entry.getKey().length() - legacyId.length()) + routeId;
-            migratedPassages.put(migratedKey, entry.getValue());
-            return true;
-        });
-        state.freePassages.putAll(migratedPassages);
     }
 
     public void reload() {
@@ -165,7 +133,7 @@ public final class PortalRouteService {
         PortalRouteState route = route(routeId);
         PortalScheduleDefinition.Window window = window(definition, route, now);
         boolean unlocked = !definition.mode().requiresUnlock() || route.unlocked;
-        return new PortalRouteSnapshot(routeId, definition.displayName(), definition.mode(),
+        return new PortalRouteSnapshot(routeId, routeDisplayName(definition), definition.mode(),
                 unlocked, route.complete(),
                 isActive(definition, route, now),
                 window.start(), window.end(),
@@ -286,9 +254,10 @@ public final class PortalRouteService {
         save();
         List<ElarionNotificationAction> actions = List.of(new ElarionNotificationAction(
                 ElarionNotificationService.DISMISS, "Dismiss", true));
-        String body = definition.description().isBlank()
+        String body = routeDescription(definition).isBlank()
                 ? "A new route has opened."
-                : definition.description();
+                : routeDescription(definition);
+        String displayName = routeDisplayName(definition);
         if (definition.mode().chargesPassage()) {
             api.notifications().publishRealm(
                     routeId,
@@ -296,7 +265,7 @@ public final class PortalRouteService {
                     "elarion_portals",
                     "ancient-gate-unlocked",
                     "portal-unlocked:" + routeId,
-                    definition.displayName() + " Unlocked",
+                    displayName + " Unlocked",
                     body,
                     "Realm Gate",
                     "item:minecraft:ender_eye",
@@ -308,7 +277,7 @@ public final class PortalRouteService {
                     "elarion_portals",
                     "route-unlocked",
                     "portal-unlocked:" + routeId,
-                    definition.displayName() + " Unlocked",
+                    displayName + " Unlocked",
                     body,
                     "World Gate",
                     "item:minecraft:ender_eye",
@@ -316,6 +285,8 @@ public final class PortalRouteService {
                     Map.of("routeId", routeId),
                     api.notifications().defaultExpiry());
         }
+        emitRouteDomainEvent("portal-route-unlocked", definition, actor,
+                Map.of("unlocked", "true"));
         record("route-unlocked", actor, routeId, Map.of());
         reconcileRoute(routeId);
     }
@@ -327,6 +298,7 @@ public final class PortalRouteService {
                     definition.displayName() + " is always open and cannot be locked.");
         }
         PortalRouteState route = route(routeId);
+        if (!route.unlocked) return;
         route.unlocked = false;
         route.forcedOpenUntil = null;
         route.forcedClosedUntil = null;
@@ -335,6 +307,9 @@ public final class PortalRouteService {
         dirty = true;
         save();
         visualSync.run();
+        api.notifications().resolveByMetadata("elarion_portals", "routeId", routeId);
+        emitRouteDomainEvent("portal-route-locked", definition, actor,
+                Map.of("unlocked", "false"));
         record("route-locked", actor, routeId, Map.of());
     }
 
@@ -454,6 +429,13 @@ public final class PortalRouteService {
             PortalRouteState route,
             PortalTravelDirection direction
     ) {
+        Optional<PlayerRestrictionService.PlayerRestriction> restriction =
+                api.system().restrictions().restriction(player, PlayerRestrictionService.PORTAL_TRAVEL);
+        boolean restricted = restriction.isPresent();
+        String restrictionMessage = restriction
+                .map(PlayerRestrictionService.PlayerRestriction::message)
+                .filter(message -> !message.isBlank())
+                .orElse("You cannot use portals right now.");
         PortalScheduleDefinition.Window window = window(definition, route, Instant.now());
         boolean entitled = hasEntitlement(player.getUuid(), definition.id());
         boolean ticketed = definition.mode().requiresTicket();
@@ -471,7 +453,9 @@ public final class PortalRouteService {
                 || ticketSlot(player, definition.ticketId()) >= 0;
         boolean canPay = !feeReturnWithoutStoredPassage && (!feePassage || freePassage
                 || economy.physicalCurrency(player) + economy.wallet(player.getUuid()) >= passagePrice);
-        String requirement = ticketed && direction == PortalTravelDirection.OUTBOUND
+        String requirement = restricted
+                ? restrictionMessage
+                : ticketed && direction == PortalTravelDirection.OUTBOUND
                 ? "You need a " + definition.ticketName() + "."
                 : ticketed
                 ? "Uses your stored return passage."
@@ -484,7 +468,8 @@ public final class PortalRouteService {
                 : feePassage
                 ? "You need " + api.serverIdentity().currencyAmount(passagePrice) + "."
                 : "No ticket or fee required.";
-        String message = !hasTicket ? "The required ticket is not in your inventory."
+        String message = restricted ? restrictionMessage
+                : !hasTicket ? "The required ticket is not in your inventory."
                 : feeReturnWithoutStoredPassage
                 ? "Enter from the Realm side first to store a return passage."
                 : !canPay ? "You do not have enough physical or banked "
@@ -498,20 +483,29 @@ public final class PortalRouteService {
                 : feePassage
                 ? "Physical " + api.serverIdentity().currencyPlural()
                 + " are used before your bank balance." : "";
-        return new TravelPrompt(player, definition.id(), definition.displayName(), definition.description(), direction,
+        return new TravelPrompt(player, definition.id(), routeDisplayName(definition),
+                routeDescription(definition), direction,
                 definition.mode().usesSchedule() ? window.end().toEpochMilli() : 0L,
                 ticketed && direction == PortalTravelDirection.OUTBOUND,
                 definition.ticketName(),
                 definition.visual().iconItem(),
                 requirement,
                 definition.visual().promptAccentColor(),
-                hasTicket && canPay && (!ticketed || direction == PortalTravelDirection.OUTBOUND || entitled),
+                !restricted && hasTicket && canPay && (!ticketed || direction == PortalTravelDirection.OUTBOUND || entitled),
                 message);
     }
 
     public TravelResult travel(ServerPlayerEntity player, String routeId, PortalTravelDirection direction) {
         long started = System.nanoTime();
         try {
+            Optional<PlayerRestrictionService.PlayerRestriction> restriction =
+                    api.system().restrictions().restriction(player, PlayerRestrictionService.PORTAL_TRAVEL);
+            if (restriction.isPresent()) {
+                String message = restriction.get().message();
+                return TravelResult.fail(message == null || message.isBlank()
+                        ? "You cannot use portals right now."
+                        : message);
+            }
             PortalRouteDefinition definition = definitions.require(routeId);
             PortalRouteState route = route(routeId);
             if (!isActive(definition, route, Instant.now())) return TravelResult.fail("This gate is closed.");
@@ -799,7 +793,7 @@ public final class PortalRouteService {
         Boolean previous = publishedActivity.put(definition.id(), active);
         if ((previous == null && !active) || java.util.Objects.equals(previous, active)) return;
         PortalRouteStateEvent event = new PortalRouteStateEvent(
-                definition.id(), definition.displayName(), type, occurredAt,
+                definition.id(), routeDisplayName(definition), type, occurredAt,
                 snapshot(definition.id(), occurredAt));
         stateListeners.forEach(listener -> {
             try {
@@ -808,6 +802,50 @@ public final class PortalRouteService {
                 logger.error("Portal route-state listener failed for {}", definition.id(), exception);
             }
         });
+        if (definition.mode().usesSchedule()) {
+            emitRouteDomainEvent(
+                    active ? "portal-window-opened" : "portal-window-closed",
+                    definition,
+                    null,
+                    Map.of(
+                            "active", Boolean.toString(active),
+                            "occurredAt", Long.toString(occurredAt.toEpochMilli())));
+        }
+    }
+
+    private String routeDisplayName(PortalRouteDefinition definition) {
+        return formatRealmText(definition, definition.displayName());
+    }
+
+    private String routeDescription(PortalRouteDefinition definition) {
+        return formatRealmText(definition, definition.description());
+    }
+
+    private String formatRealmText(PortalRouteDefinition definition, String raw) {
+        return api.realms().find(definition.id())
+                .map(api.realms()::presentation)
+                .map(presentation -> PortalRealmText.format(raw, presentation))
+                .orElse(raw == null ? "" : raw);
+    }
+
+    private void emitRouteDomainEvent(
+            String eventType,
+            PortalRouteDefinition definition,
+            UUID actor,
+            Map<String, String> stateMetadata
+    ) {
+        Map<String, String> metadata = new LinkedHashMap<>(stateMetadata);
+        metadata.put("displayName", routeDisplayName(definition));
+        metadata.put("mode", definition.mode().configId());
+        String realmId = api.realms().find(definition.id()).map(realm -> realm.id()).orElse("");
+        api.system().events().emitDomainEvent(ElarionDomainEvent.of(
+                "elarion_portals",
+                eventType,
+                actor,
+                realmId,
+                "portal-route",
+                definition.id(),
+                metadata));
     }
 
     private boolean teleport(ServerPlayerEntity player, ServerWorld destination, PortalArrival arrival) {

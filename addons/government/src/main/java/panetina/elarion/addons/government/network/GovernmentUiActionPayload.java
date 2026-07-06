@@ -4,6 +4,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 public record GovernmentUiActionPayload(
         String screenType,
@@ -19,22 +20,22 @@ public record GovernmentUiActionPayload(
 
     public static final PacketCodec<PacketByteBuf, GovernmentUiActionPayload> CODEC = PacketCodec.of(
             (payload, buffer) -> {
-                buffer.writeString(payload.screenType());
-                buffer.writeString(payload.action());
-                buffer.writeString(payload.realmId());
-                buffer.writeString(payload.targetId());
-                buffer.writeString(payload.value());
-                buffer.writeString(payload.secondaryValue());
-                buffer.writeString(payload.sessionId());
+                ElarionPacketCodecs.writeString(buffer, payload.screenType(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.action(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.realmId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.targetId(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.value(), 512);
+                ElarionPacketCodecs.writeString(buffer, payload.secondaryValue(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.sessionId(), 64);
             },
             buffer -> new GovernmentUiActionPayload(
-                    buffer.readString(64),
-                    buffer.readString(64),
-                    buffer.readString(128),
-                    buffer.readString(256),
-                    buffer.readString(512),
-                    buffer.readString(256),
-                    buffer.readString(64)));
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 64),
+                    ElarionPacketCodecs.readString(buffer, 128),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 512),
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 64)));
 
     @Override
     public Id<? extends CustomPayload> getId() {

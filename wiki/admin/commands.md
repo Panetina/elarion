@@ -14,6 +14,7 @@ Implemented command surface for server owners and OP level 4 operators.
 /r <message>
 /w <message>
 /yell <message>
+/collection
 /group create <id> <tag> <display-name...>
 /group invite <player>
 /group accept <group>
@@ -35,6 +36,7 @@ Implemented command surface for server owners and OP level 4 operators.
 /random roll <range>
 /random reset ...
 /e reload
+/e panel
 /e realm ...
 /e realm announce <realm> <message...>
 /e realm mail <realm> "<title>" <message...>
@@ -47,6 +49,10 @@ Implemented command surface for server owners and OP level 4 operators.
 /e history chronicle list [weeks]
 /e history chronicle inspect <week> [limit]
 ```
+
+`/e panel` opens the in-game Admin Panel for OP level 4 players. It groups
+player inspection/move/edit tools, system resets, Realm-scoped actions, and a
+click-confirmed runtime-only Danger Zone reset.
 
 ## Economy
 
@@ -83,7 +89,26 @@ Implemented command surface for server owners and OP level 4 operators.
 /e offerings delete <instance>
 /e offerings reset <instance>
 /e offerings complete <instance>
+/e test shrine reset [realm]
+/e test realm global <realm> on|off
 ```
+
+## Quests
+
+```text
+/e quest reload
+/e quest list
+/e quest inspect <quest>
+/e quest state <quest> [scope-key]
+/e quest reset <quest> <scope-key>
+/e quest bind actor <quest> <scope-key> <actor> <npcIdOrHandle>
+/e quest unbind actor <quest> <scope-key> <actor>
+/e quest bindings <quest> <scope-key>
+/e quest validate <quest|all>
+```
+
+Quest scope keys are explicit strings such as `realm:realm1`, `world:overworld`,
+`player:<uuid>`, or `global`.
 
 ## Portals
 
@@ -103,6 +128,49 @@ Implemented command surface for server owners and OP level 4 operators.
 /e portal entitlement inspect|grant|clear <player> <route>
 ```
 
+## Underworld
+
+```text
+/e death reload
+/e death inspect <player>
+/e death corpse list
+/e death corpse inspect <corpseId>
+/e death corpse recover <corpseId> <player>
+/e death vault recover <player>
+/e death underworld send <player> [minutes]
+/e death underworld return <player>
+/e death soul inspect <player>
+/e death soul add-fracture <player>
+/e death soul remove-fracture <player>
+/e death soul clear-fractures <player>
+/e test death send <player> <minutes>
+/e test death return <player>
+/e test death fracture <player>
+/e test death fracture add <player>
+/e test death fracture remove <player>
+/e test death clear <player>
+/e test death reset-state
+/e character inspect <player>
+/e character recreate-now <player>
+/e character archive <player>
+/e test character finish-cooldown <player>
+/e test character trigger-true-death <player>
+/e test character reset <player>
+/e test character force-active <player>
+```
+
+## Mounts
+
+```text
+/e mounts grant <player> <type>
+/e mounts revoke <player> <type>
+/e mounts set-active <player> <type>
+/e mounts list <player>
+/e test mounts summon <type>
+/e test mounts debug
+/e test mounts clear-nearby
+```
+
 ## Government
 
 ```text
@@ -111,11 +179,18 @@ Implemented command surface for server owners and OP level 4 operators.
 /e government inspect <form>
 /e government state <realm>
 /e government gates <realm>
+/e government proposals <realm>
+/e government proposal inspect <realm> <proposal>
+/e government laws <realm>
+/e government law archive <realm> <law>
+/e government law restore <realm> <law>
 /e government set-form <realm> <form>
 /e government identity set <realm> <tag> <display-name...>
 /e government founding complete <realm>
 /e government authority cleanup
-/e government test advance <realm>
+/e government reset <realm>
+/e test government reset [realm]
+/e test government advance <realm>
 /e government block remove
 /e government office assign <realm> <office> <player>
 /e government office remove <realm> <office> <player>
@@ -176,3 +251,6 @@ Implemented command surface for server owners and OP level 4 operators.
 - Technical command contract: [../../docs/commands.md](../../docs/commands.md)
 - Core commands: [../../platform/core/src/main/java/panetina/elarion/core/command/](../../platform/core/src/main/java/panetina/elarion/core/command/)
 - Addon commands: [../../addons/](../../addons/)
+
+When this page changes, update [../../docs/commands.md](../../docs/commands.md)
+and any affected system guide in the same pass.

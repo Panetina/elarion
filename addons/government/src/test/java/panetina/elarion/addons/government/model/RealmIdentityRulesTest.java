@@ -8,7 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 final class RealmIdentityRulesTest {
     @Test
     void acceptsShortNeutralNamesAndNormalizesTags() {
-        assertEquals("Silver Coast", RealmIdentityRules.validateName("  Silver   Coast "));
+        assertEquals("Silver Coast", RealmIdentityRules.validateName("  sILVER   cOAST "));
+        assertEquals("Șoim Verde", RealmIdentityRules.validateName("șOIM verde"));
         assertEquals("OAK1", RealmIdentityRules.validateTag("oak1"));
     }
 
@@ -20,5 +21,9 @@ final class RealmIdentityRulesTest {
                 () -> RealmIdentityRules.validateName("Oak Kingdom"));
         assertThrows(IllegalArgumentException.class,
                 () -> RealmIdentityRules.validateName("Holy Land"));
+        assertThrows(IllegalArgumentException.class,
+                () -> RealmIdentityRules.validateName("Oak-Tree"));
+        assertThrows(IllegalArgumentException.class,
+                () -> RealmIdentityRules.validateName("Oak1"));
     }
 }

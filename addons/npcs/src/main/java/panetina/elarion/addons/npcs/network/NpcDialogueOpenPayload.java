@@ -4,6 +4,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
+import panetina.elarion.core.network.ElarionPacketCodecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,26 +67,26 @@ public record NpcDialogueOpenPayload(
     public static final PacketCodec<PacketByteBuf, NpcDialogueOpenPayload> CODEC = PacketCodec.of(
             (payload, buffer) -> {
                 buffer.writeUuid(payload.npcId());
-                buffer.writeString(payload.dialogueId());
-                buffer.writeString(payload.nodeId());
-                buffer.writeString(payload.npcName());
-                buffer.writeString(payload.portrait());
-                buffer.writeString(payload.portraitType());
-                buffer.writeString(payload.portraitPlayerName());
-                buffer.writeString(payload.portraitFallbackType());
-                buffer.writeString(payload.portraitFallbackTexture());
-                buffer.writeString(payload.playerText());
-                buffer.writeString(payload.text());
-                buffer.writeString(payload.npcSound());
-                buffer.writeString(payload.npcVoice());
-                buffer.writeString(payload.playerSound());
-                buffer.writeString(payload.playerVoice());
-                buffer.writeString(payload.feedback());
+                ElarionPacketCodecs.writeString(buffer, payload.dialogueId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.nodeId(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.npcName(), 128);
+                ElarionPacketCodecs.writeString(buffer, payload.portrait(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.portraitType(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.portraitPlayerName(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.portraitFallbackType(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.portraitFallbackTexture(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.playerText(), 512);
+                ElarionPacketCodecs.writeString(buffer, payload.text(), 4096);
+                ElarionPacketCodecs.writeString(buffer, payload.npcSound(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.npcVoice(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.playerSound(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.playerVoice(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.feedback(), 1024);
                 buffer.writeBoolean(payload.feedbackError());
                 buffer.writeBoolean(payload.hasCurrencyBalance());
                 buffer.writeVarLong(payload.currencyBalance());
-                buffer.writeString(payload.currencyPlural());
-                buffer.writeString(payload.relationLabel());
+                ElarionPacketCodecs.writeString(buffer, payload.currencyPlural(), 64);
+                ElarionPacketCodecs.writeString(buffer, payload.relationLabel(), 128);
                 buffer.writeVarInt(payload.relationValue());
                 buffer.writeVarInt(payload.panelWidth());
                 buffer.writeVarInt(payload.minPanelHeight());
@@ -111,7 +112,7 @@ public record NpcDialogueOpenPayload(
                 buffer.writeBoolean(payload.typingClickCompletes());
                 buffer.writeBoolean(payload.typingSoundEnabled());
                 buffer.writeVarInt(payload.typingSoundIntervalCharacters());
-                buffer.writeString(payload.themeVariant());
+                ElarionPacketCodecs.writeString(buffer, payload.themeVariant(), 64);
                 buffer.writeVarInt(payload.cards().size());
                 payload.cards().forEach(card -> NpcDialogueCardPayload.write(card, buffer));
                 buffer.writeVarInt(payload.options().size());
@@ -119,26 +120,26 @@ public record NpcDialogueOpenPayload(
             },
             buffer -> {
                 UUID npcId = buffer.readUuid();
-                String dialogueId = buffer.readString(128);
-                String nodeId = buffer.readString(128);
-                String npcName = buffer.readString(128);
-                String portrait = buffer.readString(256);
-                String portraitType = buffer.readString(64);
-                String portraitPlayerName = buffer.readString(64);
-                String portraitFallbackType = buffer.readString(64);
-                String portraitFallbackTexture = buffer.readString(256);
-                String playerText = buffer.readString(512);
-                String text = buffer.readString(4096);
-                String npcSound = buffer.readString(256);
-                String npcVoice = buffer.readString(256);
-                String playerSound = buffer.readString(256);
-                String playerVoice = buffer.readString(256);
-                String feedback = buffer.readString(1024);
+                String dialogueId = ElarionPacketCodecs.readString(buffer, 128);
+                String nodeId = ElarionPacketCodecs.readString(buffer, 128);
+                String npcName = ElarionPacketCodecs.readString(buffer, 128);
+                String portrait = ElarionPacketCodecs.readString(buffer, 256);
+                String portraitType = ElarionPacketCodecs.readString(buffer, 64);
+                String portraitPlayerName = ElarionPacketCodecs.readString(buffer, 64);
+                String portraitFallbackType = ElarionPacketCodecs.readString(buffer, 64);
+                String portraitFallbackTexture = ElarionPacketCodecs.readString(buffer, 256);
+                String playerText = ElarionPacketCodecs.readString(buffer, 512);
+                String text = ElarionPacketCodecs.readString(buffer, 4096);
+                String npcSound = ElarionPacketCodecs.readString(buffer, 256);
+                String npcVoice = ElarionPacketCodecs.readString(buffer, 256);
+                String playerSound = ElarionPacketCodecs.readString(buffer, 256);
+                String playerVoice = ElarionPacketCodecs.readString(buffer, 256);
+                String feedback = ElarionPacketCodecs.readString(buffer, 1024);
                 boolean feedbackError = buffer.readBoolean();
                 boolean hasCurrencyBalance = buffer.readBoolean();
                 long currencyBalance = buffer.readVarLong();
-                String currencyPlural = buffer.readString(64);
-                String relationLabel = buffer.readString(128);
+                String currencyPlural = ElarionPacketCodecs.readString(buffer, 64);
+                String relationLabel = ElarionPacketCodecs.readString(buffer, 128);
                 int relationValue = buffer.readVarInt();
                 int panelWidth = buffer.readVarInt();
                 int minPanelHeight = buffer.readVarInt();
@@ -164,13 +165,13 @@ public record NpcDialogueOpenPayload(
                 boolean typingClickCompletes = buffer.readBoolean();
                 boolean typingSoundEnabled = buffer.readBoolean();
                 int typingSoundIntervalCharacters = buffer.readVarInt();
-                String themeVariant = buffer.readString(64);
-                int cardCount = buffer.readVarInt();
+                String themeVariant = ElarionPacketCodecs.readString(buffer, 64);
+                int cardCount = ElarionPacketCodecs.readBoundedCount(buffer, 64);
                 List<NpcDialogueCardPayload> cards = new ArrayList<>();
                 for (int index = 0; index < cardCount; index++) {
                     cards.add(NpcDialogueCardPayload.read(buffer));
                 }
-                int count = buffer.readVarInt();
+                int count = ElarionPacketCodecs.readBoundedCount(buffer, 64);
                 List<NpcDialogueOptionPayload> options = new ArrayList<>();
                 for (int index = 0; index < count; index++) {
                     options.add(NpcDialogueOptionPayload.read(buffer));

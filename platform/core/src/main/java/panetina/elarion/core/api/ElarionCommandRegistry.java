@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 public final class ElarionCommandRegistry {
     private final List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> adminCommands =
             new CopyOnWriteArrayList<>();
+    private final List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> testCommands =
+            new CopyOnWriteArrayList<>();
     private final Map<String, String> helpDescriptions = new ConcurrentHashMap<>();
 
     public void registerAdminSubcommand(Supplier<LiteralArgumentBuilder<ServerCommandSource>> command) {
@@ -21,6 +23,14 @@ public final class ElarionCommandRegistry {
 
     public List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> adminCommands() {
         return List.copyOf(adminCommands);
+    }
+
+    public void registerTestSubcommand(Supplier<LiteralArgumentBuilder<ServerCommandSource>> command) {
+        testCommands.add(command);
+    }
+
+    public List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> testCommands() {
+        return List.copyOf(testCommands);
     }
 
     public void registerHelpDescription(String command, String description) {

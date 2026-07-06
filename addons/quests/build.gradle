@@ -1,0 +1,24 @@
+dependencies {
+    implementation 'org.yaml:snakeyaml:2.2'
+    implementation(project(path: ':platform:core', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    implementation(project(path: ':addons:offerings', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    implementation(project(path: ':addons:npcs', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    runtimeOnly(project(path: ':addons:economy', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    runtimeOnly(project(path: ':addons:portals', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+
+    testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+}
+
+test {
+    useJUnitPlatform()
+}

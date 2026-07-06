@@ -1,16 +1,19 @@
 package panetina.elarion.addons.npcs.client;
+import panetina.elarion.core.client.ui.ElarionUiTypography;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.PlayerSkinDrawer;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import panetina.elarion.addons.npcs.client.ui.ElarionConversationController;
 import panetina.elarion.addons.npcs.client.ui.ElarionNpcPortraitRenderer;
 import panetina.elarion.addons.npcs.client.ui.ElarionUiSound;
+import panetina.elarion.core.client.ui.ElarionCivicColors;
+import panetina.elarion.core.client.ui.ElarionCivicUi;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
+import panetina.elarion.core.client.ui.ElarionScreen;
 import panetina.elarion.core.client.ui.ElarionNumericInput;
 import panetina.elarion.core.client.ui.ElarionUiCard;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
@@ -26,7 +29,7 @@ import panetina.elarion.addons.npcs.network.NpcDialogueSelectPayload;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class NpcDialogueScreen extends Screen {
+public final class NpcDialogueScreen extends ElarionScreen {
     private static final String TYPING_SOUND = "minecraft:ui.button.click";
     private static final Map<String, Integer> SAVED_SCROLL = new ConcurrentHashMap<>();
     private static final Map<String, Integer> SAVED_SELECTION = new ConcurrentHashMap<>();
@@ -91,8 +94,7 @@ public final class NpcDialogueScreen extends Screen {
         context.getMatrices().translate(layout.screenX(), layout.screenY(), 0.0F);
         context.getMatrices().scale(layout.scale(), layout.scale(), 1.0F);
 
-        ElarionUiRenderer.panel(context, 0, 0, logicalWidth, logicalHeight, style);
-        ElarionUiRenderer.headerBand(context, 3, 3, logicalWidth - 6, headerBandHeight(), style);
+        ElarionCivicUi.attachedShell(context, 0, 0, logicalWidth, logicalHeight, headerBandHeight() + 6);
         renderHeader(context, logicalMouseX, logicalMouseY);
         renderNpcRow(context);
         renderPlayerRow(context);
@@ -255,19 +257,6 @@ public final class NpcDialogueScreen extends Screen {
     }
 
     @Override
-    public void blur() {
-    }
-
-    @Override
-    protected void applyBlur(float delta) {
-    }
-
-    @Override
-    public boolean shouldPause() {
-        return false;
-    }
-
-    @Override
     public void close() {
         saveScroll();
         ClientPlayNetworking.send(new NpcDialogueDismissPayload(dialogue.npcId()));
@@ -318,7 +307,7 @@ public final class NpcDialogueScreen extends Screen {
     }
 
     private void renderHeader(DrawContext context, double mouseX, double mouseY) {
-        context.drawText(textRenderer, dialogue.npcName(), padding, headerY, style.titleColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, dialogue.npcName(), padding, headerY, style.titleColor(), false);
         if (dialogue.hasCurrencyBalance()) {
             int badgeY = 3 + (headerBandHeight() - 30) / 2;
             ElarionUiRenderer.currencyBadge(context, textRenderer,
@@ -374,10 +363,10 @@ public final class NpcDialogueScreen extends Screen {
             int y = optionY + row * optionRowHeight;
             boolean hovered = active && inside(mouseX, mouseY, padding, y, listWidth, optionRowHeight - 2);
             boolean selected = active && optionList.selectedIndex() == index;
-            ElarionUiRenderer.compactButton(
+            ElarionCivicUi.compactActionButton(
                     context, textRenderer, padding, y, listWidth, optionRowHeight - 2,
                     dialogue.options().get(index).buttonText(), hovered || selected,
-                    hovered && mouseDown, active, style);
+                    hovered && mouseDown, active, optionTone(active, selected), style);
         }
         renderScrollbar(context);
     }
@@ -392,9 +381,9 @@ public final class NpcDialogueScreen extends Screen {
 
     private void renderFooter(DrawContext context, double mouseX, double mouseY) {
         boolean hovered = inside(mouseX, mouseY, closeX(), footerY, closeWidth(), footerHeight);
-        ElarionUiRenderer.compactButton(
+        ElarionCivicUi.compactActionButton(
                 context, textRenderer, closeX(), footerY, closeWidth(), footerHeight,
-                "Close", hovered, hovered && mouseDown(), true, style);
+                "Close", hovered, hovered && mouseDown(), true, ElarionCivicUi.Tone.NORMAL, style);
     }
 
     private void submitOption(int index) {
@@ -439,19 +428,19 @@ public final class NpcDialogueScreen extends Screen {
         int y = playerRowY;
         int width = logicalWidth - padding * 2;
         int height = Math.max(dialogue.playerRowHeight(), 56);
-        ElarionUiRenderer.borderedBox(context, x, y, width, height, style);
-        context.drawText(textRenderer, activePrompt.promptQuestion(), x + 7, y + 6, style.titleColor(), false);
+        ElarionCivicUi.headerShell(context, x, y, width, height, 20);
+        ElarionUiTypography.draw(context, textRenderer, activePrompt.promptQuestion(), x + 7, y + 6, style.titleColor(), false);
         int inputX = x + 7;
         int inputY = y + 22;
         int inputWidth = width - 14;
         int inputHeight = 16;
-        ElarionUiRenderer.beveledBox(
-                context, inputX, inputY, inputWidth, inputHeight, style.insetColor(), style);
+        ElarionCivicUi.thinBox(context, inputX, inputY, inputWidth, inputHeight,
+                ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_SHADOW);
         boolean caret = promptInput != null && promptInput.caretVisible();
         String value = promptInput == null ? "" : promptInput.value();
-        context.drawText(textRenderer, value + (caret ? "_" : ""),
+        ElarionUiTypography.draw(context, textRenderer, value + (caret ? "_" : ""),
                 inputX + 4, inputY + 4, style.textColor(), false);
-        context.drawText(textRenderer, "Enter to confirm. Esc to cancel.",
+        ElarionUiTypography.draw(context, textRenderer, "Enter to confirm. Esc to cancel.",
                 inputX, y + height - 14, style.mutedColor(), false);
     }
 
@@ -499,6 +488,11 @@ public final class NpcDialogueScreen extends Screen {
 
     private int headerBandHeight() {
         return Math.max(24, npcRowY - dialogue.contentGap() - 3);
+    }
+
+    private static ElarionCivicUi.Tone optionTone(boolean active, boolean selected) {
+        if (!active) return ElarionCivicUi.Tone.MUTED;
+        return selected ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.NORMAL;
     }
 
     private int closeX() {

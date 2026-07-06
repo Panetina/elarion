@@ -1,6 +1,6 @@
 # Elarion Commands
 
-Last reviewed: 2026-06-11
+Last reviewed: 2026-06-29
 
 Author: Panyel  
 Team: Panetina Team
@@ -35,6 +35,7 @@ Government, Offerings, Portal, Ledger, and Chronicle commands.
 /r <message>
 /w <message>
 /yell <message>
+/collection
 /group create <id> <tag> <display-name...>
 /group invite <player>
 /group accept <group>
@@ -54,6 +55,8 @@ Rules:
 - `/pm` and `/r` follow Realm/relationship visibility rules.
 - `/w` is local whisper chat, not private messaging.
 - `/yell` is local yell chat and uses its configured cooldown.
+- `/collection` opens the Core modular Collection menu. Mounts is the first
+  registered tab.
 - `/group ...` manages the player's public group.
 - `/gc` sends group chat to current group members.
 - `/lc` sends Government authority chat to same-Realm authority holders.
@@ -61,6 +64,9 @@ Rules:
 - OP level 4 does not bypass local chat distances by default.
 - `/spy chat` is the explicit OP tool for seeing chat outside normal distance
   or Realm scope.
+- `/e panel` opens the Core Admin Panel for in-game OP level 4 players. It is
+  a server-authoritative GUI wrapper around validated Core/addon admin and test
+  actions; console sources must use the explicit commands.
 
 ## OP Level 4 Commands
 
@@ -72,6 +78,7 @@ Rules:
 /random roll <range>
 /random reset ...
 /e reload
+/e panel
 /e realm ...
 /e realm announce <realm> <message...>
 /e realm mail <realm> "<title>" <message...>
@@ -108,15 +115,35 @@ Rules:
 /e offerings delete <instance>
 /e offerings reset <instance>
 /e offerings complete <instance>
+/e test shrine reset [realm]
+/e test realm global <realm> on|off
+/e quest reload
+/e quest list
+/e quest inspect <quest>
+/e quest state <quest> [scope-key]
+/e quest reset <quest> <scope-key>
+/e quest bind actor <quest> <scope-key> <actor> <npcIdOrHandle>
+/e quest unbind actor <quest> <scope-key> <actor>
+/e quest bindings <quest> <scope-key>
+/e quest validate <quest|all>
 /e government reload
 /e government forms
 /e government inspect <form>
 /e government state <realm>
 /e government gates <realm>
+/e government proposals <realm>
+/e government proposal inspect <realm> <proposal>
+/e government laws <realm>
+/e government law archive <realm> <law>
+/e government law restore <realm> <law>
 /e government set-form <realm> <form>
 /e government identity set <realm> <tag> <display-name...>
 /e government founding complete <realm>
 /e government authority cleanup
+/e government reset <realm>
+/e test government reset [realm]
+/e test government advance <realm>
+/e government block remove
 /e government office assign <realm> <office> <player>
 /e government office remove <realm> <office> <player>
 /e groups reload
@@ -137,6 +164,21 @@ Rules:
 /e portal window open <route> <duration>
 /e portal window close <route>
 /e portal entitlement inspect|grant|clear <player> <route>
+/e death reload
+/e death inspect <player>
+/e death corpse list
+/e death corpse inspect <corpseId>
+/e death corpse recover <corpseId> <player>
+/e death vault recover <player>
+/e death underworld send <player> [minutes]
+/e death underworld return <player>
+/e death soul inspect <player>
+/e death soul add-fracture <player>
+/e death soul remove-fracture <player>
+/e death soul clear-fractures <player>
+/e character inspect <player>
+/e character recreate-now <player>
+/e character archive <player>
 /e npc reload
 /e npc place <npcDefinition> [north|east|south|west|here]
 /e npc place <npcDefinition> yaw <value>
@@ -157,6 +199,10 @@ Rules:
 /e npc move <npcId>
 /e npc set name|skin|portrait|dialogue <npcId> ...
 /e npc dialogue inspect <dialogueId>
+/e mounts grant <player> <type>
+/e mounts revoke <player> <type>
+/e mounts set-active <player> <type>
+/e mounts list <player>
 /e world ...
 /e perf status
 /e perf queues
@@ -193,6 +239,43 @@ dialogue portrait rendered in the NPC GUI.
 `/e npc rotate <npcId> ...` stores a fixed direction/yaw.
 `/e npc repair <npcId|all>` reconciles missing, stale, or duplicate world
 entities from canonical placement state.
+
+Quest scope keys are explicit strings such as `realm:realm1`, `world:overworld`,
+`player:<uuid>`, or `global`. `/e quest reset <quest> <scope-key>` clears only
+that questline scope and its player records, actor bindings, and scheduled
+consequences; it does not reset NPC placements, Offering progress, Government
+state, or Core citizens. Actor binding commands map quest actor aliases to
+placed NPC UUIDs through the NPC API while NPCs remain placement owners.
+
+## Development Test Commands
+
+All temporary reset and timing commands live under `/e test`. Do not add new
+test-only command branches under feature commands such as `/e government ...`
+or `/e offerings ...`.
+
+```text
+/e test shrine reset [realm]
+/e test realm global <realm> on|off
+/e test government reset [realm]
+/e test government advance <realm>
+/e test death send <player> <minutes>
+/e test death return <player>
+/e test death fracture <player>
+/e test death fracture add <player>
+/e test death fracture remove <player>
+/e test death clear <player>
+/e test death reset-state
+/e test character finish-cooldown <player>
+/e test character trigger-true-death <player>
+/e test character reset <player>
+/e test character force-active <player>
+/e test mounts summon <type>
+/e test mounts debug
+/e test mounts clear-nearby
+```
+
+See [test-commands.md](test-commands.md) for what each reset clears and what it
+preserves.
 
 Portal setup uses A/B names:
 

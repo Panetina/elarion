@@ -14,6 +14,7 @@ public record AnglingFishingSession(
         Identifier worldId,
         Identifier dimensionId,
         Identifier biomeId,
+        Identifier baitId,
         long startedAt,
         long expiresAt,
         long completionStartedAt
@@ -54,6 +55,7 @@ public record AnglingFishingSession(
                 worldId,
                 dimensionId,
                 biomeId,
+                baitId,
                 startedAt,
                 expiresAt,
                 occurredAt);

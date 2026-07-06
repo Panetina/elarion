@@ -3,6 +3,7 @@
     "id": "elarion_security",
     "version": "${version}",
     "name": "Elarion Security",
+    "icon": "assets/elarion_security/icon.png",
     "description": "Security, anti-cheat, and anti-AFK farm protection foundation for Elarion.",
     "authors": [
         "Panyel"

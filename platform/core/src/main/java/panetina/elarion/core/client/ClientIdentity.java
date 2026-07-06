@@ -18,10 +18,22 @@ public record ClientIdentity(
         Formatting color,
         String realmName,
         String realmId,
+        boolean tabVisible,
         boolean visible
 ) {
     private static final Identifier ICON_FONT = Identifier.of("elarion_core", "icons");
     private static final String CROWN_GLYPH = "\ue000";
+
+    public ClientIdentity {
+        username = clean(username);
+        nickname = clean(nickname);
+        prefix = clean(prefix);
+        suffix = clean(suffix);
+        title = clean(title);
+        leaderLabel = clean(leaderLabel);
+        realmName = clean(realmName);
+        realmId = clean(realmId);
+    }
 
     public Text displayName() {
         MutableText text = Text.literal(baseName()).formatted(color);
@@ -31,9 +43,9 @@ public record ClientIdentity(
 
     public Text tabName() {
         MutableText text = Text.empty();
-        if (!realmName.isBlank()) text.append(Text.literal(realmName + " ").formatted(Formatting.DARK_GRAY));
         if (!leaderLabel.isBlank()) text.append(crown()).append(Text.literal(" "));
         text.append(displayName());
+        text.append(ClientIdentityDecorations.tabSuffix(uuid));
         return text;
     }
 
@@ -55,6 +67,16 @@ public record ClientIdentity(
 
     public boolean hasSimpleNickname() {
         return !nickname.isBlank() && nickname.chars().noneMatch(Character::isWhitespace);
+    }
+
+    private static String clean(String value) {
+        if (value == null || value.isBlank()) return "";
+        StringBuilder builder = new StringBuilder(value.length());
+        value.codePoints()
+                .filter(codePoint -> !Character.isISOControl(codePoint))
+                .filter(codePoint -> Character.getType(codePoint) != Character.FORMAT)
+                .forEach(builder::appendCodePoint);
+        return builder.toString().trim();
     }
 
     private static Text crown() {

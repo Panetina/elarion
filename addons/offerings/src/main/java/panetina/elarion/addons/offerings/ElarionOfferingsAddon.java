@@ -1,6 +1,7 @@
 package panetina.elarion.addons.offerings;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -15,11 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.addons.offerings.api.ElarionOfferingsApi;
 import panetina.elarion.addons.offerings.command.OfferingCommands;
+import panetina.elarion.addons.offerings.config.OfferingConfigDescriptors;
 import panetina.elarion.addons.offerings.model.OfferingAnchor;
+import panetina.elarion.addons.offerings.model.OfferingInstance;
+import panetina.elarion.addons.offerings.model.OfferingProjectDefinition;
+import panetina.elarion.addons.offerings.model.OfferingProjectLevel;
 import panetina.elarion.addons.offerings.model.OfferingUiProgress;
 import panetina.elarion.addons.offerings.network.ShrineUiOpenPayload;
 import panetina.elarion.addons.offerings.network.ShrineContributionSubmitPayload;
 import panetina.elarion.addons.offerings.service.OfferingDefinitionService;
+import panetina.elarion.addons.offerings.service.OfferingAdminPanelProvider;
 import panetina.elarion.addons.offerings.service.OfferingService;
 import panetina.elarion.addons.offerings.storage.OfferingStorage;
 import panetina.elarion.core.api.ElarionAddon;
@@ -39,7 +45,9 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
         OfferingDefinitionService definitions = new OfferingDefinitionService(api);
         definitions.load();
         OfferingService service = new OfferingService(LOGGER, api, definitions, new OfferingStorage(LOGGER));
+        api.system().adminPanel().registerProvider(new OfferingAdminPanelProvider(service));
         new ElarionOfferingsApi(definitions, service);
+        OfferingConfigDescriptors.register(api.system().configs(), definitions::all, definitions::ui);
 
         api.system().abilities().register("elarion.offering.manage");
         registerActions(api, service);
@@ -56,11 +64,18 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
         });
         api.system().commands().registerAdminSubcommand(
                 () -> OfferingCommands.create(api, definitions, service));
+        api.system().commands().registerTestSubcommand(
+                () -> OfferingCommands.testCommands(api, service));
+        api.system().commands().registerTestSubcommand(
+                () -> OfferingCommands.realmTestCommands(api, service));
         api.system().commands().registerHelpDescription(
                 "/e offerings ...", "Manage offering definitions, instances, and linked Shrines.");
+        api.system().commands().registerHelpDescription(
+                "/e test shrine reset [realm]", "Reset Shrine progression and Foundation flags for testing.");
 
         ServerLifecycleEvents.SERVER_STARTED.register(service::bind);
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> service.save());
+        ServerTickEvents.END_SERVER_TICK.register(service::tick);
         LOGGER.info("Elarion offerings initialized with {} project definitions", definitions.all().size());
     }
 
@@ -219,7 +234,7 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
                 .toList();
         boolean completed = progress.complete() || instance.completed();
         ServerPlayNetworking.send(player, new ShrineUiOpenPayload(
-                instance.id(), project.id(), project.displayName(), subtitle, level.description(), status,
+                instance.id(), project.id(), shrineTitle(instance, project, level), subtitle, level.description(), status,
                 level.presentation().levelText(), level.presentation().icon(), ui.themeVariant(),
                 ui.logicalWidth(), ui.logicalHeight(), ui.minimumScalePercent(), ui.summaryWidth(),
                 ui.tabHeight(), ui.rowHeight(), ui.iconSize(), ui.closeButtonWidth(),
@@ -369,6 +384,36 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
                     service.complete(instance, context.execution().actor(), true);
                     return RegistryExecutionResult.ok(api.serverIdentity().offeringSingular() + " project completed.");
                 });
+        register(api, "elarion:offering_set_display_name",
+                "Overrides an offering project instance display name.",
+                context -> {
+                    String instance = context.parameters().getOrDefault("instance", "");
+                    String title = context.parameters().getOrDefault("title",
+                            context.parameters().getOrDefault("display-name", ""));
+                    if (instance.isBlank() || title.isBlank()) {
+                        return RegistryExecutionResult.failure("instance and title are required");
+                    }
+                    service.setDisplayNameOverride(instance, title, context.execution().actor());
+                    return RegistryExecutionResult.ok(api.serverIdentity().shrineOfFoundation()
+                            + " display name updated.");
+                });
+    }
+
+    static String shrineTitle(
+            OfferingInstance instance,
+            OfferingProjectDefinition project,
+            OfferingProjectLevel level
+    ) {
+        if (!instance.displayNameOverride().isBlank()) {
+            return instance.displayNameOverride();
+        }
+        if (!level.presentation().levelText().isBlank()) {
+            return level.presentation().levelText();
+        }
+        if (!level.displayName().isBlank()) {
+            return level.displayName();
+        }
+        return project.displayName();
     }
 
     private static void register(

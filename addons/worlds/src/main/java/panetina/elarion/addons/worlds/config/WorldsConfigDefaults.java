@@ -78,6 +78,19 @@ final class WorldsConfigDefaults {
                 block-abundance: {}
                 mob-abundance: {}
                 gamerules: {}
+              underworld:
+                enabled: true
+                id: "elarion:underworld"
+                type: "VOID"
+                difficulty: "PEACEFUL"
+                tick-time: false
+                spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
+                border: { center-x: 0.5, center-z: 0.5, size: 256.0 }
+                platform-block: "minecraft:deepslate_tiles"
+                platform-radius: 12
+                gamerules: { doMobSpawning: false, doDaylightCycle: false, spawnChunkRadius: 0 }
+                block-abundance: {}
+                mob-abundance: {}
             """;
 
     private WorldsConfigDefaults() {

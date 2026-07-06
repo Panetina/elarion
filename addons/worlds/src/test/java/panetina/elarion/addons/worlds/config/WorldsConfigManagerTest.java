@@ -23,8 +23,10 @@ final class WorldsConfigManagerTest {
                 LoggerFactory.getLogger("worlds-config-test"), temp.resolve("worlds.yml"));
         config.load();
 
-        assertEquals(4, config.worlds().size());
+        assertEquals(5, config.worlds().size());
         assertEquals(WorldType.VOID, config.worlds().get("lobby").type());
+        assertEquals(WorldType.VOID, config.worlds().get("underworld").type());
+        assertEquals("elarion:underworld", config.worlds().get("underworld").id());
         assertEquals(0.25, config.worlds().get("realm_world_1")
                 .blockRules().getFirst().retainChance());
         assertTrue(Files.exists(config.path()));

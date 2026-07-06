@@ -3,6 +3,7 @@
     "id":  "elarion_newspapers",
     "version":  "${version}",
     "name":  "Elarion Newspapers",
+    "icon": "assets/elarion_newspapers/icon.png",
     "description":  "Newspapers addon shell backed by Elarion Core title abilities.",
     "authors":  [
                     "Panyel"

@@ -24,4 +24,20 @@ final class NpcDialoguePromptSubmitPayloadTest {
         assertEquals("deposit", decoded.optionId());
         assertEquals("12345", decoded.value());
     }
+
+    @Test
+    void clampsPromptSubmissionFields() {
+        UUID npcId = UUID.randomUUID();
+        String longText = "x".repeat(300);
+        NpcDialoguePromptSubmitPayload payload =
+                new NpcDialoguePromptSubmitPayload(npcId, longText, longText, longText);
+        PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
+
+        NpcDialoguePromptSubmitPayload.CODEC.encode(buffer, payload);
+        NpcDialoguePromptSubmitPayload decoded = NpcDialoguePromptSubmitPayload.CODEC.decode(buffer);
+
+        assertEquals(128, decoded.nodeId().length());
+        assertEquals(128, decoded.optionId().length());
+        assertEquals(16, decoded.value().length());
+    }
 }

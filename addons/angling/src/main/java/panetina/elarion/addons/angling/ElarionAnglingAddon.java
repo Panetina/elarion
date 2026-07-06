@@ -9,14 +9,15 @@ import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.resource.ResourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import panetina.elarion.addons.angling.condition.AnglingBuiltinConditions;
 import panetina.elarion.addons.angling.resource.FishDefinitionRepository;
 import panetina.elarion.addons.angling.resource.FishDefinitionResourceReloadListener;
 import panetina.elarion.addons.angling.condition.AnglingConditionRegistry;
 import panetina.elarion.addons.angling.integration.VanillaFishingHooks;
-import panetina.elarion.addons.angling.model.AnglingConditionId;
 import panetina.elarion.addons.angling.service.AnglingCatchResolutionService;
 import panetina.elarion.addons.angling.service.AnglingFeedbackService;
 import panetina.elarion.addons.angling.service.AnglingFishingTriggerService;
+import panetina.elarion.addons.angling.service.AnglingRewardDeliveryService;
 import panetina.elarion.addons.angling.service.FishCandidateSelector;
 import panetina.elarion.addons.angling.service.AnglingFishingSessionService;
 import panetina.elarion.core.api.ElarionAddon;
@@ -33,14 +34,16 @@ public final class ElarionAnglingAddon implements ElarionAddon {
 
     @Override
     public void initialize(ElarionApi api) {
+        AnglingItems.register();
         ResourceManagerHelper.get(ResourceType.SERVER_DATA)
                 .registerReloadListener(new FishDefinitionResourceReloadListener(FISH_DEFINITIONS));
-        CONDITIONS.register(
-                AnglingConditionId.of("placeholder_condition_001"),
-                (definition, context) -> true);
+        AnglingBuiltinConditions.register(CONDITIONS);
         candidateSelector = new FishCandidateSelector(FISH_DEFINITIONS, CONDITIONS);
         catchResolution = new AnglingCatchResolutionService(FISH_DEFINITIONS, api.system().events());
-        sessions = new AnglingFishingSessionService(candidateSelector, catchResolution);
+        sessions = new AnglingFishingSessionService(
+                candidateSelector,
+                catchResolution,
+                new AnglingRewardDeliveryService(api.deferredRewards()));
         feedback = new AnglingFeedbackService();
         VanillaFishingHooks.initialize(new AnglingFishingTriggerService(sessions), feedback);
         ServerEntityEvents.ENTITY_UNLOAD.register((entity, world) -> {
@@ -51,10 +54,8 @@ public final class ElarionAnglingAddon implements ElarionAddon {
         ServerTickEvents.END_SERVER_TICK.register(server -> sessions.expireDue(
                 System.currentTimeMillis(),
                 AnglingFishingSessionService.DEFAULT_EXPIRATIONS_PER_TICK));
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            sessions.cancel(handler.getPlayer().getUuid());
-            feedback.clear(handler.getPlayer().getUuid());
-        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+                VanillaFishingHooks.onPlayerDisconnected(handler.getPlayer()));
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             sessions.clear();
             feedback.clear();

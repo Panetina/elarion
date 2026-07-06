@@ -2,7 +2,9 @@ package panetina.elarion.core.service;
 
 import net.minecraft.server.network.ServerPlayerEntity;
 import panetina.elarion.core.config.CoreConfigManager;
+import panetina.elarion.core.event.ElarionEventBus;
 import panetina.elarion.core.model.CitizenRecord;
+import panetina.elarion.core.model.ElarionDomainEvent;
 import panetina.elarion.core.model.ProgressionEvent;
 import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.model.TitleOwnershipMode;
@@ -26,6 +28,7 @@ public final class TitleService {
     private final CitizenService citizens;
     private final TitleClaimStorage claimStorage;
     private final HistoryService history;
+    private final ElarionEventBus events;
     private net.minecraft.server.MinecraftServer server;
     private TitleClaimState claimState = new TitleClaimState();
     private ElarionNotificationService notifications;
@@ -36,12 +39,14 @@ public final class TitleService {
             CoreConfigManager config,
             CitizenService citizens,
             TitleClaimStorage claimStorage,
-            HistoryService history
+            HistoryService history,
+            ElarionEventBus events
     ) {
         this.config = config;
         this.citizens = citizens;
         this.claimStorage = claimStorage;
         this.history = history;
+        this.events = events;
     }
 
     public void bind(net.minecraft.server.MinecraftServer server) {
@@ -104,6 +109,9 @@ public final class TitleService {
             return new TitleOperation(true, "Citizen already has title: " + title.id());
         }
         if (title.ownershipMode() == TitleOwnershipMode.GLOBALLY_UNIQUE) {
+            if (claimState.retiredTitles().contains(title.id())) {
+                return new TitleOperation(false, "Unique title was retired with its former character: " + title.id());
+            }
             TitleOperation claim = claimUnique(citizen.uuid(), title, actorId, reason);
             if (!claim.success()) return claim;
         }
@@ -114,6 +122,7 @@ public final class TitleService {
                         "title", title.id(),
                         "reason", safe(reason)
                 ), citizenName(citizen) + " received the title " + title.displayName() + ".");
+        emitTitleEvent(citizen, title, actorId, reason, true);
         notifyTitle(citizen, title, true);
         return new TitleOperation(true, "Granted title " + title.id());
     }
@@ -133,6 +142,7 @@ public final class TitleService {
                         "title", title.id(),
                         "reason", safe(reason)
                 ), citizenName(citizen) + " lost the title " + title.displayName() + ".");
+        emitTitleEvent(citizen, title, actorId, reason, false);
         notifyTitle(citizen, title, false);
         return new TitleOperation(true, "Revoked title " + title.id());
     }
@@ -204,6 +214,21 @@ public final class TitleService {
 
     public Map<String, TitleClaim> claims() {
         return Map.copyOf(claimState.claims());
+    }
+
+    public synchronized int retireUniqueClaims(UUID owner, String reason) {
+        int retired = 0;
+        for (Map.Entry<String, TitleClaim> entry : claimState.claims().entrySet()) {
+            if (!entry.getValue().owner().equals(owner)) continue;
+            if (claimState.retiredTitles().add(entry.getKey())) retired++;
+        }
+        if (retired > 0) {
+            saveClaims();
+            history.recordChronicle("title", "unique-claims-retired", owner, "player", owner.toString(),
+                    "", Map.of("count", Integer.toString(retired), "reason", safe(reason)),
+                    "Globally unique titles were retired with a dead character.");
+        }
+        return retired;
     }
 
     public TitleOperation releaseClaim(String titleId, UUID actorId, String reason) {
@@ -334,5 +359,27 @@ public final class TitleService {
         return citizen.nickname() == null || citizen.nickname().isBlank()
                 ? citizen.lastKnownUsername()
                 : citizen.nickname();
+    }
+
+    private void emitTitleEvent(
+            CitizenRecord citizen,
+            TitleDefinition title,
+            UUID actorId,
+            String reason,
+            boolean granted
+    ) {
+        events.emitDomainEvent(ElarionDomainEvent.of(
+                "elarion_core",
+                granted ? "title-granted" : "title-revoked",
+                actorId,
+                citizen.realmId(),
+                "title",
+                title.id(),
+                Map.of(
+                        "citizenId", citizen.uuid().toString(),
+                        "citizenName", citizenName(citizen),
+                        "displayName", title.displayName(),
+                        "ownershipMode", title.ownershipMode().name(),
+                        "reason", safe(reason))));
     }
 }

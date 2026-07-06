@@ -10,10 +10,12 @@ public record NotificationActionPayload(String notificationId, String actionId) 
             new Id<>(Identifier.of("elarion_core", "notification_action"));
     public static final PacketCodec<PacketByteBuf, NotificationActionPayload> CODEC = PacketCodec.of(
             (payload, buffer) -> {
-                buffer.writeString(payload.notificationId());
-                buffer.writeString(payload.actionId());
+                ElarionPacketCodecs.writeString(buffer, payload.notificationId(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.actionId(), 128);
             },
-            buffer -> new NotificationActionPayload(buffer.readString(256), buffer.readString(128)));
+            buffer -> new NotificationActionPayload(
+                    ElarionPacketCodecs.readString(buffer, 256),
+                    ElarionPacketCodecs.readString(buffer, 128)));
 
     public NotificationActionPayload {
         notificationId = notificationId == null ? "" : notificationId;

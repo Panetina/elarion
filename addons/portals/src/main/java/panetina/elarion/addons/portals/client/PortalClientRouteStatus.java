@@ -15,6 +15,10 @@ public final class PortalClientRouteStatus {
         routes = payload.routes();
     }
 
+    public static void clear() {
+        routes = List.of();
+    }
+
     public static List<PortalRouteStatusSyncPayload.Entry> all() {
         return routes;
     }

@@ -69,6 +69,10 @@ public final class HistoryService {
         scheduleWeeklyChronicleArchives();
     }
 
+    public boolean isBound() {
+        return server != null;
+    }
+
     public void setTaskService(ElarionTaskService tasks) {
         this.tasks = tasks;
         storage.setTaskService(tasks);

@@ -15,6 +15,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import panetina.elarion.addons.government.model.GovernmentFormDefinition;
+import panetina.elarion.addons.government.model.GovernmentLawRecord;
+import panetina.elarion.addons.government.model.GovernmentProposalRecord;
 import panetina.elarion.addons.government.service.GovernmentDefinitionService;
 import panetina.elarion.addons.government.service.GovernmentStateService;
 import panetina.elarion.core.api.ElarionApi;
@@ -82,6 +84,11 @@ public final class GovernmentCommands {
                                             state.votedDisplayName().isBlank() ? "-" : state.votedDisplayName());
                                     CommandOutput.kv(ctx.getSource(), "Voted tag",
                                             state.votedTag().isBlank() ? "-" : state.votedTag());
+                                    CommandOutput.kv(ctx.getSource(), "Voted color",
+                                            state.votedColor().isBlank() ? "-" : state.votedColor());
+                                    api.realms().find(state.realmId()).ifPresent(realm ->
+                                            CommandOutput.kv(ctx.getSource(), "Official name",
+                                                    api.realms().officialName(realm)));
                                     CommandOutput.kv(ctx.getSource(), "Founding election complete",
                                             state.foundingElectionCompletedAt() > 0L);
                                     CommandOutput.kv(ctx.getSource(), "Offices", state.officeHolders().size());
@@ -89,6 +96,56 @@ public final class GovernmentCommands {
                                     CommandOutput.kv(ctx.getSource(), "Pending proposals",
                                             state.pendingProposalIds().size());
                                 }))))
+                .then(CommandManager.literal("proposals")
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                    String realm = StringArgumentType.getString(ctx, "realm");
+                                    CommandOutput.header(ctx.getSource(), "Government Proposals " + realm);
+                                    for (GovernmentProposalRecord proposal : states.proposals(realm)) {
+                                        CommandOutput.bullet(ctx.getSource(), proposal.id() + " ["
+                                                + proposal.status().name().toLowerCase(java.util.Locale.ROOT)
+                                                + "] " + proposal.title());
+                                    }
+                                }))))
+                .then(CommandManager.literal("proposal")
+                        .then(CommandManager.literal("inspect")
+                                .then(CommandManager.argument("realm", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                                api.realms().all().stream().map(realm -> realm.id()), builder))
+                                        .then(CommandManager.argument("proposal", StringArgumentType.word())
+                                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                                    String realm = StringArgumentType.getString(ctx, "realm");
+                                                    String id = StringArgumentType.getString(ctx, "proposal");
+                                                    GovernmentProposalRecord proposal = states.proposals(realm).stream()
+                                                            .filter(candidate -> candidate.id().equals(id))
+                                                            .findFirst()
+                                                            .orElseThrow(() -> new IllegalArgumentException(
+                                                                    "Unknown proposal " + id + "."));
+                                                    CommandOutput.header(ctx.getSource(), proposal.title());
+                                                    CommandOutput.kv(ctx.getSource(), "ID", proposal.id());
+                                                    CommandOutput.kv(ctx.getSource(), "Category", proposal.category());
+                                                    CommandOutput.kv(ctx.getSource(), "Status", proposal.status());
+                                                    CommandOutput.kv(ctx.getSource(), "Body", proposal.body());
+                                                    CommandOutput.kv(ctx.getSource(), "Review votes",
+                                                            proposal.reviewVotes().size());
+                                                }))))))
+                .then(CommandManager.literal("laws")
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                    String realm = StringArgumentType.getString(ctx, "realm");
+                                    CommandOutput.header(ctx.getSource(), "Government Civic Records " + realm);
+                                    for (GovernmentLawRecord law : states.laws(realm)) {
+                                        CommandOutput.bullet(ctx.getSource(), law.id()
+                                                + " [" + law.category() + "]"
+                                                + (law.active() ? " [active] " : " [archived] ")
+                                                + law.title());
+                                    }
+                                }))))
+                .then(lawCommands(api, states))
                 .then(CommandManager.literal("gates")
                         .then(CommandManager.argument("realm", StringArgumentType.word())
                                 .suggests((ctx, builder) -> CommandSource.suggestMatching(
@@ -101,10 +158,23 @@ public final class GovernmentCommands {
                                     CommandOutput.kv(ctx.getSource(), "Foundation III", gates.foundationIII());
                                     CommandOutput.kv(ctx.getSource(), "Name vote visible", gates.nameVoteVisible());
                                     CommandOutput.kv(ctx.getSource(), "Name vote unlocked", gates.nameVoteUnlocked());
+                                    CommandOutput.kv(ctx.getSource(), "Color vote visible", gates.colorVoteVisible());
+                                    CommandOutput.kv(ctx.getSource(), "Color vote unlocked", gates.colorVoteUnlocked());
                                     CommandOutput.kv(ctx.getSource(), "Government choices visible", gates.governmentChoicesVisible());
                                     CommandOutput.kv(ctx.getSource(), "Government vote unlocked", gates.governmentVoteUnlocked());
                                     CommandOutput.kv(ctx.getSource(), "Founding election unlocked", gates.foundingElectionUnlocked());
                                     CommandOutput.kv(ctx.getSource(), "Seat of Rule unlocked", gates.seatOfRuleUnlocked());
+                                }))))
+                .then(CommandManager.literal("reset")
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                    String realm = StringArgumentType.getString(ctx, "realm");
+                                    states.resetRealm(realm);
+                                    CommandOutput.success(ctx.getSource(),
+                                            "Reset Government founding state, votes, proposals, offices, and civic records for "
+                                                    + realm + ".", true);
                                 }))))
                 .then(CommandManager.literal("set-form")
                         .then(CommandManager.argument("realm", StringArgumentType.word())
@@ -154,21 +224,14 @@ public final class GovernmentCommands {
                 .then(CommandManager.literal("authority")
                         .then(CommandManager.literal("cleanup")
                                 .executes(ctx -> run(ctx.getSource(), () -> {
-                                    int removed = states.removeInactiveAuthority(System.currentTimeMillis());
+                                    int inactive = states.removeInactiveAuthority(System.currentTimeMillis());
+                                    int invalidDelegates = states.removeInvalidConfederationDelegates();
                                     CommandOutput.success(ctx.getSource(),
-                                            "Authority inactivity cleanup removed " + removed + " office holder(s).",
+                                            "Authority cleanup removed " + inactive
+                                                    + " inactive office holder(s) and " + invalidDelegates
+                                                    + " invalid Confederation delegate seat(s).",
                                             true);
                                 }))))
-                .then(CommandManager.literal("test")
-                        .then(CommandManager.literal("advance")
-                                .then(CommandManager.argument("realm", StringArgumentType.word())
-                                        .suggests((ctx, builder) -> CommandSource.suggestMatching(
-                                                api.realms().all().stream().map(realm -> realm.id()), builder))
-                                        .executes(ctx -> run(ctx.getSource(), () ->
-                                                CommandOutput.success(ctx.getSource(),
-                                                        states.advanceCurrentWindow(
-                                                                StringArgumentType.getString(ctx, "realm")),
-                                                        true))))))
                 .then(CommandManager.literal("block")
                         .then(CommandManager.literal("remove")
                                 .executes(ctx -> run(ctx.getSource(), () -> {
@@ -189,6 +252,70 @@ public final class GovernmentCommands {
                                     CommandOutput.success(ctx.getSource(), "Government block removed safely.", true);
                                 }))))
                 .then(officeCommands(api, definitions, states));
+    }
+
+    public static LiteralArgumentBuilder<ServerCommandSource> testCommands(
+            ElarionApi api,
+            GovernmentStateService states
+    ) {
+        return CommandManager.literal("government")
+                .then(CommandManager.literal("advance")
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .executes(ctx -> run(ctx.getSource(), () ->
+                                        CommandOutput.success(ctx.getSource(),
+                                                states.advanceCurrentWindow(
+                                                        StringArgumentType.getString(ctx, "realm")),
+                                                true)))))
+                .then(CommandManager.literal("reset")
+                        .executes(ctx -> run(ctx.getSource(), () -> {
+                            int count = states.resetAllRealms();
+                            CommandOutput.success(ctx.getSource(),
+                                    "Reset Government founding state, votes, proposals, offices, and civic records for "
+                                            + count + " Realm(s).", true);
+                        }))
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .executes(ctx -> run(ctx.getSource(), () -> {
+                                    String realm = StringArgumentType.getString(ctx, "realm");
+                                    states.resetRealm(realm);
+                                    CommandOutput.success(ctx.getSource(),
+                                            "Reset Government founding state, votes, proposals, offices, and civic records for "
+                                                    + realm + ".", true);
+                                }))));
+    }
+
+    private static LiteralArgumentBuilder<ServerCommandSource> lawCommands(
+            ElarionApi api,
+            GovernmentStateService states
+    ) {
+        return CommandManager.literal("law")
+                .then(CommandManager.literal("archive")
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .then(CommandManager.argument("law", StringArgumentType.word())
+                                        .executes(ctx -> run(ctx.getSource(), () -> {
+                                            ServerPlayerEntity player = ctx.getSource().getPlayerOrThrow();
+                                            states.archiveRecord(player,
+                                                    StringArgumentType.getString(ctx, "realm"),
+                                                    StringArgumentType.getString(ctx, "law"));
+                                            CommandOutput.success(ctx.getSource(), "Civic record archived.", true);
+                                        })))))
+                .then(CommandManager.literal("restore")
+                        .then(CommandManager.argument("realm", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(
+                                        api.realms().all().stream().map(realm -> realm.id()), builder))
+                                .then(CommandManager.argument("law", StringArgumentType.word())
+                                        .executes(ctx -> run(ctx.getSource(), () -> {
+                                            ServerPlayerEntity player = ctx.getSource().getPlayerOrThrow();
+                                            states.restoreRecord(player,
+                                                    StringArgumentType.getString(ctx, "realm"),
+                                                    StringArgumentType.getString(ctx, "law"));
+                                            CommandOutput.success(ctx.getSource(), "Civic record restored.", true);
+                                        })))));
     }
 
     public static LiteralArgumentBuilder<ServerCommandSource> officeCommands(

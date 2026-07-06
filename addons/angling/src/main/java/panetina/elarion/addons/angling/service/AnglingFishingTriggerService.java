@@ -1,5 +1,6 @@
 package panetina.elarion.addons.angling.service;
 
+import net.minecraft.util.Identifier;
 import panetina.elarion.addons.angling.condition.AnglingConditionContext;
 import panetina.elarion.addons.angling.model.AnglingCatchResult;
 import panetina.elarion.addons.angling.model.AnglingFishingSession;
@@ -34,13 +35,21 @@ public final class AnglingFishingTriggerService {
         return sessions.start(context, selectionRoll);
     }
 
-    public Optional<AnglingCatchResult> complete(UUID actorId) {
+    public Optional<CompletedCatch> complete(UUID actorId) {
         Objects.requireNonNull(actorId, "actorId");
         return sessions.active(actorId)
-                .map(session -> sessions.complete(actorId, session.sessionId()));
+                .map(session -> new CompletedCatch(
+                        sessions.complete(actorId, session.sessionId()),
+                        session.baitId()));
     }
 
     public boolean cancel(UUID actorId) {
         return sessions.cancel(Objects.requireNonNull(actorId, "actorId"));
+    }
+
+    public record CompletedCatch(AnglingCatchResult result, Identifier baitId) {
+        public CompletedCatch {
+            Objects.requireNonNull(result, "result");
+        }
     }
 }

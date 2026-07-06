@@ -21,6 +21,7 @@ public final class AnglingFishingSessionService {
 
     private final FishCandidateSelector selector;
     private final AnglingCatchResolutionService catchResolution;
+    private final AnglingRewardDeliveryService rewardDelivery;
     private final Supplier<UUID> sessionIds;
     private final Supplier<UUID> eventIds;
     private final LongSupplier clock;
@@ -31,14 +32,23 @@ public final class AnglingFishingSessionService {
 
     public AnglingFishingSessionService(
             FishCandidateSelector selector,
-            AnglingCatchResolutionService catchResolution
+            AnglingCatchResolutionService catchResolution,
+            AnglingRewardDeliveryService rewardDelivery
     ) {
         this(
                 selector,
                 catchResolution,
+                rewardDelivery,
                 UUID::randomUUID,
                 UUID::randomUUID,
                 System::currentTimeMillis);
+    }
+
+    AnglingFishingSessionService(
+            FishCandidateSelector selector,
+            AnglingCatchResolutionService catchResolution
+    ) {
+        this(selector, catchResolution, AnglingRewardDeliveryService.noop());
     }
 
     AnglingFishingSessionService(
@@ -48,8 +58,26 @@ public final class AnglingFishingSessionService {
             Supplier<UUID> eventIds,
             LongSupplier clock
     ) {
+        this(
+                selector,
+                catchResolution,
+                AnglingRewardDeliveryService.noop(),
+                sessionIds,
+                eventIds,
+                clock);
+    }
+
+    AnglingFishingSessionService(
+            FishCandidateSelector selector,
+            AnglingCatchResolutionService catchResolution,
+            AnglingRewardDeliveryService rewardDelivery,
+            Supplier<UUID> sessionIds,
+            Supplier<UUID> eventIds,
+            LongSupplier clock
+    ) {
         this.selector = Objects.requireNonNull(selector, "selector");
         this.catchResolution = Objects.requireNonNull(catchResolution, "catchResolution");
+        this.rewardDelivery = Objects.requireNonNull(rewardDelivery, "rewardDelivery");
         this.sessionIds = Objects.requireNonNull(sessionIds, "sessionIds");
         this.eventIds = Objects.requireNonNull(eventIds, "eventIds");
         this.clock = Objects.requireNonNull(clock, "clock");
@@ -90,6 +118,7 @@ public final class AnglingFishingSessionService {
                 context.worldId(),
                 context.dimensionId(),
                 context.biomeId(),
+                context.baitId(),
                 startedAt,
                 expiresAt,
                 0);
@@ -125,6 +154,7 @@ public final class AnglingFishingSessionService {
                 completing.dimensionId(),
                 completing.biomeId());
         catchResolution.emit(result);
+        rewardDelivery.enqueue(result);
         sessionsByActor.remove(actorId);
         return result;
     }

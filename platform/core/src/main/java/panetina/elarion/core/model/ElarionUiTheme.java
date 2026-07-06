@@ -6,6 +6,7 @@ public record ElarionUiTheme(
         int logicalWidth,
         int logicalHeight,
         int minimumScalePercent,
+        int fontScalePercent,
         int padding,
         int gap,
         int rowHeight,
@@ -29,6 +30,6 @@ public record ElarionUiTheme(
                 0xFFFF7777, 0xFF262626, 0xFF4A4A4A, 0xFF666666, 0xFF303030,
                 0xFF181818, 0xFFC58A2C, 0xFF70C060, 0xFF201C18, 0xFF9F7A2D,
                 "", "", "tiled", 0x00000000);
-        return new ElarionUiTheme(480, 340, 60, 16, 8, 18, 18, 6, Map.of("default", base));
+        return new ElarionUiTheme(480, 340, 60, 100, 16, 8, 18, 18, 6, Map.of("default", base));
     }
 }
