@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class GovernmentProposalLifecyclePolicyTest {
     @Test
-    void republicLawStartsAsCitizenPetition() {
-        assertEquals(GovernmentProposalStatus.CITIZEN_RATIFICATION,
+    void republicCitizenLawProposalsNoLongerStartAsPetitions() {
+        assertEquals(GovernmentProposalStatus.PENDING,
                 GovernmentStateService.initialProposalStatus("republic", "law"));
     }
 
@@ -27,12 +27,12 @@ final class GovernmentProposalLifecyclePolicyTest {
     }
 
     @Test
-    void untouchedLegacyRepublicLawPetitionsCanMigrateToCitizenRatification() {
+    void untouchedLegacyRepublicLawPetitionsDoNotMigrateToCitizenRatification() {
         RealmGovernmentState government = RealmGovernmentState.empty("realm1").withForm("republic");
         GovernmentProposalRecord proposal = GovernmentProposalRecord.create(
                 "proposal-1", "realm1", UUID.randomUUID(), "law", "Road Tax", "Build roads.", 10L);
 
-        assertTrue(GovernmentStateService.shouldMigrateLegacyRepublicPetition(government, proposal));
+        assertFalse(GovernmentStateService.shouldMigrateLegacyRepublicPetition(government, proposal));
     }
 
     @Test

@@ -59,7 +59,7 @@ public final class CivicForumScreen extends ElarionScreen {
     private String overlayTarget = "";
     private String titleInput = "";
     private String bodyInput = "";
-    private String proposalCategory = "law";
+    private String proposalCategory = "audience_request";
     private String feedbackMessage = "";
 
     public CivicForumScreen(GovernmentUiOpenPayload payload) {
@@ -165,7 +165,7 @@ public final class CivicForumScreen extends ElarionScreen {
     private void renderTabs(DrawContext context, double mouseX, double mouseY) {
         GovernmentScreenChrome.Tab[] tabs = {
                 new GovernmentScreenChrome.Tab("current_votes", "Current Votes", "current_votes"),
-                new GovernmentScreenChrome.Tab("proposals", "Proposals", "proposal"),
+                new GovernmentScreenChrome.Tab("audience", "Audience", "proposal"),
                 new GovernmentScreenChrome.Tab("laws", "Laws", "law"),
                 new GovernmentScreenChrome.Tab("projects", "Projects", "project"),
                 new GovernmentScreenChrome.Tab("offices", "Offices", "office"),
@@ -348,7 +348,7 @@ public final class CivicForumScreen extends ElarionScreen {
             renderProposalVoteDetail(context, row, mouseX, mouseY, x, bodyY + 66);
         } else {
             renderInformationDetail(context, row, x, bodyY + 70);
-            if (activeTab().equals("proposals")) {
+            if (activeTab().equals("audience")) {
                 renderPrimaryAction(context, x, MAIN_BOTTOM - 34, RIGHT_WIDTH - 28, mouseX, mouseY);
             }
         }
@@ -362,6 +362,10 @@ public final class CivicForumScreen extends ElarionScreen {
             int x,
             int y
     ) {
+        if (payload.screenType().equals("civic_form")) {
+            renderGovernmentFormChoicePanel(context, choices, mouseX, mouseY, x, y);
+            return;
+        }
         ElarionUiTypography.draw(context, textRenderer, optionPanelTitle(), x, y, theme.titleColor(), false);
         ElarionUiRenderer.wrappedClipped(context, textRenderer, Text.literal(payload.subtitle()),
                 x, y + 16, RIGHT_WIDTH - 28, 32, theme.mutedColor(), theme.mutedColor());
@@ -405,6 +409,72 @@ public final class CivicForumScreen extends ElarionScreen {
         if (visibleChoices.size() > capacity) {
             String hint = (choiceFirstVisible + 1) + "-" + (choiceFirstVisible + visible) + " / " + visibleChoices.size();
             ElarionUiTypography.draw(context, textRenderer, hint, x + RIGHT_WIDTH - 28 - ElarionUiTypography.width(textRenderer, hint),
+                    listBottom + 4, theme.mutedColor(), false);
+        }
+        renderPrimaryAction(context, x, MAIN_BOTTOM - 34, RIGHT_WIDTH - 28, mouseX, mouseY);
+    }
+
+    private void renderGovernmentFormChoicePanel(
+            DrawContext context,
+            List<GovernmentUiOpenPayload.Row> choices,
+            double mouseX,
+            double mouseY,
+            int x,
+            int y
+    ) {
+        ElarionUiTypography.draw(context, textRenderer, "Choose Government Form", x, y, theme.titleColor(), false);
+        ElarionUiRenderer.wrappedClipped(context, textRenderer, Text.literal(payload.subtitle()),
+                x, y + 16, RIGHT_WIDTH - 28, 36, theme.mutedColor(), theme.mutedColor());
+        context.fill(x, y + 58, x + RIGHT_WIDTH - 28, y + 59, GovernmentUiGlyphs.GOLD_SHADOW);
+        List<GovernmentUiOpenPayload.Row> visibleChoices = choices.stream()
+                .filter(choice -> !choice.id().equals("empty"))
+                .toList();
+        if (visibleChoices.isEmpty()) {
+            ElarionUiRenderer.wrappedClipped(context, textRenderer, Text.literal("No Government forms are available."),
+                    x, y + 72, RIGHT_WIDTH - 28, 58, theme.mutedColor(), theme.mutedColor());
+            return;
+        }
+        int cardY = y + 68;
+        int cardHeight = 92;
+        int cardGap = 10;
+        int listBottom = choicePanelShowsPrimaryAction(payload.primaryAction(), choices)
+                ? MAIN_BOTTOM - 48 : MAIN_BOTTOM - 16;
+        int capacity = Math.max(1, (listBottom - cardY) / (cardHeight + cardGap));
+        int maxFirst = Math.max(0, visibleChoices.size() - capacity);
+        if (choiceFirstVisible > maxFirst) choiceFirstVisible = maxFirst;
+        int visible = 0;
+        for (GovernmentUiOpenPayload.Row choice : visibleChoices.stream().skip(choiceFirstVisible).toList()) {
+            if (visible >= capacity) break;
+            boolean hover = inside(mouseX, mouseY, x, cardY, RIGHT_WIDTH - 28, cardHeight);
+            boolean selected = choice.selectedByViewer() || choice.complete();
+            boolean muted = !choice.unlocked();
+            GovernmentUiGlyphs.rowBox(context, x, cardY, RIGHT_WIDTH - 28, cardHeight, selected, hover, muted, style);
+            GovernmentUiGlyphs.iconFrame(context, x + 10, cardY + 12, 34, iconForRow(choice), style);
+            int textX = x + 54;
+            int textWidth = RIGHT_WIDTH - 28 - 66;
+            int titleColor = selected ? GovernmentUiGlyphs.ACTIVE_GREEN : theme.titleColor();
+            ElarionUiTypography.draw(context, textRenderer,
+                    ElarionUiRenderer.ellipsize(textRenderer, choice.title(), textWidth - 74),
+                    textX, cardY + 12, titleColor, false);
+            String tag = choice.selectedByViewer() ? "Your Vote" : choice.complete() ? "Chosen" : choice.state();
+            GovernmentUiGlyphs.tag(context, textRenderer, x + RIGHT_WIDTH - 28 - 82, cardY + 10, tag,
+                    choice.unlocked(), 72, style);
+            ElarionUiRenderer.wrappedClipped(context, textRenderer, Text.literal(stripCategory(choice.body())),
+                    textX, cardY + 32, textWidth, 38, muted ? theme.mutedColor() : theme.textColor(), theme.mutedColor());
+            String metric = choice.unlocked() ? choice.voteCount() + (choice.voteCount() == 1 ? " vote" : " votes")
+                    : "Locked";
+            ElarionUiTypography.draw(context, textRenderer, metric,
+                    textX, cardY + 74, theme.mutedColor(), false);
+            if (choice.unlocked() && payload.eligible()) {
+                hits.add(new Hit(x, cardY, RIGHT_WIDTH - 28, cardHeight, "vote", choice.id()));
+            }
+            cardY += cardHeight + cardGap;
+            visible++;
+        }
+        if (visibleChoices.size() > capacity) {
+            String hint = (choiceFirstVisible + 1) + "-" + (choiceFirstVisible + visible) + " / " + visibleChoices.size();
+            ElarionUiTypography.draw(context, textRenderer, hint,
+                    x + RIGHT_WIDTH - 28 - ElarionUiTypography.width(textRenderer, hint),
                     listBottom + 4, theme.mutedColor(), false);
         }
         renderPrimaryAction(context, x, MAIN_BOTTOM - 34, RIGHT_WIDTH - 28, mouseX, mouseY);
@@ -596,10 +666,10 @@ public final class CivicForumScreen extends ElarionScreen {
         renderInput(context, x + 12, y + 34, w - 24, textOverlay() ? "Title" : "Name", titleInput, !secondaryActive);
         if (textOverlay()) {
             renderTextArea(context, x + 12, y + 62, w - 24, 100, "Body", bodyInput, secondaryActive);
-            ElarionUiTypography.draw(context, textRenderer, "Category: " + proposalCategory.replace('_', ' '),
+            ElarionUiTypography.draw(context, textRenderer, "Audience request",
                     x + 14, y + 170, theme.mutedColor(), false);
             if (overlayAction.equals("create_proposal")) {
-                ElarionUiTypography.draw(context, textRenderer, "Left / Right changes category.",
+                ElarionUiTypography.draw(context, textRenderer, "This asks the Monarch for a meeting.",
                         x + 14, y + 182, theme.mutedColor(), false);
             }
         } else {
@@ -664,7 +734,7 @@ public final class CivicForumScreen extends ElarionScreen {
     }
 
     private List<GovernmentUiOpenPayload.Row> rowsForActiveTab() {
-        if (activeTab().equals("proposals")) return payload.stageRows();
+        if (activeTab().equals("audience")) return payload.stageRows();
         if (activeTab().equals("laws") || activeTab().equals("projects") || activeTab().equals("history")) return payload.stageRows();
         if (activeTab().equals("offices")) return payload.officeRows().isEmpty() ? payload.moduleRows() : payload.officeRows();
         if (activeTab().equals("current_votes")) return rowsForCurrentVotes(payload.screenType(),
@@ -725,6 +795,7 @@ public final class CivicForumScreen extends ElarionScreen {
     private String activeTab() {
         String tab = activeTabOverride.isBlank() ? payload.activeTabId() : activeTabOverride;
         if (tab.equals("rules") || tab.equals("notices")) return "laws";
+        if (tab.equals("proposals")) return "audience";
         if (tab.equals("archive")) return "history";
         return tab.isBlank() ? "current_votes" : tab;
     }
@@ -739,7 +810,7 @@ public final class CivicForumScreen extends ElarionScreen {
         boolean foundingComplete = "civic_features".equals(safeScreen) || safeScreen.startsWith("civic_module_");
         return switch (safeTab) {
             case "current_votes" -> !"current_votes".equals(activeTab);
-            case "proposals", "laws", "projects", "offices", "history" -> foundingComplete;
+            case "audience", "proposals", "laws", "projects", "offices", "history" -> foundingComplete;
             default -> false;
         };
     }
@@ -774,9 +845,8 @@ public final class CivicForumScreen extends ElarionScreen {
             case "civic_name" -> 0;
             case "civic_color" -> 1;
             case "civic_form" -> 2;
-            case "civic_theocracy_faith" -> 3;
-            case "civic_election" -> 4;
-            default -> 5;
+            case "civic_election" -> 3;
+            default -> 4;
         };
     }
 
@@ -784,8 +854,6 @@ public final class CivicForumScreen extends ElarionScreen {
         String form = formLabel().toLowerCase();
         if (form.contains("republic")) return "Leader Election";
         if (form.contains("monarchy")) return "Monarch Election";
-        if (form.contains("theocracy")) return "High Priest Election";
-        if (form.contains("confederation")) return "Delegate Election";
         return "Leadership Election";
     }
 
@@ -799,8 +867,7 @@ public final class CivicForumScreen extends ElarionScreen {
             case "ratify_proposal" -> selectedRow().selectedByViewer() ? "Change Vote" : "Vote Yes";
             case "vote" -> selectedRow().selectedByViewer() ? "Change Vote" : "Vote";
             case "nominate_self" -> "Nominate Yourself";
-            case "propose_faith" -> "Propose Faith";
-            case "create_proposal" -> "Create Proposal";
+            case "create_proposal" -> "Request Audience";
             case "propose_name" -> "Propose Name";
             default -> "Open";
         };
@@ -836,7 +903,7 @@ public final class CivicForumScreen extends ElarionScreen {
     }
 
     private boolean showsProposalVote(GovernmentUiOpenPayload.Row row) {
-        return (payload.screenType().equals("civic_module_proposals") || row.kind().equals("active_vote"))
+        return (payload.screenType().equals("civic_module_audience") || row.kind().equals("active_vote"))
                 && (row.state().equals("Ratify") || row.state().equals("Voted") || row.state().equals("Active"));
     }
 
@@ -856,8 +923,7 @@ public final class CivicForumScreen extends ElarionScreen {
 
     private String overlayTitle() {
         return switch (overlayAction) {
-            case "create_proposal" -> "Create Civic Proposal";
-            case "propose_faith" -> "Propose Founding Faith";
+            case "create_proposal" -> "Request Audience";
             default -> textOverlay() ? "Write Official Text" : "Propose Realm Identity";
         };
     }
@@ -896,7 +962,7 @@ public final class CivicForumScreen extends ElarionScreen {
             case "ratify_proposal" -> sendAction("ratify_proposal", hit.target, "", "");
             case "oppose_proposal" -> sendAction("oppose_proposal", hit.target, "", "");
             case "nominate_self" -> sendAction("nominate_self", hit.target, "", "");
-            case "create_proposal", "propose_name", "propose_faith" -> {
+            case "create_proposal", "propose_name" -> {
                 overlay = true;
                 overlayAction = hit.action;
                 overlayTarget = hit.target;
@@ -1017,7 +1083,7 @@ public final class CivicForumScreen extends ElarionScreen {
                 bodyInput += textOverlay() ? chr : Character.toUpperCase(chr);
             }
         } else if (titleInput.length() < 64) {
-            if (!textOverlay() && !overlayAction.equals("propose_faith")) {
+            if (!textOverlay()) {
                 if (Character.isLetter(chr) || chr == ' ') titleInput += chr;
             } else {
                 titleInput += chr;
@@ -1060,10 +1126,7 @@ public final class CivicForumScreen extends ElarionScreen {
     }
 
     private void cycleProposalCategory(int direction) {
-        List<String> categories = List.of("law", "realm_project", "civic_rule");
-        int index = categories.indexOf(proposalCategory);
-        if (index < 0) index = 0;
-        proposalCategory = categories.get(Math.floorMod(index + direction, categories.size()));
+        proposalCategory = "audience_request";
     }
 
     private static boolean inside(double mouseX, double mouseY, int x, int y, int width, int height) {

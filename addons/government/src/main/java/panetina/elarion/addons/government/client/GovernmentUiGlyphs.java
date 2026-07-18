@@ -239,7 +239,7 @@ public final class GovernmentUiGlyphs {
             case "security", "reject", "rejected" -> 0xFFE36A5A;
             case "economy", "law", "laws", "rule", "rules", "pending", "current" -> GOLD_BORDER;
             case "infrastructure", "project", "projects", "government proposal" -> 0xFF6EA7E8;
-            case "culture", "notice", "notices", "faith" -> 0xFFB17CE8;
+            case "culture", "notice", "notices" -> 0xFFB17CE8;
             case "locked", "waiting" -> 0xFF8A8172;
             default -> 0xFF62B8C9;
         };
@@ -467,7 +467,7 @@ public final class GovernmentUiGlyphs {
             case "security", "reject", "rejected" -> 0xCC2A1412;
             case "economy", "law", "laws", "rule", "rules", "pending", "current" -> 0xCC24190D;
             case "infrastructure", "project", "projects", "government proposal" -> 0xCC121D2C;
-            case "culture", "notice", "notices", "faith" -> 0xCC22162F;
+            case "culture", "notice", "notices" -> 0xCC22162F;
             case "locked", "waiting" -> 0xCC1D1812;
             default -> 0xCC122329;
         };
@@ -483,7 +483,7 @@ public final class GovernmentUiGlyphs {
             case "Ember proposal", "proposal", "active", "settled", "passed", "open", "proposed" -> ACTIVE_GREEN_SHADOW;
             case "security", "reject", "rejected" -> REJECT_RED_SHADOW;
             case "infrastructure", "project", "projects", "government proposal" -> 0xFF25425D;
-            case "culture", "notice", "notices", "faith" -> 0xFF422B5E;
+            case "culture", "notice", "notices" -> 0xFF422B5E;
             case "locked", "waiting" -> 0xFF3A332A;
             default -> GOLD_SHADOW;
         };

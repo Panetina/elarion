@@ -30,8 +30,7 @@ class GovernmentStorageTest {
         state.realms.put("realm1", RealmGovernmentState.empty("realm1")
                 .withVotedIdentity("Oak", "OAK")
                 .withVotedColor("gold")
-                .withForm("theocracy")
-                .withFaithIdentity("Church of Oak", "OAK")
+                .withForm("republic")
                 .withFoundingElectionComplete());
         state.realms.put("vacant", RealmGovernmentState.empty("vacant")
                 .withForm("monarchy")
@@ -55,7 +54,7 @@ class GovernmentStorageTest {
         GovernmentLawRecord archived = law.archived(author, 789L);
         state.proposals.put(proposal.id(), proposal);
         state.laws.put(archived.id(), archived);
-        GovernmentOfficeTermRecord term = GovernmentOfficeTermRecord.active("realm1", "high_priest", citizen, 321L)
+        GovernmentOfficeTermRecord term = GovernmentOfficeTermRecord.active("realm1", "president", citizen, 321L)
                 .withDecision(true)
                 .withDecision(false);
         state.officeTerms.put(term.key(), term);
@@ -66,14 +65,11 @@ class GovernmentStorageTest {
         GovernmentState loaded = storage.load(root);
 
         assertEquals(GovernmentState.CURRENT_SCHEMA_VERSION, loaded.schemaVersion);
-        assertEquals("theocracy", loaded.realms.get("realm1").activeGovernmentFormId());
+        assertEquals("republic", loaded.realms.get("realm1").activeGovernmentFormId());
         assertEquals("Oak", loaded.realms.get("realm1").votedDisplayName());
         assertEquals("OAK", loaded.realms.get("realm1").votedTag());
         assertEquals("gold", loaded.realms.get("realm1").votedColor());
-        assertEquals("Church of Oak", loaded.realms.get("realm1").faithDisplayName());
-        assertEquals("OAK", loaded.realms.get("realm1").faithTag());
         assertEquals(true, loaded.realms.get("realm1").colorVoteCompletedAt() > 0L);
-        assertEquals(true, loaded.realms.get("realm1").faithVoteCompletedAt() > 0L);
         assertEquals(true, loaded.realms.get("realm1").foundingElectionCompletedAt() > 0L);
         assertEquals(0L, loaded.realms.get("vacant").foundingElectionCompletedAt());
         assertEquals(7L, loaded.votes.get("realm1:realm_name").resultTotals.get("oak"));
@@ -86,7 +82,7 @@ class GovernmentStorageTest {
         assertEquals(false, loaded.laws.get("realm1_law_oak_roads").active());
         assertEquals(true, loaded.laws.get("realm1_law_oak_roads").restored().active());
         GovernmentOfficeTermRecord loadedTerm = loaded.officeTerms.get(term.key());
-        assertEquals("high_priest", loadedTerm.officeId());
+        assertEquals("president", loadedTerm.officeId());
         assertEquals(321L, loadedTerm.chosenAt());
         assertEquals(1L, loadedTerm.approvedCount());
         assertEquals(1L, loadedTerm.rejectedCount());

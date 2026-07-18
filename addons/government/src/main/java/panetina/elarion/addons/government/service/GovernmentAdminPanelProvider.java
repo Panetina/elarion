@@ -35,7 +35,7 @@ public final class GovernmentAdminPanelProvider implements ElarionAdminPanelProv
                 "item:minecraft:lectern",
                 List.of(ElarionAdminPanelAction.danger(id(), "reset_all",
                         "Reset All Government", "Confirm Government Reset",
-                        "Reset Government founding state, votes, proposals, offices, and civic records for every Realm."))));
+                        "Reset Government founding state, votes, audience/vote records, offices, and civic records for every Realm."))));
     }
 
     @Override
@@ -49,7 +49,7 @@ public final class GovernmentAdminPanelProvider implements ElarionAdminPanelProv
                 List.of(
                         ElarionAdminPanelAction.danger(id(), "reset_realm",
                                 "Reset Government", "Confirm Realm Government Reset",
-                                "Reset this Realm's Government founding state, votes, proposals, offices, and civic records."),
+                                "Reset this Realm's Government founding state, votes, audience/vote records, offices, and civic records."),
                         ElarionAdminPanelAction.normal(id(), "advance_realm", "Advance Vote Window"))));
     }
 
@@ -60,7 +60,7 @@ public final class GovernmentAdminPanelProvider implements ElarionAdminPanelProv
 
     @Override
     public String runtimeResetDescription() {
-        return "Government founding state, votes, offices, proposals, and civic records";
+        return "Government founding state, votes, offices, audience/vote records, and civic records";
     }
 
     @Override

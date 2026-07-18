@@ -12,15 +12,11 @@ public record RealmGovernmentState(
         String votedDisplayName,
         String votedTag,
         String votedColor,
-        String faithDisplayName,
-        String faithTag,
         Map<String, Set<UUID>> officeHolders,
-        Map<UUID, String> delegateGroupIds,
         Set<String> activeLawIds,
         Set<String> pendingProposalIds,
         long nameVoteCompletedAt,
         long colorVoteCompletedAt,
-        long faithVoteCompletedAt,
         long foundingElectionCompletedAt,
         long lastReformAt
 ) {
@@ -30,59 +26,49 @@ public record RealmGovernmentState(
         votedDisplayName = votedDisplayName == null ? "" : votedDisplayName;
         votedTag = votedTag == null ? "" : votedTag;
         votedColor = votedColor == null ? "" : votedColor;
-        faithDisplayName = faithDisplayName == null ? "" : faithDisplayName;
-        faithTag = faithTag == null ? "" : faithTag;
         officeHolders = officeHolders == null ? Map.of() : copyOffices(officeHolders);
-        delegateGroupIds = delegateGroupIds == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(delegateGroupIds));
         activeLawIds = activeLawIds == null ? Set.of() : Set.copyOf(activeLawIds);
         pendingProposalIds = pendingProposalIds == null ? Set.of() : Set.copyOf(pendingProposalIds);
     }
 
     public static RealmGovernmentState empty(String realmId) {
-        return new RealmGovernmentState(realmId, "", "", "", "", "", "", Map.of(), Map.of(), Set.of(), Set.of(),
-                0L, 0L, 0L, 0L, 0L);
+        return new RealmGovernmentState(realmId, "", "", "", "", Map.of(), Set.of(), Set.of(),
+                0L, 0L, 0L, 0L);
     }
 
     public RealmGovernmentState withForm(String formId) {
-        return new RealmGovernmentState(realmId, formId, votedDisplayName, votedTag, votedColor, faithDisplayName,
-                faithTag, officeHolders, delegateGroupIds, activeLawIds, pendingProposalIds, nameVoteCompletedAt,
-                colorVoteCompletedAt, faithVoteCompletedAt, foundingElectionCompletedAt, System.currentTimeMillis());
+        return new RealmGovernmentState(realmId, formId, votedDisplayName, votedTag, votedColor,
+                officeHolders, activeLawIds, pendingProposalIds, nameVoteCompletedAt,
+                colorVoteCompletedAt, foundingElectionCompletedAt, System.currentTimeMillis());
     }
 
     public RealmGovernmentState withVotedIdentity(String displayName, String tag) {
         return new RealmGovernmentState(realmId, activeGovernmentFormId, displayName, tag, votedColor,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, activeLawIds, pendingProposalIds,
-                System.currentTimeMillis(), colorVoteCompletedAt, faithVoteCompletedAt,
+                officeHolders, activeLawIds, pendingProposalIds,
+                System.currentTimeMillis(), colorVoteCompletedAt,
                 foundingElectionCompletedAt,
                 lastReformAt);
     }
 
     public RealmGovernmentState withVotedColor(String color) {
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, color,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, activeLawIds, pendingProposalIds,
-                nameVoteCompletedAt, System.currentTimeMillis(), faithVoteCompletedAt,
+                officeHolders, activeLawIds, pendingProposalIds,
+                nameVoteCompletedAt, System.currentTimeMillis(),
                 foundingElectionCompletedAt,
                 lastReformAt);
     }
 
-    public RealmGovernmentState withFaithIdentity(String displayName, String tag) {
-        return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                displayName, tag, officeHolders, delegateGroupIds, activeLawIds, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, System.currentTimeMillis(),
-                foundingElectionCompletedAt, lastReformAt);
-    }
-
     public RealmGovernmentState withFoundingElectionComplete() {
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, activeLawIds, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                officeHolders, activeLawIds, pendingProposalIds,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 System.currentTimeMillis(), lastReformAt);
     }
 
     public RealmGovernmentState withFoundingElectionReopened() {
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, activeLawIds, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                officeHolders, activeLawIds, pendingProposalIds,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 0L, lastReformAt);
     }
 
@@ -90,19 +76,8 @@ public record RealmGovernmentState(
         Map<String, Set<UUID>> updated = mutableOffices();
         updated.computeIfAbsent(officeId, ignored -> new LinkedHashSet<>()).add(citizenId);
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, updated, delegateGroupIds, activeLawIds, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
-                foundingElectionCompletedAt, lastReformAt);
-    }
-
-    public RealmGovernmentState withDelegateGroup(UUID citizenId, String groupId) {
-        Map<UUID, String> updated = new LinkedHashMap<>(delegateGroupIds);
-        if (citizenId != null && groupId != null && !groupId.isBlank()) {
-            updated.put(citizenId, groupId);
-        }
-        return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, officeHolders, updated, activeLawIds, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                updated, activeLawIds, pendingProposalIds,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 foundingElectionCompletedAt, lastReformAt);
     }
 
@@ -110,8 +85,8 @@ public record RealmGovernmentState(
         Set<String> proposals = new LinkedHashSet<>(pendingProposalIds);
         if (proposalId != null && !proposalId.isBlank()) proposals.add(proposalId);
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, activeLawIds, proposals,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                officeHolders, activeLawIds, proposals,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 foundingElectionCompletedAt, lastReformAt);
     }
 
@@ -119,8 +94,8 @@ public record RealmGovernmentState(
         Set<String> proposals = new LinkedHashSet<>(pendingProposalIds);
         proposals.remove(proposalId);
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, activeLawIds, proposals,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                officeHolders, activeLawIds, proposals,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 foundingElectionCompletedAt, lastReformAt);
     }
 
@@ -128,8 +103,8 @@ public record RealmGovernmentState(
         Set<String> laws = new LinkedHashSet<>(activeLawIds);
         if (lawId != null && !lawId.isBlank()) laws.add(lawId);
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, laws, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                officeHolders, laws, pendingProposalIds,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 foundingElectionCompletedAt, lastReformAt);
     }
 
@@ -137,8 +112,8 @@ public record RealmGovernmentState(
         Set<String> laws = new LinkedHashSet<>(activeLawIds);
         laws.remove(lawId);
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, officeHolders, delegateGroupIds, laws, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                officeHolders, laws, pendingProposalIds,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 foundingElectionCompletedAt, lastReformAt);
     }
 
@@ -149,13 +124,9 @@ public record RealmGovernmentState(
             holders.remove(citizenId);
             if (holders.isEmpty()) updated.remove(officeId);
         }
-        Map<UUID, String> delegateGroups = new LinkedHashMap<>(delegateGroupIds);
-        if ("delegate".equals(officeId)) {
-            delegateGroups.remove(citizenId);
-        }
         return new RealmGovernmentState(realmId, activeGovernmentFormId, votedDisplayName, votedTag, votedColor,
-                faithDisplayName, faithTag, updated, delegateGroups, activeLawIds, pendingProposalIds,
-                nameVoteCompletedAt, colorVoteCompletedAt, faithVoteCompletedAt,
+                updated, activeLawIds, pendingProposalIds,
+                nameVoteCompletedAt, colorVoteCompletedAt,
                 foundingElectionCompletedAt, lastReformAt);
     }
 

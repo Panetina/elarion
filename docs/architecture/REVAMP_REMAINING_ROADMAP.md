@@ -142,7 +142,6 @@ integrations.
 ## Cross-Phase Unfinished Work
 
 - Remaining targeted UI screenshot QA.
-- Government packet, multiplayer, and GameTest coverage.
 - Chronicle families only when corresponding gameplay exists.
 - Reset, Underworld, lifecycle, tablist, and grave-reconciliation verification.
 - Structural cleanup candidates such as oversized services or duplicated

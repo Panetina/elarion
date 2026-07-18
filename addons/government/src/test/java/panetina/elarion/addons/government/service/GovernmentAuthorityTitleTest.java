@@ -18,14 +18,14 @@ final class GovernmentAuthorityTitleTest {
         CitizenRecord citizen = new CitizenRecord(UUID.randomUUID(), "Player");
         citizen.unlockTitle("citizen", 1L);
         citizen.unlockTitle("government_president", 1L);
-        citizen.unlockTitle("government_councilor", 1L);
+        citizen.unlockTitle("government_officer", 1L);
         citizen.setActiveTitleId("government_president");
 
-        boolean changed = GovernmentStateService.removeAuthorityTitleUnlocks(citizen, "government_councilor");
+        boolean changed = GovernmentStateService.removeAuthorityTitleUnlocks(citizen, "government_officer");
 
         assertTrue(changed);
         assertFalse(citizen.hasUnlockedTitle("government_president"));
-        assertTrue(citizen.hasUnlockedTitle("government_councilor"));
+        assertTrue(citizen.hasUnlockedTitle("government_officer"));
         assertTrue(citizen.hasUnlockedTitle("citizen"));
     }
 
@@ -45,28 +45,14 @@ final class GovernmentAuthorityTitleTest {
     }
 
     @Test
-    void republicPresidentCannotAlsoHoldCouncilSeat() {
+    void republicHasNoCouncilConflictRules() {
         UUID president = UUID.randomUUID();
         RealmGovernmentState state = new RealmGovernmentState(
-                "realm1", "republic", "", "", "", "", "",
-                Map.of("president", Set.of(president)), Map.of(), Set.of(), Set.of(),
-                0L, 0L, 0L, 0L, 0L);
+                "realm1", "republic", "", "", "",
+                Map.of("president", Set.of(president)), Set.of(), Set.of(),
+                0L, 0L, 0L, 0L);
 
-        assertEquals("The President cannot also hold a Councilor seat.",
-                GovernmentStateService.republicOfficeConflict(
-                        "republic", "council_member", state, president));
-    }
-
-    @Test
-    void republicCouncilorCannotAlsoBecomePresident() {
-        UUID councilor = UUID.randomUUID();
-        RealmGovernmentState state = new RealmGovernmentState(
-                "realm1", "republic", "", "", "", "", "",
-                Map.of("council_member", Set.of(councilor)), Map.of(), Set.of(), Set.of(),
-                0L, 0L, 0L, 0L, 0L);
-
-        assertEquals("A Councilor cannot also hold the President office.",
-                GovernmentStateService.republicOfficeConflict(
-                        "republic", "president", state, councilor));
+        assertEquals("", GovernmentStateService.republicOfficeConflict(
+                "republic", "president", state, president));
     }
 }

@@ -136,15 +136,15 @@ coordinates, NPC placements, or Realm identity.
 `/e test government reset` clears:
 
 - voted Realm name/tag/color overlays
-- Theocracy faith identity
 - active government forms
 - office holders
 - votes
-- citizen proposals
+- audience requests
 - civic records/laws
 - Government pending proposal/civic record references
 
-It also releases Confederation group locks created by delegate seats.
+It does not touch Portal routes, NPC placements, Shrine blocks, or Offering
+progress.
 
 It preserves:
 

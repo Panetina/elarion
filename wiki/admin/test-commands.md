@@ -99,7 +99,8 @@ reset Shrine progress or Government state.
 ## Government Reset
 
 Use this when you want to test Civic Forum, Seat of Rule, Realm name voting,
-Government form voting, elections, proposals, and laws from zero.
+Government form voting, elections, audience requests, law votes, and laws from
+zero.
 
 ```text
 /e test government reset realm1
@@ -108,11 +109,10 @@ Government form voting, elections, proposals, and laws from zero.
 Clears:
 
 - voted Realm name/tag/color
-- Theocracy faith identity
 - active Government form
 - office holders
 - votes
-- proposals
+- audience/vote records
 - civic records/laws
 
 Preserves:
@@ -123,7 +123,8 @@ Preserves:
 - NPC placements
 - Groups membership and identity
 
-Confederation delegate group locks are released during reset.
+Government reset does not touch Portal routes, NPC placements, Shrine blocks,
+or Offering progress.
 
 ## Government Advance
 

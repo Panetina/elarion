@@ -8,19 +8,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GovernmentVoteOptionTest {
     @Test
-    void delegateCandidateCarriesRepresentedGroup() {
+    void candidateCarriesOfficeAndCitizen() {
         UUID candidate = UUID.randomUUID();
 
         GovernmentVoteOption option = GovernmentVoteOption.candidate(
-                "delegate:" + candidate,
+                "president:" + candidate,
                 "Matie",
-                "Delegate for [MERC]",
-                "delegate",
+                "President candidate",
+                "president",
                 candidate,
-                "merc");
+                "");
 
-        assertEquals("delegate", option.officeId());
+        assertEquals("president", option.officeId());
         assertEquals(candidate, option.candidateId());
-        assertEquals("merc", option.groupId());
+        assertEquals("", option.groupId());
     }
 }

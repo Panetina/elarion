@@ -15,10 +15,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 
 public final class GovernmentConfigLoader {
+    private static final Set<String> ACTIVE_FORM_IDS = Set.of("monarchy", "republic");
+
     private GovernmentConfigLoader() {
     }
 
@@ -32,6 +35,7 @@ public final class GovernmentConfigLoader {
                 Path file = folder.resolve("form.yml");
                 if (Files.notExists(file)) continue;
                 GovernmentFormDefinition definition = readForm(api, yaml, file);
+                if (!ACTIVE_FORM_IDS.contains(definition.id())) continue;
                 validate(definition, file);
                 if (definitions.put(definition.id(), definition) != null) {
                     throw new GovernmentConfigException("Duplicate government form id " + definition.id());
@@ -67,10 +71,6 @@ public final class GovernmentConfigLoader {
                 GovernmentConfigDefaults.MONARCHY_FORM);
         writeDefault(root.resolve("forms").resolve("republic").resolve("form.yml"),
                 GovernmentConfigDefaults.REPUBLIC_FORM);
-        writeDefault(root.resolve("forms").resolve("theocracy").resolve("form.yml"),
-                GovernmentConfigDefaults.THEOCRACY_FORM);
-        writeDefault(root.resolve("forms").resolve("confederation").resolve("form.yml"),
-                GovernmentConfigDefaults.CONFEDERATION_FORM);
         return root;
     }
 
@@ -98,7 +98,6 @@ public final class GovernmentConfigLoader {
                     bool(map, "enabled", true),
                     api.system().placeholders().replaceIdentity(string(map, "official-name-template")),
                     stringList(map.get("authority-offices")),
-                    bool(map, "confederation-delegates-represent-groups", false),
                     offices(api, map.get("offices")),
                     stringListMap(map.get("actions")),
                     stringMap(map.get("transitions"))

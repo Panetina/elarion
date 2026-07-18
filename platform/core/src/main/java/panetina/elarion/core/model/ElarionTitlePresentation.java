@@ -12,10 +12,8 @@ public final class ElarionTitlePresentation {
 
     public static ElarionCollectionRank rank(String titleId, TitleOwnershipMode ownershipMode) {
         return switch (titleId == null ? "" : titleId) {
-            case "government_monarch", "government_president", "government_high_cleric" -> ElarionCollectionRank.SOVEREIGN;
-            case "government_heir", "government_delegate" -> ElarionCollectionRank.HEIR;
-            case "government_councilor" -> ElarionCollectionRank.COUNCIL;
-            case "government_synod_member" -> ElarionCollectionRank.SYNOD;
+            case "government_monarch", "government_president" -> ElarionCollectionRank.SOVEREIGN;
+            case "government_heir" -> ElarionCollectionRank.HEIR;
             case "government_officer" -> ElarionCollectionRank.OFFICER;
             case "news_reporter", "diplomat" -> ElarionCollectionRank.TRUSTED;
             case "dragon_slayer", "maze_runner" -> ElarionCollectionRank.LEGENDARY;
@@ -28,9 +26,9 @@ public final class ElarionTitlePresentation {
 
     public static int fallbackColor(String titleId, TitleOwnershipMode ownershipMode) {
         return switch (titleId == null ? "" : titleId) {
-            case "government_monarch", "government_president", "government_high_cleric",
-                 "government_heir", "government_delegate", "government_councilor",
-                 "government_synod_member", "government_officer", "news_reporter", "diplomat",
+            case "government_monarch", "government_president",
+                 "government_heir",
+                 "government_officer", "news_reporter", "diplomat",
                  "dragon_slayer", "maze_runner", "goblin_slayer", "aquatic" ->
                     rank(titleId, ownershipMode).color();
             default -> ownershipMode == TitleOwnershipMode.GLOBALLY_UNIQUE

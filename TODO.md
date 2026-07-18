@@ -34,8 +34,6 @@ Executable Phase 14 evidence matrix:
 - Add the shared server-authored player-link/profile-opening contract; do not
   parse client display text or trust client UUID selection.
 - Add stable Mount/Pet reward hooks only as a separately approved owner slice.
-- Continue Government command, packet, multiplayer, and GameTest coverage for
-  civic mutation paths.
 - Manually verify reset preservation, tablist Realm headers, Underworld V1,
   Character Lifecycle, and component-safe grave recovery/reconciliation.
 - Add selection and arbitrary caret navigation to `ElarionTextInput` only as a
@@ -67,6 +65,4 @@ Executable Phase 14 evidence matrix:
 
 ## Needs Investigation
 
-- Confederation delegate-management UI timing versus command-backed cleanup.
-- Theocracy succession-crisis priority relative to general law/proposal work.
 - Shrine completed-state snapshots that show zero projected requirements.

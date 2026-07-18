@@ -8,8 +8,6 @@ public record GovernmentGateStatus(
         boolean nameChosen,
         boolean colorChosen,
         boolean governmentChosen,
-        boolean theocracyFaithRequired,
-        boolean theocracyFaithChosen,
         boolean foundingElectionComplete
 ) {
     public GovernmentGateStatus {
@@ -40,17 +38,8 @@ public record GovernmentGateStatus(
         return foundationII && colorChosen && !governmentChosen;
     }
 
-    public boolean theocracyFaithVisible() {
-        return governmentChosen && theocracyFaithRequired;
-    }
-
-    public boolean theocracyFaithUnlocked() {
-        return theocracyFaithVisible() && !theocracyFaithChosen;
-    }
-
     public boolean foundingElectionUnlocked() {
-        return foundationIII && governmentChosen && (!theocracyFaithRequired || theocracyFaithChosen)
-                && !foundingElectionComplete;
+        return foundationIII && governmentChosen && !foundingElectionComplete;
     }
 
     public boolean seatOfRuleUnlocked() {
@@ -76,19 +65,9 @@ public record GovernmentGateStatus(
         return "";
     }
 
-    public String theocracyFaithLockMessage() {
-        if (!governmentChosen) return "Locked: choose Theocracy before founding faith opens.";
-        if (!theocracyFaithRequired) return "Locked: founding faith only applies to Theocracy.";
-        if (theocracyFaithChosen) return "Locked: this Realm already chose its founding faith.";
-        return "";
-    }
-
     public String foundingElectionLockMessage() {
         if (!foundationIII) return "Locked: complete Foundation III at the Shrine before founding elections open.";
         if (!governmentChosen) return "Locked: choose a Government form before founding elections open.";
-        if (theocracyFaithRequired && !theocracyFaithChosen) {
-            return "Locked: finish founding faith before electing Theocracy authority.";
-        }
         if (foundingElectionComplete) return "Locked: founding elections are already complete.";
         return "";
     }
@@ -104,7 +83,6 @@ public record GovernmentGateStatus(
             case REALM_NAME -> nameVoteLockMessage();
             case REALM_COLOR -> colorVoteLockMessage();
             case GOVERNMENT_FORM -> governmentVoteLockMessage();
-            case THEOCRACY_FAITH -> theocracyFaithLockMessage();
             case FOUNDING_ELECTION -> foundingElectionLockMessage();
         };
     }
@@ -114,7 +92,6 @@ public record GovernmentGateStatus(
             case REALM_NAME -> nameVoteLockMessage();
             case REALM_COLOR -> colorVoteLockMessage();
             case GOVERNMENT_FORM -> governmentVoteLockMessage();
-            case THEOCRACY_FAITH -> theocracyFaithLockMessage();
             case FOUNDING_ELECTION -> foundingElectionLockMessage();
             case CITIZEN_FEATURES -> "";
         };

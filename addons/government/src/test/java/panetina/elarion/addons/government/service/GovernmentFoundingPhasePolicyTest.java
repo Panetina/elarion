@@ -19,40 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class GovernmentFoundingPhasePolicyTest {
     @Test
-    void republicPresidentCannotNominateForCouncilorPhase() {
-        UUID president = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        RealmGovernmentState government = RealmGovernmentState.empty("realm1")
-                .withForm("republic")
-                .withOfficeHolder("president", president);
-
-        GovernmentFoundingPhase phase = GovernmentStateService.foundingPhase(
-                republic(), government, Optional.empty(), president,
-                true, false, true, "", 10L);
-
-        assertEquals("council_member", phase.officeId());
-        assertEquals("Councilor Election", phase.title());
-        assertFalse(phase.canNominate());
-        assertTrue(phase.nominationReason().contains("President cannot also serve as Councilor"));
-    }
-
-    @Test
-    void nonPresidentCitizenCanNominateForCouncilorPhase() {
-        UUID president = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        UUID citizen = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        RealmGovernmentState government = RealmGovernmentState.empty("realm1")
-                .withForm("republic")
-                .withOfficeHolder("president", president);
-
-        GovernmentFoundingPhase phase = GovernmentStateService.foundingPhase(
-                republic(), government, Optional.empty(), citizen,
-                true, false, true, "", 10L);
-
-        assertEquals("council_member", phase.officeId());
-        assertTrue(phase.canNominate());
-        assertEquals("Nominate yourself for Councilor.", phase.nominationReason());
-    }
-
-    @Test
     void votingPhaseDisablesFurtherNominations() {
         UUID citizen = UUID.fromString("00000000-0000-0000-0000-000000000002");
         RealmGovernmentState government = RealmGovernmentState.empty("realm1").withForm("republic");
@@ -64,7 +30,7 @@ final class GovernmentFoundingPhasePolicyTest {
 
         GovernmentFoundingPhase phase = GovernmentStateService.foundingPhase(
                 republic(), government, Optional.of(vote), citizen,
-                true, false, true, "", 10L);
+                true, true, "", 10L);
 
         assertEquals("president", phase.officeId());
         assertTrue(phase.votingOpen());
@@ -86,17 +52,15 @@ final class GovernmentFoundingPhasePolicyTest {
     }
 
     @Test
-    void multiSeatPrimaryOfficeStaysSettledWhileAnotherHolderRemains() {
-        UUID first = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        UUID second = UUID.fromString("00000000-0000-0000-0000-000000000002");
+    void republicPresidentVacancyReopensLeadershipElection() {
+        UUID president = UUID.fromString("00000000-0000-0000-0000-000000000001");
         RealmGovernmentState previous = RealmGovernmentState.empty("realm1")
-                .withForm("confederation")
-                .withOfficeHolder("delegate", first)
-                .withOfficeHolder("delegate", second)
+                .withForm("republic")
+                .withOfficeHolder("president", president)
                 .withFoundingElectionComplete();
-        RealmGovernmentState updated = previous.withoutOfficeHolder("delegate", first);
+        RealmGovernmentState updated = previous.withoutOfficeHolder("president", president);
 
-        assertFalse(GovernmentStateService.shouldReopenLeadershipElection(previous, updated, "delegate"));
+        assertTrue(GovernmentStateService.shouldReopenLeadershipElection(previous, updated, "president"));
     }
 
     @Test
@@ -111,10 +75,9 @@ final class GovernmentFoundingPhasePolicyTest {
     }
 
     private static GovernmentFormDefinition republic() {
-        return new GovernmentFormDefinition("republic", "Republic", "", true, "%realm%", List.of(), false,
+        return new GovernmentFormDefinition("republic", "Republic", "", true, "%realm%", List.of(),
                 List.of(
                         new GovernmentOfficeDefinition("president", "President", "", 1),
-                        new GovernmentOfficeDefinition("council_member", "Councilor", "", 3),
                         new GovernmentOfficeDefinition("officer", "Officer", "", 3)),
                 Map.of(), Map.of());
     }

@@ -10,7 +10,6 @@ public record GovernmentFormDefinition(
         boolean enabled,
         String officialNameTemplate,
         List<String> authorityOffices,
-        boolean confederationDelegatesRepresentGroups,
         List<GovernmentOfficeDefinition> offices,
         Map<String, List<String>> actions,
         Map<String, String> transitions

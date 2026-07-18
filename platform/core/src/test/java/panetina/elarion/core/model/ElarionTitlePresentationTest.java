@@ -9,8 +9,8 @@ final class ElarionTitlePresentationTest {
     void knownTitleFamiliesFallbackToTheirProjectWideRankColors() {
         assertEquals(ElarionCollectionRank.SOVEREIGN.color(),
                 ElarionTitlePresentation.fallbackColor("government_monarch", TitleOwnershipMode.UNLIMITED));
-        assertEquals(ElarionCollectionRank.COUNCIL.color(),
-                ElarionTitlePresentation.fallbackColor("government_councilor", TitleOwnershipMode.UNLIMITED));
+        assertEquals(ElarionCollectionRank.SOVEREIGN.color(),
+                ElarionTitlePresentation.fallbackColor("government_president", TitleOwnershipMode.UNLIMITED));
         assertEquals(ElarionCollectionRank.RARE.color(),
                 ElarionTitlePresentation.fallbackColor("aquatic", TitleOwnershipMode.ONE_PER_PLAYER));
     }

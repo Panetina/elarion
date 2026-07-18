@@ -94,10 +94,10 @@ final class GovernmentUiOpenPayloadTest {
                 4L,
                 12345L);
         GovernmentUiOpenPayload payload = new GovernmentUiOpenPayload(
-                "seat_module_proposals", "Proposal Review", "Authority work.", "realm1", "Realm 1", "default",
+                "seat_module_review", "Audience Review", "Authority work.", "realm1", "Realm 1", "default",
                 760, 500, 55, false, true, false, 0L, "", "",
-                "session-2", "seat_module_proposals", "seat_of_rule", "seat_of_rule", "Proposal Review",
-                true, true, "seat_of_rule", "review", "Republic", "President Tester Nick", "Council",
+                "session-2", "seat_module_review", "seat_of_rule", "seat_of_rule", "Audience Review",
+                true, true, "seat_of_rule", "review", "Republic", "President Tester Nick", "President",
                 "dark_green", "seat_crest", "proposal-1", List.of(row), List.of(), List.of(), List.of());
 
         PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
@@ -109,7 +109,7 @@ final class GovernmentUiOpenPayloadTest {
         assertEquals("review", decoded.activeTabId());
         assertEquals("Republic", decoded.governmentFormLabel());
         assertEquals("President Tester Nick", decoded.authorityLabel());
-        assertEquals("Council", decoded.roleLabel());
+        assertEquals("President", decoded.roleLabel());
         assertEquals("dark_green", decoded.realmColor());
         assertEquals("seat_crest", decoded.crestIconId());
         assertEquals("proposal-1", decoded.selectedRowId());

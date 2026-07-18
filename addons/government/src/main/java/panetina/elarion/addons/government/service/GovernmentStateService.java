@@ -15,7 +15,6 @@ import panetina.elarion.addons.government.model.GovernmentVoteState;
 import panetina.elarion.addons.government.model.GovernmentVoteType;
 import panetina.elarion.addons.government.model.RealmGovernmentState;
 import panetina.elarion.addons.government.model.RealmIdentityRules;
-import panetina.elarion.addons.groups.api.ElarionGroupsApi;
 import panetina.elarion.addons.offerings.api.ElarionOfferingsApi;
 import panetina.elarion.addons.government.storage.GovernmentState;
 import panetina.elarion.addons.government.storage.GovernmentStorage;
@@ -54,14 +53,9 @@ public final class GovernmentStateService {
             "monarch", "government_monarch",
             "heir", "government_heir",
             "president", "government_president",
-            "council_member", "government_councilor",
-            "high_priest", "government_high_cleric",
-            "synod_member", "government_synod_member",
-            "delegate", "government_delegate",
             "officer", "government_officer");
     private static final List<String> AUTHORITY_TITLE_PRIORITY = List.of(
-            "monarch", "high_priest", "president", "delegate",
-            "council_member", "synod_member", "heir", "officer");
+            "monarch", "president", "heir", "officer");
     private static final Set<String> AUTHORITY_TITLE_VALUES = Set.copyOf(AUTHORITY_TITLE_IDS.values());
     private final ElarionApi api;
     private final GovernmentDefinitionService definitions;
@@ -89,8 +83,9 @@ public final class GovernmentStateService {
         if (state.authorityTitleRestores == null) state.authorityTitleRestores = new LinkedHashMap<>();
         api.realms().all().forEach(realm ->
                 state.realms.computeIfAbsent(realm.id(), RealmGovernmentState::empty));
+        boolean migratedForms = migrateRemovedForms();
+        boolean migratedOffices = migrateRemovedOffices();
         boolean repairedFounding = reconcileFoundingCompletion();
-        reconcileLegacyRepublicPetitions();
         officeTermsByHolder.clear();
         reconcileOfficeTerms();
         rebuildOfficeTermIndex();
@@ -98,7 +93,7 @@ public final class GovernmentStateService {
         boolean repairedColor = reconcileResolvedColorVotes();
         reconcileAuthorityTitles();
         save();
-        if (repairedColor || repairedFounding) refreshIdentities();
+        if (migratedForms || migratedOffices || repairedColor || repairedFounding) refreshIdentities();
     }
 
     public void tick() {
@@ -132,7 +127,6 @@ public final class GovernmentStateService {
         if (api.realms().find(normalizedRealm).isEmpty()) {
             throw new IllegalArgumentException("Unknown Realm " + realmId);
         }
-        realm(normalizedRealm).delegateGroupIds().values().forEach(this::unlockDelegateGroup);
         restoreAuthorityTitlesForRealm(normalizedRealm);
         state.realms.put(normalizedRealm, RealmGovernmentState.empty(normalizedRealm));
         state.votes.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId)));
@@ -147,7 +141,6 @@ public final class GovernmentStateService {
     }
 
     public int resetAllRealms() {
-        state.realms.values().forEach(realm -> realm.delegateGroupIds().values().forEach(this::unlockDelegateGroup));
         restoreAllAuthorityTitles();
         state.realms.clear();
         api.realms().all().forEach(realm -> state.realms.put(realm.id(), RealmGovernmentState.empty(realm.id())));
@@ -160,6 +153,38 @@ public final class GovernmentStateService {
         save();
         refreshIdentities();
         return state.realms.size();
+    }
+
+    private boolean migrateRemovedOffices() {
+        boolean changed = false;
+        for (RealmGovernmentState current : List.copyOf(state.realms.values())) {
+            if (!"republic".equals(current.activeGovernmentFormId())) continue;
+            if (!current.officeHolders().containsKey("council_member")) continue;
+            Map<String, Set<UUID>> offices = mutableOffices(current);
+            Set<UUID> removed = offices.remove("council_member");
+            state.realms.put(current.realmId(), new RealmGovernmentState(
+                    current.realmId(),
+                    current.activeGovernmentFormId(),
+                    current.votedDisplayName(),
+                    current.votedTag(),
+                    current.votedColor(),
+                    offices,
+                    current.activeLawIds(),
+                    current.pendingProposalIds(),
+                    current.nameVoteCompletedAt(),
+                    current.colorVoteCompletedAt(),
+                    current.foundingElectionCompletedAt(),
+                    current.lastReformAt()));
+            if (removed != null) {
+                removed.forEach(citizenId -> restoreOrPromoteAuthorityTitle(current.realmId(), offices, citizenId));
+            }
+            changed = true;
+        }
+        if (changed) {
+            state.officeTerms.entrySet().removeIf(entry -> "council_member".equals(entry.getValue().officeId()));
+            rebuildOfficeTermIndex();
+        }
+        return changed;
     }
 
     public RealmGovernmentState setForm(String realmId, String formId) {
@@ -229,32 +254,6 @@ public final class GovernmentStateService {
         return updated;
     }
 
-    public RealmGovernmentState setFaithIdentity(String realmId, String displayName, String tag) {
-        String normalizedRealm = normalize(realmId);
-        String cleanName = GovernmentTextRules.validateFaithName(displayName);
-        String cleanTag = GovernmentTextRules.validateFaithTag(tag);
-        RealmGovernmentState current = realm(normalizedRealm);
-        if (!"theocracy".equals(current.activeGovernmentFormId())) {
-            throw new IllegalArgumentException("Faith identity is only used by Theocracy.");
-        }
-        RealmGovernmentState updated = current.withFaithIdentity(cleanName, cleanTag);
-        state.realms.put(normalizedRealm, updated);
-        save();
-        refreshIdentities();
-        api.history().recordChronicle("government", "theocracy-faith-set", null, "realm", normalizedRealm,
-                normalizedRealm, Map.of("faithName", cleanName, "faithTag", cleanTag),
-                officialName(normalizedRealm) + " selected its founding faith.");
-        api.realmDeliveries().notifyRealm(
-                normalizedRealm,
-                "Founding Faith Selected",
-                officialName(normalizedRealm) + " will be guided by " + cleanName + " [" + cleanTag + "].",
-                "government",
-                null);
-        emit("theocracy-faith-selected", null, normalizedRealm, "faith", cleanName,
-                Map.of("faithName", cleanName, "faithTag", cleanTag));
-        return updated;
-    }
-
     public RealmGovernmentState markFoundingElectionComplete(String realmId) {
         String normalizedRealm = normalize(realmId);
         RealmGovernmentState current = realm(normalizedRealm);
@@ -290,8 +289,6 @@ public final class GovernmentStateService {
                 realm.nameVoteCompletedAt() > 0L,
                 realm.colorVoteCompletedAt() > 0L,
                 !realm.activeGovernmentFormId().isBlank(),
-                "theocracy".equals(realm.activeGovernmentFormId()),
-                realm.faithVoteCompletedAt() > 0L,
                 realm.foundingElectionCompletedAt() > 0L);
     }
 
@@ -300,9 +297,6 @@ public final class GovernmentStateService {
         if (!gates.nameChosen()) return GovernmentCivicScreen.REALM_NAME;
         if (!gates.colorChosen()) return GovernmentCivicScreen.REALM_COLOR;
         if (!gates.governmentChosen()) return GovernmentCivicScreen.GOVERNMENT_FORM;
-        if (gates.theocracyFaithVisible() && !gates.theocracyFaithChosen()) {
-            return GovernmentCivicScreen.THEOCRACY_FAITH;
-        }
         if (!gates.foundingElectionComplete()) return GovernmentCivicScreen.FOUNDING_ELECTION;
         return GovernmentCivicScreen.CITIZEN_FEATURES;
     }
@@ -371,56 +365,6 @@ public final class GovernmentStateService {
         return vote;
     }
 
-    public GovernmentVoteState proposeFaithIdentity(
-            ServerPlayerEntity player,
-            String realmId,
-            String displayName,
-            String tag
-    ) {
-        String realm = normalize(realmId);
-        validateVoteUnlocked(realm, GovernmentVoteType.THEOCRACY_FAITH);
-        requireEligible(player, realm);
-        RealmGovernmentState realmState = realm(realm);
-        if (!"theocracy".equals(realmState.activeGovernmentFormId())) {
-            throw new IllegalArgumentException("Faith identity is only used by Theocracy.");
-        }
-        String cleanName = GovernmentTextRules.validateFaithName(displayName);
-        String cleanTag = GovernmentTextRules.validateFaithTag(tag);
-        GovernmentVoteState vote = vote(realm, GovernmentVoteType.THEOCRACY_FAITH);
-        long now = System.currentTimeMillis();
-        boolean openingProposalWindow = vote.proposalStartedAt <= 0L;
-        if (vote.proposalEnded(now)) {
-            throw new IllegalArgumentException("Faith proposals are closed.");
-        }
-        UUID proposerId = player.getUuid();
-        boolean alreadyProposed = vote.options.values().stream()
-                .anyMatch(option -> proposerId.equals(option.proposedBy));
-        if (alreadyProposed) {
-            throw new IllegalArgumentException("You already proposed a faith identity.");
-        }
-        String id = "faith_" + Integer.toUnsignedString((cleanName + "|" + cleanTag)
-                .toLowerCase(java.util.Locale.ROOT).hashCode(), 36);
-        if (vote.options.containsKey(id)) {
-            throw new IllegalArgumentException("That faith identity was already proposed.");
-        }
-        vote.options.put(id, GovernmentVoteOption.faithIdentity(id, cleanName, cleanTag, player.getUuid()));
-        vote.startProposalIfNeeded(now, FOUNDING_VOTE_DURATION);
-        save();
-        if (openingProposalWindow) {
-            notifyVoteStage(realm, "Founding Faith Proposals Open",
-                    "Embers may propose the faith the High Priest and Synod will represent.",
-                    "faith-proposals:" + vote.round, vote.proposalEndsAt);
-        }
-        notifyPersonal(player.getUuid(), "faith-proposal-accepted",
-                realm + ":faith-proposal:" + player.getUuid(),
-                "Faith Proposal Accepted",
-                "Your faith proposal " + cleanName + " [" + cleanTag + "] was added to the Civic Forum.",
-                Map.of("realmId", realm, "faithName", cleanName, "faithTag", cleanTag));
-        emit("theocracy-faith-proposed", player.getUuid(), realm, "realm", realm,
-                Map.of("faithName", cleanName, "faithTag", cleanTag));
-        return vote;
-    }
-
     public GovernmentVoteState nominateForFoundingElection(ServerPlayerEntity player, String realmId) {
         String realm = normalize(realmId);
         GovernmentFoundingPhase phase = foundingPhase(player, realm);
@@ -436,14 +380,10 @@ public final class GovernmentStateService {
             if (vote.options.containsKey(id)) {
                 continue;
             }
-            String groupId = "delegate".equals(officeId)
-                    ? ElarionGroupsApi.get().groupFor(player.getUuid()).map(group -> group.id()).orElse("")
-                    : "";
             String title = citizenName(api.citizens().getOrCreate(player)) + " - " + officeLabel(form, officeId);
-            String body = groupId.isBlank() ? "Candidate for " + officeLabel(form, officeId)
-                    : "Represents group " + groupId;
+            String body = "Candidate for " + officeLabel(form, officeId);
             vote.options.put(id, GovernmentVoteOption.candidate(
-                    id, title, body, officeId, player.getUuid(), groupId));
+                    id, title, body, officeId, player.getUuid(), ""));
             added = true;
         }
         if (!added && vote.options.isEmpty()) {
@@ -482,8 +422,7 @@ public final class GovernmentStateService {
         Optional<GovernmentVoteState> vote = existingVote(realm, GovernmentVoteType.FOUNDING_ELECTION);
         UUID playerId = player == null ? null : player.getUuid();
         boolean activeCitizen = player != null && eligibleCitizen(player, realm);
-        boolean delegateEligible = player != null && eligibleDelegateCandidate(player, realm);
-        return foundingPhase(form, government, vote, playerId, activeCitizen, delegateEligible,
+        return foundingPhase(form, government, vote, playerId, activeCitizen,
                 gates(realm).foundingElectionUnlocked(), gates(realm).foundingElectionLockMessage(),
                 System.currentTimeMillis());
     }
@@ -494,7 +433,6 @@ public final class GovernmentStateService {
             Optional<GovernmentVoteState> existingVote,
             UUID playerId,
             boolean activeCitizen,
-            boolean delegateEligible,
             boolean electionUnlocked,
             String lockMessage,
             long now
@@ -522,14 +460,6 @@ public final class GovernmentStateService {
         } else if (alreadyNominated) {
             reason = "You are already nominated for " + officeLabel(form, officeId) + ".";
             canNominate = false;
-        } else if ("republic".equals(form.id()) && "council_member".equals(officeId)
-                && playerId != null
-                && government.officeHolders().getOrDefault("president", Set.of()).contains(playerId)) {
-            reason = "The elected President cannot also serve as Councilor. Another Ember must be nominated.";
-            canNominate = false;
-        } else if ("delegate".equals(officeId) && !delegateEligible) {
-            reason = "Only an eligible group leader may stand as a Confederation Delegate.";
-            canNominate = false;
         }
         String phaseLabel = title + (votingOpen ? " voting" : " nominations");
         return new GovernmentFoundingPhase(officeId, title, phaseLabel,
@@ -549,9 +479,6 @@ public final class GovernmentStateService {
         long now = System.currentTimeMillis();
         if (type == GovernmentVoteType.REALM_NAME && !vote.proposalEnded(now)) {
             throw new IllegalArgumentException("Name voting opens after the proposal window ends.");
-        }
-        if (type == GovernmentVoteType.THEOCRACY_FAITH && !vote.proposalEnded(now)) {
-            throw new IllegalArgumentException("Faith voting opens after the proposal window ends.");
         }
         if (type == GovernmentVoteType.FOUNDING_ELECTION && !vote.runoff && !vote.proposalEnded(now)) {
             throw new IllegalArgumentException("Founding election voting opens after the nomination window ends.");
@@ -625,7 +552,6 @@ public final class GovernmentStateService {
             case REALM_NAME -> GovernmentVoteType.REALM_NAME;
             case REALM_COLOR -> GovernmentVoteType.REALM_COLOR;
             case GOVERNMENT_FORM -> GovernmentVoteType.GOVERNMENT_FORM;
-            case THEOCRACY_FAITH -> GovernmentVoteType.THEOCRACY_FAITH;
             case FOUNDING_ELECTION -> GovernmentVoteType.FOUNDING_ELECTION;
             case CITIZEN_FEATURES ->
                     throw new IllegalArgumentException("Founding is already complete for this Realm.");
@@ -643,17 +569,6 @@ public final class GovernmentStateService {
             notifyVoteStage(realm, GovernmentTextRules.voteTitle(type), GovernmentTextRules.voteBody(type),
                     type.name().toLowerCase(java.util.Locale.ROOT) + ":" + vote.round, vote.endsAt);
             return "Name proposal window ended. Name voting is now available.";
-        }
-        if (type == GovernmentVoteType.THEOCRACY_FAITH && !vote.proposalEnded(now)) {
-            if (vote.proposalStartedAt <= 0L) {
-                throw new IllegalArgumentException("Submit at least one faith proposal first.");
-            }
-            vote.proposalEndsAt = now - 1L;
-            vote.startIfNeeded(now, FOUNDING_VOTE_DURATION);
-            save();
-            notifyVoteStage(realm, GovernmentTextRules.voteTitle(type), GovernmentTextRules.voteBody(type),
-                    type.name().toLowerCase(java.util.Locale.ROOT) + ":" + vote.round, vote.endsAt);
-            return "Faith proposal window ended. Faith voting is now available.";
         }
         if (type == GovernmentVoteType.FOUNDING_ELECTION && !vote.runoff && !vote.proposalEnded(now)) {
             if (vote.proposalStartedAt <= 0L || vote.options.isEmpty()) {
@@ -724,7 +639,6 @@ public final class GovernmentStateService {
     public RealmGovernmentState removeOffice(String realmId, String officeId, UUID citizenId) {
         String normalizedRealm = normalize(realmId);
         RealmGovernmentState current = realm(normalizedRealm);
-        String delegateGroup = current.delegateGroupIds().getOrDefault(citizenId, "");
         boolean heldOffice = current.officeHolders().getOrDefault(officeId, Set.of()).contains(citizenId);
         RealmGovernmentState updated = current.withoutOfficeHolder(officeId, citizenId);
         boolean electionReopened = heldOffice && shouldReopenLeadershipElection(current, updated, officeId);
@@ -737,7 +651,6 @@ public final class GovernmentStateService {
         closeOfficeTerm(normalizedRealm, officeId, citizenId, System.currentTimeMillis());
         restoreOrPromoteAuthorityTitle(normalizedRealm, updated, citizenId);
         save();
-        if ("delegate".equals(officeId)) unlockDelegateGroup(delegateGroup);
         refreshIdentities();
         api.history().recordChronicle("government", "office-removed", citizenId, "office", officeId,
                 normalizedRealm, java.util.Map.of("office", officeId),
@@ -914,51 +827,34 @@ public final class GovernmentStateService {
         GovernmentGateStatus gates = gates(realm);
         if (!gates.seatOfRuleUnlocked()) {
             RealmGovernmentState government = realm(realm);
-            if ("republic".equals(government.activeGovernmentFormId())
-                    && government.officeHolders().containsKey("president")
-                    && government.officeHolders().getOrDefault("council_member", Set.of()).isEmpty()) {
-                throw new IllegalArgumentException(
-                        "Finish founding first: nominate and elect at least one Councilor before proposals open.");
-            }
             throw new IllegalArgumentException(gates.seatOfRuleLockMessage());
         }
         requireEligible(player, realm);
-        String cleanCategory = GovernmentTextRules.validateProposalCategory(category);
-        String cleanTitle = GovernmentTextRules.validateShortText(title, "Proposal title", 4, 48);
-        String cleanBody = GovernmentTextRules.validateShortText(body, "Proposal body", 8, 1500);
+        RealmGovernmentState government = realm(realm);
+        if (!"monarchy".equals(government.activeGovernmentFormId())) {
+            throw new IllegalArgumentException("Audience requests are only available in Monarchy.");
+        }
+        String cleanCategory = "audience_request";
+        String cleanTitle = GovernmentTextRules.validateShortText(title, "Audience request title", 4, 48);
+        String cleanBody = GovernmentTextRules.validateShortText(body, "Audience request body", 8, 1500);
         String id = nextProposalId(realm, cleanTitle);
         GovernmentProposalRecord proposal = GovernmentProposalRecord.create(
                 id, realm, player.getUuid(), cleanCategory, cleanTitle, cleanBody, System.currentTimeMillis());
-        RealmGovernmentState government = realm(realm);
-        boolean citizenPetition = initialProposalStatus(government.activeGovernmentFormId(), cleanCategory)
-                == GovernmentProposalStatus.CITIZEN_RATIFICATION;
-        if (citizenPetition) {
-            proposal = proposal.withStatus(GovernmentProposalStatus.CITIZEN_RATIFICATION,
-                    player.getUuid(), System.currentTimeMillis());
-        }
         state.proposals.put(id, proposal);
         state.realms.put(realm, government.withPendingProposal(id));
         save();
-        api.history().recordChronicle("government", "proposal-created", player.getUuid(), "proposal", id,
+        api.history().recordChronicle("government", "audience-request-created", player.getUuid(), "audience_request", id,
                 realm, Map.of("category", cleanCategory, "title", cleanTitle),
-                "An Ember created a civic proposal.");
-        notifyPersonal(player.getUuid(), "proposal-created", realm + ":proposal-created:" + id,
-                "Proposal Submitted",
-                citizenPetition
-                        ? "Your proposal \"" + cleanTitle + "\" is now open for Ember support."
-                        : "Your proposal \"" + cleanTitle + "\" was sent to the Seat of Rule.",
+                "An Ember requested an audience with the Monarch.");
+        notifyPersonal(player.getUuid(), "audience-request-created", realm + ":audience-request-created:" + id,
+                "Audience Requested",
+                "Your audience request \"" + cleanTitle + "\" was sent to the Seat of Rule.",
                 Map.of("realmId", realm, "proposalId", id, "category", cleanCategory));
-        if (citizenPetition) {
-            api.realmDeliveries().notifyRealm(realm, "Ember Proposal Open",
-                    "\"" + cleanTitle + "\" is open for Ember approval in the Civic Forum.",
-                    "government", player.getUuid());
-        } else {
-            notifyInitialProposalReviewers(realm, cleanCategory, "Proposal Awaiting Review",
-                    cleanTitle + " was submitted by " + citizenName(api.citizens().getOrCreate(player)) + ".",
-                    "proposal-review:" + id,
-                    Map.of("realmId", realm, "proposalId", id, "category", cleanCategory));
-        }
-        emit("government-proposal-created", player.getUuid(), realm, "proposal", id,
+        notifyInitialProposalReviewers(realm, cleanCategory, "Audience Request",
+                cleanTitle + " was submitted by " + citizenName(api.citizens().getOrCreate(player)) + ".",
+                "audience-request:" + id,
+                Map.of("realmId", realm, "proposalId", id, "category", cleanCategory));
+        emit("government-audience-request-created", player.getUuid(), realm, "audience_request", id,
                 Map.of("category", cleanCategory, "title", cleanTitle));
         return proposal;
     }
@@ -972,7 +868,7 @@ public final class GovernmentStateService {
         String realm = normalize(realmId);
         RealmGovernmentState government = realm(realm);
         if (!isAuthority(realm, player.getUuid())) {
-            throw new IllegalArgumentException("Only Realm authority holders can review proposals.");
+            throw new IllegalArgumentException("Only Realm authority holders can review audience requests.");
         }
         if (government.activeGovernmentFormId().isBlank()) {
             throw new IllegalArgumentException("The Realm has no active Government form.");
@@ -986,19 +882,10 @@ public final class GovernmentStateService {
             return reviewFinalText(player, realm, government, proposal, approve);
         }
         if (proposal.status() != GovernmentProposalStatus.PENDING) {
-            throw new IllegalArgumentException("That proposal is not open for authority review.");
-        }
-        if ("republic".equals(form.id()) && "law".equals(proposal.category())) {
-            if (!government.officeHolders().getOrDefault("president", Set.of()).contains(player.getUuid())) {
-                throw new IllegalArgumentException("Only the President can approve law proposals before final wording.");
-            }
-            recordOfficeDecision(realm, player.getUuid(), approve);
-            return approve
-                    ? approveProposalForFinalization(player, realm, proposal.withVote(player.getUuid(), true))
-                    : rejectProposal(player, realm, proposal.withVote(player.getUuid(), false));
+            throw new IllegalArgumentException("That audience request is not open for authority review.");
         }
         if (!proposalDecisionMakers(government, form).contains(player.getUuid())) {
-            throw new IllegalArgumentException("Your office can use authority chat but cannot decide proposals.");
+            throw new IllegalArgumentException("Your office cannot decide audience requests.");
         }
         recordOfficeDecision(realm, player.getUuid(), approve);
         GovernmentProposalRecord updated = proposal.withVote(player.getUuid(), approve);
@@ -1020,9 +907,7 @@ public final class GovernmentStateService {
     }
 
     static GovernmentProposalStatus initialProposalStatus(String formId, String category) {
-        return "republic".equals(normalize(formId)) && "law".equals(normalize(category))
-                ? GovernmentProposalStatus.CITIZEN_RATIFICATION
-                : GovernmentProposalStatus.PENDING;
+        return GovernmentProposalStatus.PENDING;
     }
 
     public GovernmentProposalRecord ratifyProposal(
@@ -1117,15 +1002,6 @@ public final class GovernmentStateService {
         if ("law".equals(proposal.category()) && "republic".equals(formId)) {
             requireOffice(player, government, "president", "Only the President can finalize Republic laws.");
         }
-        if ("law".equals(proposal.category()) && "theocracy".equals(formId)) {
-            requireOffice(player, government, "high_priest", "Only the High Priest can finalize law doctrine.");
-        }
-        if ("law".equals(proposal.category()) && "confederation".equals(formId)) {
-            if (proposal.sponsorId() != null && !player.getUuid().equals(proposal.sponsorId())) {
-                throw new IllegalArgumentException("Only the Sponsor Delegate can write this law's final wording.");
-            }
-            requireOffice(player, government, "delegate", "Only a Confederation delegate can finalize law wording.");
-        }
         GovernmentLawRecord record = createRecord(realm, proposal.category(), title, body, player.getUuid(), proposal);
         GovernmentProposalRecord enacted = proposal.withStatus(GovernmentProposalStatus.ENACTED, player.getUuid(),
                 record.enactedAt());
@@ -1156,6 +1032,38 @@ public final class GovernmentStateService {
         return createRecord(realm, cleanCategory, title, body, player.getUuid(), null);
     }
 
+    public GovernmentProposalRecord createRepublicLawVote(
+            ServerPlayerEntity player,
+            String realmId,
+            String title,
+            String body
+    ) {
+        String realm = normalize(realmId);
+        RealmGovernmentState government = realm(realm);
+        requireOffice(player, government, "president", "Only the President can propose Republic laws.");
+        String cleanTitle = GovernmentTextRules.validateShortText(title, "Law title", 4, 64);
+        String cleanBody = GovernmentTextRules.validateShortText(body, "Law body", 8, 2000);
+        long now = System.currentTimeMillis();
+        String id = nextProposalId(realm, cleanTitle);
+        GovernmentProposalRecord proposal = GovernmentProposalRecord.create(
+                        id, realm, player.getUuid(), "law", cleanTitle, cleanBody, now)
+                .withFinalText(cleanTitle, cleanBody, player.getUuid(), now)
+                .withStatus(GovernmentProposalStatus.CITIZEN_RATIFICATION, player.getUuid(), now);
+        state.proposals.put(id, proposal);
+        state.realms.put(realm, government.withPendingProposal(id));
+        save();
+        api.history().recordChronicle("government", "republic-law-vote-opened",
+                player.getUuid(), "proposal", id, realm,
+                Map.of("category", "law", "title", cleanTitle),
+                "A President opened a Republic law ratification vote.");
+        api.realmDeliveries().notifyRealm(realm, "Law Vote Opened",
+                "\"" + cleanTitle + "\" was proposed by the President and is open for Yes or No votes.",
+                "government", player.getUuid());
+        emit("government-republic-law-vote-opened", player.getUuid(), realm, "proposal", id,
+                Map.of("category", "law", "title", cleanTitle));
+        return proposal;
+    }
+
     public boolean canDirectCreateRecords(ServerPlayerEntity player, String realmId) {
         if (player == null) return false;
         String realm = normalize(realmId);
@@ -1167,6 +1075,13 @@ public final class GovernmentStateService {
         }
     }
 
+    public boolean canCreateRepublicLawVotes(ServerPlayerEntity player, String realmId) {
+        if (player == null) return false;
+        RealmGovernmentState government = realm(normalize(realmId));
+        return "republic".equals(government.activeGovernmentFormId())
+                && government.officeHolders().getOrDefault("president", Set.of()).contains(player.getUuid());
+    }
+
     public boolean canOpenSeatOfRule(ServerPlayerEntity player, String realmId) {
         if (player == null) return false;
         RealmGovernmentState government = realm(normalize(realmId));
@@ -1174,8 +1089,6 @@ public final class GovernmentStateService {
         return switch (government.activeGovernmentFormId()) {
             case "monarchy" -> government.officeHolders().getOrDefault("monarch", Set.of()).contains(playerId);
             case "republic" -> government.officeHolders().getOrDefault("president", Set.of()).contains(playerId);
-            case "theocracy" -> government.officeHolders().getOrDefault("high_priest", Set.of()).contains(playerId);
-            case "confederation" -> government.officeHolders().getOrDefault("delegate", Set.of()).contains(playerId);
             default -> false;
         };
     }
@@ -1187,7 +1100,7 @@ public final class GovernmentStateService {
             RealmGovernmentState government = realm(realm);
             if (government.activeGovernmentFormId().isBlank()) return false;
             GovernmentFormDefinition form = definitions.require(government.activeGovernmentFormId());
-            return proposalDecisionMakers(government, form).contains(player.getUuid());
+            return "monarchy".equals(form.id()) && proposalDecisionMakers(government, form).contains(player.getUuid());
         } catch (IllegalArgumentException exception) {
             return false;
         }
@@ -1203,28 +1116,11 @@ public final class GovernmentStateService {
             GovernmentFormDefinition form = definitions.require(government.activeGovernmentFormId());
             return switch (proposal.status()) {
                 case PENDING -> {
-                    if ("republic".equals(form.id()) && "law".equals(proposal.category())) {
-                        yield government.officeHolders().getOrDefault("president", Set.of())
-                                .contains(player.getUuid());
-                    }
-                    yield proposalDecisionMakers(government, form).contains(player.getUuid());
+                    yield "monarchy".equals(form.id()) && proposalDecisionMakers(government, form).contains(player.getUuid());
                 }
-                case FINAL_TEXT_REVIEW -> finalTextDecisionMakers(government).contains(player.getUuid());
+                case FINAL_TEXT_REVIEW -> false;
                 case APPROVED_PENDING_FINALIZATION -> {
-                    if ("law".equals(proposal.category()) && "republic".equals(form.id())) {
-                        yield government.officeHolders().getOrDefault("president", Set.of())
-                                .contains(player.getUuid());
-                    }
-                    if ("law".equals(proposal.category()) && "theocracy".equals(form.id())) {
-                        yield government.officeHolders().getOrDefault("high_priest", Set.of())
-                                .contains(player.getUuid());
-                    }
-                    if ("law".equals(proposal.category()) && "confederation".equals(form.id())) {
-                        yield proposal.sponsorId() == null
-                                ? government.officeHolders().getOrDefault("delegate", Set.of()).contains(player.getUuid())
-                                : player.getUuid().equals(proposal.sponsorId());
-                    }
-                    yield isAuthority(realm, player.getUuid());
+                    yield false;
                 }
                 default -> false;
             };
@@ -1307,15 +1203,11 @@ public final class GovernmentStateService {
                         current.votedDisplayName(),
                         current.votedTag(),
                         current.votedColor(),
-                        current.faithDisplayName(),
-                        current.faithTag(),
                         offices,
-                        current.delegateGroupIds(),
                         current.activeLawIds(),
                         current.pendingProposalIds(),
                         current.nameVoteCompletedAt(),
                         current.colorVoteCompletedAt(),
-                        current.faithVoteCompletedAt(),
                         current.foundingElectionCompletedAt(),
                         current.lastReformAt()));
                 for (UUID citizenId : titleUpdates) {
@@ -1361,10 +1253,9 @@ public final class GovernmentStateService {
             if (!changed) continue;
             state.realms.put(current.realmId(), new RealmGovernmentState(
                     current.realmId(), current.activeGovernmentFormId(), current.votedDisplayName(),
-                    current.votedTag(), current.votedColor(), current.faithDisplayName(), current.faithTag(),
-                    offices, current.delegateGroupIds(), current.activeLawIds(), current.pendingProposalIds(),
+                    current.votedTag(), current.votedColor(), offices, current.activeLawIds(), current.pendingProposalIds(),
                     current.nameVoteCompletedAt(), current.colorVoteCompletedAt(),
-                    current.faithVoteCompletedAt(), current.foundingElectionCompletedAt(), current.lastReformAt()));
+                    current.foundingElectionCompletedAt(), current.lastReformAt()));
             clearAuthorityTitleRestore(current.realmId(), citizenId);
             for (UUID titleUpdate : titleUpdates) {
                 if (!titleUpdate.equals(citizenId)) {
@@ -1376,59 +1267,6 @@ public final class GovernmentStateService {
             save();
             refreshIdentities();
         }
-        return removed;
-    }
-
-    public int removeInvalidConfederationDelegates() {
-        int removed = 0;
-        for (RealmGovernmentState current : List.copyOf(state.realms.values())) {
-            if (!"confederation".equals(current.activeGovernmentFormId())) continue;
-            Set<UUID> delegates = current.officeHolders().getOrDefault("delegate", Set.of());
-            if (delegates.isEmpty()) continue;
-
-            Map<String, Set<UUID>> offices = mutableOffices(current);
-            Map<UUID, String> delegateGroups = new LinkedHashMap<>(current.delegateGroupIds());
-            Set<UUID> mutableDelegates = offices.getOrDefault("delegate", new LinkedHashSet<>());
-            Set<UUID> titleUpdates = new LinkedHashSet<>();
-            boolean changed = false;
-            for (UUID delegate : List.copyOf(mutableDelegates)) {
-                String groupId = delegateGroups.getOrDefault(delegate, "");
-                if (!invalidDelegate(current.realmId(), delegate, groupId)) continue;
-                mutableDelegates.remove(delegate);
-                delegateGroups.remove(delegate);
-                unlockDelegateGroup(groupId);
-                recordAuthorityRemoval(current.realmId(), "confederation", "delegate", delegate, "group-invalid");
-                removed++;
-                titleUpdates.add(delegate);
-                changed = true;
-            }
-            if (mutableDelegates.isEmpty()) offices.remove("delegate");
-            else offices.put("delegate", mutableDelegates);
-            if (changed) {
-                state.realms.put(current.realmId(), new RealmGovernmentState(
-                        current.realmId(),
-                        current.activeGovernmentFormId(),
-                        current.votedDisplayName(),
-                        current.votedTag(),
-                        current.votedColor(),
-                        current.faithDisplayName(),
-                        current.faithTag(),
-                        offices,
-                        delegateGroups,
-                        current.activeLawIds(),
-                        current.pendingProposalIds(),
-                        current.nameVoteCompletedAt(),
-                        current.colorVoteCompletedAt(),
-                        current.faithVoteCompletedAt(),
-                        current.foundingElectionCompletedAt(),
-                        current.lastReformAt()));
-                for (UUID citizenId : titleUpdates) {
-                    restoreOrPromoteAuthorityTitle(current.realmId(), offices, citizenId);
-                }
-            }
-        }
-        if (removed > 0) save();
-        if (removed > 0) refreshIdentities();
         return removed;
     }
 
@@ -1662,9 +1500,6 @@ public final class GovernmentStateService {
             case GOVERNMENT_FORM -> {
                 if (!gates.governmentVoteUnlocked()) throw new IllegalArgumentException(gates.governmentVoteLockMessage());
             }
-            case THEOCRACY_FAITH -> {
-                if (!gates.theocracyFaithUnlocked()) throw new IllegalArgumentException(gates.theocracyFaithLockMessage());
-            }
             case FOUNDING_ELECTION -> {
                 if (!gates.foundingElectionUnlocked()) throw new IllegalArgumentException(gates.foundingElectionLockMessage());
             }
@@ -1705,21 +1540,17 @@ public final class GovernmentStateService {
             setVotedColor(vote.realmId, option.id);
         } else if (vote.type == GovernmentVoteType.GOVERNMENT_FORM) {
             setForm(vote.realmId, option.formId.isBlank() ? option.id : option.formId);
-        } else if (vote.type == GovernmentVoteType.THEOCRACY_FAITH) {
-            setFaithIdentity(vote.realmId, option.title, option.tag);
         }
         String resultEvent = switch (vote.type) {
             case REALM_NAME -> "realm-name-chosen";
             case REALM_COLOR -> "realm-color-chosen";
             case GOVERNMENT_FORM -> "government-form-chosen";
-            case THEOCRACY_FAITH -> "theocracy-faith-chosen";
             default -> "vote-resolved";
         };
         String resultText = switch (vote.type) {
             case REALM_NAME -> "The Realm chose " + option.title + " as its official name.";
             case REALM_COLOR -> "The Realm chose " + option.title + " as its official color.";
             case GOVERNMENT_FORM -> "The Realm adopted " + option.title + " as its Government form.";
-            case THEOCRACY_FAITH -> "The Realm adopted " + option.title + " as its founding faith.";
             default -> "A Government vote resolved.";
         };
         api.history().recordChronicle("government", resultEvent, null, "realm", vote.realmId, vote.realmId,
@@ -1786,10 +1617,6 @@ public final class GovernmentStateService {
                         "You were elected as " + officeLabel(form, entry.getKey()) + " in "
                                 + officialName(vote.realmId) + ".",
                         Map.of("realmId", vote.realmId, "office", entry.getKey(), "form", form.id()));
-                if ("delegate".equals(entry.getKey()) && option.groupId != null && !option.groupId.isBlank()) {
-                    ElarionGroupsApi.get().setConfederationLocked(option.groupId, true);
-                    updated = updated.withDelegateGroup(option.candidateId, option.groupId);
-                }
             }
         }
         boolean complete = foundingElectionComplete(form, updated);
@@ -1895,46 +1722,10 @@ public final class GovernmentStateService {
                         "options", Integer.toString(runoff.options.size())));
     }
 
-    private boolean eligibleDelegateCandidate(ServerPlayerEntity player, String realm) {
-        try {
-            return ElarionGroupsApi.get().groupFor(player.getUuid())
-                    .filter(group -> group.leaderId().equals(player.getUuid()))
-                    .filter(group -> ElarionGroupsApi.get().eligibleForConfederationDelegate(group.id(), realm))
-                    .isPresent();
-        } catch (IllegalStateException exception) {
-            return false;
-        }
-    }
-
-    private boolean invalidDelegate(String realmId, UUID delegateId, String representedGroupId) {
-        if (representedGroupId == null || representedGroupId.isBlank()) return true;
-        try {
-            return ElarionGroupsApi.get().find(representedGroupId)
-                    .map(group -> !delegateId.equals(group.leaderId())
-                            || !ElarionGroupsApi.get().eligibleForConfederationDelegate(group.id(), realmId))
-                    .orElse(true);
-        } catch (IllegalStateException exception) {
-            return false;
-        }
-    }
-
-    private void unlockDelegateGroup(String groupId) {
-        if (groupId == null || groupId.isBlank()) return;
-        try {
-            ElarionGroupsApi.get().setConfederationLocked(groupId, false);
-        } catch (IllegalArgumentException | IllegalStateException ignored) {
-            // Government cleanup must not fail if Groups is disabled or a dev group was deleted first.
-        }
-    }
-
     private static List<String> foundingElectionOffices(GovernmentFormDefinition form, RealmGovernmentState current) {
         return switch (form.id()) {
             case "monarchy" -> List.of("monarch");
-            case "republic" -> current.officeHolders().containsKey("president")
-                    ? List.of("council_member")
-                    : List.of("president");
-            case "theocracy" -> List.of("high_priest");
-            case "confederation" -> List.of("delegate");
+            case "republic" -> List.of("president");
             default -> form.authorityOffices().stream().filter(office -> !"officer".equals(office)).toList();
         };
     }
@@ -1942,10 +1733,7 @@ public final class GovernmentStateService {
     private static boolean foundingElectionComplete(GovernmentFormDefinition form, RealmGovernmentState current) {
         return switch (form.id()) {
             case "monarchy" -> current.officeHolders().containsKey("monarch");
-            case "republic" -> current.officeHolders().containsKey("president")
-                    && current.officeHolders().getOrDefault("council_member", Set.of()).size() >= 1;
-            case "theocracy" -> current.officeHolders().containsKey("high_priest");
-            case "confederation" -> current.officeHolders().getOrDefault("delegate", Set.of()).size() >= 1;
+            case "republic" -> current.officeHolders().containsKey("president");
             default -> !foundingElectionOffices(form, current).isEmpty()
                     && foundingElectionOffices(form, current).stream()
                     .allMatch(office -> current.officeHolders().containsKey(office));
@@ -1954,10 +1742,7 @@ public final class GovernmentStateService {
 
     private String nextFoundingPhaseMessage(GovernmentFormDefinition form, RealmGovernmentState current) {
         return switch (form.id()) {
-            case "republic" -> current.officeHolders().containsKey("president")
-                    ? "Embers may now nominate Councilors. Each Ember may approve up to three different candidates."
-                    : "Embers may now nominate the President.";
-            case "theocracy" -> "The High Priest has been chosen. Synod appointments are handled by the High Priest through authority office management.";
+            case "republic" -> "Embers may now nominate the President.";
             default -> "The next founding election phase is ready.";
         };
     }
@@ -2027,14 +1812,6 @@ public final class GovernmentStateService {
             UUID citizenId
     ) {
         if (!"republic".equals(formId) || state == null || citizenId == null) return "";
-        if ("council_member".equals(targetOfficeId)
-                && state.officeHolders().getOrDefault("president", Set.of()).contains(citizenId)) {
-            return "The President cannot also hold a Councilor seat.";
-        }
-        if ("president".equals(targetOfficeId)
-                && state.officeHolders().getOrDefault("council_member", Set.of()).contains(citizenId)) {
-            return "A Councilor cannot also hold the President office.";
-        }
         return "";
     }
 
@@ -2043,19 +1820,11 @@ public final class GovernmentStateService {
     }
 
     private void recordAuthorityRemoval(String realmId, String formId, String officeId, UUID citizenId, String reason) {
-        if ("delegate".equals(officeId)) {
-            unlockDelegateGroup(state.realms.getOrDefault(realmId, RealmGovernmentState.empty(realmId))
-                    .delegateGroupIds()
-                    .getOrDefault(citizenId, ""));
-        }
         String eventType = switch (officeId) {
-            case "high_priest" -> "succession-crisis";
-            case "delegate" -> "delegate-vacancy";
-            case "president", "council_member" -> "republic-vacancy";
+            case "president" -> "republic-vacancy";
             default -> "authority-removed-inactive";
         };
         String readableReason = switch (reason) {
-            case "group-invalid" -> "its represented group is no longer eligible";
             case "true-death" -> "its holder suffered True Death";
             default -> "its holder became inactive";
         };
@@ -2163,10 +1932,37 @@ public final class GovernmentStateService {
             RealmGovernmentState government,
             GovernmentProposalRecord proposal
     ) {
+        if ("audience_request".equals(proposal.category())) {
+            return acceptAudienceRequest(actor, realm, proposal);
+        }
         if ("law".equals(proposal.category()) && "republic".equals(government.activeGovernmentFormId())) {
             return openCitizenRatification(actor, realm, proposal);
         }
         return approveProposalForFinalization(actor, realm, proposal);
+    }
+
+    private GovernmentProposalRecord acceptAudienceRequest(
+            ServerPlayerEntity actor,
+            String realm,
+            GovernmentProposalRecord proposal
+    ) {
+        long now = System.currentTimeMillis();
+        GovernmentProposalRecord accepted = proposal.withStatus(GovernmentProposalStatus.ENACTED, actor.getUuid(), now);
+        state.proposals.put(proposal.id(), accepted);
+        state.realms.put(realm, realm(realm).withoutPendingProposal(proposal.id()));
+        save();
+        api.history().recordChronicle("government", "audience-request-accepted", actor.getUuid(),
+                "audience_request", proposal.id(), realm,
+                Map.of("title", proposal.title()),
+                "A Monarch accepted an audience request.");
+        notifyPersonal(proposal.authorId(), "audience-request-accepted",
+                realm + ":audience-request-accepted:" + proposal.id(),
+                "Audience Accepted",
+                "Your request \"" + proposal.title() + "\" was accepted by the Seat of Rule.",
+                Map.of("realmId", realm, "proposalId", proposal.id()));
+        emit("government-audience-request-accepted", actor.getUuid(), realm, "audience_request", proposal.id(),
+                Map.of("title", proposal.title()));
+        return accepted;
     }
 
     private GovernmentProposalRecord openCitizenRatification(
@@ -2289,29 +2085,6 @@ public final class GovernmentStateService {
         emit("government-proposal-finalized", actor.getUuid(), realm, "proposal", proposal.id(),
                 Map.of("recordId", record.id(), "category", record.category(), "title", record.title()));
         return enacted;
-    }
-
-    private void createAuthorityLawDraft(ServerPlayerEntity actor, String realm, String title, String body) {
-        String cleanTitle = GovernmentTextRules.validateShortText(title, "Law title", 4, 64);
-        String cleanBody = GovernmentTextRules.validateShortText(body, "Law body", 8, 2000);
-        long now = System.currentTimeMillis();
-        String id = nextProposalId(realm, cleanTitle);
-        GovernmentProposalRecord draft = GovernmentProposalRecord.create(
-                        id, realm, actor.getUuid(), "law", cleanTitle, cleanBody, now)
-                .withFinalText(cleanTitle, cleanBody, actor.getUuid(), now)
-                .withStatusAndClearedReview(GovernmentProposalStatus.FINAL_TEXT_REVIEW, actor.getUuid(), now);
-        state.proposals.put(id, draft);
-        state.realms.put(realm, realm(realm).withPendingProposal(id));
-        save();
-        api.history().recordChronicle("government", "theocracy-law-draft-created", actor.getUuid(),
-                "proposal", id, realm, Map.of("category", "law", "title", cleanTitle),
-                "The High Priest submitted law doctrine to the Synod.");
-        notifyFinalTextDecisionMakers(realm, "Synod Review Opened",
-                "\"" + cleanTitle + "\" now needs Synod approval.",
-                "synod-review:" + id,
-                Map.of("realmId", realm, "proposalId", id, "category", "law"));
-        emit("government-theocracy-law-draft-created", actor.getUuid(), realm, "proposal", id,
-                Map.of("category", "law", "title", cleanTitle));
     }
 
     private GovernmentProposalRecord approveProposalForFinalization(
@@ -2533,16 +2306,8 @@ public final class GovernmentStateService {
                     && Set.of("heir", "officer").contains(officeId);
             case "republic" -> government.officeHolders().getOrDefault("president", Set.of()).contains(actorId)
                     && "officer".equals(officeId);
-            case "theocracy" -> government.officeHolders().getOrDefault("high_priest", Set.of()).contains(actorId)
-                    && Set.of("synod_member", "officer").contains(officeId);
-            case "confederation" -> government.officeHolders().getOrDefault("delegate", Set.of()).contains(actorId)
-                    && "officer".equals(officeId)
-                    && government.officeHolders().getOrDefault("delegate", Set.of()).size() <= 1;
             default -> false;
         };
-        if (!allowed && "confederation".equals(formId) && "officer".equals(officeId)) {
-            throw new IllegalArgumentException("Confederation officer changes require delegate-majority proposal support.");
-        }
         if (!allowed) {
             throw new IllegalArgumentException("Your office cannot " + (appoint ? "appoint" : "remove") + " that office.");
         }
@@ -2552,8 +2317,6 @@ public final class GovernmentStateService {
         return switch (formId == null ? "" : formId) {
             case "monarchy" -> "monarch";
             case "republic" -> "president";
-            case "theocracy" -> "high_priest";
-            case "confederation" -> "delegate";
             default -> "";
         };
     }
@@ -2605,10 +2368,6 @@ public final class GovernmentStateService {
         GovernmentFormDefinition form = definitions.require(government.activeGovernmentFormId());
         if ("monarchy".equals(form.id())
                 && government.officeHolders().getOrDefault("monarch", Set.of()).contains(player.getUuid())) {
-            return;
-        }
-        if ("theocracy".equals(form.id())
-                && government.officeHolders().getOrDefault("high_priest", Set.of()).contains(player.getUuid())) {
             return;
         }
         throw new IllegalArgumentException("This Government form requires proposal approval before official records.");
@@ -2674,6 +2433,30 @@ public final class GovernmentStateService {
         }
     }
 
+    private boolean migrateRemovedForms() {
+        Set<String> activeFormIds = definitions.forms().stream()
+                .filter(GovernmentFormDefinition::enabled)
+                .map(GovernmentFormDefinition::id)
+                .collect(java.util.stream.Collectors.toSet());
+        boolean changed = false;
+        for (Map.Entry<String, RealmGovernmentState> entry : new ArrayList<>(state.realms.entrySet())) {
+            RealmGovernmentState government = entry.getValue();
+            if (government == null || government.activeGovernmentFormId().isBlank()) continue;
+            if (activeFormIds.contains(government.activeGovernmentFormId())) continue;
+            String realmId = normalize(entry.getKey());
+            restoreAuthorityTitlesForRealm(realmId);
+            state.realms.put(realmId, RealmGovernmentState.empty(realmId));
+            state.votes.entrySet().removeIf(voteEntry -> realmId.equals(normalize(voteEntry.getValue().realmId)));
+            state.proposals.entrySet().removeIf(proposalEntry -> realmId.equals(normalize(proposalEntry.getValue().realmId())));
+            state.laws.entrySet().removeIf(lawEntry -> realmId.equals(normalize(lawEntry.getValue().realmId())));
+            state.officeTerms.entrySet().removeIf(termEntry -> realmId.equals(normalize(termEntry.getValue().realmId())));
+            state.authorityTitleRestores.keySet().removeIf(key -> key.startsWith(realmId + "|"));
+            changed = true;
+        }
+        if (changed) rebuildOfficeTermIndex();
+        return changed;
+    }
+
     private boolean reconcileFoundingCompletion() {
         boolean changed = false;
         for (Map.Entry<String, RealmGovernmentState> entry : new ArrayList<>(state.realms.entrySet())) {
@@ -2732,18 +2515,7 @@ public final class GovernmentStateService {
             RealmGovernmentState government,
             GovernmentProposalRecord proposal
     ) {
-        return government != null
-                && proposal != null
-                && "republic".equals(normalize(government.activeGovernmentFormId()))
-                && "law".equals(normalize(proposal.category()))
-                && proposal.status() == GovernmentProposalStatus.PENDING
-                && proposal.reviewVotes().isEmpty()
-                && proposal.citizenVotes().isEmpty()
-                && proposal.finalTitle().isBlank()
-                && proposal.finalBody().isBlank()
-                && proposal.resolvedAt() <= 0L
-                && proposal.resolvedBy() == null
-                && proposal.sponsorId() == null;
+        return false;
     }
 
     private boolean reconcileResolvedColorVotes() {

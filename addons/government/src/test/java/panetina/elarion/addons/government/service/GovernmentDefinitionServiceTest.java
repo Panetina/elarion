@@ -44,7 +44,7 @@ final class GovernmentDefinitionServiceTest {
 
     private static GovernmentFormDefinition form(String id) {
         return new GovernmentFormDefinition(id, title(id), "", true, "%realm%", List.of(),
-                false, List.of(), Map.of(), Map.of());
+                List.of(), Map.of(), Map.of());
     }
 
     private static String title(String id) {

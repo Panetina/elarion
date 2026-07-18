@@ -203,16 +203,16 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "Expected default Republic government form");
         context.assertTrue(government.definitions().form("monarchy").isPresent(),
                 "Expected default Monarchy government form");
-        context.assertTrue(government.definitions().form("theocracy").isPresent(),
-                "Expected default Theocracy government form");
-        context.assertTrue(government.definitions().form("confederation").isPresent(),
-                "Expected default Confederation government form");
+        context.assertTrue(government.definitions().form("theocracy").isEmpty(),
+                "Theocracy should not be an active government form");
+        context.assertTrue(government.definitions().form("confederation").isEmpty(),
+                "Confederation should not be an active government form");
         commands.assertExecutes("e government reload", 4);
         commands.assertExecutes("e government forms", 4);
         commands.assertExecutes("e government inspect republic", 4);
-        commands.assertExecutes("e government inspect confederation", 4);
+        commands.assertFails("e government inspect confederation", 4);
         commands.assertExecutes("e government state " + realmId, 4);
-        commands.assertExecutes("e government proposals " + realmId, 4);
+        commands.assertExecutes("e government audience " + realmId, 4);
         commands.assertExecutes("e government laws " + realmId, 4);
         commands.assertExecutes("e government gates " + realmId, 4);
         commands.assertExecutes("e government identity set " + realmId + " OAK Oak", 4);

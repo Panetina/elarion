@@ -12,7 +12,7 @@ class GovernmentFormDefinitionTest {
     @Test
     void defaultsSafeNullCollections() {
         GovernmentFormDefinition definition = new GovernmentFormDefinition(
-                "republic", "", null, true, "", null, false, null, null, null);
+                "republic", "", null, true, "", null, null, null, null);
 
         assertEquals("republic", definition.displayName());
         assertEquals("republic of %realm%", definition.officialNameTemplate());
@@ -26,7 +26,7 @@ class GovernmentFormDefinitionTest {
     void copiesCollections() {
         GovernmentFormDefinition definition = new GovernmentFormDefinition(
                 "republic", "Republic", "", true,
-                "Republic of %realm%", List.of("seat"), false,
+                "Republic of %realm%", List.of("seat"),
                 List.of(new GovernmentOfficeDefinition("seat", "Seat", "", 3)),
                 Map.of("citizen", List.of("vote")),
                 Map.of("treasury", "keep"));

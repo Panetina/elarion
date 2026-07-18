@@ -18,7 +18,7 @@ final class GovernmentProfileContributorTest {
         UUID citizen = UUID.randomUUID();
         RealmGovernmentState state = RealmGovernmentState.empty("realm1")
                 .withOfficeHolder("monarch", citizen)
-                .withOfficeHolder("council", citizen);
+                .withOfficeHolder("officer", citizen);
         GovernmentFormDefinition form = new GovernmentFormDefinition(
                 "monarchy",
                 "Monarchy",
@@ -26,14 +26,13 @@ final class GovernmentProfileContributorTest {
                 true,
                 "Kingdom of %realm%",
                 List.of("monarch"),
-                false,
                 List.of(
                         new GovernmentOfficeDefinition("monarch", "Monarch", "Realm ruler.", 1),
-                        new GovernmentOfficeDefinition("council", "Councilor", "Council seat.", 5)),
+                        new GovernmentOfficeDefinition("officer", "Officer", "Appointed office.", 3)),
                 Map.of(),
                 Map.of());
 
-        assertEquals(List.of("Monarch", "Councilor"),
+        assertEquals(List.of("Monarch", "Officer"),
                 GovernmentProfileContributor.roleLabels(state, form, citizen));
     }
 
@@ -47,7 +46,6 @@ final class GovernmentProfileContributorTest {
                 true,
                 "Republic of %realm%",
                 List.of("president"),
-                false,
                 List.of(new GovernmentOfficeDefinition("president", "President", "Head of state.", 1)),
                 Map.of(),
                 Map.of());

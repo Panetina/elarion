@@ -92,7 +92,6 @@ final class GovernmentConfigDescriptorsTest {
                 true,
                 "%realm% Crown",
                 List.of("monarch", "heir"),
-                false,
                 List.of(
                         new GovernmentOfficeDefinition("heir", "Heir", "Next in line.", 1),
                         new GovernmentOfficeDefinition("monarch", "Monarch", "Rules.", 1),
@@ -107,15 +106,14 @@ final class GovernmentConfigDescriptorsTest {
         return new GovernmentFormDefinition(
                 "republic",
                 "Republic",
-                "Ember government.",
+                "Embers elect one president. The President drafts laws, and citizens ratify them with Yes or No votes.",
                 true,
                 "%realm% Republic",
-                List.of("president", "council_member"),
-                false,
+                List.of("president"),
                 List.of(
                         new GovernmentOfficeDefinition("president", "President", "Leads.", 1),
-                        new GovernmentOfficeDefinition("council_member", "Council Member", "Votes.", 5)),
-                Map.of("votes", List.of("create_proposal", "vote")),
+                        new GovernmentOfficeDefinition("officer", "Officer", "Enforcement.", 3)),
+                Map.of("votes", List.of("president_law_vote", "citizen_ratification")),
                 Map.of());
     }
 }

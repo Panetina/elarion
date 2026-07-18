@@ -220,11 +220,6 @@ public final class GovernmentChronicleText implements ChronicleRenderer {
                     text,
                     "Government",
                     "Government form recorded", "government.form-chosen", entry);
-            case "theocracy-faith-chosen", "theocracy-faith-set" -> projection(
-                    "Founding Faith Chosen",
-                    text,
-                    "Faith",
-                    "Faith identity recorded", "government.faith-chosen", entry);
             case "realm-notice-sent" -> projection(
                     "Realm Notice Sent",
                     title.isBlank() ? text : "\"" + title + "\" was published as a Realm notice.",
@@ -235,8 +230,7 @@ public final class GovernmentChronicleText implements ChronicleRenderer {
                     text,
                     "Office",
                     "Succession recorded", "government.monarchy-succession", entry);
-            case "monarchy-vacancy", "authority-removed-inactive", "republic-vacancy",
-                    "delegate-vacancy", "succession-crisis" -> projection(
+            case "monarchy-vacancy", "authority-removed-inactive", "republic-vacancy" -> projection(
                     "Authority Seat Vacated",
                     text,
                     "Office",
@@ -260,7 +254,6 @@ public final class GovernmentChronicleText implements ChronicleRenderer {
             case "realm-name-chosen", "realm-identity-set" -> "Realm Name Chosen";
             case "realm-color-chosen", "realm-color-set" -> "Realm Color Chosen";
             case "government-form-chosen", "form-set" -> "Government Form Chosen";
-            case "theocracy-faith-chosen", "theocracy-faith-set" -> "Founding Faith Chosen";
             case "monarchy-succession" -> "Monarch Succeeded";
             case "monarchy-vacancy" -> "Monarchy Became Vacant";
             case "civic-record-created" -> "Civic Record Created";

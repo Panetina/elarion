@@ -9,8 +9,7 @@ final class GovernmentTextRules {
     private static final List<String> REALM_COLORS = List.of(
             "dark_red", "red", "gold", "yellow", "dark_green", "green", "aqua", "dark_aqua",
             "dark_blue", "blue", "light_purple", "dark_purple", "white", "gray", "dark_gray", "black");
-    private static final Set<String> PROPOSAL_CATEGORIES = Set.of(
-            "law", "realm_project", "civic_rule", "other");
+    private static final Set<String> PROPOSAL_CATEGORIES = Set.of("audience_request");
     private static final Set<String> RECORD_CATEGORIES = Set.of(
             "law", "public_notice", "realm_project", "civic_rule", "other");
 
@@ -45,28 +44,6 @@ final class GovernmentTextRules {
         return clean;
     }
 
-    static String validateFaithName(String value) {
-        String clean = value == null ? "" : value.trim().replaceAll("\\s+", " ");
-        if (clean.length() < 3 || clean.length() > 40) {
-            throw new IllegalArgumentException("Faith name must be 3-40 characters.");
-        }
-        if (clean.split(" ").length > 5) {
-            throw new IllegalArgumentException("Faith name can use at most five words.");
-        }
-        if (!clean.matches("[A-Za-z0-9 ':-]+")) {
-            throw new IllegalArgumentException("Faith name can only use letters, numbers, spaces, apostrophes, hyphens, and colons.");
-        }
-        return clean;
-    }
-
-    static String validateFaithTag(String value) {
-        String clean = value == null ? "" : value.trim().toUpperCase(java.util.Locale.ROOT);
-        if (clean.length() < 2 || clean.length() > 6 || !clean.matches("[A-Z0-9]+")) {
-            throw new IllegalArgumentException("Faith mark must be 2-6 uppercase letters or numbers.");
-        }
-        return clean;
-    }
-
     static String normalizeColor(String color) {
         String normalized = normalize(color).replace(' ', '_');
         if (!REALM_COLORS.contains(normalized)) {
@@ -93,6 +70,7 @@ final class GovernmentTextRules {
             case "public_notice" -> "Notice";
             case "civic_rule" -> "Rule";
             case "realm_project" -> "Project Record";
+            case "audience_request" -> "Audience Request";
             default -> "Civic Record";
         };
     }
@@ -102,7 +80,6 @@ final class GovernmentTextRules {
             case REALM_NAME -> "Realm Name Voting Open";
             case REALM_COLOR -> "Realm Color Voting Open";
             case GOVERNMENT_FORM -> "Government Form Voting Open";
-            case THEOCRACY_FAITH -> "Theocracy Faith Voting Open";
             case FOUNDING_ELECTION -> "Founding Election Open";
         };
     }
@@ -112,7 +89,6 @@ final class GovernmentTextRules {
             case REALM_NAME -> "Review the proposed names and cast one private ballot.";
             case REALM_COLOR -> "Choose the color that will represent the Realm publicly.";
             case GOVERNMENT_FORM -> "Choose the form that will govern the Realm.";
-            case THEOCRACY_FAITH -> "Choose the faith identity the High Priest and Synod will represent.";
             case FOUNDING_ELECTION -> "Vote for the Realm's founding authority holders.";
         };
     }

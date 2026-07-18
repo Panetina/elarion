@@ -89,8 +89,6 @@ final class GovernmentUiScreenLayoutTest {
     void seatPrimaryOfficesUseSelfResignOnly() {
         assertTrue(SeatOfRuleScreen.primaryOffice("monarch"));
         assertTrue(SeatOfRuleScreen.primaryOffice("president"));
-        assertTrue(SeatOfRuleScreen.primaryOffice("high_priest"));
-        assertTrue(SeatOfRuleScreen.primaryOffice("delegate"));
         assertTrue(!SeatOfRuleScreen.primaryOffice("heir"));
         assertTrue(!SeatOfRuleScreen.primaryOffice("officer"));
     }
@@ -98,7 +96,6 @@ final class GovernmentUiScreenLayoutTest {
     @Test
     void civicFoundingScreensChooseCorrectCurrentVoteRows() {
         assertEquals("stageRows", CivicForumScreen.currentVoteRowSource("civic_name"));
-        assertEquals("stageRows", CivicForumScreen.currentVoteRowSource("civic_theocracy_faith"));
         assertEquals("stageRows", CivicForumScreen.currentVoteRowSource("civic_color"));
         assertEquals("stageRows", CivicForumScreen.currentVoteRowSource("civic_form"));
         assertEquals("stageRows", CivicForumScreen.currentVoteRowSource("civic_election"));
@@ -133,13 +130,13 @@ final class GovernmentUiScreenLayoutTest {
 
     @Test
     void civicPostFoundingTabsAreDisabledDuringFoundingScreens() {
-        assertTrue(!CivicForumScreen.tabEnabledForScreen("civic_election", "proposals", "current_votes"));
+        assertTrue(!CivicForumScreen.tabEnabledForScreen("civic_election", "audience", "current_votes"));
         assertTrue(!CivicForumScreen.tabEnabledForScreen("civic_election", "laws", "current_votes"));
         assertTrue(!CivicForumScreen.tabEnabledForScreen("civic_election", "projects", "current_votes"));
         assertTrue(!CivicForumScreen.tabEnabledForScreen("civic_election", "offices", "current_votes"));
         assertTrue(!CivicForumScreen.tabEnabledForScreen("civic_election", "history", "current_votes"));
-        assertTrue(CivicForumScreen.tabEnabledForScreen("civic_features", "proposals", "current_votes"));
-        assertTrue(CivicForumScreen.tabEnabledForScreen("civic_module_proposals", "history", "proposals"));
+        assertTrue(CivicForumScreen.tabEnabledForScreen("civic_features", "audience", "current_votes"));
+        assertTrue(CivicForumScreen.tabEnabledForScreen("civic_module_audience", "history", "audience"));
     }
 
     @Test

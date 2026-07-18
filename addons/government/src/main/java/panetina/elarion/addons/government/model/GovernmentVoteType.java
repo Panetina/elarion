@@ -4,6 +4,5 @@ public enum GovernmentVoteType {
     REALM_NAME,
     REALM_COLOR,
     GOVERNMENT_FORM,
-    THEOCRACY_FAITH,
     FOUNDING_ELECTION
 }

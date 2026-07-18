@@ -537,8 +537,8 @@ The check is bounded to stored Government office holders and uses Core citizen
 `lastSeenAt` truth.
 
 Each form file owns form definitions, office definitions, authority offices,
-action metadata, transition metadata, official name templates, and
-Confederation group-delegate metadata.
+action metadata, transition metadata, and official name templates. Active
+Government forms are currently Monarchy and Republic.
 
 Government runtime state lives in:
 

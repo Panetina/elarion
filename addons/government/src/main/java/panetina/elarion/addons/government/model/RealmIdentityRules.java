@@ -11,8 +11,7 @@ public final class RealmIdentityRules {
     public static final int NAME_MAX_WORDS = 2;
     private static final Pattern TAG = Pattern.compile("[A-Z0-9]{2,6}");
     private static final Set<String> RESERVED_WORDS = Set.of(
-            "city", "confederacy", "confederation", "empire", "federation", "holy",
-            "kingdom", "land", "monarchy", "nation", "realm", "republic", "state", "theocracy"
+            "city", "empire", "kingdom", "land", "monarchy", "nation", "realm", "republic", "state"
     );
 
     private RealmIdentityRules() {

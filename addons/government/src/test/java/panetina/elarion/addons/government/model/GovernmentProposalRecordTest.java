@@ -33,7 +33,7 @@ class GovernmentProposalRecordTest {
     }
 
     @Test
-    void finalTextClearsPriorReviewVotesBeforeCouncilOrSynodReview() {
+    void finalTextClearsPriorReviewVotesBeforeCouncilReview() {
         UUID author = UUID.randomUUID();
         UUID president = UUID.randomUUID();
         UUID council = UUID.randomUUID();
@@ -62,7 +62,7 @@ class GovernmentProposalRecordTest {
     void sponsorSurvivesFinalTextReviewAndRewrite() {
         UUID author = UUID.randomUUID();
         UUID sponsor = UUID.randomUUID();
-        UUID delegate = UUID.randomUUID();
+        UUID reviewer = UUID.randomUUID();
         GovernmentProposalRecord proposal = GovernmentProposalRecord.create(
                         "realm1_proposal_gate_law",
                         "realm1",
@@ -76,8 +76,8 @@ class GovernmentProposalRecordTest {
                 .withStatusAndSponsor(GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION, sponsor, sponsor, 20L)
                 .withFinalText("Ancient Gate Law", "The gate must be guarded.", sponsor, 30L)
                 .withStatusAndClearedReview(GovernmentProposalStatus.FINAL_TEXT_REVIEW, sponsor, 30L)
-                .withVote(delegate, false)
-                .withStatusAndClearedReview(GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION, delegate, 40L);
+                .withVote(reviewer, false)
+                .withStatusAndClearedReview(GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION, reviewer, 40L);
 
         assertEquals(sponsor, proposal.sponsorId());
         assertEquals(GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION, proposal.status());

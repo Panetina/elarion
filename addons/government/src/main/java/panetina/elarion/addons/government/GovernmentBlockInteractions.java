@@ -100,10 +100,6 @@ public final class GovernmentBlockInteractions {
                     states.proposeRealmName(player, realmId, payload.value(), payload.secondaryValue());
                     message = "Name proposal submitted.";
                 }
-                case "propose_faith" -> {
-                    states.proposeFaithIdentity(player, realmId, payload.value(), payload.secondaryValue());
-                    message = "Faith proposal submitted.";
-                }
                 case "vote" -> {
                     states.castVote(player, realmId, voteType(payload.screenType()), payload.targetId());
                     message = "Your ballot was recorded.";
@@ -138,7 +134,7 @@ public final class GovernmentBlockInteractions {
                 case "create_proposal" -> {
                     states.createProposal(player, realmId, payload.targetId(), payload.value(), payload.secondaryValue());
                     sendCivicModuleSnapshot(api, definitions, states, player, realmId, session,
-                            "proposals", "Proposal submitted.");
+                            "audience", "Audience request submitted.");
                     return;
                 }
                 case "approve_proposal" -> {
@@ -159,8 +155,8 @@ public final class GovernmentBlockInteractions {
                         sendCivicSnapshot(api, definitions, states, player, realmId, session,
                                 "Your law vote was recorded.");
                     } else {
-                        sendCivicModuleSnapshot(api, definitions, states, player, realmId, session,
-                                "proposals", "Your law vote was recorded.");
+                        sendCivicSnapshot(api, definitions, states, player, realmId, session,
+                                "Your law vote was recorded.");
                     }
                     return;
                 }
@@ -170,8 +166,8 @@ public final class GovernmentBlockInteractions {
                         sendCivicSnapshot(api, definitions, states, player, realmId, session,
                                 "Your law vote was recorded.");
                     } else {
-                        sendCivicModuleSnapshot(api, definitions, states, player, realmId, session,
-                                "proposals", "Your law vote was recorded.");
+                        sendCivicSnapshot(api, definitions, states, player, realmId, session,
+                                "Your law vote was recorded.");
                     }
                     return;
                 }
@@ -206,6 +202,12 @@ public final class GovernmentBlockInteractions {
                             payload.value(), payload.secondaryValue());
                     sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
                             moduleFromCategory(category), "Record created.");
+                    return;
+                }
+                case "add_law_vote" -> {
+                    states.createRepublicLawVote(player, realmId, payload.value(), payload.secondaryValue());
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "laws", "Republic law vote opened.");
                     return;
                 }
                 case "send_notice" -> {
@@ -300,7 +302,7 @@ public final class GovernmentBlockInteractions {
             return;
         }
         if (!states.canOpenSeatOfRule(player, realm.get().id())) {
-            player.sendMessage(Text.literal("Only the Realm ruler or an elected Confederation delegate may open the Seat of Rule. Council and Synod actions arrive through notifications.")
+            player.sendMessage(Text.literal("Only the Realm ruler may open the Seat of Rule.")
                     .formatted(net.minecraft.util.Formatting.RED), false);
             return;
         }
@@ -385,27 +387,6 @@ public final class GovernmentBlockInteractions {
                         eligible, false));
                 forms = colorRows(states, vote, player.getUuid(), colorRowsUnlocked, state.votedColor());
             }
-            case THEOCRACY_FAITH -> {
-                title = "Founding Faith";
-                Optional<GovernmentVoteState> vote = states.existingVote(realm.id(), GovernmentVoteType.THEOCRACY_FAITH);
-                long now = System.currentTimeMillis();
-                boolean proposalEnded = vote.map(candidate -> candidate.proposalEnded(now)).orElse(false);
-                boolean proposalActive = vote.map(candidate -> candidate.proposalActive(now)).orElse(false);
-                boolean alreadyProposed = vote.map(candidate -> candidate.options.values().stream()
-                        .anyMatch(option -> player.getUuid().equals(option.proposedBy))).orElse(false);
-                locked = !gates.theocracyFaithUnlocked();
-                primaryAction = !locked && eligible && !proposalEnded && !alreadyProposed ? "propose_faith" : "";
-                voted = hasVoted(vote, player.getUuid());
-                voteEndsAt = vote.map(candidate -> proposalEnded ? candidate.endsAt : candidate.proposalEndsAt)
-                        .orElse(0L);
-                String phase = locked ? gates.theocracyFaithLockMessage()
-                        : !proposalEnded ? proposalActive ? "Faith proposal phase" : "Waiting for first faith proposal"
-                        : vote.map(candidate -> candidate.active(now)).orElse(false) ? "Faith voting phase"
-                        : "Faith voting is ready";
-                subtitle = phase + " - define the religion before electing High Priest and Synod.";
-                rows.addAll(nameProposalRows(vote, player.getUuid(), !locked && eligible && proposalEnded,
-                        "No faith identities proposed yet."));
-            }
             case FOUNDING_ELECTION -> {
                 GovernmentFoundingPhase phase = states.foundingPhase(player, realm.id());
                 title = phase.title().isBlank() ? foundingElectionStageTitle(state) : phase.title();
@@ -488,10 +469,14 @@ public final class GovernmentBlockInteractions {
             } else {
                 officeRows.addAll(officeRows(api, states, form, state));
             }
-            boolean canReviewProposals = states.canReviewProposals(player, realm.id());
-            status.addAll(proposalRows(api, states.proposals(realm.id()), canReviewProposals, player.getUuid(),
-                    states, player, realm.id()));
-            primaryAction = states.isAuthority(realm.id(), player.getUuid()) ? "send_notice" : "";
+            if ("monarchy".equals(form.id())) {
+                boolean canReviewProposals = states.canReviewProposals(player, realm.id());
+                status.addAll(proposalRows(api, states.proposals(realm.id()), canReviewProposals, player.getUuid(),
+                        states, player, realm.id()));
+            } else {
+                status.addAll(currentVoteRows(api, states, player.getUuid(), realm.id()));
+            }
+            primaryAction = "";
         }
 
         send(player, new GovernmentUiOpenPayload(
@@ -553,10 +538,11 @@ public final class GovernmentBlockInteractions {
             subtitle = "Government chronicle entries for " + api.realms().officialName(realm) + ".";
             rows = historyRows(api, states.governmentHistory(realm.id(), 40), states.laws(realm.id()), false);
         } else {
-            title = "Ember Proposals";
-            subtitle = "Submit and follow Ember proposals for " + api.realms().officialName(realm) + ".";
+            title = "Audience Requests";
+            subtitle = "Request an audience with the Monarch of " + api.realms().officialName(realm) + ".";
             rows = proposalRows(api, states.proposals(realm.id()), false, player.getUuid(), states, player, realm.id());
-            primaryAction = states.eligibleCitizen(player, realm.id()) ? "create_proposal" : "";
+            primaryAction = "monarchy".equals(states.realm(realm.id()).activeGovernmentFormId())
+                    && states.eligibleCitizen(player, realm.id()) ? "create_proposal" : "";
         }
         send(player, new GovernmentUiOpenPayload(
                 "civic_module_" + module, title, subtitle, realm.id(), api.realms().officialName(realm), "default",
@@ -589,12 +575,13 @@ public final class GovernmentBlockInteractions {
         String subtitle;
         String primaryAction = "";
         boolean directRecords = states.canDirectCreateRecords(player, realm.id());
+        boolean republicLawVotes = states.canCreateRepublicLawVotes(player, realm.id());
         boolean canReviewProposals = states.canReviewProposals(player, realm.id());
         if ("laws".equals(module)) {
             title = "Laws";
-            subtitle = "Create, read, and archive active laws.";
+            subtitle = "Create, vote, read, and archive active laws.";
             rows = recordRows(api, states.laws(realm.id()), true, true, "laws");
-            primaryAction = directRecords ? "add_law_record" : "";
+            primaryAction = directRecords ? "add_law_record" : republicLawVotes ? "add_law_vote" : "";
         } else if ("projects".equals(module)) {
             title = "Projects";
             subtitle = "Approved Realm project records.";
@@ -609,11 +596,11 @@ public final class GovernmentBlockInteractions {
             subtitle = "Authority holders, tenure, and office tools.";
             rows = officeRows(api, states, form, states.realm(realm.id()));
         } else {
-            title = "Review";
-            subtitle = "Approve or reject pending Ember proposals.";
+            title = "Audience";
+            subtitle = "Approve or reject audience requests.";
             rows = proposalRows(api, states.proposals(realm.id()), canReviewProposals, player.getUuid(),
                     states, player, realm.id());
-            primaryAction = states.isAuthority(realm.id(), player.getUuid()) ? "send_notice" : "";
+            primaryAction = "";
         }
         send(player, new GovernmentUiOpenPayload(
                 "seat_module_" + module, title, subtitle, realm.id(), api.realms().officialName(realm), "default",
@@ -728,11 +715,10 @@ public final class GovernmentBlockInteractions {
                 .sorted(voteOptionComparator(vote.get(), counts))
                 .map(option -> {
                     boolean selected = selected(vote, viewer, option.id);
-                    boolean faith = vote.get().type == GovernmentVoteType.THEOCRACY_FAITH;
                     long count = counts.getOrDefault(option.id, 0L);
                     return choiceRow(option.id,
-                            (faith ? "Faith: " : "Name: ") + option.title,
-                            (faith ? "Mark: [" : "Tag: [") + option.tag + "]",
+                            "Name: " + option.title,
+                            "Tag: [" + option.tag + "]",
                             votingUnlocked ? voteCountLabel(count) : "Proposed",
                             votingUnlocked, vote.get().winnerIds.contains(option.id),
                             selected, count);
@@ -836,7 +822,7 @@ public final class GovernmentBlockInteractions {
 
     private static List<GovernmentUiOpenPayload.Row> citizenModules() {
         return List.of(
-                navigationRow("proposals", "Proposals", "Create and track Ember proposals.", "Open", true, false),
+                navigationRow("audience", "Audience", "Request an audience with the Monarch.", "Open", true, false),
                 navigationRow("laws", "Laws", "Read active law and civic records.", "Open", true, false),
                 navigationRow("projects", "Projects", "Read approved project records.", "Open", true, false),
                 navigationRow("offices", "Offices", "View current authority holders.", "Open", true, false),
@@ -846,7 +832,9 @@ public final class GovernmentBlockInteractions {
 
     static List<GovernmentUiOpenPayload.Row> seatModuleRows(GovernmentFormDefinition form) {
         List<GovernmentUiOpenPayload.Row> rows = new ArrayList<>();
-        rows.add(navigationRow("review", "Review", "Review pending Ember proposals.", "Open", true, false));
+        if ("monarchy".equals(form.id())) {
+            rows.add(navigationRow("review", "Audience", "Review pending audience requests.", "Open", true, false));
+        }
         rows.add(navigationRow("laws", "Laws", "View and archive active laws.", "Open", true, false));
         rows.add(navigationRow("projects", "Projects", "View approved project records.", "Open", true, false));
         rows.add(navigationRow("offices", "Offices", "View and manage authority holders.", "Open", true, false));
@@ -906,14 +894,14 @@ public final class GovernmentBlockInteractions {
             String realmId
     ) {
         if (proposals.isEmpty()) {
-            return List.of(row("empty", "No Proposals", "No Ember proposals are recorded yet.", "Waiting", false, false));
+            return List.of(row("empty", "No Audience Requests", "No audience requests are recorded yet.", "Waiting", false, false));
         }
         List<GovernmentProposalRecord> visible = proposals.stream()
                 .filter(GovernmentBlockInteractions::visibleProposal)
                 .toList();
         if (visible.isEmpty()) {
-            return List.of(row("empty", "No Active Proposals",
-                    "Approved records now live in Laws, Rules, Notices, or Projects.", "Empty", false, false));
+            return List.of(row("empty", "No Active Audience Requests",
+                    "Resolved requests disappear from this active list.", "Empty", false, false));
         }
         return visible.stream()
                 .map(proposal -> {
@@ -955,7 +943,7 @@ public final class GovernmentBlockInteractions {
                             proposal.status() == GovernmentProposalStatus.ENACTED,
                             iconForCategory(proposal.category()), categoryLabel(proposal.category()), actor,
                             proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
-                                    ? "Ember vote" : authorityView ? "Authority review" : "Proposal",
+                                    ? "Ember vote" : authorityView ? "Audience review" : "Audience",
                             approveCount, rejectCount, threshold, proposal.createdAt());
                 })
                 .toList();
@@ -1093,8 +1081,6 @@ public final class GovernmentBlockInteractions {
         return switch (form.id()) {
             case "monarchy" -> "monarch";
             case "republic" -> "president";
-            case "theocracy" -> "high_priest";
-            case "confederation" -> "delegate";
             default -> form.authorityOffices().stream()
                     .filter(office -> !"officer".equals(office))
                     .findFirst()
@@ -1155,10 +1141,11 @@ public final class GovernmentBlockInteractions {
     private static String normalizeCivicModule(String moduleId) {
         return switch (moduleId == null ? "" : moduleId) {
             case "laws", "rules", "notices" -> "laws";
+            case "audience", "proposals" -> "audience";
             case "projects" -> "projects";
             case "offices" -> "offices";
             case "history", "archive" -> "history";
-            default -> "proposals";
+            default -> "audience";
         };
     }
 
@@ -1168,7 +1155,7 @@ public final class GovernmentBlockInteractions {
             case "projects" -> "projects";
             case "offices" -> "offices";
             case "archive", "history" -> "archive";
-            case "notices" -> "review";
+            case "notices", "audience" -> "review";
             default -> "review";
         };
     }
@@ -1188,14 +1175,10 @@ public final class GovernmentBlockInteractions {
     ) {
         RealmGovernmentState government = states.realm(realmId);
         if (government.activeGovernmentFormId().isBlank()) {
-            return "Finish founding first: choose a Government form before proposals, laws, projects, offices, and history open.";
+            return "Finish founding first: choose a Government form before laws, offices, and history open.";
         }
         GovernmentFormDefinition form = definitions.require(government.activeGovernmentFormId());
         GovernmentFoundingPhase phase = states.foundingPhase(player, realmId);
-        if ("republic".equals(form.id()) && government.officeHolders().containsKey("president")
-                && government.officeHolders().getOrDefault("council_member", Set.of()).isEmpty()) {
-            return "Finish founding first: nominate and elect at least one Councilor before proposals, laws, projects, offices, and history open.";
-        }
         String reason = phase.nominationReason().isBlank() ? phase.phaseLabel() : phase.nominationReason();
         return "Finish founding first: " + reason;
     }
@@ -1213,7 +1196,6 @@ public final class GovernmentBlockInteractions {
             case "civic_name" -> GovernmentVoteType.REALM_NAME;
             case "civic_color" -> GovernmentVoteType.REALM_COLOR;
             case "civic_form" -> GovernmentVoteType.GOVERNMENT_FORM;
-            case "civic_theocracy_faith" -> GovernmentVoteType.THEOCRACY_FAITH;
             case "civic_election" -> GovernmentVoteType.FOUNDING_ELECTION;
             default -> throw new IllegalArgumentException("That screen does not accept votes.");
         };
@@ -1224,7 +1206,6 @@ public final class GovernmentBlockInteractions {
             case REALM_NAME -> "civic_name";
             case REALM_COLOR -> "civic_color";
             case GOVERNMENT_FORM -> "civic_form";
-            case THEOCRACY_FAITH -> "civic_theocracy_faith";
             case FOUNDING_ELECTION -> "civic_election";
             case CITIZEN_FEATURES -> "civic_features";
         };
@@ -1302,40 +1283,22 @@ public final class GovernmentBlockInteractions {
             RealmGovernmentState state
     ) {
         if ("republic".equals(state.activeGovernmentFormId())) {
-            if (!state.officeHolders().containsKey("president")) {
-                return "Elect one President first. Council elections open after the President is chosen.";
-            }
-            return "Elect up to three Councilors. Each Ember may approve three different candidates.";
-        }
-        if ("theocracy".equals(state.activeGovernmentFormId())) {
-            String faith = state.faithDisplayName().isBlank() ? "the founding faith" : state.faithDisplayName();
-            return "Elect one High Priest to lead " + faith
-                    + ". Synod Members are appointed by the High Priest after founding.";
-        }
-        if ("confederation".equals(state.activeGovernmentFormId())) {
-            return "Elect up to three group Delegates. Each Ember may approve three different candidates.";
+            return "Elect one President. The President drafts laws; Embers ratify them with Yes or No votes.";
         }
         return "Choose the first authority holders for " + formName(definitions, state) + ".";
     }
 
     private static String foundingElectionStageTitle(RealmGovernmentState state) {
         return switch (state.activeGovernmentFormId()) {
-            case "republic" -> state.officeHolders().containsKey("president")
-                    ? "Councilor Election" : "President Election";
+            case "republic" -> "President Election";
             case "monarchy" -> "Monarch Election";
-            case "theocracy" -> "High Priest Election";
-            case "confederation" -> "Delegate Election";
             default -> "Leadership Election";
         };
     }
 
     private static String foundingElectionRules(RealmGovernmentState state) {
         return switch (state.activeGovernmentFormId()) {
-            case "republic" -> state.officeHolders().containsKey("president")
-                    ? "Councilor nominations run first. Voting opens after nominations close. Each Ember may approve up to three Councilor candidates."
-                    : "President nominations run first. Voting opens after nominations close. Each Ember may approve one President candidate.";
-            case "theocracy" -> "High Priest nominations run first. Voting opens after nominations close. The High Priest chooses Synod Members after founding.";
-            case "confederation" -> "Delegate nominations run first. Voting opens after nominations close. Each Ember may approve up to three different Delegate candidates.";
+            case "republic" -> "President nominations run first. Voting opens after nominations close. Each Ember may approve one President candidate.";
             default -> "Nominations run first. Voting opens after nominations close. Multi-seat offices accept multiple approvals.";
         };
     }

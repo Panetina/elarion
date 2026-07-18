@@ -10,35 +10,34 @@ class GovernmentGateStatusTest {
     @Test
     void gatesFollowFoundationAndFoundingOrder() {
         GovernmentGateStatus beforeFoundation = new GovernmentGateStatus(
-                "realm1", false, false, false, false, false, false, false, false, false);
+                "realm1", false, false, false, false, false, false, false);
 
         assertTrue(beforeFoundation.nameVoteVisible());
         assertFalse(beforeFoundation.nameVoteUnlocked());
         assertFalse(beforeFoundation.governmentChoicesVisible());
 
         GovernmentGateStatus afterNameBeforeColor = new GovernmentGateStatus(
-                "realm1", true, true, false, true, false, false, false, false, false);
+                "realm1", true, false, false, true, false, false, false);
 
         assertTrue(afterNameBeforeColor.colorVoteVisible());
         assertTrue(afterNameBeforeColor.colorVoteUnlocked());
         assertFalse(afterNameBeforeColor.governmentChoicesVisible());
 
         GovernmentGateStatus afterColorAndFoundationTwo = new GovernmentGateStatus(
-                "realm1", true, true, false, true, true, false, false, false, false);
+                "realm1", true, true, false, true, true, false, false);
 
         assertTrue(afterColorAndFoundationTwo.governmentChoicesVisible());
         assertTrue(afterColorAndFoundationTwo.governmentVoteUnlocked());
         assertFalse(afterColorAndFoundationTwo.foundingElectionUnlocked());
 
-        GovernmentGateStatus theocracyNeedsFaith = new GovernmentGateStatus(
-                "realm1", true, true, true, true, true, true, true, false, false);
+        GovernmentGateStatus readyForElection = new GovernmentGateStatus(
+                "realm1", true, true, true, true, true, true, false);
 
-        assertTrue(theocracyNeedsFaith.theocracyFaithVisible());
-        assertTrue(theocracyNeedsFaith.theocracyFaithUnlocked());
-        assertFalse(theocracyNeedsFaith.foundingElectionUnlocked());
+        assertTrue(readyForElection.foundingElectionUnlocked());
+        assertFalse(readyForElection.seatOfRuleUnlocked());
 
         GovernmentGateStatus founded = new GovernmentGateStatus(
-                "realm1", true, true, true, true, true, true, true, true, true);
+                "realm1", true, true, true, true, true, true, true);
 
         assertFalse(founded.foundingElectionUnlocked());
         assertTrue(founded.seatOfRuleUnlocked());
@@ -47,11 +46,11 @@ class GovernmentGateStatusTest {
     @Test
     void lockMessagesNameTheBlockingFoundationLevel() {
         GovernmentGateStatus noFoundation = new GovernmentGateStatus(
-                "realm1", false, false, false, false, false, false, false, false, false);
+                "realm1", false, false, false, false, false, false, false);
         GovernmentGateStatus beforeGovernmentVote = new GovernmentGateStatus(
-                "realm1", true, false, false, true, true, false, false, false, false);
+                "realm1", true, false, false, true, true, false, false);
         GovernmentGateStatus beforeElection = new GovernmentGateStatus(
-                "realm1", true, true, false, true, true, true, false, false, false);
+                "realm1", true, true, false, true, true, true, false);
 
         assertEquals(
                 "Locked: complete Foundation I at the Shrine before Realm naming opens.",

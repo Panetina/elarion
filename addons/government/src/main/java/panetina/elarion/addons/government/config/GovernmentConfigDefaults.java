@@ -62,23 +62,18 @@ public final class GovernmentConfigDefaults {
     public static final String REPUBLIC_FORM = """
             id: republic
             display-name: "Republic"
-            description: "Embers elect a president and council through public votes."
+            description: "Embers elect one president. The President drafts laws, and citizens ratify them with Yes or No votes."
             official-name-template: "Republic of %realm%"
             enabled: true
             authority-offices:
               - president
-              - council_member
               - officer
 
             offices:
               - id: president
                 display-name: "President"
                 max-holders: 1
-                description: "The elected head of a republic."
-              - id: council_member
-                display-name: "Councilor"
-                max-holders: 3
-                description: "Elected council authority."
+                description: "The elected head of the Republic. Drafts laws for citizen ratification."
               - id: officer
                 display-name: "Civic Officer"
                 max-holders: 3
@@ -91,8 +86,6 @@ public final class GovernmentConfigDefaults {
               president:
                 - authority_chat
                 - appoint_officer
-              council_member:
-                - authority_chat
               officer:
                 - authority_chat
 
@@ -103,85 +96,4 @@ public final class GovernmentConfigDefaults {
               treasury: keep
             """;
 
-    public static final String THEOCRACY_FORM = """
-            id: theocracy
-            display-name: "Theocracy"
-            description: "Embers first define a Realm faith, then elect one High Priest. The High Priest appoints up to three Synod Members after founding."
-            official-name-template: "Holy %realm%"
-            enabled: true
-            authority-offices:
-              - high_priest
-              - synod_member
-              - officer
-
-            offices:
-              - id: high_priest
-                display-name: "High Priest"
-                max-holders: 1
-                description: "The primary spiritual authority and public voice of the Realm faith."
-              - id: synod_member
-                display-name: "Synod Member"
-                max-holders: 3
-                description: "One of up to three council members who advise, check, and represent the Realm faith."
-              - id: officer
-                display-name: "Temple Officer"
-                max-holders: 3
-                description: "Appointed authority placeholder for future law enforcement systems."
-
-            actions:
-              citizen:
-                - vote
-                - propose_reform
-              high_priest:
-                - authority_chat
-                - appoint_officer
-              synod_member:
-                - authority_chat
-              officer:
-                - authority_chat
-
-            transitions:
-              leader: remove
-              offices: keep_compatible
-              laws: keep_compatible
-              treasury: keep
-            """;
-
-    public static final String CONFEDERATION_FORM = """
-            id: confederation
-            display-name: "Confederation"
-            description: "Registered groups elect delegates to share Realm authority."
-            official-name-template: "%realm% Confederation"
-            enabled: true
-            confederation-delegates-represent-groups: true
-            authority-offices:
-              - delegate
-              - officer
-
-            offices:
-              - id: delegate
-                display-name: "Delegate"
-                max-holders: 3
-                description: "Elected representative of an eligible registered group."
-              - id: officer
-                display-name: "Confederation Officer"
-                max-holders: 3
-                description: "Appointed authority placeholder for future law enforcement systems."
-
-            actions:
-              citizen:
-                - vote
-                - propose_reform
-              delegate:
-                - authority_chat
-                - appoint_officer
-              officer:
-                - authority_chat
-
-            transitions:
-              leader: remove
-              offices: keep_compatible
-              laws: keep_compatible
-              treasury: keep
-            """;
 }

@@ -112,10 +112,6 @@ public final class GovernmentConfigDescriptors {
             entries.add(formStringEntry(form, "authority-offices", "Authority Offices",
                     "Comma-separated offices treated as authority holders.",
                     forms, value -> String.join(", ", value.authorityOffices()), false));
-            entries.add(formBoolEntry(form, "confederation-delegates-represent-groups",
-                    "Delegates Represent Groups",
-                    "Whether delegate offices represent Groups addon groups.",
-                    forms, GovernmentFormDefinition::confederationDelegatesRepresentGroups));
             entries.add(formIntEntry(form, "offices.count", "Office Count",
                     "Number of offices in this form.",
                     forms, value -> value.offices().size(), 0, Integer.MAX_VALUE));

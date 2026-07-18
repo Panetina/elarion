@@ -61,8 +61,6 @@ public final class GovernmentCommands {
                                     CommandOutput.kv(ctx.getSource(), "Authority Offices",
                                             form.authorityOffices().isEmpty()
                                                     ? "-" : String.join(", ", form.authorityOffices()));
-                                    CommandOutput.kv(ctx.getSource(), "Group Delegates",
-                                            form.confederationDelegatesRepresentGroups());
                                     CommandOutput.section(ctx.getSource(), "Offices");
                                     form.offices().forEach(office -> CommandOutput.bullet(ctx.getSource(),
                                             office.id() + " max=" + office.maxHolders()));
@@ -93,36 +91,35 @@ public final class GovernmentCommands {
                                             state.foundingElectionCompletedAt() > 0L);
                                     CommandOutput.kv(ctx.getSource(), "Offices", state.officeHolders().size());
                                     CommandOutput.kv(ctx.getSource(), "Active laws", state.activeLawIds().size());
-                                    CommandOutput.kv(ctx.getSource(), "Pending proposals",
+                                    CommandOutput.kv(ctx.getSource(), "Pending audience/votes",
                                             state.pendingProposalIds().size());
                                 }))))
-                .then(CommandManager.literal("proposals")
+                .then(CommandManager.literal("audience")
                         .then(CommandManager.argument("realm", StringArgumentType.word())
                                 .suggests((ctx, builder) -> CommandSource.suggestMatching(
                                         api.realms().all().stream().map(realm -> realm.id()), builder))
                                 .executes(ctx -> run(ctx.getSource(), () -> {
                                     String realm = StringArgumentType.getString(ctx, "realm");
-                                    CommandOutput.header(ctx.getSource(), "Government Proposals " + realm);
+                                    CommandOutput.header(ctx.getSource(), "Government Audience And Votes " + realm);
                                     for (GovernmentProposalRecord proposal : states.proposals(realm)) {
                                         CommandOutput.bullet(ctx.getSource(), proposal.id() + " ["
                                                 + proposal.status().name().toLowerCase(java.util.Locale.ROOT)
                                                 + "] " + proposal.title());
                                     }
-                                }))))
-                .then(CommandManager.literal("proposal")
+                                })))
                         .then(CommandManager.literal("inspect")
                                 .then(CommandManager.argument("realm", StringArgumentType.word())
                                         .suggests((ctx, builder) -> CommandSource.suggestMatching(
                                                 api.realms().all().stream().map(realm -> realm.id()), builder))
-                                        .then(CommandManager.argument("proposal", StringArgumentType.word())
+                                        .then(CommandManager.argument("record", StringArgumentType.word())
                                                 .executes(ctx -> run(ctx.getSource(), () -> {
                                                     String realm = StringArgumentType.getString(ctx, "realm");
-                                                    String id = StringArgumentType.getString(ctx, "proposal");
+                                                    String id = StringArgumentType.getString(ctx, "record");
                                                     GovernmentProposalRecord proposal = states.proposals(realm).stream()
                                                             .filter(candidate -> candidate.id().equals(id))
                                                             .findFirst()
                                                             .orElseThrow(() -> new IllegalArgumentException(
-                                                                    "Unknown proposal " + id + "."));
+                                                                    "Unknown audience or vote record " + id + "."));
                                                     CommandOutput.header(ctx.getSource(), proposal.title());
                                                     CommandOutput.kv(ctx.getSource(), "ID", proposal.id());
                                                     CommandOutput.kv(ctx.getSource(), "Category", proposal.category());
@@ -173,7 +170,7 @@ public final class GovernmentCommands {
                                     String realm = StringArgumentType.getString(ctx, "realm");
                                     states.resetRealm(realm);
                                     CommandOutput.success(ctx.getSource(),
-                                            "Reset Government founding state, votes, proposals, offices, and civic records for "
+                                            "Reset Government founding state, votes, audience/vote records, offices, and civic records for "
                                                     + realm + ".", true);
                                 }))))
                 .then(CommandManager.literal("set-form")
@@ -225,11 +222,9 @@ public final class GovernmentCommands {
                         .then(CommandManager.literal("cleanup")
                                 .executes(ctx -> run(ctx.getSource(), () -> {
                                     int inactive = states.removeInactiveAuthority(System.currentTimeMillis());
-                                    int invalidDelegates = states.removeInvalidConfederationDelegates();
                                     CommandOutput.success(ctx.getSource(),
                                             "Authority cleanup removed " + inactive
-                                                    + " inactive office holder(s) and " + invalidDelegates
-                                                    + " invalid Confederation delegate seat(s).",
+                                                    + " inactive office holder(s).",
                                             true);
                                 }))))
                 .then(CommandManager.literal("block")
@@ -272,7 +267,7 @@ public final class GovernmentCommands {
                         .executes(ctx -> run(ctx.getSource(), () -> {
                             int count = states.resetAllRealms();
                             CommandOutput.success(ctx.getSource(),
-                                    "Reset Government founding state, votes, proposals, offices, and civic records for "
+                                    "Reset Government founding state, votes, audience/vote records, offices, and civic records for "
                                             + count + " Realm(s).", true);
                         }))
                         .then(CommandManager.argument("realm", StringArgumentType.word())
@@ -282,7 +277,7 @@ public final class GovernmentCommands {
                                     String realm = StringArgumentType.getString(ctx, "realm");
                                     states.resetRealm(realm);
                                     CommandOutput.success(ctx.getSource(),
-                                            "Reset Government founding state, votes, proposals, offices, and civic records for "
+                                            "Reset Government founding state, votes, audience/vote records, offices, and civic records for "
                                                     + realm + ".", true);
                                 }))));
     }

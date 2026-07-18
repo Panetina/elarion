@@ -183,8 +183,8 @@ Quest scope keys are explicit strings such as `realm:realm1`, `world:overworld`,
 /e government inspect <form>
 /e government state <realm>
 /e government gates <realm>
-/e government proposals <realm>
-/e government proposal inspect <realm> <proposal>
+/e government audience <realm>
+/e government audience inspect <realm> <record>
 /e government laws <realm>
 /e government law archive <realm> <law>
 /e government law restore <realm> <law>

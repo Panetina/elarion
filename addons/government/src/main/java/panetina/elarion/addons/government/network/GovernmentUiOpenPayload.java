@@ -366,7 +366,7 @@ public record GovernmentUiOpenPayload(
         if (value.contains("color")) return "realm_color";
         if (value.contains("form") || value.contains("republic") || value.contains("monarchy")) return "government_form";
         if (value.contains("leader") || value.contains("election") || value.contains("president")
-                || value.contains("monarch") || value.contains("council") || value.contains("delegate")) {
+                || value.contains("monarch") || value.contains("council")) {
             return "leader_election";
         }
         if (value.contains("law")) return "law";

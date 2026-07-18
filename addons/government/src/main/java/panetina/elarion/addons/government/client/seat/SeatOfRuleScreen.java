@@ -551,6 +551,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             case "add_notice_record" -> "Add Notice";
             case "add_rule_record" -> "Add Civic Rule";
             case "add_project_record" -> "Add Project";
+            case "add_law_vote" -> "Open Law Vote";
             case "add_law_record" -> "Add Law";
             case "send_notice" -> "Send Notice";
             default -> "Add Record";
@@ -563,6 +564,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             case "add_notice_record" -> "Add Notice";
             case "add_rule_record" -> "Add Civic Rule";
             case "add_project_record" -> "Add Project Record";
+            case "add_law_vote" -> "Open Republic Law Vote";
             case "send_notice" -> "Send Realm Notice";
             case "appoint_office" -> "Appoint Office Holder";
             case "remove_office" -> "Remove Office Holder";
@@ -596,8 +598,8 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             }
             case "open_module", "approve_proposal", "reject_proposal", "archive_record", "restore_record" ->
                     sendAction(hit.action, hit.target, "", "");
-            case "finalize_proposal", "add_law_record", "add_notice_record", "add_rule_record", "add_project_record",
-                    "send_notice", "appoint_office", "remove_office" -> {
+            case "finalize_proposal", "add_law_record", "add_law_vote", "add_notice_record", "add_rule_record",
+                    "add_project_record", "send_notice", "appoint_office", "remove_office" -> {
                 overlay = true;
                 bodyActive = false;
                 overlayAction = hit.action;
@@ -615,7 +617,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
 
     public static boolean primaryOffice(String officeId) {
         return switch (officeId == null ? "" : officeId) {
-            case "monarch", "president", "high_priest", "delegate" -> true;
+            case "monarch", "president" -> true;
             default -> false;
         };
     }

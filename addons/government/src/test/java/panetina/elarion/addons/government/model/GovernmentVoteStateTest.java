@@ -36,8 +36,6 @@ class GovernmentVoteStateTest {
                 "monarchy", "Monarchy", "One ruler."));
         vote.options.put("republic", GovernmentVoteOption.governmentForm(
                 "republic", "Republic", "Elected leadership."));
-        vote.options.put("theocracy", GovernmentVoteOption.governmentForm(
-                "theocracy", "Theocracy", "Sacred leadership."));
 
         GovernmentVoteState runoff = vote.runoff(List.of("monarchy", "republic"), 10_000L, Duration.ofHours(12));
 

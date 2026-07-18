@@ -42,21 +42,6 @@ final class GovernmentProposalDecisionPolicy {
             }
             return GovernmentProposalDecision.WAITING;
         }
-        if ("theocracy".equals(form.id())) {
-            Set<UUID> priests = government.officeHolders().getOrDefault("high_priest", Set.of());
-            if (priests.stream().anyMatch(holder -> Boolean.TRUE.equals(proposal.reviewVotes().get(holder)))) {
-                return GovernmentProposalDecision.APPROVED;
-            }
-            if (priests.stream().anyMatch(holder -> Boolean.FALSE.equals(proposal.reviewVotes().get(holder)))) {
-                return GovernmentProposalDecision.REJECTED;
-            }
-            return GovernmentProposalDecision.WAITING;
-        }
-        if ("confederation".equals(form.id()) && "law".equals(proposal.category())) {
-            if (approvals >= 2L) return GovernmentProposalDecision.APPROVED;
-            if (rejections >= 2L) return GovernmentProposalDecision.REJECTED;
-            return GovernmentProposalDecision.WAITING;
-        }
         int threshold = approvers.size() / 2 + 1;
         if (approvals >= threshold) return GovernmentProposalDecision.APPROVED;
         if (rejections >= threshold) return GovernmentProposalDecision.REJECTED;
@@ -78,11 +63,6 @@ final class GovernmentProposalDecisionPolicy {
                 .filter(entry -> approvers.contains(entry.getKey()))
                 .filter(entry -> !entry.getValue())
                 .count();
-        if ("confederation".equals(government.activeGovernmentFormId()) && "law".equals(proposal.category())) {
-            if (approvals >= 2L) return GovernmentProposalDecision.APPROVED;
-            if (rejections >= 2L) return GovernmentProposalDecision.REJECTED;
-            return GovernmentProposalDecision.WAITING;
-        }
         int threshold = approvers.size() / 2 + 1;
         if (approvals >= threshold) return GovernmentProposalDecision.APPROVED;
         if (rejections >= threshold) return GovernmentProposalDecision.REJECTED;
@@ -97,12 +77,7 @@ final class GovernmentProposalDecisionPolicy {
         LinkedHashSet<UUID> holders = new LinkedHashSet<>();
         switch (form.id()) {
             case "monarchy" -> holders.addAll(government.officeHolders().getOrDefault("monarch", Set.of()));
-            case "republic" -> {
-                holders.addAll(government.officeHolders().getOrDefault("president", Set.of()));
-                holders.addAll(government.officeHolders().getOrDefault("council_member", Set.of()));
-            }
-            case "theocracy" -> holders.addAll(government.officeHolders().getOrDefault("high_priest", Set.of()));
-            case "confederation" -> holders.addAll(government.officeHolders().getOrDefault("delegate", Set.of()));
+            case "republic" -> holders.addAll(government.officeHolders().getOrDefault("president", Set.of()));
             default -> holders.addAll(fallbackAuthorityHolders);
         }
         return Set.copyOf(holders);
@@ -113,12 +88,7 @@ final class GovernmentProposalDecisionPolicy {
             Set<UUID> fallbackAuthorityHolders
     ) {
         LinkedHashSet<UUID> holders = new LinkedHashSet<>();
-        switch (government.activeGovernmentFormId()) {
-            case "republic" -> holders.addAll(government.officeHolders().getOrDefault("council_member", Set.of()));
-            case "theocracy" -> holders.addAll(government.officeHolders().getOrDefault("synod_member", Set.of()));
-            case "confederation" -> holders.addAll(government.officeHolders().getOrDefault("delegate", Set.of()));
-            default -> holders.addAll(fallbackAuthorityHolders);
-        }
+        holders.addAll(fallbackAuthorityHolders);
         return Set.copyOf(holders);
     }
 }

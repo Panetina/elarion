@@ -34,33 +34,6 @@ class RealmGovernmentStateTest {
     }
 
     @Test
-    void faithIdentityIsStoredForTheocracy() {
-        RealmGovernmentState state = RealmGovernmentState.empty("realm1")
-                .withForm("theocracy")
-                .withFaithIdentity("Church of Oak", "OAK");
-
-        assertEquals("Church of Oak", state.faithDisplayName());
-        assertEquals("OAK", state.faithTag());
-        assertTrue(state.faithVoteCompletedAt() > 0L);
-    }
-
-    @Test
-    void delegateGroupMappingIsRemovedWithDelegateOffice() {
-        UUID delegate = UUID.randomUUID();
-        RealmGovernmentState state = RealmGovernmentState.empty("realm1")
-                .withForm("confederation")
-                .withOfficeHolder("delegate", delegate)
-                .withDelegateGroup(delegate, "merc");
-
-        assertEquals("merc", state.delegateGroupIds().get(delegate));
-
-        RealmGovernmentState updated = state.withoutOfficeHolder("delegate", delegate);
-
-        assertFalse(updated.officeHolders().containsKey("delegate"));
-        assertFalse(updated.delegateGroupIds().containsKey(delegate));
-    }
-
-    @Test
     void proposalAndLawIdsMutateIndependently() {
         RealmGovernmentState state = RealmGovernmentState.empty("realm1")
                 .withPendingProposal("proposal_1")

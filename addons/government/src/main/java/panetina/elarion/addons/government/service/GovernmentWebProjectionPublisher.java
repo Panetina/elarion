@@ -82,7 +82,6 @@ public final class GovernmentWebProjectionPublisher {
             case REALM_NAME -> "Realm Name";
             case REALM_COLOR -> "Realm Color";
             case GOVERNMENT_FORM -> "Government Form";
-            case THEOCRACY_FAITH -> "Realm Faith";
             case FOUNDING_ELECTION -> "Founding Election";
         };
     }

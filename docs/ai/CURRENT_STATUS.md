@@ -66,6 +66,11 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 - Recent development launch repair restored Government classes, stable
   `citizen` compatibility IDs, valid client resource rotations, and clean
   dedicated-server/client startup.
+- Government's supported foundation is now intentionally limited to Monarchy
+  and Republic. The obsolete Confederation and Theocracy paths were removed
+  from config, runtime state, founding flow, UI, commands, tests, titles, and
+  documentation; focused command, packet, civic-mutation, persistence, and
+  GameTest coverage closes the former Government hardening item.
 
 ## Verification Snapshot
 
@@ -113,8 +118,7 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
   work; Worldheart, Underworld, and Realm factions are available now.
 - Additional Chronicle families should be promoted only when a player-facing
   consumer needs them and the ten-variant contract is satisfied.
-- Additional Government player-context GameTests and Grave/Underworld edge-flow
-  QA remain post-revamp hardening work.
+- Grave/Underworld edge-flow QA remains post-revamp hardening work.
 - Phase 13 is complete; Portal responsibilities are extracted behind the stable
   facade and no further duplicate deletion was evidence-safe. See
   `docs/reports/PHASE_13_COMPLETION.md`.
