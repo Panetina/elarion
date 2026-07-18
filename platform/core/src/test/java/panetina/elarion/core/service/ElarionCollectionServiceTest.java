@@ -19,11 +19,22 @@ final class ElarionCollectionServiceTest {
         var snapshot = service.snapshot(null, "", "");
         var result = service.act(null, "mounts", "bee", "set_active");
 
-        assertEquals("mounts", snapshot.selectedTabId());
-        assertEquals(2, snapshot.tabs().size());
-        assertEquals("pets", snapshot.tabs().get(1).id());
+        assertEquals("profile", snapshot.selectedTabId());
+        assertEquals(3, snapshot.tabs().size());
+        assertEquals("profile", snapshot.tabs().get(0).id());
+        assertEquals("pets", snapshot.tabs().get(2).id());
         assertTrue(result.success());
         assertEquals("bee:set_active", result.message());
+    }
+
+    @Test
+    void snapshotUsesCharacterMenuShellTitle() {
+        ElarionCollectionService service = new ElarionCollectionService();
+
+        var snapshot = service.snapshot(null, "", "");
+
+        assertEquals("Character Menu", snapshot.title());
+        assertEquals("Profile, reputation, mounts, pets, and titles.", snapshot.subtitle());
     }
 
     @Test
@@ -34,9 +45,21 @@ final class ElarionCollectionServiceTest {
 
         var snapshot = service.snapshot(null, "", "");
 
-        assertEquals("mounts", snapshot.tabs().get(0).id());
-        assertEquals("pets", snapshot.tabs().get(1).id());
-        assertEquals("titles", snapshot.tabs().get(2).id());
+        assertEquals("profile", snapshot.selectedTabId());
+        assertEquals("profile", snapshot.tabs().get(0).id());
+        assertEquals("mounts", snapshot.tabs().get(1).id());
+        assertEquals("pets", snapshot.tabs().get(2).id());
+        assertEquals("titles", snapshot.tabs().get(3).id());
+    }
+
+    @Test
+    void profileTabCanBeSelectedExplicitly() {
+        ElarionCollectionService service = new ElarionCollectionService();
+        service.registerTab(provider("mounts", "Mounts"));
+
+        var snapshot = service.snapshot(null, "profile", "");
+
+        assertEquals("profile", snapshot.selectedTabId());
     }
 
     private static ElarionCollectionService.TabProvider provider(String id, String title) {

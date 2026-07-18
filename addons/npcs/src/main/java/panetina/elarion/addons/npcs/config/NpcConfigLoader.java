@@ -15,8 +15,13 @@ import panetina.elarion.addons.npcs.model.DialoguePrompt;
 import panetina.elarion.addons.npcs.model.DialogueTextVariant;
 import panetina.elarion.addons.npcs.model.NpcDefinition;
 import panetina.elarion.addons.npcs.model.NpcPortraitProfile;
+import panetina.elarion.addons.npcs.model.NpcPresentationKind;
 import panetina.elarion.addons.npcs.model.NpcSkinProfile;
+import panetina.elarion.addons.npcs.model.NpcTradeCatalogDefinition;
+import panetina.elarion.addons.npcs.model.NpcTradeEnchantmentDefinition;
+import panetina.elarion.addons.npcs.model.NpcTradeOfferDefinition;
 import panetina.elarion.addons.npcs.model.NpcUiConfig;
+import panetina.elarion.addons.npcs.service.NpcTaxJurisdictionResolver;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -27,8 +32,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public final class NpcConfigLoader {
+    private static final Set<String> OPTIONAL_PROVIDER_ACTIONS = Set.of(
+            "elarion:economy_deposit_currency_amount",
+            "elarion:economy_withdraw_currency_amount");
+
     private final Logger logger;
     private final Path rootOverride;
     private Path root;
@@ -51,21 +61,32 @@ public final class NpcConfigLoader {
         Map<String, NpcSkinProfile> skins = loadSkins(errors);
         Map<String, NpcPortraitProfile> portraits = loadPortraits(errors);
         Map<String, DialogueDefinition> dialogues = loadDialogues(errors);
+        Map<String, NpcTradeCatalogDefinition> trades = loadTrades(errors);
         Map<String, NpcDefinition> npcs = loadNpcs(errors);
         NpcUiConfig ui = loadUi(errors);
         NpcConfigValidator.validate(
-                npcs, skins, portraits, dialogues,
+                npcs, skins, portraits, dialogues, trades,
                 id -> api.registries().conditions().contains(id),
-                id -> api.registries().actions().contains(id),
+                id -> api.registries().actions().contains(id) || optionalProviderAction(id),
                 errors);
+        for (NpcDefinition npc : npcs.values()) {
+            String realmId = NpcTaxJurisdictionResolver.explicitRealm(npc.taxJurisdiction());
+            if (!realmId.isBlank() && api.realms().find(realmId).isEmpty()) {
+                errors.add("npc " + npc.id() + ": unknown tax jurisdiction Realm " + realmId);
+            }
+        }
         if (!errors.isEmpty()) throw new NpcConfigException(errors);
-        logger.info("Loaded {} NPC definitions, {} skin profiles, {} portrait profiles, and {} dialogues",
-                npcs.size(), skins.size(), portraits.size(), dialogues.size());
-        return new NpcConfig(npcs, skins, portraits, dialogues, ui);
+        logger.info("Loaded {} NPC definitions, {} skin profiles, {} portrait profiles, {} dialogues, and {} trade catalogs",
+                npcs.size(), skins.size(), portraits.size(), dialogues.size(), trades.size());
+        return new NpcConfig(npcs, skins, portraits, dialogues, trades, ui);
     }
 
     public Path root() {
         return root;
+    }
+
+    static boolean optionalProviderAction(String id) {
+        return id != null && OPTIONAL_PROVIDER_ACTIONS.contains(id);
     }
 
     private Path defaultRoot() {
@@ -78,9 +99,12 @@ public final class NpcConfigLoader {
             writeIfMissing(root.resolve("npcs.yml"), NpcConfigDefaults.NPCS);
             writeIfMissing(root.resolve("skins.yml"), NpcConfigDefaults.SKINS);
             writeIfMissing(root.resolve("portraits.yml"), NpcConfigDefaults.PORTRAITS);
+            writeIfMissing(root.resolve("trades.yml"), NpcConfigDefaults.TRADES);
             writeIfMissing(root.resolve("ui.yml"), NpcConfigDefaults.UI);
             writeIfMissing(root.resolve("dialogues").resolve("worldheart_banker.yml"),
                     NpcConfigDefaults.BANKER_DIALOGUE);
+            writeIfMissing(root.resolve("dialogues").resolve("worldheart_trader.yml"),
+                    NpcConfigDefaults.TRADER_DIALOGUE);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to create NPC config defaults", exception);
         }
@@ -99,6 +123,8 @@ public final class NpcConfigLoader {
         Map<String, Object> npcs = map(rootMap.get("npcs"), "npcs.yml npcs", errors);
         for (Map.Entry<String, Object> entry : npcs.entrySet()) {
             Map<String, Object> value = map(entry.getValue(), "npc " + entry.getKey(), errors);
+            String tradeCatalog = string(value, "trade-catalog", defaultTradeCatalog(entry.getKey())).trim();
+            if (tradeCatalog.isBlank()) tradeCatalog = defaultTradeCatalog(entry.getKey());
             result.put(entry.getKey(), new NpcDefinition(
                     entry.getKey(),
                     text(value, "display-name", entry.getKey()),
@@ -106,12 +132,99 @@ public final class NpcConfigLoader {
                     string(value, "skin", ""),
                     string(value, "portrait", ""),
                     string(value, "dialogue", ""),
+                    string(value, "faction", inferredFaction(value)),
+                    tradeCatalog,
+                    string(value, "tax-jurisdiction", "auto"),
                     list(value.get("tags")).stream().map(String::valueOf).toList(),
                     string(value, "required-ability", ""),
                     decimal(value, "interaction-range-blocks", 0.0D),
                     bool(value, "enabled", true)));
         }
         return result;
+    }
+
+    private static String inferredFaction(Map<String, Object> value) {
+        String jurisdiction = string(value, "tax-jurisdiction", "auto");
+        if (jurisdiction.contains("worldheart")) return "worldheart";
+        for (Object rawTag : list(value.get("tags"))) {
+            String tag = String.valueOf(rawTag).trim().toLowerCase(java.util.Locale.ROOT);
+            if (tag.equals("worldheart") || tag.equals("underworld")) return tag;
+            if (tag.startsWith("realm:")) return tag;
+        }
+        return "unaffiliated";
+    }
+
+    private Map<String, NpcTradeCatalogDefinition> loadTrades(List<String> errors) {
+        Map<String, Object> rootMap = map(readYaml(root.resolve("trades.yml"), errors), "trades.yml", errors);
+        Map<String, NpcTradeCatalogDefinition> result = new LinkedHashMap<>();
+        Map<String, Object> trades = map(rootMap.get("trades"), "trades.yml trades", errors);
+        for (Map.Entry<String, Object> entry : trades.entrySet()) {
+            Map<String, Object> value = map(entry.getValue(), "trade catalog " + entry.getKey(), errors);
+            List<NpcTradeOfferDefinition> offers = new ArrayList<>();
+            for (Object rawOffer : list(value.get("offers"))) {
+                Map<String, Object> offer = map(rawOffer, "trade offer in " + entry.getKey(), errors);
+                List<NpcTradeEnchantmentDefinition> enchantments = new ArrayList<>();
+                for (Object rawEnchantment : list(offer.get("enchantments"))) {
+                    Map<String, Object> enchantment = map(rawEnchantment,
+                            "trade enchantment in " + entry.getKey(), errors);
+                    enchantments.add(new NpcTradeEnchantmentDefinition(
+                            string(enchantment, "id", ""), integer(enchantment, "level", 1)));
+                }
+                offers.add(new NpcTradeOfferDefinition(
+                        string(offer, "id", ""),
+                        string(offer, "direction", "buy"),
+                        text(offer, "label", ""),
+                        text(offer, "subtitle", ""),
+                        string(offer, "item", ""),
+                        integer(offer, "count", 1),
+                        text(offer, "custom-name", ""),
+                        list(offer.get("lore")).stream().map(String::valueOf).toList(),
+                        enchantments,
+                        integer(offer, "custom-model-data", 0),
+                        string(offer, "price-key", ""),
+                        longValue(offer, "price", 0L),
+                        integer(offer, "stock-limit", 0),
+                        integer(offer, "restock-amount", 0),
+                        longValue(offer, "restock-interval-seconds", 0L),
+                        bool(offer, "enabled", true),
+                        string(offer, "sell-match", ""),
+                        string(offer, "component-policy", ""),
+                        integer(offer, "max-quantity", 0),
+                        string(offer, "stock-destination", ""),
+                        string(offer, "destination-offer", "")));
+            }
+            offers = bridgeLegacyTradeDestinations(entry.getKey(), offers);
+            result.put(entry.getKey(), new NpcTradeCatalogDefinition(entry.getKey(), offers));
+        }
+        return result;
+    }
+
+    static List<NpcTradeOfferDefinition> bridgeLegacyTradeDestinations(
+            String catalogId,
+            List<NpcTradeOfferDefinition> offers
+    ) {
+        if (!"worldheart_trader".equals(catalogId) || offers == null || offers.isEmpty()) return offers;
+        boolean hasCobblestoneBuy = offers.stream()
+                .anyMatch(offer -> "cobblestone".equals(offer.id()) && "buy".equals(offer.direction()));
+        if (!hasCobblestoneBuy) return offers;
+        List<NpcTradeOfferDefinition> bridged = new ArrayList<>(offers.size());
+        boolean changed = false;
+        for (NpcTradeOfferDefinition offer : offers) {
+            if ("cobblestone_buyback".equals(offer.id())
+                    && "sell".equals(offer.direction())
+                    && "placed_npc".equals(offer.stockDestination())
+                    && offer.destinationOfferId().isBlank()) {
+                bridged.add(offer.withDestinationOfferId("cobblestone"));
+                changed = true;
+            } else {
+                bridged.add(offer);
+            }
+        }
+        return changed ? bridged : offers;
+    }
+
+    static String defaultTradeCatalog(String npcId) {
+        return "worldheart_trader".equals(npcId) ? "worldheart_trader" : "";
     }
 
     private Map<String, NpcSkinProfile> loadSkins(List<String> errors) {
@@ -172,16 +285,68 @@ public final class NpcConfigLoader {
                                             text(node, "text", ""),
                                             string(node, "sound", ""),
                                             string(node, "voice", ""),
+                                            NpcPresentationKind.parse(string(node, "presentation", "dialogue")),
                                             conditions(node.get("conditions"), errors),
                                             variants(node.get("variants"), errors),
                                             options(node.get("options"), errors)));
                                 });
-                        result.put(id, new DialogueDefinition(id, string(value, "root", ""), nodes));
+                        String rootNode = string(value, "root", "");
+                        result.put(id, new DialogueDefinition(
+                                id, rootNode, migrateLegacyBankPresentation(rootNode, nodes)));
                     });
         } catch (IOException exception) {
             errors.add("Failed to list NPC dialogue configs: " + exception.getMessage());
         }
         return result;
+    }
+
+    static Map<String, DialogueNode> migrateLegacyBankPresentation(
+            String rootId,
+            Map<String, DialogueNode> nodes
+    ) {
+        if (nodes.values().stream().anyMatch(node -> node.presentation() == NpcPresentationKind.BANK)) {
+            return nodes;
+        }
+        DialogueNode root = nodes.get(rootId);
+        if (root == null) return nodes;
+        List<DialogueOption> bankOptions = root.options().stream()
+                .filter(NpcConfigLoader::legacyBankOption)
+                .toList();
+        if (bankOptions.size() < 2) return nodes;
+
+        String bankId = nodes.containsKey("bank_service") ? "bank_service_ui" : "bank_service";
+        List<DialogueOption> rootOptions = new ArrayList<>();
+        rootOptions.add(new DialogueOption(
+                "open_bank", "Open Bank", "I would like to use the bank.", "", "",
+                "open_bank", bankId, List.of(), List.of(), DialoguePrompt.NONE, false));
+        root.options().stream().filter(option -> !legacyBankOption(option)).forEach(rootOptions::add);
+
+        List<DialogueOption> serviceOptions = new ArrayList<>();
+        for (DialogueOption option : bankOptions) {
+            String role = option.prompt().action().contains("deposit") ? "deposit" : "withdraw";
+            serviceOptions.add(new DialogueOption(
+                    option.id(), option.buttonText(), option.playerText(), option.sound(), option.voice(), role,
+                    bankId, option.conditions(), option.actions(), option.prompt(), option.close()));
+        }
+        serviceOptions.add(new DialogueOption(
+                "back", "Back to Conversation", "Let us speak instead.", "", "", "back",
+                rootId, List.of(), List.of(), DialoguePrompt.NONE, false));
+
+        Map<String, DialogueNode> migrated = new LinkedHashMap<>(nodes);
+        migrated.put(rootId, new DialogueNode(
+                root.id(), root.text(), root.sound(), root.voice(), root.presentation(),
+                root.conditions(), root.variants(), rootOptions));
+        migrated.put(bankId, new DialogueNode(
+                bankId, "Deposit carried currency or withdraw from your account.", "", "",
+                NpcPresentationKind.BANK, List.of(), List.of(), serviceOptions));
+        return migrated;
+    }
+
+    private static boolean legacyBankOption(DialogueOption option) {
+        if (option == null || !option.prompt().present()) return false;
+        String action = option.prompt().action();
+        return "elarion:economy_deposit_currency_amount".equals(action)
+                || "elarion:economy_withdraw_currency_amount".equals(action);
     }
 
     static String dialogueId(Path root, Path path) {
@@ -236,11 +401,13 @@ public final class NpcConfigLoader {
                     text(option, "player-text", text),
                     string(option, "sound", ""),
                     string(option, "voice", ""),
+                    string(option, "presentation-role", ""),
                     string(option, "next", ""),
                     conditions(option.get("conditions"), errors),
                     actions(option.get("actions"), errors),
                     prompt(option.get("prompt"), errors),
-                    bool(option, "close", false)));
+                    bool(option, "close", false),
+                    bool(option, "one-time", false)));
         }
         return result;
     }
@@ -326,7 +493,7 @@ public final class NpcConfigLoader {
     }
 
     private String text(Map<String, Object> map, String key, String fallback) {
-        return api.serverIdentity().replace(string(map, key, fallback));
+        return api.system().placeholders().replaceIdentity(string(map, key, fallback));
     }
 
     private static boolean bool(Map<String, Object> map, String key, boolean fallback) {

@@ -9,9 +9,11 @@ run/
 logs/
 **/logs/
 dev/run/
+dev/resourcepack-backups/
 dev/client1/
 dev/client2/
 output/
+.elarion-deploy.local.psd1
 
 # Documentation policy.
 # Root authority docs, technical docs, and the publishable wiki are repository

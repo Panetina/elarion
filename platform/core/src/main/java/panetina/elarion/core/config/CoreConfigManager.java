@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +40,7 @@ public final class CoreConfigManager {
                         display-name: "Monarch"
                         prefix: ""
                         suffix: ""
+                        color: "#FFD36A"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -52,6 +54,7 @@ public final class CoreConfigManager {
                         display-name: "Heir"
                         prefix: ""
                         suffix: ""
+                        color: "#E6B45A"
                         priority: 60
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -65,6 +68,7 @@ public final class CoreConfigManager {
                         display-name: "President"
                         prefix: ""
                         suffix: ""
+                        color: "#FFD36A"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -78,6 +82,7 @@ public final class CoreConfigManager {
                         display-name: "Councilor"
                         prefix: ""
                         suffix: ""
+                        color: "#58D1A5"
                         priority: 60
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -91,6 +96,7 @@ public final class CoreConfigManager {
                         display-name: "Holy Priest"
                         prefix: ""
                         suffix: ""
+                        color: "#C084FF"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -104,6 +110,7 @@ public final class CoreConfigManager {
                         display-name: "Synod Member"
                         prefix: ""
                         suffix: ""
+                        color: "#C084FF"
                         priority: 60
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -117,6 +124,7 @@ public final class CoreConfigManager {
                         display-name: "Delegate"
                         prefix: ""
                         suffix: ""
+                        color: "#E6B45A"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -130,6 +138,7 @@ public final class CoreConfigManager {
                         display-name: "Officer"
                         prefix: ""
                         suffix: ""
+                        color: "#5CB7E8"
                         priority: 50
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -137,6 +146,22 @@ public final class CoreConfigManager {
                         hidden-from-discovery: true
                         abilities: []
                     """);
+    private static final Map<String, String> TITLE_COLOR_DEFAULTS = Map.ofEntries(
+            Map.entry("citizen", "#C9C9C9"),
+            Map.entry("news_reporter", "#9CC8FF"),
+            Map.entry("diplomat", "#9CC8FF"),
+            Map.entry("government_monarch", "#FFD36A"),
+            Map.entry("government_heir", "#E6B45A"),
+            Map.entry("government_president", "#FFD36A"),
+            Map.entry("government_councilor", "#58D1A5"),
+            Map.entry("government_high_cleric", "#C084FF"),
+            Map.entry("government_synod_member", "#C084FF"),
+            Map.entry("government_delegate", "#E6B45A"),
+            Map.entry("government_officer", "#5CB7E8"),
+            Map.entry("goblin_slayer", "#8DDCFF"),
+            Map.entry("dragon_slayer", "#FFA83D"),
+            Map.entry("aquatic", "#5ED1D1"),
+            Map.entry("maze_runner", "#FFA83D"));
 
     private final Logger logger;
     private final Yaml yaml = new Yaml();
@@ -355,6 +380,7 @@ public final class CoreConfigManager {
             appendNicknamePolicyDefaults(coreConfigDir.resolve("identity.yml"));
             appendNicknameProtectionDefaults(coreConfigDir.resolve("identity.yml"));
             appendGovernmentTitleDefaults(coreConfigDir.resolve("titles.yml"));
+            appendMissingTitleColors(coreConfigDir.resolve("titles.yml"));
             CoreConfigHistorySupport.appendDefaults(coreConfigDir.resolve("history.yml"));
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to create Elarion configuration", exception);
@@ -635,6 +661,8 @@ public final class CoreConfigManager {
         Path path = coreConfigDir.resolve("titles.yml");
         try {
             appendGovernmentTitleDefaults(path);
+            appendMissingTitleColors(path);
+            migrateOldDefaultCitizenTitleColor(path);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to migrate " + path, exception);
         }
@@ -652,6 +680,76 @@ public final class CoreConfigManager {
             Files.writeString(path, addition.toString(), StandardCharsets.UTF_8,
                     java.nio.file.StandardOpenOption.APPEND);
         }
+    }
+
+    private static void migrateOldDefaultCitizenTitleColor(Path path) throws IOException {
+        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+        List<String> migrated = new ArrayList<>(lines.size());
+        String currentTitle = "";
+        boolean changed = false;
+        for (String line : lines) {
+            String titleId = titleHeader(line);
+            if (!titleId.isBlank()) {
+                currentTitle = titleId;
+            }
+            String replacement = line;
+            if ("citizen".equals(currentTitle) && line.trim().equals("color: \"#D19B42\"")) {
+                replacement = line.replace("#D19B42", TITLE_COLOR_DEFAULTS.get("citizen"));
+                changed = true;
+            }
+            migrated.add(replacement);
+        }
+        if (changed) {
+            Files.writeString(path, String.join(System.lineSeparator(), migrated) + System.lineSeparator(),
+                    StandardCharsets.UTF_8);
+        }
+    }
+
+    private static void appendMissingTitleColors(Path path) throws IOException {
+        List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+        List<String> migrated = new ArrayList<>(lines.size() + TITLE_COLOR_DEFAULTS.size());
+        String currentTitle = "";
+        boolean hasColor = false;
+        String pendingColorLine = "";
+        boolean changed = false;
+        for (String line : lines) {
+            String titleId = titleHeader(line);
+            if (!titleId.isBlank()) {
+                if (!currentTitle.isBlank() && !hasColor && !pendingColorLine.isBlank()) {
+                    migrated.add(pendingColorLine);
+                    changed = true;
+                }
+                currentTitle = titleId;
+                hasColor = false;
+                pendingColorLine = "";
+            }
+            migrated.add(line);
+            if (!currentTitle.isBlank() && TITLE_COLOR_DEFAULTS.containsKey(currentTitle)) {
+                String trimmed = line.trim();
+                if (trimmed.startsWith("color:")) {
+                    hasColor = true;
+                } else if (trimmed.startsWith("suffix:")) {
+                    pendingColorLine = line.substring(0, line.indexOf("suffix:"))
+                            + "color: \"" + TITLE_COLOR_DEFAULTS.get(currentTitle) + "\"";
+                }
+            }
+        }
+        if (!currentTitle.isBlank() && !hasColor && !pendingColorLine.isBlank()) {
+            migrated.add(pendingColorLine);
+            changed = true;
+        }
+        if (changed) {
+            Files.writeString(path, String.join(System.lineSeparator(), migrated) + System.lineSeparator(),
+                    StandardCharsets.UTF_8);
+        }
+    }
+
+    private static String titleHeader(String line) {
+        if (line == null || !line.startsWith("  ") || line.startsWith("    ")) return "";
+        String trimmed = line.trim();
+        if (!trimmed.endsWith(":")) return "";
+        String id = trimmed.substring(0, trimmed.length() - 1);
+        return id.matches("[A-Za-z0-9_-]+") ? id : "";
     }
 
     private static void appendNicknamePolicyDefaults(Path path) throws IOException {

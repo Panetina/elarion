@@ -100,6 +100,8 @@ public final class IdentitySyncService {
                 visible ? identity.prefix() : "",
                 visible ? identity.suffix() : "",
                 visible && title != null && title.visibleUnderUsername() ? title.displayName() : "",
+                visible && title != null && title.visibleUnderUsername()
+                        ? title.colorArgb() : TitleDefinition.DEFAULT_COLOR,
                 visible ? identity.leaderText().getString() : "",
                 visible ? identity.color().getName() : "white",
                 visible && realm != null ? realms.officialName(realm) : "",

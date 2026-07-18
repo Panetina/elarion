@@ -91,6 +91,19 @@ public final class NicknameService {
         return Validation.valid(displayName);
     }
 
+    public String safePrefill(String input) {
+        if (!config.nicknamesEnabled()) return "";
+        String displayName = normalizeDisplay(input);
+        if (displayName.isBlank()
+                || !hasAllowedCharacters(input)
+                || !hasValidStructure(displayName)
+                || (config.nicknameMaxLength() > 0
+                && displayName.codePointCount(0, displayName.length()) > config.nicknameMaxLength())) {
+            return "";
+        }
+        return displayName;
+    }
+
     private Set<String> protectedNames() {
         Set<String> names = new LinkedHashSet<>(BUILT_IN_PROTECTED_NAMES);
         names.addAll(config.nicknameReservedNames());

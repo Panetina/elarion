@@ -7,8 +7,11 @@ import panetina.elarion.core.registry.ElarionRegistries;
 import panetina.elarion.core.service.AbilityService;
 import panetina.elarion.core.service.ElarionTaskService;
 import panetina.elarion.core.service.ElarionCollectionService;
+import panetina.elarion.core.service.CitizenProfileService;
 import panetina.elarion.core.service.ElarionAdminPanelService;
 import panetina.elarion.core.service.PlayerRestrictionService;
+import panetina.elarion.core.placeholder.ElarionPlaceholderService;
+import panetina.elarion.core.integration.minecraft.MinecraftProjectionPublisher;
 
 public final class ElarionSystemApi {
     private final AbilityService abilities;
@@ -17,10 +20,13 @@ public final class ElarionSystemApi {
     private final ElarionRegistries registries;
     private final ElarionTaskService tasks;
     private final ElarionCollectionService collections;
+    private final CitizenProfileService profiles;
     private final ElarionAdminPanelService adminPanel;
     private final ElarionConfigRegistry configs;
     private final ElarionConfigApplyRegistrar configAppliers;
     private final PlayerRestrictionService restrictions;
+    private final ElarionPlaceholderService placeholders;
+    private final MinecraftProjectionPublisher webProjections;
 
     ElarionSystemApi(
             AbilityService abilities,
@@ -29,10 +35,13 @@ public final class ElarionSystemApi {
             ElarionRegistries registries,
             ElarionTaskService tasks,
             ElarionCollectionService collections,
+            CitizenProfileService profiles,
             ElarionAdminPanelService adminPanel,
             ElarionConfigRegistry configs,
             ElarionConfigApplyRegistrar configAppliers,
-            PlayerRestrictionService restrictions
+            PlayerRestrictionService restrictions,
+            ElarionPlaceholderService placeholders,
+            MinecraftProjectionPublisher webProjections
     ) {
         this.abilities = abilities;
         this.events = events;
@@ -40,10 +49,13 @@ public final class ElarionSystemApi {
         this.registries = registries;
         this.tasks = tasks;
         this.collections = collections;
+        this.profiles = profiles;
         this.adminPanel = adminPanel;
         this.configs = configs;
         this.configAppliers = configAppliers;
         this.restrictions = restrictions;
+        this.placeholders = placeholders;
+        this.webProjections = webProjections;
     }
 
     public AbilityService abilities() {
@@ -70,6 +82,10 @@ public final class ElarionSystemApi {
         return collections;
     }
 
+    public CitizenProfileService profiles() {
+        return profiles;
+    }
+
     public ElarionAdminPanelService adminPanel() {
         return adminPanel;
     }
@@ -84,5 +100,16 @@ public final class ElarionSystemApi {
 
     public PlayerRestrictionService restrictions() {
         return restrictions;
+    }
+
+    public ElarionPlaceholderService placeholders() {
+        return placeholders;
+    }
+
+    /**
+     * Publishes bounded read-model projections. Core remains the canonical owner of game state.
+     */
+    public MinecraftProjectionPublisher webProjections() {
+        return webProjections;
     }
 }

@@ -42,7 +42,9 @@ public final class JsonStateStorage {
             S stored = gson.fromJson(reader, storedType);
             return stored == null ? fallback.get() : mapper.apply(stored);
         } catch (IOException | RuntimeException exception) {
-            logger.error("Failed to load {}", description, exception);
+            Path quarantine = quarantine(file, description, exception);
+            logger.error("Failed to load {}; quarantined the unreadable state at {}",
+                    description, quarantine, exception);
             return fallback.get();
         }
     }
@@ -52,6 +54,7 @@ public final class JsonStateStorage {
             writeAtomicChecked(file, gson, value, description);
         } catch (IOException exception) {
             logger.error("Failed to save {}", description, exception);
+            throw new IllegalStateException("Failed to save " + description + " at " + file, exception);
         }
     }
 
@@ -77,6 +80,29 @@ public final class JsonStateStorage {
             throw exception;
         } finally {
             ElarionPerformanceMonitor.record("json-state-save:" + description, System.nanoTime() - started);
+        }
+    }
+
+    private static Path quarantine(Path file, String description, Exception loadFailure) {
+        String suffix = ".corrupt-" + System.currentTimeMillis();
+        Path candidate = file.resolveSibling(file.getFileName() + suffix);
+        int collision = 0;
+        while (Files.exists(candidate)) {
+            collision++;
+            candidate = file.resolveSibling(file.getFileName() + suffix + "-" + collision);
+        }
+        try {
+            try {
+                Files.move(file, candidate, StandardCopyOption.ATOMIC_MOVE);
+            } catch (IOException atomicMoveFailure) {
+                Files.move(file, candidate);
+            }
+            return candidate;
+        } catch (IOException quarantineFailure) {
+            loadFailure.addSuppressed(quarantineFailure);
+            throw new IllegalStateException(
+                    "Failed to quarantine unreadable " + description + " at " + file,
+                    loadFailure);
         }
     }
 }

@@ -95,6 +95,64 @@ class ElarionMountEntityTest {
     }
 
     @Test
+    void turnInputTriggersLeanOverlay() {
+        ElarionMountFlightController.State state = ElarionMountFlightController.State.zero();
+        ElarionMountType.MovementProfile profile = ElarionMountType.WYVERN.movementProfile();
+        ElarionMountFlightController.Step right = null;
+        for (int tick = 0; tick < 60; tick++) {
+            right = ElarionMountFlightController.step(
+                    state,
+                    new ElarionMountFlightInput(1.0F, 0.0F, false, false, false, 1.0F),
+                    profile,
+                    0.0F);
+            state = right.state();
+        }
+
+        assertEquals("lean_right", right.overlayAnimation());
+
+        ElarionMountFlightController.Step left = null;
+        for (int tick = 0; tick < 100; tick++) {
+            left = ElarionMountFlightController.step(
+                    state,
+                    new ElarionMountFlightInput(1.0F, 0.0F, false, false, false, -1.0F),
+                    profile,
+                    0.0F);
+            state = left.state();
+        }
+
+        assertEquals("lean_left", left.overlayAnimation());
+    }
+
+    @Test
+    void verticalAndTurnInputsComposeOverlays() {
+        ElarionMountFlightController.State state = ElarionMountFlightController.State.zero();
+        ElarionMountType.MovementProfile profile = ElarionMountType.CHINESE_DRAGON.movementProfile();
+        ElarionMountFlightController.Step ascendingTurn = null;
+        for (int tick = 0; tick < 80; tick++) {
+            ascendingTurn = ElarionMountFlightController.step(
+                    state,
+                    new ElarionMountFlightInput(1.0F, 0.0F, true, false, false, 1.0F),
+                    profile,
+                    0.0F);
+            state = ascendingTurn.state();
+        }
+
+        assertEquals("ascend+lean_right", ascendingTurn.overlayAnimation());
+
+        ElarionMountFlightController.Step descendingTurn = null;
+        for (int tick = 0; tick < 120; tick++) {
+            descendingTurn = ElarionMountFlightController.step(
+                    state,
+                    new ElarionMountFlightInput(1.0F, 0.0F, false, true, false, -1.0F),
+                    profile,
+                    0.0F);
+            state = descendingTurn.state();
+        }
+
+        assertEquals("descend+lean_left", descendingTurn.overlayAnimation());
+    }
+
+    @Test
     void releasingJumpEasesVerticalSpeedTowardZero() {
         ElarionMountFlightController.State state = ElarionMountFlightController.State.zero();
         ElarionMountType.MovementProfile profile = ElarionMountType.WYVERN.movementProfile();

@@ -93,10 +93,10 @@ public final class GovernmentConfigLoader {
             Map<String, Object> map = (Map<String, Object>) raw;
             return new GovernmentFormDefinition(
                     string(map, "id"),
-                    api.serverIdentity().replace(string(map, "display-name")),
-                    api.serverIdentity().replace(string(map, "description")),
+                    api.system().placeholders().replaceIdentity(string(map, "display-name")),
+                    api.system().placeholders().replaceIdentity(string(map, "description")),
                     bool(map, "enabled", true),
-                    api.serverIdentity().replace(string(map, "official-name-template")),
+                    api.system().placeholders().replaceIdentity(string(map, "official-name-template")),
                     stringList(map.get("authority-offices")),
                     bool(map, "confederation-delegates-represent-groups", false),
                     offices(api, map.get("offices")),
@@ -121,8 +121,8 @@ public final class GovernmentConfigLoader {
             Map<String, Object> map = (Map<String, Object>) raw;
             result.add(new GovernmentOfficeDefinition(
                     string(map, "id"),
-                    api.serverIdentity().replace(string(map, "display-name")),
-                    api.serverIdentity().replace(string(map, "description")),
+                    api.system().placeholders().replaceIdentity(string(map, "display-name")),
+                    api.system().placeholders().replaceIdentity(string(map, "description")),
                     integer(map, "max-holders", 1)));
         }
         return result;

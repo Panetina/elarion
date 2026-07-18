@@ -1,5 +1,6 @@
 package panetina.elarion.core.model;
 
+import java.util.Map;
 import java.util.UUID;
 
 public record HistoryIndexEntry(
@@ -11,6 +12,7 @@ public record HistoryIndexEntry(
         String subjectType,
         String subjectId,
         String realmId,
+        Map<String, String> metadata,
         String chronicleText
 ) {
     public HistoryIndexEntry {
@@ -20,7 +22,22 @@ public record HistoryIndexEntry(
         subjectType = clean(subjectType);
         subjectId = clean(subjectId);
         realmId = clean(realmId);
+        metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
         chronicleText = clean(chronicleText);
+    }
+
+    public HistoryIndexEntry(
+            UUID eventId,
+            long timestamp,
+            String category,
+            String type,
+            UUID actorId,
+            String subjectType,
+            String subjectId,
+            String realmId,
+            String chronicleText
+    ) {
+        this(eventId, timestamp, category, type, actorId, subjectType, subjectId, realmId, Map.of(), chronicleText);
     }
 
     public static HistoryIndexEntry from(HistoryEvent event) {
@@ -33,6 +50,7 @@ public record HistoryIndexEntry(
                 event.subjectType(),
                 event.subjectId(),
                 event.realmId(),
+                event.metadata(),
                 event.chronicleText());
     }
 

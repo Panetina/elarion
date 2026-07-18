@@ -1,6 +1,7 @@
 package panetina.elarion.addons.mounts.entity;
 
 import org.junit.jupiter.api.Test;
+import panetina.elarion.core.model.ElarionCollectionRank;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -80,6 +81,20 @@ class ElarionMountTypeTest {
                 > ElarionMountType.HOT_AIR_BALLOON.movementProfile().maxForwardSpeed());
         assertTrue(ElarionMountType.GHAST.movementProfile().verticalDrag()
                 > ElarionMountType.WYVERN.movementProfile().verticalDrag());
+    }
+
+    @Test
+    void collectionRanksMatchRealmAndProgressionPlan() {
+        assertEquals("COMMON", ElarionMountType.AIRSHIP.collectionRankLabel());
+        assertEquals("COMMON", ElarionMountType.HOT_AIR_BALLOON.collectionRankLabel());
+        assertEquals("COMMON", ElarionMountType.GHAST.collectionRankLabel());
+        assertEquals("UNCOMMON", ElarionMountType.BEE.collectionRankLabel());
+        assertEquals("UNCOMMON", ElarionMountType.CHINESE_DRAGON.collectionRankLabel());
+        assertEquals("UNCOMMON", ElarionMountType.WYVERN.collectionRankLabel());
+        assertEquals("LEGENDARY", ElarionMountType.SCIFI_BIKE.collectionRankLabel());
+        assertEquals(ElarionCollectionRank.COMMON.color(), ElarionMountType.AIRSHIP.collectionRankColor());
+        assertEquals(ElarionCollectionRank.UNCOMMON.color(), ElarionMountType.BEE.collectionRankColor());
+        assertEquals(ElarionCollectionRank.LEGENDARY.color(), ElarionMountType.SCIFI_BIKE.collectionRankColor());
     }
 
     @Test

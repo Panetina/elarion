@@ -1,11 +1,14 @@
 param(
-    [ValidateSet("focus", "maximize", "command", "move", "click", "scroll", "capture")]
+    [ValidateSet("focus", "maximize", "command", "move", "click", "scroll", "key", "capture")]
     [string] $Action,
+    [ValidateSet("left", "right")]
+    [string] $Button = "left",
     [string] $Command,
     [int] $X = 0,
     [int] $Y = 0,
     [int] $Wheel = -1,
     [int] $Count = 1,
+    [string] $Keys,
     [string] $Output,
     [string] $TitlePattern = "Minecraft*",
     [switch] $ScreenCapture
@@ -64,12 +67,20 @@ function Focus-Minecraft([System.Diagnostics.Process] $Process) {
     Start-Sleep -Milliseconds 120
 }
 
-function Send-MinecraftClick([System.Diagnostics.Process] $Process, [int] $ClickX, [int] $ClickY) {
+function Send-MinecraftClick([System.Diagnostics.Process] $Process, [int] $ClickX, [int] $ClickY, [string] $ClickButton) {
     Move-MinecraftCursor $Process $ClickX $ClickY
     $lParam = [IntPtr](($ClickY -shl 16) -bor ($ClickX -band 0xffff))
+    $downMessage = 0x0201
+    $upMessage = 0x0202
+    $buttonParam = [IntPtr]1
+    if ($ClickButton -eq "right") {
+        $downMessage = 0x0204
+        $upMessage = 0x0205
+        $buttonParam = [IntPtr]2
+    }
     [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0200, [IntPtr]::Zero, $lParam) | Out-Null
-    [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0201, [IntPtr]1, $lParam) | Out-Null
-    [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0202, [IntPtr]::Zero, $lParam) | Out-Null
+    [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, $downMessage, $buttonParam, $lParam) | Out-Null
+    [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, $upMessage, [IntPtr]::Zero, $lParam) | Out-Null
 }
 
 function Move-MinecraftCursor([System.Diagnostics.Process] $Process, [int] $MoveX, [int] $MoveY) {
@@ -86,6 +97,22 @@ function Send-MinecraftScroll([System.Diagnostics.Process] $Process, [int] $Scro
     $lParam = [IntPtr](($ScrollY -shl 16) -bor ($ScrollX -band 0xffff))
     [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0200, [IntPtr]::Zero, $lParam) | Out-Null
     [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x020A, $wParam, $lParam) | Out-Null
+}
+
+function Send-MinecraftKey([System.Diagnostics.Process] $Process, [string] $Key) {
+    if ($Key.Length -ne 1) {
+        return $false
+    }
+    $character = [char]::ToUpperInvariant($Key[0])
+    $virtualKey = [int]$character
+    if (($virtualKey -lt 0x30 -or $virtualKey -gt 0x39) -and
+        ($virtualKey -lt 0x41 -or $virtualKey -gt 0x5A)) {
+        return $false
+    }
+    [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0100, [IntPtr]$virtualKey, [IntPtr]::Zero) | Out-Null
+    Start-Sleep -Milliseconds 40
+    [ElarionMinecraftQa]::PostMessage($Process.MainWindowHandle, 0x0101, [IntPtr]$virtualKey, [IntPtr]::Zero) | Out-Null
+    return $true
 }
 
 $minecraft = Get-MinecraftProcess
@@ -123,10 +150,10 @@ switch ($Action) {
     "click" {
         Focus-Minecraft $minecraft
         for ($index = 0; $index -lt [Math]::Max(1, $Count); $index++) {
-            Send-MinecraftClick $minecraft $X $Y
+            Send-MinecraftClick $minecraft $X $Y $Button
             Start-Sleep -Milliseconds 90
         }
-        Write-Output "Clicked $X,$Y x$([Math]::Max(1, $Count))."
+        Write-Output "Clicked $X,$Y button=$Button x$([Math]::Max(1, $Count))."
     }
     "scroll" {
         Focus-Minecraft $minecraft
@@ -135,6 +162,20 @@ switch ($Action) {
             Start-Sleep -Milliseconds 90
         }
         Write-Output "Scrolled $X,$Y wheel=$Wheel x$([Math]::Max(1, $Count))."
+    }
+    "key" {
+        if ([string]::IsNullOrWhiteSpace($Keys)) {
+            throw "-Keys is required for -Action key."
+        }
+        Focus-Minecraft $minecraft
+        for ($index = 0; $index -lt [Math]::Max(1, $Count); $index++) {
+            if (-not (Send-MinecraftKey $minecraft $Keys)) {
+                $shell = New-Object -ComObject WScript.Shell
+                $shell.SendKeys($Keys)
+            }
+            Start-Sleep -Milliseconds 90
+        }
+        Write-Output "Sent keys: $Keys x$([Math]::Max(1, $Count))."
     }
     "capture" {
         $capture = Join-Path $PSScriptRoot "capture-minecraft-window.ps1"

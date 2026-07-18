@@ -21,6 +21,7 @@ Status: Implemented foundation.
 
 - `addons/underworld/src/main/java/panetina/elarion/addons/underworld/ElarionUnderworldAddon.java`
 - `addons/underworld/src/main/java/panetina/elarion/addons/underworld/service/UnderworldService.java`
+- `addons/underworld/src/main/java/panetina/elarion/addons/underworld/service/UnderworldProfileContributor.java`
 - `addons/underworld/src/main/java/panetina/elarion/addons/underworld/block/UnderworldTombBlock.java`
 - `addons/underworld/src/main/java/panetina/elarion/addons/underworld/command/DeathCommands.java`
 - `addons/underworld/src/main/java/panetina/elarion/addons/underworld/storage/UnderworldStorage.java`
@@ -37,10 +38,12 @@ limits.
 `UnderworldConfigDescriptors` registers the read-only `underworld` config
 domain through `ElarionApi.system().configs()`. It exposes the active service
 snapshot in Underworld, corpse, PvP loot, combat-tag, and Soul Fracture
-categories. `/e death reload` replaces the service config, and descriptor
-suppliers immediately reflect the new snapshot without reparsing YAML during
-Admin Panel discovery. Decimal values are currently displayed as read-only
-strings because Core has no decimal descriptor codec yet.
+categories. `/e death reload` replaces the service config only after the YAML
+parses successfully; malformed reloads preserve the previous valid in-memory
+snapshot and log the failure. Descriptor suppliers immediately reflect the
+active snapshot without reparsing YAML during Admin Panel discovery. Decimal
+values are currently displayed as read-only strings because Core has no decimal
+descriptor codec yet.
 
 The actual Underworld dimension must exist as a managed world in `worlds.yml`.
 The default development setup includes `elarion:underworld` as a small VOID
@@ -149,6 +152,14 @@ Portals still own route state and teleport validation. Economy still owns bank
 balances; Underworld only reads physical currency items/tags when selecting PvP
 loot.
 
+Underworld owns the meaning of the lifetime death summary shown in Citizen
+Ledger. At living-world death capture and repeat Underworld death capture,
+`UnderworldService` increments the Core player-stat key
+`underworld_lifetime_deaths`. `UnderworldProfileContributor` contributes that
+single cached counter as `underworld/deaths` with `SELF` visibility. It must
+not scan corpses, sessions, recovery vaults, or history records while building
+profile snapshots.
+
 ## Events And Notifications
 
 Underworld emits Core domain events:
@@ -167,13 +178,25 @@ ordinary death, recovery, and loot actions use direct player feedback to avoid
 notification spam. Future Chronicle, newspaper, Government succession, Jail, or
 website bridge consumers should listen to the domain events.
 
+`UnderworldChronicleText` registers with Core public history and renders
+player-facing death records through the shared template-family contract.
+Promoted families include PVE death, PVP death, self-inflicted death, void
+death, and True Death. Each family has 10 authored stable variants, honors
+persisted `chronicle.variant` values, and falls back safely for older records.
+Living-world death capture now records a durable Underworld Chronicle entry
+after authoritative corpse/session state is created. True Death records a
+durable Chronicle entry after the character lifecycle handoff is started.
+
 ## Recovery Guarantees
 
 - Tomb interaction opens a server-authored Elarion recovery screen.
 - The client grave recovery screen extends Core `ElarionScreen` and uses the
-  shared Core civic shell, status chip, item-slot, and action-button helpers.
-  It remains presentation-only; corpse access, item restoration, and inventory
-  mutation are revalidated and executed server-side.
+  shared Core civic shell, framed status/body panel, framed contents grid,
+  status chip, item-slot, and action-button helpers. Its render, scroll, and
+  click math are derived from one internal layout snapshot so hitboxes stay
+  aligned with the visible frame. It remains presentation-only; corpse access,
+  item restoration, and inventory mutation are revalidated and executed
+  server-side.
 - Claims are revalidated by corpse ID, player ownership, world, and range.
 - Victim recovery tries original empty/mergeable slots first, then normal
   inventory. Full inventories leave unmoved stacks in persisted storage; items

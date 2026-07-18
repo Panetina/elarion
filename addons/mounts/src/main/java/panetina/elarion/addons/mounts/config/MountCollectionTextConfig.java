@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Locale;
+import panetina.elarion.core.placeholder.ElarionPlaceholderService;
+import panetina.elarion.core.placeholder.PlaceholderRenderContext;
 import java.util.Map;
 
 public final class MountCollectionTextConfig {
@@ -66,12 +68,18 @@ public final class MountCollectionTextConfig {
 
     public static MountCollectionTextConfig load(Logger logger) {
         Path file = AddonConfigFiles.writeDefault("mounts", "collection.yml", DEFAULT_CONFIG);
+        return load(file, logger);
+    }
+
+    static MountCollectionTextConfig load(Path file, Logger logger) {
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             Object loaded = new Yaml().load(reader);
             if (!(loaded instanceof Map<?, ?> root)) return defaults();
             return loadEntries(map(root.get("mounts")));
         } catch (IOException | RuntimeException exception) {
-            logger.error("Failed to load mounts collection.yml; using defaults", exception);
+            if (logger != null) {
+                logger.error("Failed to load mounts collection.yml; using defaults", exception);
+            }
             return defaults();
         }
     }
@@ -134,7 +142,8 @@ public final class MountCollectionTextConfig {
             String realm = realmId == null || realmId.isBlank()
                     ? "Realm"
                     : realmId.toUpperCase(Locale.ROOT);
-            return (text == null ? "" : text).replace("{realm}", realm);
+            return ElarionPlaceholderService.resolveSchema(text, "elarion_mounts/collection",
+                    PlaceholderRenderContext.UI, Map.of("realm", realm)).text();
         }
     }
 }

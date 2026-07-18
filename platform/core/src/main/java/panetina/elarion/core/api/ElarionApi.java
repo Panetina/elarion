@@ -21,6 +21,7 @@ import panetina.elarion.core.service.ProgressionService;
 import panetina.elarion.core.service.TitleService;
 import panetina.elarion.core.service.ElarionTaskService;
 import panetina.elarion.core.service.ElarionCollectionService;
+import panetina.elarion.core.service.CitizenProfileService;
 import panetina.elarion.core.service.ElarionAdminPanelService;
 import panetina.elarion.core.service.ElarionUiThemeService;
 import panetina.elarion.core.service.DeferredRewardGrantService;
@@ -28,8 +29,11 @@ import panetina.elarion.core.service.CatchTelemetryService;
 import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.service.PlayerRestrictionService;
 import panetina.elarion.core.service.CharacterLifecycleService;
+import panetina.elarion.core.service.WorldheartGovernanceService;
 import panetina.elarion.core.registry.ElarionRegistries;
 import panetina.elarion.core.model.ServerIdentityConfig;
+import panetina.elarion.core.placeholder.ElarionPlaceholderService;
+import panetina.elarion.core.integration.minecraft.MinecraftProjectionPublisher;
 
 public final class ElarionApi {
     private static ElarionApi instance;
@@ -55,6 +59,7 @@ public final class ElarionApi {
     private final ElarionRegistries registries;
     private final ElarionTaskService tasks;
     private final ElarionCollectionService collections;
+    private final CitizenProfileService profiles;
     private final ElarionAdminPanelService adminPanel;
     private final ElarionConfigRegistry configs;
     private final ServerIdentityConfig serverIdentity;
@@ -69,6 +74,7 @@ public final class ElarionApi {
     private final ElarionPublicHistoryApi publicHistoryApi;
     private final ElarionCatchTelemetryApi catchTelemetryApi;
     private final CharacterLifecycleService characters;
+    private final WorldheartGovernanceService worldheart;
 
     public ElarionApi(
             CitizenService citizens,
@@ -92,6 +98,7 @@ public final class ElarionApi {
             ElarionRegistries registries,
             ElarionTaskService tasks,
             ElarionCollectionService collections,
+            CitizenProfileService profiles,
             ElarionAdminPanelService adminPanel,
             ElarionConfigRegistry configs,
             ElarionConfigApplyRegistrar configAppliers,
@@ -101,7 +108,9 @@ public final class ElarionApi {
             ElarionNotificationService notifications,
             PlayerRestrictionService restrictions,
             CatchTelemetryService catchTelemetry,
-            CharacterLifecycleService characters
+            CharacterLifecycleService characters,
+            WorldheartGovernanceService worldheart,
+            MinecraftProjectionPublisher webProjections
     ) {
         if (instance != null) throw new IllegalStateException("ElarionApi is already initialized");
         this.citizens = citizens;
@@ -125,9 +134,11 @@ public final class ElarionApi {
         this.registries = registries;
         this.tasks = tasks;
         this.collections = collections;
+        this.profiles = profiles;
         this.adminPanel = adminPanel;
         this.configs = configs;
         this.serverIdentity = serverIdentity;
+        ElarionPlaceholderService placeholders = new ElarionPlaceholderService(serverIdentity);
         this.uiThemes = uiThemes;
         this.deferredRewards = deferredRewards;
         this.notifications = notifications;
@@ -136,10 +147,12 @@ public final class ElarionApi {
         this.messagingApi = new ElarionMessagingApi(chat, privateMessages);
         this.progressionApi = new ElarionProgressionApi(playerStats, progression, rewards, history);
         this.systemApi = new ElarionSystemApi(abilities, events, commands, registries, tasks,
-                collections, adminPanel, configs, configAppliers, restrictions);
+                collections, profiles, adminPanel, configs, configAppliers, restrictions, placeholders,
+                webProjections);
         this.publicHistoryApi = new ElarionPublicHistoryApi(history);
         this.catchTelemetryApi = new ElarionCatchTelemetryApi(catchTelemetry);
         this.characters = characters;
+        this.worldheart = worldheart;
         instance = this;
     }
 
@@ -169,6 +182,7 @@ public final class ElarionApi {
     public ElarionRegistries registries() { return registries; }
     public ElarionTaskService tasks() { return tasks; }
     public ElarionCollectionService collections() { return collections; }
+    public CitizenProfileService profiles() { return profiles; }
     public ElarionAdminPanelService adminPanel() { return adminPanel; }
     public ElarionConfigRegistry configs() { return configs; }
     public ServerIdentityConfig serverIdentity() { return serverIdentity; }
@@ -183,4 +197,5 @@ public final class ElarionApi {
     public ElarionPublicHistoryApi publicHistory() { return publicHistoryApi; }
     public ElarionCatchTelemetryApi catchTelemetry() { return catchTelemetryApi; }
     public CharacterLifecycleService characters() { return characters; }
+    public WorldheartGovernanceService worldheart() { return worldheart; }
 }

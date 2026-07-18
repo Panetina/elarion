@@ -4,10 +4,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class QuestStorageTest {
@@ -27,6 +29,7 @@ final class QuestStorageTest {
         storage.save(temp, state);
         QuestRuntimeState loaded = storage.load(temp);
 
+        assertEquals(QuestRuntimeState.CURRENT_SCHEMA_VERSION, loaded.schemaVersion);
         QuestlineState restored = loaded.questlines.get("generic_foundation::realm:realm1");
         assertEquals("complete", restored.stageId);
         assertEquals("3", restored.variables.get("shared_truth"));
@@ -54,5 +57,22 @@ final class QuestStorageTest {
         assertEquals(npcId, restored.placedNpcId);
         assertEquals("generic_guide_1", restored.handle);
         assertEquals("generic_guide", restored.definitionId);
+    }
+
+    @Test
+    void unsupportedFutureSchemaIsQuarantined() throws Exception {
+        Files.createDirectories(temp);
+        Path stateFile = temp.resolve("state.json");
+        Files.writeString(stateFile, "{\"schemaVersion\":99,\"questlines\":{}}");
+
+        QuestStorage storage = new QuestStorage(LoggerFactory.getLogger("test"));
+        QuestRuntimeState loaded = storage.load(temp);
+
+        assertEquals(QuestRuntimeState.CURRENT_SCHEMA_VERSION, loaded.schemaVersion);
+        assertTrue(loaded.questlines.isEmpty());
+        assertFalse(Files.exists(stateFile));
+        try (var files = Files.list(temp)) {
+            assertTrue(files.anyMatch(path -> path.getFileName().toString().startsWith("state.json.corrupt-")));
+        }
     }
 }

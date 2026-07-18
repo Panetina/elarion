@@ -35,7 +35,7 @@ public final class CitizenStorage {
             StoredCitizen stored = GSON.fromJson(reader, StoredCitizen.class);
             return stored == null ? null : stored.toRecord(uuid);
         } catch (IOException | RuntimeException exception) {
-            logger.error("Failed to load citizen {}", uuid, exception);
+            logger.error("Failed to load Ember {}", uuid, exception);
             return null;
         }
     }
@@ -46,7 +46,7 @@ public final class CitizenStorage {
                 GSON,
                 StoredCitizen.from(citizen),
                 logger,
-                "citizen " + citizen.uuid());
+                "Ember " + citizen.uuid());
     }
 
     public List<CitizenRecord> loadAll(MinecraftServer server) {
@@ -63,11 +63,11 @@ public final class CitizenStorage {
                             CitizenRecord citizen = load(server, uuid);
                             if (citizen != null) citizens.add(citizen);
                         } catch (IllegalArgumentException exception) {
-                            logger.warn("Ignoring citizen file with invalid UUID name: {}", path);
+                            logger.warn("Ignoring Ember file with invalid UUID name: {}", path);
                         }
                     });
         } catch (IOException exception) {
-            logger.error("Failed to list citizens in {}", directory, exception);
+            logger.error("Failed to list Embers in {}", directory, exception);
         }
         return List.copyOf(citizens);
     }

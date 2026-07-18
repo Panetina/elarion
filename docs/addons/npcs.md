@@ -1,6 +1,6 @@
 # Elarion NPCs Addon
 
-Last reviewed: 2026-07-06
+Last reviewed: 2026-07-09
 
 Author: Panyel  
 Team: Panetina Team
@@ -18,6 +18,7 @@ Editable definitions:
 config/elarion/addons/npcs/npcs.yml
 config/elarion/addons/npcs/skins.yml
 config/elarion/addons/npcs/portraits.yml
+config/elarion/addons/npcs/trades.yml
 config/elarion/addons/npcs/ui.yml
 config/elarion/addons/npcs/dialogues/<dialogue-id>.yml
 ```
@@ -33,10 +34,39 @@ only if reconnect-resumable NPC conversations become a real requirement.
 
 `NpcConfigDescriptors` registers the read-only `npcs` config domain after the
 first successful server definition load. It exposes loaded NPC definitions,
-skin and portrait profiles, dialogue graph summaries, and dialogue UI settings
-through `ElarionApi.system().configs()`. Discovery reads validated in-memory
-snapshots; it does not read placement state or change dialogue sessions,
-reload behavior, config files, packets, or persistence.
+skin and portrait profiles, trade catalog summaries, dialogue graph summaries,
+and dialogue UI settings through `ElarionApi.system().configs()`. Discovery
+reads validated in-memory snapshots; it does not read placement state or change
+dialogue sessions, reload behavior, config files, packets, or persistence.
+
+The generated default definition set includes `worldheart_banker` and
+`worldheart_trader`. Existing server config files are not overwritten by the
+default writer; add missing generated entries and
+`dialogues/worldheart_trader.yml` manually or through an approved config
+migration on older worlds. As compatibility bridges, a loaded
+`worldheart_trader` definition with a missing or blank `trade-catalog` is
+projected to the generated `worldheart_trader` catalog in memory, and the known
+legacy `worldheart_trader.cobblestone_buyback` route is projected to
+`destination-offer: cobblestone` when that field is missing. Custom trader
+definitions and custom Sell stock routes still need explicit catalog and
+destination IDs.
+Definitions may set `tax-jurisdiction: auto|realm:<id>|world:<namespaced-id>`.
+The policy is editable config; each placed NPC persists the resolved
+`REALM|WORLD` jurisdiction in placement schema v2. `auto` prefers Core's
+canonical Realm owner for the placement world and otherwise records the world.
+Explicit policies reject placement or movement in a conflicting world.
+
+Schema-v1 placement files are backed up as
+`placed-npcs.json.schema-v1.bak` and atomically migrated after every record
+resolves. Invalid or unsupported state fails closed. `/e npc reload` validates
+all placements against the candidate definition snapshot and restores previous
+definitions on failure before respawning entities.
+The current shipped defaults use dedicated texture skins
+`elarion:textures/entity/npc/worldheart_banker.png` and
+`elarion:textures/entity/npc/worldheart_trader.png`, plus curated 32x32
+portrait library assets
+`portrait_character_portrait_icons_03_icons_03.png` and
+`portrait_character_portrait_icons_27_icons_27.png`.
 
 ## Behavior
 
@@ -45,12 +75,17 @@ reload behavior, config files, packets, or persistence.
   non-pushable, and have no active AI/pathfinding behavior.
 - `placed-npcs.json` is canonical. The entity stores only the placed NPC UUID
   link and is reconciled from the placement record.
+- `/e npc inspect` reports the resolved tax jurisdiction for administrative
+  verification.
 - NPC definitions may include tags, an optional required Core ability, and an
   optional interaction range override. Tags are for admin filtering and future
   Atlas/service grouping; they do not create gameplay ownership.
 - NPC definitions are validated on server start and reload, after addons have
   had a chance to register their action/condition handlers.
 - Right-click opens a server-authoritative dialogue GUI.
+- Every NPC opens through the standard conversation surface first. Service
+  NPCs expose server-authored options such as `Open Bank`; selecting one moves
+  the same validated dialogue session into a dedicated presentation node.
 - Button clicks send only NPC/node/option IDs; the server validates range,
   active session, node, option visibility, conditions, and actions.
 - Dialogue actions use Core registries. Future Economy, Portals, Quests,
@@ -73,6 +108,14 @@ reload behavior, config files, packets, or persistence.
   - `texture`: render an explicit texture ID.
   - `player_head`: render the configured player's head from `player-name`, with
     safe default or configured texture fallback.
+- Dialogue nodes support `presentation: dialogue|bank|trade`. `trade` renders
+  a dedicated Buy/Sell shell. BUY purchases are server-authoritative through
+  the NPC purchase journal, finite placed-NPC stock, and optional Economy
+  settlement. SELL buybacks use server-side inventory escrow, idempotent
+  Economy wallet payout, and optional placed-NPC stock replenishment. Dialogue options support
+  `presentation-role` for stable UI roles such as `open_bank`, `open_trade`,
+  `deposit`, `withdraw`, `buy`, `sell`, and `back`; clients never infer service
+  behavior from translated labels or NPC names.
 - Dialogue options support `button-text` for the clickable label and
   `player-text` for the right-side player response panel. `text` remains a
   fallback for simple options.
@@ -94,36 +137,112 @@ reload behavior, config files, packets, or persistence.
   default. Economy remains the owner of wallet and transaction behavior.
 - The dialogue GUI uses a flat configurable dim overlay and an opaque panel by
   default, and it explicitly opts out of Minecraft's menu blur hooks so in-world
-  NPC conversations remain crisp. It renders a two-row conversation layout: NPC
-  portrait plus NPC dialogue box first, then player dialogue box plus player
-  head. The whole logical canvas scales uniformly on smaller windows instead of
-  compressing individual rows into overlap.
+  NPC conversations remain crisp. Simple quest dialogue uses the compact Option
+  A hierarchy: larger NPC title, true NPC portrait, one current conversation
+  body, at most three immediately visible choices, and a bounded metadata/card
+  strip. Player and NPC typing phases share that conversation body instead of
+  creating a second portrait row. The logical canvas scales uniformly on
+  smaller windows instead of compressing rows into overlap.
 - The dialogue GUI uses shared Core UI primitives and civic helpers for the
-  shell, option buttons, footer Close button, numeric prompt frame, and prompt
-  input surface. NPCs still own portrait rendering, conversation phases,
+  shell, selected option borders, header Close control, numeric prompt frame,
+  and prompt input surface. NPCs still own portrait rendering, conversation phases,
   typing, prompts, relation hearts, cards, and sounds.
 - Initial dialogue types the NPC response. After selecting an option, player
   text types first, then the NPC response, then inputs become active. Clicking,
-  Enter, or Space completes only the active phase. Typing is presentation only;
+  Enter, or Space completes only the active phase when `typing-click-completes`
+  is enabled in the synchronized NPC UI payload. Typing is presentation only;
   server validation and action execution remain authoritative.
 - Long response lists render only visible rows and preserve scroll/highlight
   position per NPC/dialogue/node. They support mouse wheel, draggable scrollbar
   thumb, track paging, Up/Down, Page Up/Page Down, and Enter selection.
-- The footer contains only a centered Close button. ESC also closes the
+- The header contains a centered-glyph Close control. ESC also closes the
   conversation.
-- The payload has extension zones for a top-right bank currency badge,
+- Bank nodes render through a dedicated compact banking screen with the NPC
+  portrait, deposited balance, Deposit/Withdraw modes, bounded numeric amount,
+  preset amounts, server feedback, and Back to
+  Conversation. Currency is presented with the shared Sigil icon in the balance
+  badge, amount input, totals, and related controls. It reuses the existing
+  prompt packets and Economy-owned action handlers; NPCs never mutate balances
+  or inventory. Fee/Total previews use `NpcBankQuoteRequestPayload` /
+  `NpcBankQuotePayload`; the server revalidates the active bank session and
+  visible Deposit/Withdraw option before asking Economy for a quote. Confirm
+  remains disabled until the latest quote matches the current mode and amount.
+- Trade catalogs live in `trades.yml` as NPC-owned config definitions. NPC
+  definitions reference a catalog by stable ID through `trade-catalog`.
+- Trade nodes render through a dedicated compact Buy/Sell shell with the NPC
+  portrait, Buy/Sell modes, a server-authored read-only catalog snapshot, and
+  Back to Conversation. The current default catalog shows two Nether Gate
+  Tickets, two End Gate Tickets, one Cobblestone, a Protection IV chestplate,
+  and a named/lore Protection IV chestplate using native item rendering and
+  Sigil price icons. Ticket offers may set `custom-model-data`; the default
+  Nether and End rows use the same crimson/blue stele ticket art as real Portal
+  ticket stacks.
+- After a successful Buy or Sell mutation, `NpcInteractionService` sends the
+  purchase/sale result and then a fresh `NpcTradeSnapshotPayload`. The client
+  does not guess stock changes; visible stock labels refresh from the same
+  server-owned placed-NPC stock state that is persisted on disk.
+- Trade offers may also set `price-key`. It is a stable future Economy pricing
+  hook for taxes, inflation, and dynamic merchant pricing; the current BUY
+  settlement still uses the fixed `price` value plus server-authored tax. Offers
+  may set `stock-limit`, `restock-amount`, and
+  `restock-interval-seconds`; zero stock limit means unlimited. Finite stock is
+  tracked per placed NPC, not per definition, and lazy restocks only run when a
+  trader is opened, quoted, or purchased from.
+- Trade offers may set `direction: sell` for Sell/buyback definitions. Sell
+  rows parse `sell-match`, `component-policy`, `max-quantity`,
+  `stock-destination`, and `destination-offer`, and the read-only config
+  descriptors expose those fields. When `stock-destination: placed_npc` is set,
+  validation requires `destination-offer` to point to a BUY offer in the same
+  catalog. Completed sales then replenish that placed NPC's configured resale
+  stock idempotently by sale ID. NPC config validation rejects prompts and
+  executable dialogue actions on trade-node options so purchases and buybacks
+  go through the dedicated trade request path.
+- The trade boundary is documented in
+  `docs/reports/NPC_TRADE_OWNER_AUDIT.md`. NPCs owns catalog/stock/session
+  meaning; Economy owns currency and public treasury settlement. Implemented
+  packets include `NpcTradeSnapshotPayload`, `NpcTradeQuoteRequestPayload`,
+  `NpcTradeQuotePayload`, `NpcTradePurchaseRequestPayload`, and
+  `NpcTradePurchaseResultPayload`. NPCs persists purchase journal records in
+  `world/elarion/addon-state/npcs/trade-purchases.json` and finite stock in
+  `world/elarion/addon-state/npcs/trade-stock.json`. Sell runtime storage is
+  defined at `world/elarion/addon-state/npcs/trade-sales.json`, with explicit
+  sale replay states and serialized escrow stacks. Sell settlement is
+  server-authoritative: the server counts matching main-inventory stacks,
+  serializes exact removed stacks with encoded `ItemStack` payloads, persists
+  escrow before payout, pays the seller's Economy wallet through an idempotent
+  receipt, restores escrowed items on payout failure when possible, and can
+  idempotently route sold quantity into a configured placed-NPC BUY stock target.
+  Sell/buyback follows `docs/reports/NPC_SELL_BUYBACK_PROPOSAL.md`: exact sold
+  stacks go into durable NPC escrow before any payout, and Economy owns dynamic
+  price/inflation/payout policy.
+- `worldheart_trader` is the default test trader route for this shell. It opens
+  through normal NPC conversation first and then transitions through `Trade`
+  into the trade presentation.
+- Bank amount text starts immediately after the Sigil icon. The blinking caret
+  uses the rendered amount width and stays after the final digit for typed,
+  preset, and backspaced values. Fee and Total each use one scaled Sigil icon
+  and one right-aligned numeric value.
+- Bank Deposit/Withdraw mode is remembered per NPC on the client across the
+  server feedback refresh that follows an action, so a Withdraw attempt stays
+  on the Withdraw tab instead of returning to Deposit.
+- Hovering a trade preview row uses the underlying `ItemStack` and Minecraft's
+  native tooltip renderer, preserving enchantments, custom names, lore, and
+  attributes without duplicating item metadata in the UI model.
+- The payload carries an explicit presentation kind and option roles. It has
+  extension zones for a top-right bank currency badge,
   reward/shop/service preview cards, and future NPC relation/reputation values.
-  Relation is shown as theme-colored Minecraft-style hearts without a permanent
-  text label. Hovering the hearts shows the current relation level in a standard
-  tooltip. NPCs only display those
-    fields; Economy, Ledger, Quest, Trade, or other systems remain the owners of
-    the underlying state.
+  Per-NPC relationship is shown only when NPC-owned authoritative relationship
+  data is available; the former hard-coded `Neutral/0` projection is no longer
+  presented as real data. Future aggregate NPC-faction/Realm reputation belongs
+  in Character Menu, not conversation or bank screens. NPCs only display those
+  fields; Economy, Ledger, Quest, Trade, or other systems remain the owners of
+  the underlying state.
 - Placed NPCs have readable command IDs such as `worldheart_banker_1`. The
   internal UUID is still stored for persistence and entity linking.
 - Portrait fallback order is explicit portrait, portrait fallback texture,
   synced NPC skin head, then placeholder. A full 64x64 texture skin such as
-  `dunk_banker` therefore provides its own dialogue head when no portrait image
-  exists.
+  `worldheart_banker` therefore provides its own dialogue head when no portrait
+  image exists.
 - Ordinary dialogue browsing should not emit history. Only meaningful outcomes
   such as purchases, quest completion, civic registration, lore discovery, and
   government actions should emit history.
@@ -134,6 +253,7 @@ All commands are OP level 4:
 
 ```text
 /e npc reload
+/e npc open <npcId>
 /e npc place <npcDefinition> [north|east|south|west|here]
 /e npc place <npcDefinition> yaw <value>
 /e npc remove <npcId>
@@ -161,6 +281,9 @@ All commands are OP level 4:
 
 `<npcId>` is the readable placed NPC ID shown by `/e npc place` and
 `/e npc list`, for example `worldheart_banker_1`. Legacy UUIDs still work.
+`/e npc open <npcId>` opens the normal server-authoritative conversation for a
+nearby placed NPC and is intended for admin repair/QA flows; it still respects
+range, definition availability, permissions, and dialogue validity.
 
 Examples:
 
@@ -172,6 +295,7 @@ Examples:
 /e npc set dialogue worldheart_banker_1 worldheart_banker
 /e npc duplicate worldheart_banker_1 east
 /e npc tp worldheart_banker_1
+/e npc open worldheart_banker_1
 /e npc nearest
 ```
 
@@ -250,6 +374,33 @@ intro:
       next: currency
 ```
 
+Service node shape:
+
+```yaml
+intro:
+  presentation: dialogue
+  options:
+    - id: open_bank
+      button-text: "Open Bank"
+      presentation-role: open_bank
+      next: bank
+bank:
+  presentation: bank
+  options:
+    - id: deposit
+      presentation-role: deposit
+      prompt:
+        type: number
+        action: elarion:economy_deposit_currency_amount
+    - id: back
+      presentation-role: back
+      next: intro
+```
+
+Legacy banker graphs that place Economy deposit and withdraw prompts directly
+on the root node are projected into a `bank_service` node in memory. Files are
+not rewritten and unrelated customized options remain on the conversation root.
+
 Conditional node text variant shape:
 
 ```yaml
@@ -291,9 +442,43 @@ scrollbars come from Core `config/elarion/core/ui_theme.yml` variant `npc`.
 
 The dialogue screen consumes Core UI primitives while NPC-specific portraits,
 conversation phases, typing, prompts, relations, and sounds remain NPC-owned.
+Trade catalog rows keep real server-authored `ItemStack` previews for native
+tooltips. The row itself may highlight on hover, but enchantment/lore tooltips
+must only appear over the item icon. Price rows use one fixed Sigil icon
+column and a value immediately after it.
+
+## Trade Quote Integration
+
+NPCs optionally integrates with Economy through `NpcTradeQuoteProvider` and
+`NpcTradePurchaseProvider`. Without Economy, catalog rows remain visible and
+disabled. With Economy, providers map persisted NPC jurisdiction to a Realm or
+Worldheart authority.
+
+The two shipped bank amount prompt IDs remain valid config contracts when
+Economy is absent, but NPCs never registers their handlers. Unavailable
+server-side quote/settlement providers keep the controls disabled and prevent
+wallet or inventory mutation. Loader-level absence is verified by
+`dev/tools/optional-addon-qa.ps1`.
+
+Quantity and purchase requests are bounded to 1-64 and revalidate the dialogue
+session, range, trade node, catalog revision, offer ID, item availability, and
+server quote. The client receives subtotal, tax, total, policy revision, and
+authority label; it never computes authoritative values. Confirm sends a
+client-generated purchase ID, and the server records deterministic
+PREPARED/PAID/COMPLETE/FAILED purchase state before responding.
 
 ## Future Work
 
+- Phase 9 narrative-readiness audit is recorded in
+  `docs/reports/NPC_NARRATIVE_READINESS_AUDIT.md`. Dialogue graph validation V1
+  now runs during config validation. NPC relationship V1 is persisted in
+  NPC-owned state and exposed through `elarion_npcs:set_relationship`,
+  `elarion_npcs:add_relationship`, and
+  `elarion_npcs:relationship_at_least`. Durable story flags, one-time choices,
+  endings, opt-in re-entry, and structured `npc/story-outcome` Chronicle
+  records are complete under the contract in
+  `docs/reports/NPC_STORY_STATE_DESIGN.md`. Relationship UI/profile summaries
+  remain deferred.
 - Add richer idle animation and explicit skin validation only if the static
   presentation needs them.
 - Add NPC action handlers for market entry, portal tickets, quest boards,

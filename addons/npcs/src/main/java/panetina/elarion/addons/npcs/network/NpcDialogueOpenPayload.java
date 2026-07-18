@@ -26,6 +26,7 @@ public record NpcDialogueOpenPayload(
         String npcVoice,
         String playerSound,
         String playerVoice,
+        String presentationKind,
         String feedback,
         boolean feedbackError,
         boolean hasCurrencyBalance,
@@ -81,6 +82,7 @@ public record NpcDialogueOpenPayload(
                 ElarionPacketCodecs.writeString(buffer, payload.npcVoice(), 256);
                 ElarionPacketCodecs.writeString(buffer, payload.playerSound(), 256);
                 ElarionPacketCodecs.writeString(buffer, payload.playerVoice(), 256);
+                ElarionPacketCodecs.writeString(buffer, payload.presentationKind(), 32);
                 ElarionPacketCodecs.writeString(buffer, payload.feedback(), 1024);
                 buffer.writeBoolean(payload.feedbackError());
                 buffer.writeBoolean(payload.hasCurrencyBalance());
@@ -134,6 +136,7 @@ public record NpcDialogueOpenPayload(
                 String npcVoice = ElarionPacketCodecs.readString(buffer, 256);
                 String playerSound = ElarionPacketCodecs.readString(buffer, 256);
                 String playerVoice = ElarionPacketCodecs.readString(buffer, 256);
+                String presentationKind = ElarionPacketCodecs.readString(buffer, 32);
                 String feedback = ElarionPacketCodecs.readString(buffer, 1024);
                 boolean feedbackError = buffer.readBoolean();
                 boolean hasCurrencyBalance = buffer.readBoolean();
@@ -180,7 +183,7 @@ public record NpcDialogueOpenPayload(
                         npcId, dialogueId, nodeId, npcName, portrait, portraitType,
                         portraitPlayerName, portraitFallbackType, portraitFallbackTexture,
                         playerText, text,
-                        npcSound, npcVoice, playerSound, playerVoice, feedback, feedbackError,
+                        npcSound, npcVoice, playerSound, playerVoice, presentationKind, feedback, feedbackError,
                         hasCurrencyBalance, currencyBalance, currencyPlural, relationLabel, relationValue,
                         panelWidth, minPanelHeight, maxPanelHeight,
                         minimumUiScalePercent, optionRowHeight, visibleOptionRows, scrollbarWidth,
@@ -203,6 +206,7 @@ public record NpcDialogueOpenPayload(
         npcVoice = npcVoice == null ? "" : npcVoice;
         playerSound = playerSound == null ? "" : playerSound;
         playerVoice = playerVoice == null ? "" : playerVoice;
+        presentationKind = presentationKind == null || presentationKind.isBlank() ? "dialogue" : presentationKind;
         currencyPlural = currencyPlural == null || currencyPlural.isBlank() ? "Currency" : currencyPlural;
         themeVariant = themeVariant == null || themeVariant.isBlank() ? "npc" : themeVariant;
         cards = cards == null ? List.of() : List.copyOf(cards);

@@ -4,7 +4,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 final class ElarionMountFlightController {
-    static final float LEAN_DEADZONE_DEGREES = 2.5F;
+    static final float LEAN_DEADZONE_TURN_INTENT = 0.08F;
     private static final double FORWARD_INPUT_RESPONSE = 0.34D;
     private static final double TURN_INPUT_RESPONSE = 0.26D;
     private static final double VERTICAL_INPUT_RESPONSE = 0.30D;
@@ -114,7 +114,7 @@ final class ElarionMountFlightController {
     }
 
     private static String leanOverlay(double turnIntent, boolean boostActive) {
-        float leanDeadzone = boostActive ? LEAN_DEADZONE_DEGREES * 1.7F : LEAN_DEADZONE_DEGREES;
+        float leanDeadzone = boostActive ? LEAN_DEADZONE_TURN_INTENT * 1.7F : LEAN_DEADZONE_TURN_INTENT;
         if (turnIntent > leanDeadzone) {
             return "lean_right";
         }

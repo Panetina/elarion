@@ -62,7 +62,7 @@ public final class PrivateMessageService {
                 relationship == RealmRelationship.ALLY || relationship == RealmRelationship.NEUTRAL;
         if (!sameRealm && (!recipientIsGlobal || !relationshipAllowsForeignMessage)) {
             sender.sendMessage(Text.literal(
-                    "You may only message citizens in your " + serverIdentity.realmSingular()
+                    "You may only message Embers in your " + serverIdentity.realmSingular()
                             + " or reachable members of a GLOBAL " + serverIdentity.realmSingular() + ".")
                     .formatted(Formatting.RED), false);
             return false;

@@ -3,6 +3,7 @@ import panetina.elarion.core.client.ui.ElarionUiTypography;
 
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import panetina.elarion.core.client.ui.ElarionCivicUi;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
 
@@ -110,6 +111,6 @@ public final class GovernmentScreenChrome {
         int color = !enabled && !selected ? style.mutedColor()
                 : selected ? style.titleColor() : style.textColor();
         ElarionUiTypography.draw(context, renderer, ElarionUiRenderer.ellipsize(renderer, tab.label(), Math.max(1, width - 38)),
-                x + 34, y + Math.max(3, (height - 8) / 2), color, false);
+                x + 34, ElarionCivicUi.centeredTextY(renderer, y, height), color, false);
     }
 }

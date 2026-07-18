@@ -1,6 +1,7 @@
 package panetina.elarion.addons.government.client;
 
 import net.minecraft.util.Identifier;
+import panetina.elarion.core.client.ui.ElarionUiIcons;
 
 import java.util.Map;
 import java.util.Optional;
@@ -69,6 +70,10 @@ public final class GovernmentUiIcons {
 
     public static Optional<String> texturePath(String rawIconId) {
         String iconId = normalize(rawIconId);
+        Optional<String> shared = ElarionUiIcons.texturePath(iconId);
+        if (shared.isPresent()) {
+            return shared;
+        }
         if (BASE_ICON_IDS.contains(iconId) || REALM_COLOR_IDS.contains(iconId)) {
             return Optional.of(ICON_PATH + iconId + ".png");
         }
@@ -80,11 +85,15 @@ public final class GovernmentUiIcons {
     }
 
     public static Optional<Identifier> identifier(String rawIconId) {
+        Optional<Identifier> shared = ElarionUiIcons.identifier(rawIconId);
+        if (shared.isPresent()) {
+            return shared;
+        }
         return texturePath(rawIconId).map(path -> Identifier.of(NAMESPACE, path));
     }
 
     public static boolean hasTexture(String rawIconId) {
-        return texturePath(rawIconId).isPresent();
+        return ElarionUiIcons.has(rawIconId) || texturePath(rawIconId).isPresent();
     }
 
     static String normalize(String rawIconId) {

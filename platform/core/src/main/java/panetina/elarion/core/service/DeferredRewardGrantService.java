@@ -176,7 +176,7 @@ public final class DeferredRewardGrantService {
             } else if (type.contains("currency") && type.contains("reward")) {
                 int amount = parsePositive(action.parameters().getOrDefault("amount", "0"), 0);
                 previews.add(new ElarionNotificationRewardPreview("Sigils",
-                        "elarion:textures/item/currency.png", amount));
+                        "bank", amount));
             }
         }
         return List.copyOf(previews);

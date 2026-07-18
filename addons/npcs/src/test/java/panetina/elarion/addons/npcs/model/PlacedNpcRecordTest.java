@@ -37,5 +37,10 @@ final class PlacedNpcRecordTest {
         assertEquals("custom_skin", updated.skin(definition));
         assertEquals("custom_portrait", updated.portrait(definition));
         assertEquals("dialogue", updated.dialogue(definition));
+
+        PlacedNpcRecord registered = updated.withTaxJurisdiction(NpcTaxJurisdictionKind.WORLD,
+                "elarion:worldheart").named("Mara");
+        assertEquals(NpcTaxJurisdictionKind.WORLD, registered.taxJurisdictionKind());
+        assertEquals("elarion:worldheart", registered.taxJurisdictionId());
     }
 }

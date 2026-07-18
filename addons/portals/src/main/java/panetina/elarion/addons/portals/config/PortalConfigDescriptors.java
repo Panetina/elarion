@@ -136,7 +136,7 @@ public final class PortalConfigDescriptors {
                     "Route description used in prompts and notices.",
                     routes, PortalRouteDefinition::description, false));
             entries.add(routeStringEntry(route, "source-dimension", "Source Dimension",
-                    "Dimension containing the outbound gate.",
+                    "Dimension containing the outbound gate, or `*` for unrestricted always-open routes.",
                     routes, PortalRouteDefinition::sourceDimension));
             entries.add(routeStringEntry(route, "destination-dimension", "Destination Dimension",
                     "Destination dimension, or `*` for unrestricted always-open routes.",

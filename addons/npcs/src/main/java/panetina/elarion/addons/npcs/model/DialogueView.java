@@ -19,6 +19,7 @@ public record DialogueView(
         String npcVoice,
         String playerSound,
         String playerVoice,
+        NpcPresentationKind presentation,
         String feedback,
         boolean feedbackError,
         Long currencyBalance,
@@ -36,6 +37,7 @@ public record DialogueView(
             String id,
             String buttonText,
             String playerText,
+            String presentationRole,
             String promptType,
             String promptQuestion,
             int promptMaxDigits

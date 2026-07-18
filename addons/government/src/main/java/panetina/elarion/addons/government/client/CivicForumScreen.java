@@ -119,9 +119,9 @@ public final class CivicForumScreen extends ElarionScreen {
     }
 
     private void renderHeader(DrawContext context, double mouseX, double mouseY) {
-        GovernmentUiGlyphs.crest(context, 13, 5, 36, payload.crestIconId(), style);
-        ElarionUiTypography.draw(context, textRenderer, "Civic Forum", 58, 7, theme.titleColor(), false);
-        context.fill(58, 21, HEADER_CLOSE_X - 18, 22, GovernmentUiGlyphs.GOLD_SHADOW);
+        GovernmentUiGlyphs.crest(context, 15, 7, 32, payload.crestIconId(), style);
+        drawHeaderTitle(context, "Civic Forum");
+        context.fill(58, 24, HEADER_CLOSE_X - 18, 25, GovernmentUiGlyphs.GOLD_SHADOW);
         int metaY = 29;
         renderHeaderSegment(context, 0, metaY, "realm_name", payload.realmName(), GovernmentUiGlyphs.ACTIVE_GREEN);
         renderHeaderSegment(context, 1, metaY, "office", authorityLabel(), theme.titleColor());
@@ -130,6 +130,15 @@ public final class CivicForumScreen extends ElarionScreen {
         ElarionUiRenderer.compactButton(context, textRenderer, HEADER_CLOSE_X, 9, 16, 16,
                 "X", inside(mouseX, mouseY, HEADER_CLOSE_X, 9, 16, 16), true, style);
         hits.add(new Hit(HEADER_CLOSE_X, 9, 16, 16, "close", ""));
+    }
+
+    private void drawHeaderTitle(DrawContext context, String title) {
+        float scale = ElarionUiTypography.scale() * 1.25F;
+        context.getMatrices().push();
+        context.getMatrices().translate(58.0F, 9.0F, 0.0F);
+        context.getMatrices().scale(scale, scale, 1.0F);
+        context.drawText(textRenderer, title, 0, 0, theme.titleColor(), false);
+        context.getMatrices().pop();
     }
 
     private void renderHeaderSegment(
@@ -250,9 +259,8 @@ public final class CivicForumScreen extends ElarionScreen {
             visible++;
         }
         if (visible < visibleRows.size()) {
-            String hint = (rowFirstVisible + 1) + "-" + (rowFirstVisible + visible) + " / " + visibleRows.size();
-            ElarionUiTypography.draw(context, textRenderer, hint, x + rowWidth - 8 - ElarionUiTypography.width(textRenderer, hint), MAIN_BOTTOM - 12,
-                    theme.mutedColor(), false);
+            GovernmentUiGlyphs.rowRange(context, textRenderer, x + rowWidth / 2, MAIN_BOTTOM - 12,
+                    rowFirstVisible + 1, rowFirstVisible + visible, visibleRows.size(), style);
         }
     }
 
@@ -271,11 +279,14 @@ public final class CivicForumScreen extends ElarionScreen {
         boolean hover = inside(mouseX, mouseY, x, y, rowWidth, rowHeight);
         boolean muted = !row.unlocked() && !row.kind().equals("recent_vote");
         boolean recent = row.kind().equals("recent_vote");
+        boolean history = activeTab().equals("history") && row.kind().equals("history");
         String metric = currentVotes ? currentVoteMetric(row)
+                : history ? row.metricLabel().isBlank() ? row.state() : row.metricLabel()
                 : row.metricLabel().isBlank() ? row.state() : row.metricLabel();
-        String metricIcon = recent ? row.state().equalsIgnoreCase("Rejected") ? "reject" : "settled"
+        String metricIcon = history ? "history"
+                : recent ? row.state().equalsIgnoreCase("Rejected") ? "reject" : "settled"
                 : row.voteCount() > 0 ? "people" : "current_votes";
-        String secondLine = currentVotes && !recent ? compactTimeRemaining() : "";
+        String secondLine = history ? row.state() : currentVotes && !recent ? compactTimeRemaining() : "";
         String secondIcon = "timer";
         if (!secondLine.isBlank()) {
             secondIcon = "timer";
@@ -459,7 +470,7 @@ public final class CivicForumScreen extends ElarionScreen {
                     row.complete() ? GovernmentUiGlyphs.ACTIVE_GREEN : theme.textColor(), false);
             lineY += 16;
             if (row.approveCount() > 0 || row.rejectCount() > 0 || row.voteCount() > 0) {
-                ElarionUiTypography.draw(context, textRenderer, "Citizen vote: " + row.approveCount() + " yes / "
+                ElarionUiTypography.draw(context, textRenderer, "Ember vote: " + row.approveCount() + " yes / "
                                 + row.rejectCount() + " no",
                         x, lineY, theme.textColor(), false);
                 lineY += 16;
@@ -806,7 +817,7 @@ public final class CivicForumScreen extends ElarionScreen {
     }
 
     private String roleLabel() {
-        return payload.roleLabel().isBlank() ? "Citizen Assembly" : payload.roleLabel();
+        return payload.roleLabel().isBlank() ? "Ember Assembly" : payload.roleLabel();
     }
 
     private String stripCategory(String body) {

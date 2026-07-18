@@ -43,9 +43,11 @@ final class WorldsConfigDescriptorsTest {
         assertEquals("lobby", domain.entry("general", "lobby.destination").orElseThrow().currentDisplayValue());
         assertEquals("true", domain.entry("general",
                 "lobby.enforce-for-unassigned").orElseThrow().currentDisplayValue());
-        assertEquals("5", domain.entry("general", "worlds.count").orElseThrow().currentDisplayValue());
+        assertEquals("6", domain.entry("general", "worlds.count").orElseThrow().currentDisplayValue());
         assertTrue(domain.entry("general", "worlds.keys").orElseThrow()
                 .currentDisplayValue().contains("underworld"));
+        assertTrue(domain.entry("general", "worlds.keys").orElseThrow()
+                .currentDisplayValue().contains("worldheart"));
 
         var lobbyType = domain.entry("worlds", "worlds.lobby.type").orElseThrow();
         assertEquals("VOID", lobbyType.currentDisplayValue());
@@ -53,6 +55,16 @@ final class WorldsConfigDescriptorsTest {
 
         assertEquals("12", domain.entry("worlds", "worlds.underworld.platform-radius")
                 .orElseThrow().currentDisplayValue());
+        assertEquals("-4581459134664415489", domain.entry("worlds", "worlds.realm_world_1.seed")
+                .orElseThrow().currentDisplayValue());
+        assertTrue(domain.entry("worlds", "worlds.realm_world_1.spawn").orElseThrow()
+                .currentDisplayValue().contains("-367.0, 75.0, 138.0"));
+        assertTrue(domain.entry("worlds", "worlds.realm_world_1.border").orElseThrow()
+                .currentDisplayValue().contains("center=-367.0,138.0"));
+        assertEquals("-7114969613679385277", domain.entry("worlds", "worlds.worldheart.seed")
+                .orElseThrow().currentDisplayValue());
+        assertTrue(domain.entry("worlds", "worlds.worldheart.spawn").orElseThrow()
+                .currentDisplayValue().contains("-86.0, 82.0, -48.0"));
         assertEquals("2", domain.entry("worlds", "worlds.realm_world_1.block-abundance.count")
                 .orElseThrow().currentDisplayValue());
         assertTrue(domain.entry("worlds", "worlds.lobby.border").orElseThrow()

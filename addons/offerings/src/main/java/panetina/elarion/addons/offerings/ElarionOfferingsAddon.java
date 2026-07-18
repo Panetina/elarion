@@ -21,12 +21,13 @@ import panetina.elarion.addons.offerings.model.OfferingAnchor;
 import panetina.elarion.addons.offerings.model.OfferingInstance;
 import panetina.elarion.addons.offerings.model.OfferingProjectDefinition;
 import panetina.elarion.addons.offerings.model.OfferingProjectLevel;
-import panetina.elarion.addons.offerings.model.OfferingUiProgress;
 import panetina.elarion.addons.offerings.network.ShrineUiOpenPayload;
 import panetina.elarion.addons.offerings.network.ShrineContributionSubmitPayload;
 import panetina.elarion.addons.offerings.service.OfferingDefinitionService;
 import panetina.elarion.addons.offerings.service.OfferingAdminPanelProvider;
+import panetina.elarion.addons.offerings.service.OfferingProfileContributor;
 import panetina.elarion.addons.offerings.service.OfferingService;
+import panetina.elarion.addons.offerings.service.OfferingWebProjectionPublisher;
 import panetina.elarion.addons.offerings.storage.OfferingStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
@@ -45,7 +46,12 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
         OfferingDefinitionService definitions = new OfferingDefinitionService(api);
         definitions.load();
         OfferingService service = new OfferingService(LOGGER, api, definitions, new OfferingStorage(LOGGER));
+        OfferingWebProjectionPublisher webPublisher = new OfferingWebProjectionPublisher(
+                service, definitions, api.system().webProjections());
+        service.onChanged(webPublisher::publish);
         api.system().adminPanel().registerProvider(new OfferingAdminPanelProvider(service));
+        api.system().profiles().registerContributor(new OfferingProfileContributor(api.playerStats()));
+        api.publicHistory().registerRenderer(OfferingChronicleText.INSTANCE);
         new ElarionOfferingsApi(definitions, service);
         OfferingConfigDescriptors.register(api.system().configs(), definitions::all, definitions::ui);
 
@@ -73,7 +79,10 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
         api.system().commands().registerHelpDescription(
                 "/e test shrine reset [realm]", "Reset Shrine progression and Foundation flags for testing.");
 
-        ServerLifecycleEvents.SERVER_STARTED.register(service::bind);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            service.bind(server);
+            webPublisher.publishSnapshot();
+        });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> service.save());
         ServerTickEvents.END_SERVER_TICK.register(service::tick);
         LOGGER.info("Elarion offerings initialized with {} project definitions", definitions.all().size());
@@ -196,8 +205,10 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
                     row.key(), type, id, requirementLabel(api, type, id), requirementIcon(type, id),
                     row.current(), row.required(), row.complete()));
         }
-        OfferingUiProgress totals = OfferingUiProgress.from(progress.rows());
-        String status = progress.complete() || instance.completed()
+        boolean completed = progress.complete() || instance.completed();
+        ShrineProgressProjection projection = shrineProgressProjection(rows, completed);
+        rows = projection.rows();
+        String status = completed
                 ? "Complete"
                 : "Awaiting " + api.serverIdentity().offeringPlural().toLowerCase(java.util.Locale.ROOT);
         String scopeLabel = instance.scope().name().toLowerCase(java.util.Locale.ROOT);
@@ -232,16 +243,43 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
                             offeringColor, java.time.Instant.ofEpochMilli(record.createdAt()).toString());
                 })
                 .toList();
-        boolean completed = progress.complete() || instance.completed();
         ServerPlayNetworking.send(player, new ShrineUiOpenPayload(
                 instance.id(), project.id(), shrineTitle(instance, project, level), subtitle, level.description(), status,
                 level.presentation().levelText(), level.presentation().icon(), ui.themeVariant(),
                 ui.logicalWidth(), ui.logicalHeight(), ui.minimumScalePercent(), ui.summaryWidth(),
                 ui.tabHeight(), ui.rowHeight(), ui.iconSize(), ui.closeButtonWidth(),
-                totals.current(), totals.required(), rows, rewards, history,
+                projection.current(), projection.required(), rows, rewards, history,
                 ui.rewardsPlaceholder(), ui.historyPlaceholder(), ui.contributionPlaceholder(),
                 resultMessage == null ? "" : resultMessage, resultError, completed,
                 ui.eventTitle(), ui.eventBody(), ui.eventLockedBody(), false));
+    }
+
+    static ShrineProgressProjection shrineProgressProjection(
+            java.util.List<ShrineUiOpenPayload.RequirementRow> rows,
+            boolean completed
+    ) {
+        java.util.List<ShrineUiOpenPayload.RequirementRow> projectedRows = new java.util.ArrayList<>();
+        long current = 0L;
+        long required = 0L;
+        for (ShrineUiOpenPayload.RequirementRow row : rows == null ? java.util.List.<ShrineUiOpenPayload.RequirementRow>of() : rows) {
+            ShrineUiOpenPayload.RequirementRow projected = row;
+            if (completed && !row.complete()) {
+                projected = new ShrineUiOpenPayload.RequirementRow(
+                        row.key(), row.type(), row.id(), row.label(), row.icon(),
+                        Math.max(row.current(), row.required()), row.required(), true);
+            }
+            projectedRows.add(projected);
+            current += completed ? Math.max(projected.current(), projected.required()) : projected.current();
+            required += projected.required();
+        }
+        return new ShrineProgressProjection(java.util.List.copyOf(projectedRows), current, required);
+    }
+
+    record ShrineProgressProjection(
+            java.util.List<ShrineUiOpenPayload.RequirementRow> rows,
+            long current,
+            long required
+    ) {
     }
 
     private static String donationLabel(ElarionApi api, String type, String requirementKey) {

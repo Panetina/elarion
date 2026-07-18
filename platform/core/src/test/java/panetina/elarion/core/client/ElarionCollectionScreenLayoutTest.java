@@ -15,10 +15,24 @@ final class ElarionCollectionScreenLayoutTest {
 
         assertTrue(ElarionCollectionScreen.Layout.TAB_Y < layout.panelTop());
         assertEquals(12, layout.tabX(0));
-        assertEquals(114, layout.tabX(1));
+        assertEquals(160, layout.tabX(1));
+        assertEquals(140, layout.tabWidth(5));
+        assertTrue(layout.tabX(4) + layout.tabWidth(5) <= 760 - 12);
         assertEquals(layout.panelTop(), ElarionCollectionScreen.Layout.PANEL_TOP);
         assertEquals(layout.panelHeight(), layout.detailBottom() - layout.panelTop());
-        assertEquals(536, layout.contentHeaderWidth());
+        assertEquals(736, layout.contentHeaderWidth());
+        assertEquals(350, ElarionCollectionScreen.DETAIL_WIDTH);
+        assertTrue(layout.listWidth() >= ElarionCollectionScreen.DETAIL_WIDTH);
+    }
+
+    @Test
+    void reputationProgressIsBoundedAndMalformedInputIsSafe() {
+        assertEquals(new ElarionCollectionScreen.ReputationProgress(2, 120),
+                ElarionCollectionScreen.reputationProgress("2/120"));
+        assertEquals(new ElarionCollectionScreen.ReputationProgress(120, 120),
+                ElarionCollectionScreen.reputationProgress("999/120"));
+        assertEquals(new ElarionCollectionScreen.ReputationProgress(0, 1),
+                ElarionCollectionScreen.reputationProgress("invalid"));
     }
 
     @Test
@@ -31,6 +45,7 @@ final class ElarionCollectionScreenLayoutTest {
                 + layout.rowPadding() * 2;
         assertTrue(Math.abs(layout.rowsHeight() - used) <= 1);
         assertTrue(layout.listWidth() > layout.detailX() / 2);
+        assertEquals(44, ElarionCollectionScreen.ROW_HEIGHT);
     }
 
     @Test

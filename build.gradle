@@ -2,6 +2,17 @@ plugins {
     id 'fabric-loom' version "${loom_version}" apply false
 }
 
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.nucleoid.xyz/' }
+    maven { url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+    maven { url = 'https://maven.terraformersmc.com/releases/' }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+}
+
 allprojects {
     group = project.maven_group
     version = project.mod_version + '+mc.' + project.jar_mc_version
@@ -9,8 +20,115 @@ allprojects {
 
 def structuralProjects = [':platform', ':addons', ':tests']
 def modProjects = subprojects.findAll { !structuralProjects.contains(it.path) }
+def optionalAddonQa = providers.gradleProperty('optionalAddonQa')
+        .map { it.toBoolean() }
+        .orElse(false)
 def exportableModProjects = modProjects.findAll {
     it.path == ':platform:core' || it.path.startsWith(':addons:')
+}
+def modpackSourceDir = file("${System.properties['user.home']}/AppData/Roaming/ModrinthApp/profiles/Ashes of Elarion/mods")
+def modpackBothJarNames = [
+        'BiomesOPlenty-fabric-1.21.1-21.1.0.14.jar',
+        'ClimateRivers-v21.1.3-1.21.1-Fabric.jar',
+        'Continents_26.2_v1.1.14.jar',
+        'fabric-api-0.116.13+1.21.1.jar',
+        'ForgeConfigAPIPort-v21.1.6-1.21.1-Fabric.jar',
+        'Geophilic v3.6.mod.jar',
+        'GeophilicBackported-v1.3.3 1.21.1.jar',
+        'GlitchCore-fabric-1.21.1-2.1.0.2.jar',
+        'Platform-fabric-1.21.1-1.3.3.jar',
+        'PuzzlesLib-v21.1.52-1.21.1-Fabric.jar',
+        'roadweaver-fabric-2.2.2-1.21.1.jar',
+        'TerraBlender-fabric-1.21.1-4.1.0.8.jar',
+        'VanillaBackport-fabric-1.21.1-1.1.7.10.jar'
+]
+def modpackBothJarFiles = modpackBothJarNames.collect { new File(modpackSourceDir, it) }
+def pinnedModrinthJarNames = [
+        'B0g2vT6l-v3CzX4a3.jar': 'rechiseled-1.2.5-fabric-mc1.21.jar',
+        'rOUBggPv-blDCgrqh.jar': 'supermartijn642corelib-1.1.21-fabric-mc1.21.jar',
+        'LN9BxssP-euSlaAtA.jar': 'supermartijn642configlib-1.1.8-fabric-mc1.21.jar',
+        'p19vrgc2-rN3N2Oxi.jar': 'fusion-1.3.6-fabric-mc1.21.jar',
+        'N6n5dqoA-BzK22yyR.jar': 'Axiom-5.4.2-for-MC1.21.1.jar',
+        '1u6JkXh5-WTAFvuRx.jar': 'worldedit-mod-7.3.8.jar'
+]
+
+def enableSharedResourcePacks = { File optionsFile, List<String> packNames ->
+    if (packNames.isEmpty()) return
+    def activeIds = packNames.collect { "file/${it}".toString() }.unique()
+    def lines = optionsFile.isFile()
+            ? optionsFile.readLines('UTF-8')
+            : []
+    def updated = []
+    def activeWritten = false
+    def incompatibleWritten = false
+    lines.each { line ->
+        if (line.startsWith('resourcePacks:')) {
+            def current = new groovy.json.JsonSlurper().parseText(
+                    line.substring('resourcePacks:'.length())) as List
+            def retained = current.findAll { !activeIds.contains(it) }.unique()
+            retained.addAll(activeIds)
+            updated.add('resourcePacks:' + groovy.json.JsonOutput.toJson(retained))
+            activeWritten = true
+        } else if (line.startsWith('incompatibleResourcePacks:')) {
+            def current = new groovy.json.JsonSlurper().parseText(
+                    line.substring('incompatibleResourcePacks:'.length())) as List
+            def retained = current.findAll { !activeIds.contains(it) }.unique()
+            updated.add('incompatibleResourcePacks:' + groovy.json.JsonOutput.toJson(retained))
+            incompatibleWritten = true
+        } else {
+            updated.add(line)
+        }
+    }
+    if (!activeWritten) {
+        updated.add('resourcePacks:' + groovy.json.JsonOutput.toJson(activeIds))
+    }
+    if (!incompatibleWritten) {
+        updated.add('incompatibleResourcePacks:[]')
+    }
+    optionsFile.parentFile.mkdirs()
+    optionsFile.setText(updated.join(System.lineSeparator()) + System.lineSeparator(), 'UTF-8')
+}
+
+configurations {
+    exportModpackBoth
+    exportModpackClient
+    exportAdminTools
+}
+
+dependencies {
+    exportModpackBoth('software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4') {
+        transitive = false
+    }
+    exportModpackBoth('xyz.nucleoid:fantasy:0.6.3+1.21') {
+        transitive = false
+    }
+    exportModpackClient('com.terraformersmc:modmenu:11.0.3') {
+        transitive = false
+    }
+
+    // Rechiseled gameplay content and its pinned Fabric 1.21.1 dependencies.
+    exportModpackBoth('maven.modrinth:B0g2vT6l:v3CzX4a3') {
+        transitive = false
+    }
+    exportModpackBoth('maven.modrinth:rOUBggPv:blDCgrqh') {
+        transitive = false
+    }
+    exportModpackBoth('maven.modrinth:LN9BxssP:euSlaAtA') {
+        transitive = false
+    }
+    // Fusion is rendering-only at runtime, but Rechiseled declares it as a
+    // hard loader dependency, so its jar must be present on both sides.
+    exportModpackBoth('maven.modrinth:p19vrgc2:rN3N2Oxi') {
+        transitive = false
+    }
+
+    // Builder/admin tooling is server-side plus client-one only in development.
+    exportAdminTools('maven.modrinth:N6n5dqoA:BzK22yyR') {
+        transitive = false
+    }
+    exportAdminTools('maven.modrinth:1u6JkXh5:WTAFvuRx') {
+        transitive = false
+    }
 }
 
 configure(modProjects) {
@@ -21,6 +139,7 @@ configure(modProjects) {
         mavenCentral()
         maven { url = 'https://maven.nucleoid.xyz/' }
         maven { url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+        maven { url = 'https://maven.terraformersmc.com/releases/' }
     }
 
     base {
@@ -52,9 +171,24 @@ configure(modProjects) {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
+    if (optionalAddonQa.get()
+            && project.path != ':dev'
+            && project.path != ':tests:gametest') {
+        def optionalQaCase = project.path.substring(1).replace(':', '-')
+        def optionalQaRunDir = project.relativePath(
+                rootProject.file("build/qa/optional-addon/${optionalQaCase}"))
+        loom {
+            runs {
+                server {
+                    runDir = optionalQaRunDir
+                }
+            }
+        }
+    }
+
     if (project.path != ':dev') {
         tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
-            enabled = false
+            enabled = optionalAddonQa.get() && it.name == 'runServer'
         }
     }
 }
@@ -67,26 +201,26 @@ configure(modProjects.findAll { it.path.startsWith(':addons:') }) {
 
 tasks.register('runClient') {
     group = 'fabric'
-    description = 'Runs Elarion Core with every addon in one development client.'
-    dependsOn ':dev:runClient'
+    description = 'Runs the generic new-player Elarion development client.'
+    dependsOn 'syncDevRuntimeMods', ':dev:runClient'
 }
 
 tasks.register('runClientOne') {
     group = 'fabric'
     description = 'Runs the first Elarion development client.'
-    dependsOn ':dev:runClientOne'
+    dependsOn 'syncDevRuntimeMods', ':dev:runClientOne'
 }
 
 tasks.register('runClientTwo') {
     group = 'fabric'
     description = 'Runs the second Elarion development client.'
-    dependsOn ':dev:runClientTwo'
+    dependsOn 'syncDevRuntimeMods', ':dev:runClientTwo'
 }
 
 tasks.register('runServer') {
     group = 'fabric'
     description = 'Runs Elarion Core with every addon in one development server.'
-    dependsOn ':dev:runServer'
+    dependsOn 'syncDevRuntimeMods', ':dev:runServer'
 }
 
 tasks.register('runGameTests') {
@@ -95,22 +229,69 @@ tasks.register('runGameTests') {
     dependsOn ':tests:gametest:runGameTestServer'
 }
 
+tasks.register('verifyAiContext', Exec) {
+    group = 'verification'
+    description = 'Verifies bounded AI docs, route integrity, context recall, refusal behavior, and token-savings gates.'
+    workingDir rootProject.projectDir
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', file('dev/tools/verify-ai-context.ps1')
+}
+
 def cleanExportModsTask = tasks.register('cleanExportMods', Delete) {
     group = 'distribution'
-    description = 'Deletes the aggregated Elarion Core/addon mod export folder.'
-    delete layout.buildDirectory.dir('export/mods')
+    description = 'Deletes the generated server-mods and client-mods export folders.'
+    delete layout.buildDirectory.dir('export')
 }
 
 def exportModsTask = tasks.register('exportMods', Copy) {
     group = 'distribution'
-    description = 'Builds and copies Elarion Core plus every addon jar into build/export/mods.'
-    into layout.buildDirectory.dir('export/mods')
+    description = 'Builds exactly two install-ready mod folders: server-mods and client-mods.'
+    into layout.buildDirectory.dir('export')
     duplicatesStrategy = DuplicatesStrategy.FAIL
 
     exportableModProjects.each { modProject ->
         def remapJar = modProject.tasks.named('remapJar')
         dependsOn remapJar
-        from(remapJar.flatMap { it.archiveFile })
+        from(remapJar.flatMap { it.archiveFile }) {
+            into 'server-mods'
+        }
+        from(remapJar.flatMap { it.archiveFile }) {
+            into 'client-mods'
+        }
+    }
+
+    from(modpackBothJarFiles) {
+        into 'server-mods'
+    }
+    from(modpackBothJarFiles) {
+        into 'client-mods'
+    }
+    from(configurations.exportModpackBoth) {
+        into 'server-mods'
+        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    }
+    from(configurations.exportModpackBoth) {
+        into 'client-mods'
+        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    }
+    from(configurations.exportModpackClient) {
+        into 'client-mods'
+        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    }
+    from(configurations.exportAdminTools) {
+        into 'server-mods'
+        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    }
+    from(configurations.exportAdminTools) {
+        into 'client-mods'
+        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    }
+
+    doFirst {
+        def missing = modpackBothJarFiles.findAll { !it.isFile() }
+        if (!missing.isEmpty()) {
+            throw new GradleException("Missing modpack dependency jars for export:\n" + missing.collect { " - ${it}" }.join('\n'))
+        }
     }
 }
 
@@ -118,8 +299,125 @@ exportModsTask.configure {
     mustRunAfter cleanExportModsTask
 }
 
+tasks.register('syncDevRuntimeMods') {
+    group = 'fabric'
+    description = 'Copies required modpack jars into the dev server and client run folders.'
+    inputs.files(modpackBothJarFiles)
+    inputs.files(configurations.exportModpackBoth)
+    inputs.files(configurations.exportModpackClient)
+    inputs.files(configurations.exportAdminTools)
+    inputs.files(fileTree('dev/resourcepacks') { include '*.zip' })
+    outputs.dirs(
+            layout.projectDirectory.dir('dev/run/mods'),
+            layout.projectDirectory.dir('dev/run/client-generic/mods'),
+            layout.projectDirectory.dir('dev/run/client-one/mods'),
+            layout.projectDirectory.dir('dev/run/client-two/mods'),
+            layout.projectDirectory.dir('dev/run/client-generic/resourcepacks'),
+            layout.projectDirectory.dir('dev/run/client-one/resourcepacks'),
+            layout.projectDirectory.dir('dev/run/client-two/resourcepacks')
+    )
+    doFirst {
+        def missing = modpackBothJarFiles.findAll { !it.isFile() }
+        if (!missing.isEmpty()) {
+            throw new GradleException("Missing dev modpack dependency jars:\n" + missing.collect { " - ${it}" }.join('\n'))
+        }
+    }
+    doLast {
+        def serverMods = layout.projectDirectory.dir('dev/run/mods').asFile
+        def clientModDirs = [
+                layout.projectDirectory.dir('dev/run/client-generic/mods').asFile,
+                layout.projectDirectory.dir('dev/run/client-one/mods').asFile,
+                layout.projectDirectory.dir('dev/run/client-two/mods').asFile
+        ]
+        def adminClientModDir = layout.projectDirectory.dir('dev/run/client-one/mods').asFile
+        def sharedResourcePacks = layout.projectDirectory.dir('dev/resourcepacks').asFile
+        def clientResourcePackDirs = [
+                layout.projectDirectory.dir('dev/run/client-generic/resourcepacks').asFile,
+                layout.projectDirectory.dir('dev/run/client-one/resourcepacks').asFile,
+                layout.projectDirectory.dir('dev/run/client-two/resourcepacks').asFile
+        ]
+        copy {
+            from modpackBothJarFiles
+            from configurations.exportModpackBoth
+            from configurations.exportAdminTools
+            rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+            into serverMods
+        }
+        clientModDirs.each { clientModDir ->
+            copy {
+                from modpackBothJarFiles
+                from configurations.exportModpackBoth
+                from configurations.exportModpackClient
+                rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+                into clientModDir
+            }
+        }
+        copy {
+            from configurations.exportAdminTools
+            rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+            into adminClientModDir
+        }
+        if (sharedResourcePacks.isDirectory()) {
+            def sharedPackNames = sharedResourcePacks.listFiles()
+                    .findAll { it.isFile() && it.name.toLowerCase(Locale.ROOT).endsWith('.zip') }
+                    .collect { it.name }
+                    .sort()
+            clientResourcePackDirs.each { clientResourcePackDir ->
+                copy {
+                    from sharedResourcePacks
+                    into clientResourcePackDir
+                }
+                enableSharedResourcePacks(
+                        new File(clientResourcePackDir.parentFile, 'options.txt'),
+                        sharedPackNames)
+            }
+        }
+    }
+}
+
+tasks.register('syncDevClientMods') {
+    group = 'fabric'
+    description = 'Compatibility alias for syncDevRuntimeMods.'
+    dependsOn 'syncDevRuntimeMods'
+}
+
+tasks.register('cleanDevRunLocks', Delete) {
+    group = 'fabric'
+    description = 'Deletes dev-run Fabric remap cache and active log files after all dev server/client processes are stopped.'
+    delete layout.projectDirectory.dir('dev/run/.fabric/processedMods')
+    delete layout.projectDirectory.file('dev/run/logs/latest.log')
+    delete layout.projectDirectory.file('dev/run/logs/debug.log')
+}
+
 tasks.register('rebuildExportMods') {
     group = 'distribution'
-    description = 'Cleans, rebuilds, and exports Elarion Core plus every addon jar into build/export/mods.'
+    description = 'Cleans, rebuilds, and regenerates the install-ready server-mods and client-mods folders.'
     dependsOn cleanExportModsTask, exportModsTask
+}
+
+tasks.register('prepareLiveServerRelease') {
+    group = 'distribution'
+    description = 'Runs release verification and rebuilds the exact install-ready server/client exports.'
+    dependsOn modProjects.collect { it.tasks.named('build') }
+    dependsOn 'verifyAiContext', 'rebuildExportMods'
+}
+
+tasks.register('deployLiveServerMods', Exec) {
+    group = 'distribution'
+    description = 'Stages, backs up, and promotes the verified server-mods export to the stopped live server.'
+    def deploymentApproved = providers.gradleProperty('liveDeployConfirmed').orNull == 'true' &&
+            providers.gradleProperty('serverStopped').orNull == 'true'
+    if (deploymentApproved) {
+        dependsOn 'prepareLiveServerRelease'
+    }
+    workingDir rootProject.projectDir
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', file('dev/tools/deploy-live-server.ps1'),
+            '-ConfirmDeploy', '-ServerStopped'
+
+    doFirst {
+        if (!deploymentApproved) {
+            throw new GradleException('Live deployment requires -PliveDeployConfirmed=true -PserverStopped=true.')
+        }
+    }
 }

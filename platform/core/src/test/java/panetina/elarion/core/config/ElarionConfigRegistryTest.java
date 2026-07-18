@@ -92,11 +92,31 @@ final class ElarionConfigRegistryTest {
                 core.entry("realms", "realms.realm1.visibility-scope").orElseThrow().currentDisplayValue());
         assertEquals("elarion:realm_world_1",
                 core.entry("realms", "realms.realm1.spawn.world").orElseThrow().currentDisplayValue());
-        assertEquals("64",
+        assertEquals("-367",
+                core.entry("realms", "realms.realm1.spawn.x").orElseThrow().currentDisplayValue());
+        assertEquals("75",
                 core.entry("realms", "realms.realm1.spawn.y").orElseThrow().currentDisplayValue());
+        assertEquals("138",
+                core.entry("realms", "realms.realm1.spawn.z").orElseThrow().currentDisplayValue());
+        assertEquals("3000",
+                core.entry("realms", "realms.realm2.spawn.x").orElseThrow().currentDisplayValue());
+        assertEquals("128",
+                core.entry("realms", "realms.realm2.spawn.y").orElseThrow().currentDisplayValue());
+        assertEquals("3920",
+                core.entry("realms", "realms.realm2.spawn.z").orElseThrow().currentDisplayValue());
+        assertEquals("6061",
+                core.entry("realms", "realms.realm3.spawn.x").orElseThrow().currentDisplayValue());
+        assertEquals("84",
+                core.entry("realms", "realms.realm3.spawn.y").orElseThrow().currentDisplayValue());
+        assertEquals("5122",
+                core.entry("realms", "realms.realm3.spawn.z").orElseThrow().currentDisplayValue());
         assertEquals("15", core.entry("titles", "titles.count").orElseThrow().currentDisplayValue());
-        assertEquals("Citizen",
+        assertEquals("Ember",
                 core.entry("titles", "titles.citizen.display-name").orElseThrow().currentDisplayValue());
+        assertEquals("#C9C9C9",
+                core.entry("titles", "titles.citizen.color").orElseThrow().currentDisplayValue());
+        assertEquals("#FFD36A",
+                core.entry("titles", "titles.government_monarch.color").orElseThrow().currentDisplayValue());
         assertEquals("DEFAULT",
                 core.entry("titles", "titles.citizen.acquisition-mode").orElseThrow().currentDisplayValue());
         assertEquals("UNLIMITED",
@@ -148,11 +168,12 @@ final class ElarionConfigRegistryTest {
                 .replace("color: \"green\"", "color: \"red\"")
                 .replace("visibility-scope: \"REALM\"", "visibility-scope: \"GLOBAL\"")
                 .replace("world: \"elarion:realm_world_1\"", "world: \"elarion:asterfall\"")
-                .replace("y: 64", "y: 72"), StandardCharsets.UTF_8);
+                .replace("y: 75", "y: 72"), StandardCharsets.UTF_8);
         Path titles = tempDir.resolve("titles.yml");
         Files.writeString(titles, Files.readString(titles, StandardCharsets.UTF_8)
-                .replace("display-name: \"Citizen\"", "display-name: \"Resident\"")
-                .replace("description: \"A citizen of %server%.\"",
+                .replace("display-name: \"Ember\"", "display-name: \"Resident\"")
+                .replace("color: \"#C9C9C9\"", "color: \"#44AAFF\"")
+                .replace("description: \"An Ember of %server%.\"",
                         "description: \"A resident of %server%.\""), StandardCharsets.UTF_8);
         Path titleProgression = tempDir.resolve("title-progression.yml");
         Files.writeString(titleProgression, Files.readString(titleProgression, StandardCharsets.UTF_8)
@@ -182,6 +203,8 @@ final class ElarionConfigRegistryTest {
                 core.entry("titles", "titles.citizen.display-name").orElseThrow().currentDisplayValue());
         assertEquals("A resident of Asterfall.",
                 core.entry("titles", "titles.citizen.description").orElseThrow().currentDisplayValue());
+        assertEquals("#44AAFF",
+                core.entry("titles", "titles.citizen.color").orElseThrow().currentDisplayValue());
         assertEquals("elarion:maze",
                 core.entry("title_progression", "regions.maze_end.world").orElseThrow().currentDisplayValue());
         assertEquals("2000",

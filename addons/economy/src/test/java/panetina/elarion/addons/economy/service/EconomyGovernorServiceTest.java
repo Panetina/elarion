@@ -29,8 +29,9 @@ final class EconomyGovernorServiceTest {
     @Test
     void monitorOnlyPulseUsesAuditedFaucetsAndSinks() {
         EconomyConfig config = new EconomyConfig(
-                1, 300_000L, false, 12, 100,
-                EconomyGovernorMode.MONITOR_ONLY, 7, 10_000);
+                1, 300_000L, false, 2_592_000_000L, 10_000, 12, 100,
+                EconomyGovernorMode.MONITOR_ONLY, 7, 10_000,
+                false, 86_400_000L, 25, 100L, 1L, 100, 0, 0);
         tasks = new ElarionTaskService(
                 LoggerFactory.getLogger("economy-task-test"), 1, 1, 32, 8, 1_000_000L);
         EconomyTransactionService transactions = new EconomyTransactionService(

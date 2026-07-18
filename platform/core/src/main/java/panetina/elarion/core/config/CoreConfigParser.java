@@ -7,6 +7,7 @@ import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RewardAction;
 import panetina.elarion.core.model.ServerIdentityConfig;
 import panetina.elarion.core.model.SpawnPoint;
+import panetina.elarion.core.model.ElarionTitlePresentation;
 import panetina.elarion.core.model.TitleAcquisitionMode;
 import panetina.elarion.core.model.TitleActiveEffect;
 import panetina.elarion.core.model.TitleDefinition;
@@ -79,23 +80,40 @@ final class CoreConfigParser {
         for (Map.Entry<String, Object> entry : map(root.get("titles")).entrySet()) {
             String id = normalizeId(entry.getKey());
             Map<String, Object> data = map(entry.getValue());
+            TitleAcquisitionMode acquisitionMode = enumValue(TitleAcquisitionMode.class, data.get("acquisition-mode"),
+                    id.equals(defaultTitleId) ? TitleAcquisitionMode.DEFAULT : TitleAcquisitionMode.ADMIN_ONLY);
+            TitleOwnershipMode ownershipMode =
+                    enumValue(TitleOwnershipMode.class, data.get("ownership-mode"), TitleOwnershipMode.UNLIMITED);
             result.put(id, new TitleDefinition(
                     id,
                     text(data.get("description"), ""),
                     text(data.get("display-name"), id),
                     text(data.get("prefix"), ""),
                     text(data.get("suffix"), ""),
+                    titleColor(id, data.get("color"), ownershipMode),
                     number(data.get("priority"), 0).intValue(),
                     bool(data.get("visible-under-username"), true),
-                    enumValue(TitleAcquisitionMode.class, data.get("acquisition-mode"),
-                            id.equals(defaultTitleId) ? TitleAcquisitionMode.DEFAULT : TitleAcquisitionMode.ADMIN_ONLY),
-                    enumValue(TitleOwnershipMode.class, data.get("ownership-mode"), TitleOwnershipMode.UNLIMITED),
+                    acquisitionMode,
+                    ownershipMode,
                     bool(data.get("hidden-from-discovery"), false),
                     stringSet(data.get("abilities")),
                     activeEffects(data.get("active-effects"))
             ));
         }
         return Map.copyOf(result);
+    }
+
+    private static int titleColor(String titleId, Object raw, TitleOwnershipMode ownershipMode) {
+        if (raw == null) {
+            return ElarionTitlePresentation.fallbackColor(titleId, ownershipMode);
+        }
+        String value = string(raw, "").trim();
+        if (value.startsWith("#")) value = value.substring(1);
+        try {
+            return 0xFF000000 | (Integer.parseInt(value, 16) & 0x00FFFFFF);
+        } catch (NumberFormatException ignored) {
+            return ElarionTitlePresentation.fallbackColor(titleId, ownershipMode);
+        }
     }
 
     Map<String, ProgressionRegion> loadProgressionRegions() {

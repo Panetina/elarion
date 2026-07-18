@@ -18,24 +18,11 @@ The current setting keeps:
 - Government as a gated civic authority system
 - Groups as reusable faction / delegate identity
 
-## Shrine Story Direction
+## Quest Story Direction
 
-Shrines of Foundation are public civic structures, but the lore should not
-treat every foundation as clean by default. Some foundations are true public
-works. Some are memorials. Some are warnings. A Shrine can mark what a Realm
-chooses to build, but it can also expose what a village tried to bury.
-
-The current dark Shrine reference story is **The Red Thread Beneath The
-Foundation**. It centers on Valea Ninsorii, Mara, Sorina, Toma, and a Shrine of
-Foundation whose "miracle" came from a hidden murder beneath its oldest stone.
-It is a content-pack story direction, not a Core/Offerings default. The generic
-Shrine, Quest, NPC, and Offering systems must stay reusable for many future
-stories.
-
-Shrine display-name overrides support this story layer. A quest ending may
-rename a linked Shrine to a memorial or accusation such as `Sorina's Stone`,
-while Offerings continues to own the actual Shrine block, progress, rewards,
-milestones, and reset behavior.
+No authored questline is currently part of Elarion. The generic Shrine, Quest,
+NPC, and Offering systems remain available for future data-driven stories
+without embedding narrative content in system defaults.
 
 ## Folklore
 

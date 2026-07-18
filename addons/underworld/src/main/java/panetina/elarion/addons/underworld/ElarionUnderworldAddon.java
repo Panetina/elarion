@@ -18,6 +18,7 @@ import panetina.elarion.addons.underworld.network.UnderworldStatusSyncPayload;
 import panetina.elarion.addons.underworld.network.GraveOpenPayload;
 import panetina.elarion.addons.underworld.network.GraveRecoverPayload;
 import panetina.elarion.addons.underworld.service.UnderworldAdminPanelProvider;
+import panetina.elarion.addons.underworld.service.UnderworldProfileContributor;
 import panetina.elarion.addons.underworld.service.UnderworldService;
 import panetina.elarion.addons.underworld.storage.UnderworldStorage;
 import panetina.elarion.core.api.ElarionAddon;
@@ -36,7 +37,9 @@ public final class ElarionUnderworldAddon implements ElarionAddon {
         UnderworldService service = new UnderworldService(
                 LOGGER, api, new UnderworldStorage(LOGGER), config);
         UnderworldConfigDescriptors.register(api.system().configs(), service::config);
+        api.publicHistory().registerRenderer(UnderworldChronicleText.INSTANCE);
         api.system().adminPanel().registerProvider(new UnderworldAdminPanelProvider(service));
+        api.system().profiles().registerContributor(new UnderworldProfileContributor(api.playerStats()));
         api.system().abilities().register("elarion.underworld.manage");
         api.system().commands().registerAdminSubcommand(() -> DeathCommands.create(service));
         api.system().commands().registerTestSubcommand(() -> DeathCommands.createTest(service));

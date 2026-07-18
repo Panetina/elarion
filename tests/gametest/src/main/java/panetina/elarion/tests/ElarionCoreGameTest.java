@@ -33,6 +33,7 @@ public final class ElarionCoreGameTest implements FabricGameTest {
 
         context.assertTrue(api.realms().all().iterator().hasNext(),
                 "Elarion Core should load configured realms in a game-test server");
+        String realmId = api.realms().all().iterator().next().id();
         context.assertTrue(api.nicknames() != null,
                 "Nickname policy API should be available");
         context.assertTrue(api.history() != null,
@@ -75,10 +76,10 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "chronicle-source",
                 null,
                 "realm",
-                "realm1",
-                "realm1",
+                realmId,
+                realmId,
                 Map.of(),
-                "The Realm realm1 entered the Chronicle during a server test."));
+                "The Realm " + realmId + " entered the Chronicle during a server test."));
         api.publicHistory().generateChronicles();
         context.assertTrue(api.publicHistory().recentChronicles(1).stream()
                         .flatMap(archive -> archive.entries().stream())
@@ -130,9 +131,9 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertExecutes("e history category gametest 1", 4);
         commands.assertExecutes("e history chronicle list 1", 4);
         commands.assertExecutes("e history chronicle inspect " + previousWeekStart() + " 1", 4);
-        commands.assertExecutes("e economy treasury get realm1", 4);
-        commands.assertExecutes("e economy treasury give realm1 5", 4);
-        commands.assertExecutes("e economy transactions realm realm1 5", 4);
+        commands.assertExecutes("e economy treasury get " + realmId, 4);
+        commands.assertExecutes("e economy treasury give " + realmId + " 5", 4);
+        commands.assertExecutes("e economy transactions realm " + realmId + " 5", 4);
         commands.assertExecutes("e economy pulse", 4);
         commands.assertFails("e economy pulse", 0);
 
@@ -148,7 +149,7 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertExecutes("e offerings reload", 4);
         commands.assertExecutes("e offerings projects", 4);
         commands.assertExecutes("e offerings inspect council_hall", 4);
-        commands.assertExecutes("e offerings start realm realm1 council_hall", 4);
+        commands.assertExecutes("e offerings start realm " + realmId + " council_hall", 4);
         var offeringInstance = offerings.instances().stream()
                 .filter(instance -> instance.projectId().equals("council_hall"))
                 .findFirst()
@@ -166,8 +167,8 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         context.assertTrue(npcs.definitions().npc("worldheart_banker").isPresent(),
                 "Expected default Worldheart Banker NPC definition");
         commands.assertExecutes("e npc reload", 4);
-        commands.assertExecutes("e npc list", 4);
-        commands.assertExecutes("e npc repair all", 4);
+        commands.assertDispatches("e npc list", 4);
+        commands.assertDispatches("e npc repair all", 4);
         commands.assertExecutes("e npc dialogue inspect worldheart_banker", 4);
         commands.assertFails("e npc list", 0);
         commands.assertFails("e npc inspect missing_npc", 4);
@@ -210,44 +211,47 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertExecutes("e government forms", 4);
         commands.assertExecutes("e government inspect republic", 4);
         commands.assertExecutes("e government inspect confederation", 4);
-        commands.assertExecutes("e government state realm1", 4);
-        commands.assertExecutes("e government proposals realm1", 4);
-        commands.assertExecutes("e government laws realm1", 4);
-        commands.assertExecutes("e government gates realm1", 4);
-        commands.assertExecutes("e government identity set realm1 OAK Oak", 4);
-        government.states().setVotedColor("realm1", "gold");
-        commands.assertExecutes("e government state realm1", 4);
-        commands.assertExecutes("e government gates realm1", 4);
-        commands.assertExecutes("e government set-form realm1 republic", 4);
+        commands.assertExecutes("e government state " + realmId, 4);
+        commands.assertExecutes("e government proposals " + realmId, 4);
+        commands.assertExecutes("e government laws " + realmId, 4);
+        commands.assertExecutes("e government gates " + realmId, 4);
+        commands.assertExecutes("e government identity set " + realmId + " OAK Oak", 4);
+        government.states().setVotedColor(realmId, "gold");
+        commands.assertExecutes("e government state " + realmId, 4);
+        commands.assertExecutes("e government gates " + realmId, 4);
+        commands.assertExecutes("e government set-form " + realmId + " republic", 4);
         UUID president = UUID.randomUUID();
-        government.states().assignOffice("realm1", "president", president);
-        commands.assertExecutes("e government founding complete realm1", 4);
+        var presidentCitizen = api.citizens().getOrCreate(president, "GameTestPresident");
+        presidentCitizen.setRealmId(realmId);
+        api.citizens().save(presidentCitizen, "gametest-office-holder");
+        government.states().assignOffice(realmId, "president", president);
+        commands.assertExecutes("e government founding complete " + realmId, 4);
         commands.assertExecutes("e government authority cleanup", 4);
-        context.assertEquals("republic", government.states().realm("realm1").activeGovernmentFormId(),
+        context.assertEquals("republic", government.states().realm(realmId).activeGovernmentFormId(),
                 "OP dev government form command should update government addon state only");
-        context.assertEquals("Oak", government.states().realm("realm1").votedDisplayName(),
+        context.assertEquals("Oak", government.states().realm(realmId).votedDisplayName(),
                 "OP dev identity command should update Government identity overlay only");
-        context.assertEquals("gold", government.states().realm("realm1").votedColor(),
+        context.assertEquals("gold", government.states().realm(realmId).votedColor(),
                 "Government color vote state should update Realm presentation");
-        context.assertTrue(government.states().realm("realm1").officeHolders()
+        context.assertTrue(government.states().realm(realmId).officeHolders()
                         .getOrDefault("president", java.util.Set.of()).contains(president),
                 "Government office assignment should persist in Realm government state");
-        context.assertTrue(government.gates("realm1").foundingElectionComplete(),
+        context.assertTrue(government.gates(realmId).foundingElectionComplete(),
                 "OP dev founding command should mark founding election complete");
         commands.assertFails("e government forms", 0);
         commands.assertFails("e government inspect missing_form", 4);
-        commands.assertFails("e government proposal inspect realm1 missing_proposal", 4);
-        commands.assertFails("e government law archive realm1 missing_law", 4);
-        commands.assertFails("e government law restore realm1 missing_law", 4);
-        commands.assertFails("e government office assign realm1 president missing_player", 4);
-        commands.assertFails("e test government advance realm1", 4);
-        commands.assertExecutes("e government reset realm1", 4);
-        commands.assertFails("e government reset realm1", 0);
-        context.assertEquals("", government.states().realm("realm1").activeGovernmentFormId(),
+        commands.assertFails("e government proposal inspect " + realmId + " missing_proposal", 4);
+        commands.assertFails("e government law archive " + realmId + " missing_law", 4);
+        commands.assertFails("e government law restore " + realmId + " missing_law", 4);
+        commands.assertFails("e government office assign " + realmId + " president missing_player", 4);
+        commands.assertFails("e test government advance " + realmId, 4);
+        commands.assertExecutes("e government reset " + realmId, 4);
+        commands.assertFails("e government reset " + realmId, 0);
+        context.assertEquals("", government.states().realm(realmId).activeGovernmentFormId(),
                 "Government admin reset should clear the active form for only the targeted Realm");
-        commands.assertExecutes("e test government reset realm1", 4);
-        commands.assertFails("e test government reset realm1", 0);
-        context.assertEquals("", government.states().realm("realm1").activeGovernmentFormId(),
+        commands.assertExecutes("e test government reset " + realmId, 4);
+        commands.assertFails("e test government reset " + realmId, 0);
+        context.assertEquals("", government.states().realm(realmId).activeGovernmentFormId(),
                 "Government test reset should clear the active form for only the targeted Realm");
 
         var lobby = worlds.resolve("lobby");

@@ -14,7 +14,7 @@ public final class ElarionRealmsAddon implements ElarionAddon {
     @Override
     public void initialize(ElarionApi api) {
         api.system().abilities().register("elarion.realm.manage");
-        RealmProtectionConfig config = RealmProtectionConfig.load();
+        RealmProtectionConfig config = RealmProtectionConfig.load(LOGGER);
         RealmConfigDescriptors.register(api.system().configs(), () -> config);
         RealmProtectionService protection =
                 new RealmProtectionService(api, config);

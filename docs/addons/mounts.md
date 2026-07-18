@@ -49,7 +49,7 @@ Runtime state:
 Core owns the modular Collection menu shell. Mounts contributes the first tab,
 `Mounts`, through `ElarionApi.system().collections()`.
 
-Players open the menu with the `C` key or `/collection`; pressing `C` while it
+Players open the menu with the `C` key or `/charactermenu`; pressing `C` while it
 is already open closes it. The Collection menu uses top tabs and includes a
 placeholder `Pets` tab. The Mounts tab lists all seven V1 mounts with a whistle
 placeholder icon, name, compact obtain text, muted locked styling, a selected
@@ -61,6 +61,16 @@ locked by default and are granted by admin/dev commands or future progression/NP
 Pressing `R` while unmounted asks the server to summon or remount the player's
 active unlocked mount; pressing `R` while riding an Elarion mount dismisses it.
 
+Mount Collection entries provide Core with rank/accent presentation metadata.
+Airship, Hot Air Balloon, and Ghast are `COMMON` Realm baseline mounts. Bee,
+Chinese Dragon, and Wyvern are `UNCOMMON` future progression/reward mounts.
+Sci-Fi Bike is `LEGENDARY` for the future full-advancement route. These labels
+and colors come from Core `ElarionCollectionRank` so ranks stay visually
+consistent with Titles, Pets, rewards, and future Collection providers. They
+are presentation metadata only; unlock authority remains in
+`MountCollectionService` and future reward/NPC/progression integrations must
+call Mounts-owned APIs rather than editing Collection packets or Core state.
+
 Editable Collection text lives in:
 
 ```text
@@ -70,7 +80,10 @@ config/elarion/addons/mounts/collection.yml
 Each mount entry can define `locked-row`, `unlocked-row`, `locked-detail`, and
 `unlocked-detail`. `{realm}` is replaced with the assigned Realm id for Realm
 vendor mounts. Future mount or pet collection providers should use the same
-config-driven text pattern instead of hard-coding lore in UI code.
+config-driven text pattern instead of hard-coding lore in UI code. The addon
+has no live config reload command; malformed startup `collection.yml` logs and
+falls back to shipped default Collection text without changing unlock/session
+state.
 
 `MountConfigDescriptors` registers the read-only `mounts` config domain using
 the same loaded `MountCollectionTextConfig` snapshot used by Collection
@@ -378,6 +391,21 @@ mounts become persistent gameplay entities.
 
 Status: complete for V5 collection foundation.
 
+Collection preview QA update, 2026-07-10:
+
+- Character Menu Mounts previews now use bounds-aware sizing plus explicit
+  live-visual calibration for the converted Chinese Dragon, Sci-Fi Bike, and
+  Wyvern models.
+- The Wyvern geometry file was normalized to GeckoLib-compatible
+  `format_version` `1.12.0`; this avoids the unsupported 1.21 geometry warning
+  path for the mount preview/runtime renderer.
+- Focused preview tests cover normal model frame margins and separate explicit
+  calibration for long converted models whose raw model bounds do not match the
+  visible camera footprint.
+- Live QA captures are stored under
+  `build/ui-qa/mount-preview-20260710-redo/`, including final Dragon and
+  Wyvern screenshots.
+
 Manual verification previously completed for all seven V1 mount entities:
 legacy whistle icons, summon/session behavior, converted GeckoLib
 meshes/textures/animations, movement profiles, Chinese Dragon tuning
@@ -441,3 +469,20 @@ Manual checks:
 - riding survives portal/dimension travel
 - riding survives same-world `/tp`
 - other players see smooth enough mount motion
+
+## Collection Preview Calibration
+
+- Preview sizing is derived from converted model bounds, while per-model art
+  offsets compensate only for asymmetric visible artwork.
+- Ghast and Hot Air Balloon use the default centered bounds path.
+- Airship, Bee, Chinese Dragon, Sci-Fi Bike, and Wyvern use live-QA calibrated
+  offsets; their converted geometry centers do not match visible-pixel centers.
+- The Wyvern geometry must not contain its exported `shadow` helper bone. That
+  33x0x33 textured plane renders scattered texture fragments in both the Ledger
+  preview and normal flight.
+- Keep the canonical Wyvern texture intact. Detached-looking texture islands
+  are valid UV artwork and must not be removed.
+- The Ledger freezes the Wyvern preview pose to avoid animated wing ghosting;
+  normal in-world animation remains enabled.
+- Final focused verification command:
+  `./gradlew.bat :addons:mounts:test --tests panetina.elarion.addons.mounts.client.ElarionMountCollectionPreviewRendererTest --tests panetina.elarion.addons.mounts.entity.ElarionMountEntityTest`.

@@ -45,6 +45,14 @@ final class CommandGameTestSupport {
         }
     }
 
+    void assertDispatches(String command, int level) {
+        try {
+            dispatcher.execute(command, server.getCommandSource().withLevel(level));
+        } catch (CommandSyntaxException exception) {
+            throw new AssertionError("/" + command + " should dispatch without a syntax failure", exception);
+        }
+    }
+
     void assertFails(String command, int level) {
         try {
             int result = dispatcher.execute(command, server.getCommandSource().withLevel(level));

@@ -35,14 +35,41 @@ dependencies {
     modRuntimeOnly 'software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4'
 }
 
+def genericPlayerNumber = 100 + new Random().nextInt(900)
+def genericPlayerName = "Player${genericPlayerNumber}"
+def genericPlayerUuid = UUID.randomUUID().toString()
+
 loom {
+    log4jConfigs.setFrom(file('log4j-elarion-dev.xml'))
+
     runs {
+        configureEach {
+            vmArg '-Dfabric-tag-conventions-v2.missingTagTranslationWarning=SILENCED'
+            vmArg '-Dfabric-tag-conventions-v1.legacyTagWarning=SILENCED'
+        }
+
+        client {
+            client()
+            name = 'Elarion Generic Client'
+            runDir = 'run/client-generic'
+            programArg '--username'
+            programArg genericPlayerName
+            programArg '--uuid'
+            programArg genericPlayerUuid
+            programArg '--accessToken'
+            programArg '0'
+        }
+
         clientOne {
             client()
             name = 'Elarion Client 1'
             runDir = 'run/client-one'
             programArg '--username'
             programArg 'ElarionAdmin'
+            programArg '--uuid'
+            programArg '00000000-0000-4000-8000-000000000001'
+            programArg '--accessToken'
+            programArg '0'
         }
 
         clientTwo {
@@ -51,6 +78,10 @@ loom {
             runDir = 'run/client-two'
             programArg '--username'
             programArg 'ElarionPlayer1'
+            programArg '--uuid'
+            programArg '00000000-0000-4000-8000-000000000002'
+            programArg '--accessToken'
+            programArg '0'
         }
     }
 }

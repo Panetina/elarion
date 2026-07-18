@@ -121,12 +121,16 @@ public final class PortalConfigLoader {
     private static void validate(Path file, PortalRouteDefinition route) {
         List<String> errors = new ArrayList<>();
         if (!route.id().matches("[a-z0-9_\\-]+")) errors.add("invalid route id " + route.id());
+        boolean unrestrictedSource = "*".equals(route.sourceDimension());
         boolean unrestrictedDestination = "*".equals(route.destinationDimension());
+        if (unrestrictedSource && route.mode() != PortalRouteMode.ALWAYS_OPEN) {
+            errors.add("only always_open routes may use unrestricted source-dimension");
+        }
         if (!unrestrictedDestination
                 && net.minecraft.util.Identifier.tryParse(route.destinationDimension()) == null) {
             errors.add("invalid destination-dimension");
         }
-        if (net.minecraft.util.Identifier.tryParse(route.sourceDimension()) == null) {
+        if (!unrestrictedSource && net.minecraft.util.Identifier.tryParse(route.sourceDimension()) == null) {
             errors.add("invalid source-dimension");
         }
         if (!unrestrictedDestination && route.sourceDimension().equals(route.destinationDimension())) {
@@ -204,7 +208,7 @@ public final class PortalConfigLoader {
     }
 
     private static String identity(ElarionApi api, String value) {
-        return api.serverIdentity().replace(value);
+        return api.system().placeholders().replaceIdentity(value);
     }
 
     private static String string(Map<?, ?> map, String key, String fallback) {

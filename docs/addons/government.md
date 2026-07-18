@@ -2,7 +2,7 @@
 
 Technical contract for the Government backend foundation.
 
-Last reviewed: 2026-07-05.
+Last reviewed: 2026-07-10.
 
 ## Status
 
@@ -11,7 +11,8 @@ assignment, Shrine/Foundation gate status, Government identity overlay state,
 authority inactivity cleanup, two admin-placed Government blocks, focused Civic
 Forum founding flow, persisted founding votes, citizen proposals, typed civic
 records, Seat of Rule proposal review/finalization/archive, universal authority
-chat, and temporary office title overrides exist.
+chat, temporary office title overrides, Core Chronicle renderer integration,
+and standardized Realm-scoped Government notification actions exist.
 Taxes, treaties, treasury spending, reforms, and rich authority modules are
 future work.
 
@@ -35,6 +36,7 @@ Government owns:
 - Government gate status derived from Offering Realm flags
 - Government identity overlay state before Core Realm display migration
 - authority inactivity cleanup and basic vacancy/succession events
+- Government Chronicle/archive projection wording for Government-owned events
 - `elarion:civic_forum` and `elarion:seat_of_rule` block/item registration
 - the `elarion:government` Creative tab
 
@@ -47,10 +49,25 @@ Government does not own:
 - relationships
 - rewards
 - history storage
+- Chronicle renderer dispatch and public-history storage
 - group identity or group membership
 
 Those remain Core-owned, except group identity and membership which are owned by
 the Groups addon.
+
+Government registers `GovernmentChronicleText` through
+`ElarionApi.publicHistory().registerRenderer(...)`. The renderer projects
+Core-owned `PublicHistoryEntry` snapshots into Civic Forum History and Seat of
+Rule Archive title/body/category/detail labels while preserving structured
+history data. The `proposal-approved`, `proposal-rejected`, and
+`civic-record-created` families are migrated Core template-family pilots, each
+with 10 authored stable variants and missing-context fallback. Broader
+Government election, founding, office, and vacancy families remain
+switch-rendered until later slices. Government also centralizes Realm-scoped
+notification actions so
+Government notifications use the `elarion_government` source system, a shared
+semantic Government/Realm icon, and server-validated `Open Forum` plus
+`Dismiss` actions when a Realm context exists.
 
 ## Config
 
@@ -60,6 +77,10 @@ config/elarion/addons/government/forms/<form-id>/form.yml
 ```
 
 Definitions are loaded on startup/reload and cached as immutable records.
+Government definition reload prepares `government.yml` settings and all form
+definitions before publishing either live snapshot. If form parsing fails after
+settings parsing succeeds, the previous active settings/forms pair remains
+visible to services and descriptors.
 
 `GovernmentConfigDescriptors` registers the `government` read-only config
 domain through `ElarionApi.system().configs()`. It exposes the current
@@ -84,9 +105,14 @@ Monarch, Heir, President, Councilor, Holy Priest, Synod Member, Delegate, and
 Officer. Government unlocks the title before activating it, persists the
 previous active title id in `state.json`, and restores it when the citizen
 loses the office or the Realm's Government state is reset. Government also
-revokes the temporary authority title unlock when the rank is gone, so the
-title no longer appears in the Core Collection title list. Core remains the
-source of truth for title definitions, unlocks, active title storage, and
+registers a bounded Citizen Profile contributor through
+`ElarionApi.system().profiles()`. It projects only the target citizen's active
+office display names for their own Realm's active government form; it does not
+copy Government office state into Core or scan unrelated Realm state for
+profile rendering.
+Government revokes the temporary authority title unlock when the rank is gone,
+so the title no longer appears in the Core Collection title list. Core remains
+the source of truth for title definitions, unlocks, active title storage, and
 identity rendering.
 
 ## Blocks
@@ -422,6 +448,13 @@ vacancies. Proposal/law lifecycle events include
 `government-civic-record-created`, `government-civic-record-archived`, and
 `government-civic-record-restored`. Notifications remain explicit projections;
 events do not automatically create player-facing cards.
+
+`GovernmentWebProjectionPublisher` listens to these domain events and updates
+bounded website read models. `realm.identity` contains voted public
+presentation. `election` contains only lifecycle status, round, option count,
+ballot count, and deadline. Ballot selections and voter identities are never
+projected. Initial snapshots are emitted after Government storage binds, so a
+server restart repairs website state without scanning history.
 
 ## Authority Inactivity
 

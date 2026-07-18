@@ -3,8 +3,9 @@
 This folder contains focused system notes. `INDEX.md` is the navigation entry
 point; use this folder only after choosing a system.
 
-For a new AI/new PC handoff, read `../ai/CURRENT_STATUS.md` before drilling
-into these system notes.
+For a new AI/new PC handoff, read the bounded `../ai/CURRENT_STATUS.md`, then
+use `../ai/routes.json` or `dev/tools/ai-context.ps1` to select only the relevant
+system notes.
 
 ## Current Verified System Docs
 
@@ -23,6 +24,9 @@ into these system notes.
 - `Characters.md`
 - `Realms.md`
 - `Permissions.md`
+- `PLACEHOLDERS.md`
+- `LiveDeployment.md`
+- `EXTENSION_GUIDE.md`
 
 ## Future / Partly Speculative Docs
 

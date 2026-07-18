@@ -133,12 +133,12 @@ actions:
     parameters:
       quest: "generic_foundation"
       instance: "offering_realm_realm1_1"
-      title: "Sorina's Stone"
+      title: "Builders' Memorial"
 ```
 
-Lore questlines such as `red_thread_beneath_foundation` should use content
-files and registered quest actions for Shrine names, evidence, endings, and
-dialogue. Do not add story-specific names to generic system defaults.
+Future questlines should use content files and registered quest actions for
+Shrine names, evidence, endings, and dialogue. Do not add story-specific names
+to generic system defaults.
 
 ## Verification
 

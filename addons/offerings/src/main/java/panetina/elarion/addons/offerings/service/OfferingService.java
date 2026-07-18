@@ -28,8 +28,6 @@ import panetina.elarion.core.registry.MilestoneContext;
 import panetina.elarion.core.registry.RegistryExecutionContext;
 import panetina.elarion.core.registry.RegistryExecutionResult;
 import panetina.elarion.addons.economy.api.ElarionEconomyApi;
-import panetina.elarion.addons.economy.model.EconomyAccount;
-import panetina.elarion.addons.economy.model.EconomyTransactionType;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,9 +40,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 public final class OfferingService {
     public static final String GLOBAL_NOTIFICATION_FLAG = "ancient_gate_unlocked";
+    public static final String OFFERING_SCORE_STAT = "offerings_score";
     private static final int MAX_RECENT_DONATIONS = 50;
     private static final double SHRINE_INTERACTION_RANGE_SQUARED = 64.0D;
     private final Logger logger;
@@ -54,6 +55,11 @@ public final class OfferingService {
     private OfferingState state = new OfferingState();
     private MinecraftServer server;
     private boolean completionResumePending;
+    private final List<Consumer<Change>> changeListeners = new CopyOnWriteArrayList<>();
+
+    public enum ChangeType { UPSERT, DELETE }
+
+    public record Change(ChangeType type, OfferingInstance instance) {}
 
     public OfferingService(
             Logger logger,
@@ -75,6 +81,11 @@ public final class OfferingService {
         // after addon SERVER_STARTED handlers, so run it from the tick hook once
         // Core history is available.
         completionResumePending = true;
+    }
+
+    public AutoCloseable onChanged(Consumer<Change> listener) {
+        changeListeners.add(listener);
+        return () -> changeListeners.remove(listener);
     }
 
     public synchronized void tick(MinecraftServer server) {
@@ -118,6 +129,7 @@ public final class OfferingService {
         OfferingInstance updated = current.withDisplayNameOverride(displayName);
         state.instances.put(updated.id(), updated);
         save();
+        notifyChanged(ChangeType.UPSERT, updated);
         history("display-name-updated", actorId(actor), updated,
                 Map.of("displayNameOverride", updated.displayNameOverride()));
         return updated;
@@ -195,8 +207,10 @@ public final class OfferingService {
         OfferingAnchor anchor = new OfferingAnchor(id, instanceId, worldId, pos.getX(), pos.getY(), pos.getZ(),
                 actorId(actor), System.currentTimeMillis());
         state.anchors.put(id, anchor);
-        state.instances.put(instance.id(), instance.withAnchor(id));
+        OfferingInstance linked = instance.withAnchor(id);
+        state.instances.put(instance.id(), linked);
         save();
+        notifyChanged(ChangeType.UPSERT, linked);
         history("shrine-linked", actorId(actor), instance, Map.of("anchor", id, "world", worldId));
         return anchor;
     }
@@ -212,9 +226,11 @@ public final class OfferingService {
         if (removed == null) throw new IllegalArgumentException("Unknown anchor " + anchorId);
         OfferingInstance instance = requireInstance(removed.instanceId());
         if (instance.anchorId().equals(anchorId)) {
-            state.instances.put(instance.id(), instance.withAnchor(""));
+            instance = instance.withAnchor("");
+            state.instances.put(instance.id(), instance);
         }
         save();
+        notifyChanged(ChangeType.UPSERT, instance);
         history("anchor-removed", actorId(actor), instance, Map.of("anchor", anchorId));
     }
 
@@ -229,6 +245,7 @@ public final class OfferingService {
         state.donations.remove(instanceId);
         state.instances.remove(instanceId);
         save();
+        notifyChanged(ChangeType.DELETE, instance);
         return instance;
     }
 
@@ -271,6 +288,7 @@ public final class OfferingService {
             updated = complete(updated.id(), actor, false);
         } else {
             save();
+            notifyChanged(ChangeType.UPSERT, updated);
         }
         return updated;
     }
@@ -330,6 +348,7 @@ public final class OfferingService {
             updated = updated.advanceToLevel(next.get().id());
             state.instances.put(updated.id(), updated);
             save();
+            notifyChanged(ChangeType.UPSERT, updated);
 
             history("level-started", actorId(actor), updated, Map.of("level", next.get().id()));
             return updated;
@@ -340,6 +359,7 @@ public final class OfferingService {
         updated = updated.withCompletion(System.currentTimeMillis(), updated.completedMilestones());
         state.instances.put(updated.id(), updated);
         save();
+        notifyChanged(ChangeType.UPSERT, updated);
 
         if (newlyCompleted || forced) {
             history(forced ? "project-force-completed" : "project-completed",
@@ -357,6 +377,7 @@ public final class OfferingService {
         state.instances.put(reset.id(), reset);
         state.donations.remove(instanceId);
         save();
+        notifyChanged(ChangeType.UPSERT, reset);
         refreshGlobalAccessProjection();
         history("project-reset", actorId(actor), reset, Map.of());
         return reset;
@@ -376,6 +397,9 @@ public final class OfferingService {
         }
         save();
         refreshGlobalAccessProjection();
+        state.instances.values().stream()
+                .filter(instance -> normalizedRealm.equals(instance.realmId()))
+                .forEach(instance -> notifyChanged(ChangeType.UPSERT, instance));
         return reset;
     }
 
@@ -391,6 +415,7 @@ public final class OfferingService {
         state.donations.clear();
         save();
         refreshGlobalAccessProjection();
+        state.instances.values().forEach(instance -> notifyChanged(ChangeType.UPSERT, instance));
         return reset;
     }
 
@@ -518,6 +543,7 @@ public final class OfferingService {
     private void put(OfferingInstance instance) {
         state.instances.put(instance.id(), instance);
         save();
+        notifyChanged(ChangeType.UPSERT, instance);
     }
 
     private OfferingContributionResult contributePlayerItems(
@@ -553,15 +579,11 @@ public final class OfferingService {
             ServerPlayerEntity player
     ) {
         var economy = ElarionEconomyApi.get();
-        var payment = economy.transact(
-                EconomyTransactionType.SINK,
-                EconomyAccount.player(player.getUuid()),
-                EconomyAccount.BURN,
+        var payment = economy.payPhysicalOnly(
+                player,
                 amount,
-                player.getUuid(),
                 "Shrine offering for " + current.id(),
-                "elarion_offerings",
-                Map.of("instance", current.id(), "requirement", requirement.key()));
+                "elarion_offerings");
         if (!payment.successful()) {
             return OfferingContributionResult.failure(payment.message());
         }
@@ -571,17 +593,10 @@ public final class OfferingService {
             return OfferingContributionResult.success(
                     "Offered " + api.serverIdentity().currencyAmount(amount) + ".", amount, updated);
         } catch (RuntimeException exception) {
-            economy.transact(
-                    EconomyTransactionType.REWARD,
-                    EconomyAccount.MINT,
-                    EconomyAccount.player(player.getUuid()),
-                    amount,
-                    player.getUuid(),
-                    "Offering persistence compensation for " + current.id(),
-                    "elarion_offerings",
-                    Map.of("instance", current.id(), "compensation", "true"));
+            economy.refundMixedPayment(player, payment,
+                    "Offering persistence compensation for " + current.id(), "elarion_offerings");
             return OfferingContributionResult.failure(
-                    "The offering could not be saved; your bank balance was restored.");
+                    "The offering could not be saved; your carried currency was restored.");
         }
     }
 
@@ -605,12 +620,30 @@ public final class OfferingService {
             state = previous;
             throw new IllegalStateException("Unable to persist offering contribution", exception);
         }
+        incrementOfferingScore(player.getUuid(), amount);
         history("offering-accepted", player.getUuid(), updated,
                 Map.of("key", requirement.key(), "amount", Long.toString(amount), "type", donationType));
         if (isComplete(currentLevel(project, updated), updated)) {
             updated = complete(updated.id(), player, false);
+        } else {
+            notifyChanged(ChangeType.UPSERT, updated);
         }
         return updated;
+    }
+
+    private void notifyChanged(ChangeType type, OfferingInstance instance) {
+        Change change = new Change(type, instance);
+        for (Consumer<Change> listener : changeListeners) {
+            try {
+                listener.accept(change);
+            } catch (RuntimeException exception) {
+                logger.error("Offering projection listener failed for {}", instance.id(), exception);
+            }
+        }
+    }
+
+    private void incrementOfferingScore(UUID playerId, long amount) {
+        api.playerStats().increment(playerId, OFFERING_SCORE_STAT, Math.max(0L, amount));
     }
 
     private void addDonation(String instanceId, OfferingDonationRecord donation) {
@@ -839,6 +872,9 @@ public final class OfferingService {
                 api.identitySync().syncAll(server);
             }
             if (changed) {
+                realmHistory("realm-global-access-changed", realmId, Map.of(
+                        "flag", flag,
+                        "enabled", Boolean.toString(enabled)));
                 api.system().events().emitDomainEvent(ElarionDomainEvent.of(
                         "elarion_offerings",
                         "realm-global-access-changed",
@@ -872,6 +908,12 @@ public final class OfferingService {
         data.put("scope", instance.scope().name().toLowerCase());
         api.history().recordChronicle("offering", type, actorId, "project", instance.id(), instance.realmId(),
                 data, "The project " + instance.projectId() + " recorded offering event " + type + ".");
+    }
+
+    private void realmHistory(String type, String realmId, Map<String, String> metadata) {
+        if (server == null) return;
+        api.history().recordChronicle("offering", type, null, "realm", realmId, realmId,
+                metadata, "The Realm " + realmId + " recorded offering event " + type + ".");
     }
 
     private void notifyRealmOfferingLevel(

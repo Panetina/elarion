@@ -26,6 +26,14 @@ import panetina.elarion.core.config.CoreUiThemeFontScaleConfigApplier;
 import panetina.elarion.core.config.ElarionConfigApplyRegistry;
 import panetina.elarion.core.config.ElarionConfigRegistry;
 import panetina.elarion.core.event.ElarionEventBus;
+import panetina.elarion.core.model.profile.CitizenProfileRequestContext;
+import panetina.elarion.core.model.profile.CitizenProfileSnapshot;
+import panetina.elarion.core.model.ChronicleRenderContext;
+import panetina.elarion.core.model.CitizenRecord;
+import panetina.elarion.core.model.HistoryEvent;
+import panetina.elarion.core.model.PublicHistoryConsumer;
+import panetina.elarion.core.model.RealmDefinition;
+import panetina.elarion.core.model.RealmPresentation;
 import panetina.elarion.core.service.AbilityService;
 import panetina.elarion.core.service.ChatService;
 import panetina.elarion.core.service.CitizenService;
@@ -69,18 +77,26 @@ import panetina.elarion.core.service.DeferredRewardGrantService;
 import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.service.CatchTelemetryService;
 import panetina.elarion.core.service.CoreTitleCollectionProvider;
+import panetina.elarion.core.service.CoreProgressionProfileContributor;
 import panetina.elarion.core.storage.CatchSummaryStorage;
 import panetina.elarion.core.storage.CatchTelemetryJournalStorage;
 import panetina.elarion.core.storage.JsonStateStorage;
 import panetina.elarion.core.storage.CharacterLifecycleStorage;
 import panetina.elarion.core.service.CharacterLifecycleService;
 import panetina.elarion.core.network.CharacterCreationRequirementPayload;
+import panetina.elarion.core.network.CharacterRealmAssignmentConfirmPayload;
 import panetina.elarion.core.network.CharacterRealmAssignmentPayload;
 import panetina.elarion.core.network.CharacterCreationSubmitPayload;
 import panetina.elarion.core.network.CharacterCreationStatusRequestPayload;
 import panetina.elarion.core.network.CollectionActionPayload;
 import panetina.elarion.core.network.CollectionOpenPayload;
 import panetina.elarion.core.network.CollectionOpenRequestPayload;
+import panetina.elarion.core.network.CitizenProfileRequestPayload;
+import panetina.elarion.core.network.CitizenProfileSnapshotPayload;
+import panetina.elarion.core.network.CitizenProfileOpenPayload;
+import panetina.elarion.core.network.ElarionRequestLimiter;
+import panetina.elarion.core.service.CitizenProfileService;
+import panetina.elarion.core.service.CoreChronicleText;
 import panetina.elarion.core.service.ElarionCollectionService;
 import panetina.elarion.core.network.AdminPanelActionPayload;
 import panetina.elarion.core.network.AdminPanelOpenPayload;
@@ -90,12 +106,27 @@ import panetina.elarion.core.network.ElarionConfigEditRequestPayload;
 import panetina.elarion.core.network.ElarionConfigEditResultPayload;
 import panetina.elarion.core.service.ElarionAdminPanelService;
 import panetina.elarion.core.service.ElarionConfigApplyService;
+import panetina.elarion.core.service.WorldheartGovernanceService;
+import panetina.elarion.core.storage.WorldheartAuthorityStorage;
+import panetina.elarion.core.integration.minecraft.MinecraftBridgeConfig;
+import panetina.elarion.core.integration.minecraft.MinecraftProjectionProtocol.Visibility;
+import panetina.elarion.core.integration.minecraft.MinecraftProjectionPublisher;
+import panetina.elarion.core.integration.minecraft.AdvancementLeaderboardProjection;
+import panetina.elarion.core.integration.minecraft.MinecraftWhitelistBridgeService;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class ElarionCoreMod implements ModInitializer {
     public static final String MOD_ID = "elarion_core";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    private static final String PROFILE_REQUEST_CHANNEL = "citizen-profile";
+    private static final int PROFILE_REQUESTS_PER_WINDOW = 4;
+    private static final long PROFILE_REQUEST_WINDOW_MILLIS = 1_000L;
 
     @Override
     public void onInitialize() {
@@ -113,10 +144,15 @@ public final class ElarionCoreMod implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(
                 CharacterCreationSubmitPayload.ID, CharacterCreationSubmitPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(
+                CharacterRealmAssignmentConfirmPayload.ID, CharacterRealmAssignmentConfirmPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(
                 CharacterCreationStatusRequestPayload.ID, CharacterCreationStatusRequestPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CollectionOpenPayload.ID, CollectionOpenPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(CollectionOpenRequestPayload.ID, CollectionOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(CollectionActionPayload.ID, CollectionActionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(CitizenProfileRequestPayload.ID, CitizenProfileRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(CitizenProfileSnapshotPayload.ID, CitizenProfileSnapshotPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(CitizenProfileOpenPayload.ID, CitizenProfileOpenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(AdminPanelOpenPayload.ID, AdminPanelOpenPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(AdminPanelOpenRequestPayload.ID, AdminPanelOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(AdminPanelActionPayload.ID, AdminPanelActionPayload.CODEC);
@@ -126,14 +162,30 @@ public final class ElarionCoreMod implements ModInitializer {
 
         CoreConfigManager config = new CoreConfigManager(LOGGER);
         config.load();
+        MinecraftWhitelistBridgeService minecraftBridge = new MinecraftWhitelistBridgeService(
+                LOGGER, MinecraftBridgeConfig.load(LOGGER));
+        MinecraftProjectionPublisher webProjections = minecraftBridge.projections();
+        Map<UUID, String> citizenRealms = new ConcurrentHashMap<>();
+        Map<String, Integer> realmMemberCounts = new ConcurrentHashMap<>();
+        Map<UUID, String> onlineCitizenRealms = new ConcurrentHashMap<>();
+        Map<String, Integer> realmOnlineCounts = new ConcurrentHashMap<>();
         AtomicReference<MinecraftServer> activeServer = new AtomicReference<>();
 
         ElarionEventBus events = new ElarionEventBus();
         CitizenService citizens = new CitizenService(new CitizenStorage(LOGGER), config, events);
         RealmService realms = new RealmService(config, citizens);
+        WorldheartGovernanceService worldheart = new WorldheartGovernanceService(
+                new WorldheartAuthorityStorage(LOGGER),
+                rulerId -> citizens.find(rulerId).isPresent(),
+                rulerId -> citizens.find(rulerId).map(citizen ->
+                        citizen.nickname() == null || citizen.nickname().isBlank()
+                                ? citizen.lastKnownUsername() : citizen.nickname()),
+                events);
         HistoryService history = new HistoryService(
                 config, new HistoryStorage(LOGGER), new HistoryIndexStorage(LOGGER),
                 new ChronicleArchiveStorage(LOGGER), events);
+        history.registerChronicleRenderer(CoreChronicleText.INSTANCE);
+        history.onRecorded(event -> publishChronicleProjection(history, webProjections, event));
         TitleService titles = new TitleService(config, citizens, new TitleClaimStorage(LOGGER), history, events);
         AbilityService abilities = new AbilityService(titles);
         config.titles().values().forEach(title -> title.abilities().forEach(abilities::register));
@@ -169,6 +221,11 @@ public final class ElarionCoreMod implements ModInitializer {
         PlayerStatsService playerStats = new PlayerStatsService(new PlayerStatsStorage(LOGGER), titles);
         ProgressionService progression =
                 new ProgressionService(config, citizens, titles, playerStats, new TitleProgressStorage(LOGGER));
+        AdvancementLeaderboardProjection advancementLeaderboard =
+                new AdvancementLeaderboardProjection(LOGGER, webProjections);
+        progression.setAdvancementCountListener(citizenId -> citizens.find(citizenId).ifPresent(citizen ->
+                advancementLeaderboard.update(citizen,
+                        playerStats.value(citizenId, ProgressionService.ADVANCEMENTS_COMPLETED))));
         characters.registerResetHandler("elarion_core_titles",
                 context -> titles.retireUniqueClaims(context.accountId(), context.reason()));
         characters.registerResetHandler("elarion_core_progression", context -> {
@@ -186,6 +243,9 @@ public final class ElarionCoreMod implements ModInitializer {
         ElarionRegistries registries = new ElarionRegistries();
         ElarionTaskService tasks = new ElarionTaskService(LOGGER, ElarionTaskConfig.loadSettings(LOGGER));
         ElarionCollectionService collections = new ElarionCollectionService();
+        CitizenProfileService profiles = new CitizenProfileService(citizens, realms, titles, LOGGER);
+        ElarionRequestLimiter requestLimiter = new ElarionRequestLimiter();
+        profiles.registerContributor(new CoreProgressionProfileContributor(playerStats));
         ElarionAdminPanelService adminPanel = new ElarionAdminPanelService();
         ElarionConfigRegistry configRegistry = new ElarionConfigRegistry();
         ElarionConfigApplyRegistry configApplyRegistry = new ElarionConfigApplyRegistry();
@@ -208,9 +268,9 @@ public final class ElarionCoreMod implements ModInitializer {
         ElarionApi api = new ElarionApi(
                 citizens, realms, titles, abilities, identities, identitySync, nicknames, history, privateMessages,
                 chat, governance, realmSpawns, realmDeliveries, rewards, playerStats, progression, events, commands,
-                registries, tasks, collections, adminPanel, configRegistry, configApplyRegistry::register,
+                registries, tasks, collections, profiles, adminPanel, configRegistry, configApplyRegistry::register,
                 config.serverIdentity(), uiThemes, deferredRewards, notifications, restrictions, catchTelemetry,
-                characters);
+                characters, worldheart, webProjections);
         adminPanel.bindApi(api);
 
         ServerPlayNetworking.registerGlobalReceiver(CharacterCreationSubmitPayload.ID, (payload, context) ->
@@ -221,6 +281,8 @@ public final class ElarionCoreMod implements ModInitializer {
                 }));
         ServerPlayNetworking.registerGlobalReceiver(CharacterCreationStatusRequestPayload.ID, (payload, context) ->
                 context.server().execute(() -> characters.sync(context.player(), "")));
+        ServerPlayNetworking.registerGlobalReceiver(CharacterRealmAssignmentConfirmPayload.ID, (payload, context) ->
+                context.server().execute(() -> realmSpawns.teleportAfterRealmAssignment(context.player())));
 
         notifications.registerAction("elarion_core:realm_decision_approve", action ->
                 voteOnRealmDecision(governance, action, true));
@@ -249,6 +311,23 @@ public final class ElarionCoreMod implements ModInitializer {
                             context.player(), payload.tabId(), payload.entryId(), payload.actionId());
                     collections.open(context.player(), payload.tabId(), result.message());
                 }));
+        ServerPlayNetworking.registerGlobalReceiver(CitizenProfileRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    if (!requestLimiter.allow(context.player().getUuid(), PROFILE_REQUEST_CHANNEL,
+                            System.currentTimeMillis(), PROFILE_REQUESTS_PER_WINDOW,
+                            PROFILE_REQUEST_WINDOW_MILLIS)) {
+                        return;
+                    }
+                    CitizenProfileSnapshotPayload profile = profileSnapshotPayload(profiles, context.player(), payload);
+                    if (payload.targetId().equals(new UUID(0L, 0L))) {
+                        ServerPlayNetworking.send(context.player(), profile);
+                    } else {
+                        ServerPlayNetworking.send(context.player(), new CitizenProfileOpenPayload(
+                                collections.snapshot(context.player(), ElarionCollectionService.PROFILE_TAB_ID,
+                                        "Viewing " + profile.snapshot().title()),
+                                profile.snapshot()));
+                    }
+                }));
         ServerPlayNetworking.registerGlobalReceiver(AdminPanelOpenRequestPayload.ID, (payload, context) ->
                 context.server().execute(() -> adminPanel.open(
                         context.player(), payload.selectedTabId(), payload.selectedRowId(), "")));
@@ -266,6 +345,10 @@ public final class ElarionCoreMod implements ModInitializer {
         progression.registerEvents();
         events.onCitizenChanged(event -> {
             MinecraftServer server = citizens.server();
+            updateCitizenProjection(event.citizen(), realms, webProjections, citizenRealms,
+                    realmMemberCounts, onlineCitizenRealms, realmOnlineCounts);
+            advancementLeaderboard.update(event.citizen(),
+                    playerStats.value(event.citizenId(), ProgressionService.ADVANCEMENTS_COMPLETED));
             ServerPlayerEntity player = server == null ? null : server.getPlayerManager().getPlayer(event.citizenId());
             if (player != null) {
                 identitySync.syncSubject(server, player);
@@ -273,14 +356,12 @@ public final class ElarionCoreMod implements ModInitializer {
             } else if (server != null) {
                 identitySync.syncAll(server);
             }
-            if ("realm-assigned".equals(event.reason())) {
-                if (player != null) realmSpawns.teleportAfterRealmAssignment(player);
-            }
         });
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             activeServer.set(server);
             citizens.bind(server);
+            worldheart.bind(server);
             characters.bind(server);
             history.bind(server);
             titles.bind(server);
@@ -292,14 +373,22 @@ public final class ElarionCoreMod implements ModInitializer {
             realmDeliveries.bind(server);
             catchTelemetry.bind(JsonStateStorage.elarionRoot(server));
             configApplyService.bind(JsonStateStorage.elarionRoot(server));
+            minecraftBridge.start(server);
+            advancementLeaderboard.bind(JsonStateStorage.elarionRoot(server));
+            initializeWorldProjections(citizens, realms, webProjections, citizenRealms,
+                    realmMemberCounts, realmOnlineCounts);
             realms.initializeScoreboardTeams(server);
             LOGGER.info("Elarion Core bound to server {}", server.getServerMotd());
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             citizens.markSeen(handler.getPlayer());
+            CitizenRecord joinedCitizen = citizens.getOrCreate(handler.getPlayer());
+            updateOnlineRealm(joinedCitizen.uuid(), joinedCitizen.realmId(), realms, webProjections,
+                    onlineCitizenRealms, realmMemberCounts, realmOnlineCounts);
             characters.onJoin(handler.getPlayer());
             titles.repair(citizens.getOrCreate(handler.getPlayer()), null);
+            progression.synchronizeAdvancementCount(handler.getPlayer());
             realms.applyCurrentScoreboardTeam(handler.getPlayer());
             realmDeliveries.deliverPending(handler.getPlayer());
             notifications.sync(handler.getPlayer());
@@ -309,9 +398,12 @@ public final class ElarionCoreMod implements ModInitializer {
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             citizens.markSeen(handler.getPlayer());
+            updateOnlineRealm(handler.getPlayer().getUuid(), "", realms, webProjections,
+                    onlineCitizenRealms, realmMemberCounts, realmOnlineCounts);
             playerStats.save(handler.getPlayer().getUuid());
             progression.save(handler.getPlayer().getUuid());
             catchTelemetry.save(handler.getPlayer().getUuid());
+            requestLimiter.clear(handler.getPlayer().getUuid());
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tasks.tickServerQueue();
@@ -331,6 +423,7 @@ public final class ElarionCoreMod implements ModInitializer {
             catchTelemetry.shutdown();
             characters.save();
             configApplyService.unbind();
+            minecraftBridge.stop();
             activeServer.set(null);
             tasks.shutdown();
         });
@@ -376,6 +469,194 @@ public final class ElarionCoreMod implements ModInitializer {
                 }
             }
         }
+    }
+
+    private static CitizenProfileSnapshotPayload profileSnapshotPayload(
+            CitizenProfileService profiles,
+            ServerPlayerEntity viewer,
+            CitizenProfileRequestPayload payload
+    ) {
+        UUID targetId = payload.targetId().equals(new UUID(0L, 0L)) ? viewer.getUuid() : payload.targetId();
+        CitizenProfileRequestContext profileContext = viewer.hasPermissionLevel(4)
+                ? CitizenProfileRequestContext.admin(viewer.getUuid(), targetId)
+                : CitizenProfileRequestContext.publicView(viewer.getUuid(), targetId);
+        CitizenProfileSnapshot snapshot = profiles.snapshot(profileContext)
+                .map(profile -> requestedSection(profile, payload.sectionId()))
+                .orElseGet(() -> new CitizenProfileSnapshot(targetId, "", List.of()));
+        return new CitizenProfileSnapshotPayload(snapshot);
+    }
+
+    private static CitizenProfileSnapshot requestedSection(CitizenProfileSnapshot snapshot, String sectionId) {
+        if (sectionId == null || sectionId.isBlank()) return snapshot;
+        return new CitizenProfileSnapshot(
+                snapshot.targetId(),
+                snapshot.title(),
+                snapshot.section(sectionId).map(List::of).orElseGet(List::of));
+    }
+
+    private static void initializeWorldProjections(
+            CitizenService citizens,
+            RealmService realms,
+            MinecraftProjectionPublisher projections,
+            Map<UUID, String> citizenRealms,
+            Map<String, Integer> memberCounts,
+            Map<String, Integer> onlineCounts
+    ) {
+        citizenRealms.clear();
+        memberCounts.clear();
+        for (CitizenRecord citizen : citizens.all()) {
+            citizenRealms.put(citizen.uuid(), citizen.realmId());
+            increment(memberCounts, citizen.realmId(), 1);
+            publishCitizenProjection(citizen, realms, projections);
+        }
+        for (RealmDefinition realm : realms.all()) {
+            publishRealmProjection(realm, realms, projections, memberCounts, onlineCounts);
+        }
+    }
+
+    private static void updateCitizenProjection(
+            CitizenRecord citizen,
+            RealmService realms,
+            MinecraftProjectionPublisher projections,
+            Map<UUID, String> citizenRealms,
+            Map<String, Integer> memberCounts,
+            Map<UUID, String> onlineCitizenRealms,
+            Map<String, Integer> onlineCounts
+    ) {
+        String newRealm = citizen.realmId();
+        String oldRealm = citizenRealms.put(citizen.uuid(), newRealm);
+        if (oldRealm != null && !oldRealm.equals(newRealm)) {
+            increment(memberCounts, oldRealm, -1);
+            increment(memberCounts, newRealm, 1);
+            realms.find(oldRealm).ifPresent(realm ->
+                    publishRealmProjection(realm, realms, projections, memberCounts, onlineCounts));
+        }
+        if (oldRealm == null) increment(memberCounts, newRealm, 1);
+        if (onlineCitizenRealms.containsKey(citizen.uuid())) {
+            updateOnlineRealm(citizen.uuid(), newRealm, realms, projections,
+                    onlineCitizenRealms, memberCounts, onlineCounts);
+        }
+        publishCitizenProjection(citizen, realms, projections);
+        realms.find(newRealm).ifPresent(realm ->
+                publishRealmProjection(realm, realms, projections, memberCounts, onlineCounts));
+    }
+
+    private static void updateOnlineRealm(
+            UUID citizenId,
+            String newRealm,
+            RealmService realms,
+            MinecraftProjectionPublisher projections,
+            Map<UUID, String> onlineCitizenRealms,
+            Map<String, Integer> memberCounts,
+            Map<String, Integer> onlineCounts
+    ) {
+        String normalized = newRealm == null ? "" : newRealm;
+        String oldRealm = normalized.isBlank()
+                ? onlineCitizenRealms.remove(citizenId)
+                : onlineCitizenRealms.put(citizenId, normalized);
+        if (oldRealm != null && !oldRealm.equals(normalized)) {
+            increment(onlineCounts, oldRealm, -1);
+            realms.find(oldRealm).ifPresent(realm ->
+                    publishRealmProjection(realm, realms, projections, memberCounts, onlineCounts));
+        }
+        if (!normalized.isBlank() && !normalized.equals(oldRealm)) {
+            increment(onlineCounts, normalized, 1);
+            realms.find(normalized).ifPresent(realm ->
+                    publishRealmProjection(realm, realms, projections, memberCounts, onlineCounts));
+        }
+    }
+
+    private static void publishCitizenProjection(
+            CitizenRecord citizen,
+            RealmService realms,
+            MinecraftProjectionPublisher projections
+    ) {
+        Map<String, String> payload = new LinkedHashMap<>();
+        putProjection(payload, "username", citizen.lastKnownUsername());
+        putProjection(payload, "nickname", citizen.nickname());
+        putProjection(payload, "realmId", citizen.realmId());
+        putProjection(payload, "titleId", citizen.titleId());
+        putProjection(payload, "status", citizen.status().name());
+        payload.put("joinedAt", Long.toString(citizen.joinedAt()));
+        realms.find(citizen.realmId()).ifPresent(realm -> {
+            RealmPresentation presentation = realms.presentation(realm);
+            putProjection(payload, "realmName", presentation.officialName());
+            putProjection(payload, "realmTag", presentation.prefix());
+            putProjection(payload, "realmColor", colorHex(presentation.color()));
+        });
+        projections.publishState("citizen", citizen.uuid().toString(), citizen.realmId(),
+                Visibility.WHITELISTED, payload);
+    }
+
+    private static void publishRealmProjection(
+            RealmDefinition realm,
+            RealmService realms,
+            MinecraftProjectionPublisher projections,
+            Map<String, Integer> memberCounts,
+            Map<String, Integer> onlineCounts
+    ) {
+        RealmPresentation presentation = realms.presentation(realm);
+        Map<String, String> payload = new LinkedHashMap<>();
+        putProjection(payload, "displayName", presentation.displayName());
+        putProjection(payload, "officialName", presentation.officialName());
+        putProjection(payload, "shortName", presentation.shortName());
+        putProjection(payload, "tag", presentation.prefix());
+        putProjection(payload, "colorName", presentation.color());
+        payload.put("color", colorHex(presentation.color()));
+        payload.put("memberCount", Integer.toString(memberCounts.getOrDefault(realm.id(), 0)));
+        payload.put("activeCount", Integer.toString(onlineCounts.getOrDefault(realm.id(), 0)));
+        projections.publishState("realm", realm.id(), realm.id(), Visibility.PUBLIC, payload);
+    }
+
+    private static void publishChronicleProjection(
+            HistoryService history,
+            MinecraftProjectionPublisher projections,
+            HistoryEvent event
+    ) {
+        history.publicProjection(event, PublicHistoryConsumer.CHRONICLE, ChronicleRenderContext.EMPTY)
+                .ifPresent(chronicle -> {
+                    Map<String, String> payload = new LinkedHashMap<>();
+                    putProjection(payload, "title", chronicle.title());
+                    putProjection(payload, "body", chronicle.body());
+                    putProjection(payload, "category", chronicle.category());
+                    putProjection(payload, "detailLabel", chronicle.detailLabel());
+                    putProjection(payload, "variantId", chronicle.variantId());
+                    putProjection(payload, "type", event.type());
+                    putProjection(payload, "actorId", event.actorId() == null ? "" : event.actorId().toString());
+                    projections.publishEvent("chronicle", event.id().toString(), event.realmId(),
+                            Visibility.PUBLIC, payload);
+                });
+    }
+
+    private static void increment(Map<String, Integer> counts, String key, int delta) {
+        if (key == null || key.isBlank() || delta == 0) return;
+        counts.compute(key, (ignored, current) -> Math.max(0, (current == null ? 0 : current) + delta));
+    }
+
+    private static void putProjection(Map<String, String> payload, String key, String value) {
+        if (value != null && !value.isBlank()) payload.put(key, value);
+    }
+
+    private static String colorHex(String color) {
+        return switch (color == null ? "" : color.toLowerCase(java.util.Locale.ROOT)) {
+            case "black" -> "#111111";
+            case "dark_blue" -> "#0000aa";
+            case "dark_green" -> "#00aa00";
+            case "dark_aqua" -> "#00aaaa";
+            case "dark_red" -> "#aa0000";
+            case "dark_purple" -> "#aa00aa";
+            case "gold" -> "#ffaa00";
+            case "gray" -> "#aaaaaa";
+            case "dark_gray" -> "#555555";
+            case "blue" -> "#5555ff";
+            case "green" -> "#55ff55";
+            case "aqua" -> "#55ffff";
+            case "red" -> "#ff5555";
+            case "light_purple" -> "#ff55ff";
+            case "yellow" -> "#ffff55";
+            case "white" -> "#f2f0e7";
+            default -> color != null && color.matches("#[0-9a-fA-F]{6}") ? color : "#b89552";
+        };
     }
 
     private static ElarionNotificationService.ActionResult voteOnRealmDecision(

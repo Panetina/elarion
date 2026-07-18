@@ -7,6 +7,7 @@ public record NpcDialogueOptionPayload(
         String id,
         String buttonText,
         String playerText,
+        String presentationRole,
         String promptType,
         String promptQuestion,
         int promptMaxDigits
@@ -15,6 +16,7 @@ public record NpcDialogueOptionPayload(
         ElarionPacketCodecs.writeString(buffer, option.id(), 128);
         ElarionPacketCodecs.writeString(buffer, option.buttonText(), 512);
         ElarionPacketCodecs.writeString(buffer, option.playerText(), 512);
+        ElarionPacketCodecs.writeString(buffer, option.presentationRole(), 64);
         ElarionPacketCodecs.writeString(buffer, option.promptType(), 64);
         ElarionPacketCodecs.writeString(buffer, option.promptQuestion(), 512);
         buffer.writeVarInt(option.promptMaxDigits());
@@ -26,12 +28,14 @@ public record NpcDialogueOptionPayload(
                 ElarionPacketCodecs.readString(buffer, 512),
                 ElarionPacketCodecs.readString(buffer, 512),
                 ElarionPacketCodecs.readString(buffer, 64),
+                ElarionPacketCodecs.readString(buffer, 64),
                 ElarionPacketCodecs.readString(buffer, 512),
                 buffer.readVarInt());
     }
 
     public NpcDialogueOptionPayload {
         promptType = promptType == null ? "" : promptType;
+        presentationRole = presentationRole == null ? "" : presentationRole;
         promptQuestion = promptQuestion == null ? "" : promptQuestion;
     }
 }

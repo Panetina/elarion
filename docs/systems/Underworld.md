@@ -7,6 +7,7 @@ Fractures, and Core-owned True Death character lifecycle integration.
 
 - `addons/underworld/.../ElarionUnderworldAddon.java`
 - `addons/underworld/.../service/UnderworldService.java`
+- `addons/underworld/.../service/UnderworldProfileContributor.java`
 - `addons/underworld/.../model/CorpseRecord.java`
 - `addons/underworld/.../model/UnderworldSession.java`
 - `addons/underworld/.../model/SoulState.java`
@@ -34,9 +35,22 @@ See `docs/commands.md` and `docs/test-commands.md`.
 - Runtime: `world/elarion/addon-state/underworld/state.json`
 - True Death metadata: `world/elarion/addon-state/underworld/true-death-archive/`
 
+`/e death reload` reparses `underworld.yml` into a new config snapshot. If the
+reload file is malformed, the Underworld service keeps the previous valid
+snapshot instead of falling back to defaults. First startup without a usable
+config still falls back to defaults after writing the default file when needed.
+
+Runtime state uses schema version `1`. Versionless legacy state normalizes to
+v1; unsupported versions fail closed and the shared storage layer quarantines
+the unreadable snapshot before fallback state can be saved.
+
 ## Dependencies
 
 - Core: citizens, realm spawns, task queue, domain events, player restrictions.
+- Core progression stats: Underworld increments
+  `UnderworldService.LIFETIME_DEATHS_STAT` at authoritative death-capture
+  points so Character Menu can render a bounded self/admin lifetime death
+  summary without scanning Underworld runtime storage.
 - Economy: not directly owned; only physical currency item/tag selection is used
   for PvP loot.
 - Portals: consumes Core restrictions so souls cannot travel through portals.
@@ -49,6 +63,10 @@ See `docs/commands.md` and `docs/test-commands.md`.
   future status effects that temporarily block chat/travel.
 - Underworld domain events are the integration point for Government succession,
   Chronicle, newspapers, NPC rumors, and website notifications.
+- `UnderworldProfileContributor` contributes the `underworld/deaths` Citizen
+  Ledger summary field with `SELF` visibility. It reads the Core per-player
+  stat counter only; it does not enumerate corpses, sessions, vaults, or
+  history files during profile snapshot creation.
 - The compact HUD timer is visible only while a player is bound to the
   Underworld. It intentionally does not show Soul Fracture marks; those belong
   in identity/tablist presentation.
@@ -75,6 +93,10 @@ See `docs/commands.md` and `docs/test-commands.md`.
 - Variant selection is deterministic per victim Realm, with corpse id fallback
   when no Realm can be resolved.
 - Startup reconciliation restores missing tombs from corpse state.
+- Startup reconciliation is the only ordinary full-corpse pass. Runtime tomb
+  refreshes use a deduplicated queue capped at 64 updates per second, and
+  corpse decay uses a due-time priority queue capped at 64 expirations per
+  second. Administrative reset scans remain explicit one-time operations.
 - Corpse items persist source metadata with a generic source id and label in
   addition to vanilla inventory, armor, and offhand coordinates. This keeps the
   grave recovery UI ready for future backpack, trinket, skin, accessory, or
@@ -82,6 +104,11 @@ See `docs/commands.md` and `docs/test-commands.md`.
   implementation.
 - Grave owner text is nickname-first: Core citizen nickname, then last known
   username, then Minecraft profile name fallback at capture time.
+- Grave Recovery uses the shared civic popup shell with a framed status/body
+  panel and framed contents grid. Render, scroll, and click positions are
+  derived from one client layout snapshot; server recovery remains authoritative.
+  Grave item icons use the shared Core item-slot layout so native item rendering
+  and tooltip hitboxes match the actual icon area.
 
 ## Risks
 

@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.Vec3ArgumentType;
@@ -15,6 +16,9 @@ import net.minecraft.text.Text;
 import panetina.elarion.addons.portals.PortalContent;
 import panetina.elarion.addons.portals.model.PortalArrival;
 import panetina.elarion.addons.portals.model.PortalEndpoint;
+import panetina.elarion.addons.portals.model.PortalTravelDirection;
+import panetina.elarion.addons.portals.model.PortalUiConfig;
+import panetina.elarion.addons.portals.network.PortalTravelPromptPayload;
 import panetina.elarion.addons.portals.service.PortalDefinitionService;
 import panetina.elarion.addons.portals.service.PortalRouteService;
 import panetina.elarion.addons.portals.service.PortalSelectionService;
@@ -24,6 +28,10 @@ import java.time.Duration;
 import java.util.UUID;
 
 public final class PortalCommands {
+    static final String[] PREVIEW_STATES = {
+            "neutral", "nether", "end", "fee", "blocked", "return"
+    };
+
     private PortalCommands() {
     }
 
@@ -58,6 +66,10 @@ public final class PortalCommands {
                 .then(CommandManager.literal("guide")
                         .then(routeArgument(definitions).executes(ctx ->
                                 run(ctx, () -> guide(ctx, definitions, routes)))))
+                .then(CommandManager.literal("preview")
+                        .then(CommandManager.argument("state", StringArgumentType.word())
+                                .suggests((ctx, builder) -> CommandSource.suggestMatching(PREVIEW_STATES, builder))
+                                .executes(ctx -> run(ctx, () -> preview(ctx, definitions)))))
                 .then(CommandManager.literal("endpoint")
                         .then(CommandManager.literal("set")
                                 .then(routeArgument(definitions)
@@ -264,6 +276,72 @@ public final class PortalCommands {
         CommandOutput.bullet(ctx.getSource(), definition.mode().requiresUnlock()
                 ? "7. Unlock when complete: /e portal unlock " + routeId
                 : "7. This route activates automatically when all four locations are configured.");
+    }
+
+    private static void preview(CommandContext<ServerCommandSource> ctx, PortalDefinitionService definitions) {
+        ServerPlayerEntity player = player(ctx);
+        String state = StringArgumentType.getString(ctx, "state");
+        ServerPlayNetworking.send(player, previewPayload(state, definitions.ui()));
+        CommandOutput.success(ctx.getSource(), "Opened portal prompt preview: " + state + ".", false);
+    }
+
+    static PortalTravelPromptPayload previewPayload(String rawState, PortalUiConfig ui) {
+        String state = rawState == null ? "" : rawState.toLowerCase(java.util.Locale.ROOT);
+        long scheduledClose = System.currentTimeMillis() + Duration.ofMinutes(42).toMillis();
+        return switch (state) {
+            case "neutral" -> payload(
+                    "neutral", "Neutral Gate", PortalTravelDirection.OUTBOUND, 0L, "",
+                    PortalTravelPromptPayload.COST_FREE, "No ticket or fee required.", 0,
+                    true, "", ui);
+            case "nether" -> payload(
+                    "nether", "Nether Gate", PortalTravelDirection.OUTBOUND, scheduledClose,
+                    "elarion:portal_ticket", PortalTravelPromptPayload.COST_TICKET,
+                    "You need a Nether Ticket.", 0xFFFFD37A, true,
+                    "A ticket grants one passage and stores one return.", ui);
+            case "end" -> payload(
+                    "end", "End Gate", PortalTravelDirection.OUTBOUND, scheduledClose,
+                    "elarion:portal_ticket", PortalTravelPromptPayload.COST_TICKET,
+                    "You need an End Ticket.", 0xFFD8C2FF, true,
+                    "A ticket grants one passage and stores one return.", ui);
+            case "fee" -> payload(
+                    "realm1", "Ancient Gate", PortalTravelDirection.OUTBOUND, 0L,
+                    "elarion:currency", PortalTravelPromptPayload.COST_FEE,
+                    "You need 25 Sigils.", 0xFF9696D1, true,
+                    "Withdraw banked Sigils before using this gate.", ui);
+            case "blocked" -> payload(
+                    "realm1", "Ancient Gate", PortalTravelDirection.OUTBOUND, 0L,
+                    "elarion:currency", PortalTravelPromptPayload.COST_FEE,
+                    "Portal travel is temporarily blocked.", 0xFFFF6B6B, false,
+                    "You cannot use portals right now.", ui);
+            case "return" -> payload(
+                    "realm1", "Ancient Gate", PortalTravelDirection.RETURN, 0L,
+                    "", PortalTravelPromptPayload.COST_FREE,
+                    "Your return passage is already paid.", 0xFF8FE18F, true,
+                    "This return completes your current round trip.", ui);
+            default -> throw new IllegalArgumentException(
+                    "Preview state must be neutral, nether, end, fee, blocked, or return.");
+        };
+    }
+
+    private static PortalTravelPromptPayload payload(
+            String routeId,
+            String gateName,
+            PortalTravelDirection direction,
+            long closesAt,
+            String iconItem,
+            String costKind,
+            String requirement,
+            int requirementColor,
+            boolean allowed,
+            String message,
+            PortalUiConfig ui
+    ) {
+        PortalUiConfig safeUi = ui == null ? PortalUiConfig.defaults() : ui;
+        return new PortalTravelPromptPayload(
+                routeId, gateName, direction, closesAt, iconItem, costKind, requirement,
+                requirementColor, allowed, message, safeUi.themeVariant(), safeUi.logicalWidth(),
+                safeUi.logicalHeight(), safeUi.minimumScalePercent(), safeUi.confirmButtonWidth(),
+                safeUi.closeButtonWidth());
     }
 
     private static void endpoint(

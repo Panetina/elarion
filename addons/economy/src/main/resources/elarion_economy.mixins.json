@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "panetina.elarion.addons.economy.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "InventoryMaxStackCountMixin",
+    "ItemStackCountCodecMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

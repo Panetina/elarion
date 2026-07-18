@@ -31,7 +31,6 @@ final class PlayerCommandRegistrar {
     ) {
         registerHelpDescriptions(config, extensions);
         registerChat(dispatcher, api);
-        registerCollection(dispatcher, api);
         registerList(dispatcher, api);
         registerSpy(dispatcher, api);
         HelpCommandRegistrar.register(dispatcher, extensions);
@@ -50,24 +49,14 @@ final class PlayerCommandRegistrar {
                 "/w <message> - Whisper to players within "
                         + config.whisperChatRadius() + " blocks.");
         extensions.registerHelpDescription("pm",
-                "/pm <player> <message> - Privately message a citizen in your Realm or a GLOBAL Realm.");
+                "/pm <player> <message> - Privately message an Ember in your Realm or a GLOBAL Realm.");
         extensions.registerHelpDescription("yell",
                 "/yell <message> - Yell to players within " + config.yellChatRadius()
                         + " blocks; " + config.yellChatCooldownSeconds() + "-second cooldown.");
         extensions.registerHelpDescription("list",
                 "/list - List online players. Requires OP level 4.");
-        extensions.registerHelpDescription("collection",
-                "/collection - Open your Elarion collection menu.");
         extensions.registerHelpDescription("spy",
                 "/spy chat - Toggle OP-only chat moderation view. /spy is a modular admin namespace.");
-    }
-
-    private static void registerCollection(CommandDispatcher<ServerCommandSource> dispatcher, ElarionApi api) {
-        dispatcher.register(literal("collection")
-                .executes(context -> {
-                    api.collections().open(context.getSource().getPlayerOrThrow());
-                    return 1;
-                }));
     }
 
     private static void registerChat(CommandDispatcher<ServerCommandSource> dispatcher, ElarionApi api) {

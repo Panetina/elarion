@@ -16,6 +16,7 @@ Definitions:
 config/elarion/addons/npcs/npcs.yml
 config/elarion/addons/npcs/skins.yml
 config/elarion/addons/npcs/portraits.yml
+config/elarion/addons/npcs/trades.yml
 config/elarion/addons/npcs/dialogues/
 ```
 
@@ -32,12 +33,49 @@ Runtime state:
 
 ```text
 world/elarion/addon-state/npcs/placed-npcs.json
+world/elarion/addon-state/npcs/trade-purchases.json
 ```
 
-The Admin Panel Systems tab exposes the loaded `npcs` config domain as a
-read-only summary. It shows definition, visual profile, dialogue graph, and UI
-metadata; configuration is still edited in YAML and applied with
+Each definition can declare:
+
+```yaml
+faction: worldheart
+tax-jurisdiction: auto
+# or realm:oak
+# or world:elarion:worldheart
+```
+
+`faction` controls reputation aggregation. Use `realm:<id>` for a Realm,
+`worldheart`, `underworld`, or a stable custom faction id. It does not control
+tax routing. Each NPC's personal relationship appears in its dialogue UI;
+faction totals appear in the Character Menu Reputation tab.
+
+Every placed NPC stores the resolved Realm/world jurisdiction. `auto` uses the
+Realm owning the placement world, otherwise the world itself. Explicit values
+must match the placement world. `/e npc inspect` shows the resolved value.
+Schema-v1 placement files are backed up before migration to schema v2.
+
+The Admin Panel Config tab exposes the loaded `npcs` config domain as a
+read-only summary. It shows definition, visual profile, trade catalog, dialogue
+graph, and UI metadata; configuration is still edited in YAML and applied with
 `/e npc reload`.
+
+## Trade NPCs
+
+You can add a new trade NPC without Java code by assigning a `trade-catalog` in
+`npcs.yml`, adding a dialogue node with `presentation: trade`, and defining the
+catalog in `trades.yml`.
+
+Custom Sell/buyback rows that feed placed-NPC stock must set both:
+
+```yaml
+stock-destination: placed_npc
+destination-offer: <buy_offer_id>
+```
+
+The shipped legacy `worldheart_trader.cobblestone_buyback` route is bridged in
+memory to `destination-offer: cobblestone` if that field is missing. Custom
+traders are not guessed.
 
 ## Placement Flow
 
@@ -46,6 +84,7 @@ metadata; configuration is still edited in YAML and applied with
 /e npc place worldheart_banker here
 /e npc list near
 /e npc inspect <npcId>
+/e npc open <npcId>
 ```
 
 Useful placement edits:
@@ -73,9 +112,17 @@ Skins affect the visible body. Portraits affect dialogue UI. If no portrait is c
 
 ## Verification
 
+`/e npc inspect <id>` reports the placement's resolved Realm/world tax
+jurisdiction. Trader quantity changes are server-quoted. Unlimited BUY Confirm
+uses carried physical Sigils only and writes the NPC purchase journal before
+delivery. Finite stock and Sell/buyback are server-authoritative and use NPC
+purchase/sale journals, placed-NPC stock state, and Economy settlement.
+
 - Place an NPC and inspect its ID.
 - Set skin, portrait, and dialogue.
 - Right-click the NPC and verify the dialogue screen opens.
+- Use `/e npc open <npcId>` as a server-authoritative admin/QA alternative to
+  right-click when you are already near the placed NPC.
 - Test conditional node variants by changing the owning system state, such as
   quest variables, and reopening the dialogue.
 - Test banker deposit/withdraw actions if using the banker dialogue.

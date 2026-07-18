@@ -107,7 +107,7 @@ final class GovernmentConfigDescriptorsTest {
         return new GovernmentFormDefinition(
                 "republic",
                 "Republic",
-                "Citizen government.",
+                "Ember government.",
                 true,
                 "%realm% Republic",
                 List.of("president", "council_member"),

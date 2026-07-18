@@ -51,7 +51,7 @@ show progress. Hovering shows the local opening or closing countdown while a
 cursor screen, such as chat or the notification drawer, is open.
 
 Tablist visibility is staged. Before your Realm reaches global access, the
-tablist shows your own Realm citizens and neutral players. Other Realm groups
+tablist shows your own Realm Embers and neutral players. Other Realm groups
 appear after both Realms are global-stage eligible. Overhead names and titles
 remain visible in-world.
 
@@ -61,7 +61,7 @@ If the inventory is full, the reward stays pending.
 
 Some notifications contain actions. Group invitations can be accepted or
 declined, active civic notices can open the Civic Forum, and Realm relationship
-decisions can be approved or rejected by eligible citizens. Actions are
+decisions can be approved or rejected by eligible Embers. Actions are
 validated by the server; the drawer does not own gameplay state.
 
 Admins can raise Elarion custom UI text size server-wide through
@@ -71,7 +71,7 @@ inventory, tablist, or overhead player names.
 
 ## Character And Death Foundation
 
-Existing citizens confirm their current identity once. New players create a
+Existing Embers confirm their current identity once. New players create a
 name and short character biography before entering normal play. This mandatory
 screen waits for other mod screens to close instead of replacing them. If a
 name is rejected, the biography text stays in place so the player can correct

@@ -1,23 +1,26 @@
 # Elarion Portals
 
-Last reviewed: 2026-07-06
+Last reviewed: 2026-07-08
 
 ## Purpose
 
 The Portals addon owns linked travel gates. Each route joins `a_gate` and
 `b_gate`, with cross-travel landing at the opposite side's configured arrival.
+Portals also owns the Character Menu portal-journey summary projection for
+successful authoritative player portal travel.
 
 - `scheduled_ticketed` routes consume one physical ticket on outbound travel
   and grant one durable return entitlement.
-- `fee_passage` routes charge outbound passage only. Payment consumes physical
-  currency first and then charges any remainder from the Economy-owned bank
-  balance. Every successful outbound passage stores one return passage; entering
+- `fee_passage` routes charge outbound passage only. Payment consumes carried
+  physical currency only; banked currency must be withdrawn before travel.
+  Every successful outbound passage stores one return passage; entering
   the linked return gate consumes that stored return without another fee.
   Routes require a progression unlock and may also grant the first
   outbound-and-return cycle for free.
 - `always_open` routes need no lock, schedule window, ticket, or entitlement.
-  Their destination may be `*`, allowing the return endpoint and arrival to be
-  configured in any loaded world.
+  Their source and destination may be `*`, allowing both endpoints and arrivals
+  to be configured in any loaded world. The default Neutral Gate uses `*` to
+  `*`.
 
 ## Definitions And State
 
@@ -49,6 +52,14 @@ runtime Realm presentation placeholders:
 Realm placeholders resolve when snapshots, notifications, and travel prompts
 are built. For example, an Ancient Gate route owned by `realm1` can render
 `Kingdom of Oak` without rewriting the stable route ID or runtime state.
+Default Ancient Gate routes connect each Realm world (`elarion:realm_world_1`,
+`elarion:realm_world_2`, `elarion:realm_world_3`) to `elarion:worldheart`;
+`elarion:lobby` is not a Realm Ancient Gate destination.
+Default scheduled Nether and End gates also depart from `elarion:worldheart`
+so Realm players converge at Worldheart before using major progression gates.
+The default Neutral Gate is intentionally unrestricted (`source-dimension: "*"`
+and `destination-dimension: "*"`) so it can be opened from anywhere and linked
+to anywhere by an administrator.
 
 Mutable state:
 
@@ -60,6 +71,13 @@ This runtime file stores admin-selected `a_gate`/`b_gate` cuboids,
 `a_arrival`/`b_arrival` positions, forced windows, return entitlements, and
 first-free-passage state. Locations intentionally do not belong in editable
 `routes.yml`.
+
+The Character Menu portal-journey count is maintained separately as the Core
+player-stat key `portal_journeys`. `PortalRouteService` increments it only
+after server-authoritative travel succeeds, payment/ticket/return state has
+been handled, and the travel event is recorded. Existing travel history is not
+backfilled, and profile snapshot creation must not scan Portal state or history
+records to derive totals.
 
 Source:
 
@@ -114,6 +132,12 @@ rejected. Administrators use `/e portal endpoint set <route> a_gate`,
 `/e portal setup enter <route> [x y z]` and `/e portal setup return` available
 when side B lives in a protected or unloaded destination world.
 
+For UI verification, OP4 administrators can use
+`/e portal preview <neutral|nether|end|fee|blocked|return>` to open a local
+representative Portal Confirmation prompt. Preview prompts do not mutate route
+state, grant entitlement, or bypass travel authority; clicking `Yes` still
+sends the ordinary server-validated travel request.
+
 ## Performance
 
 - Endpoints are indexed by world and intersecting chunk.
@@ -122,6 +146,9 @@ when side B lives in a protected or unloaded destination world.
 - Field placement/removal is queued through the bounded Core server queue.
 - Structures are not scanned per tick.
 - Visual snapshots synchronize only on join and route transitions/edits.
+- Character Menu portal journey count reads the bounded `portal_journeys`
+  player stat; profile snapshot creation must not scan Portal runtime state or
+  history records.
 - Route status synchronizes opening/closing timestamps once. The client renders
   unlocked scheduled routes as compact HUD icons, greyed while closed and
   colored while open, with countdown details calculated locally on hover.
@@ -145,13 +172,43 @@ Portals emits one Core domain event per authoritative lifecycle transition:
 state metadata. Notifications remain explicit projections and are not produced
 automatically by the event bus.
 
+`PortalChronicleText` registers with Core public history and renders
+`route-unlocked` Chronicle projections through the shared template-family
+contract. The `portal.route-unlocked` family has 10 authored stable variants,
+requires route metadata, honors persisted `chronicle.variant` values, and falls
+back safely when older records lack route context. This renderer changes only
+player-facing Chronicle wording; route state, schedules, tickets, payments, and
+travel authority remain owned by Portals.
+
+`PortalProfileContributor` registers with Core's `CitizenProfileService` and
+contributes the reserved `portals/journeys` Ledger slot with `SELF` visibility
+by reading `portal_journeys`. This is personal self/admin profile data, not
+public profile data.
+
 `visual.status-icon-item` configures the live HUD icon independently from the
 ticket/prompt icon. Defaults use Netherrack for Nether and End Stone for End.
+
+Physical portal tickets use one registered item ID, `elarion:portal_ticket`.
+The item stores the stable route ticket ID in component NBT and derives its
+custom model data from that ID for dimension-specific art: Nether tickets use
+custom model data `1` and the crimson stele icon, while End tickets use custom
+model data `2` and the blue stele icon. Unknown ticket IDs currently fall back
+to the base crimson ticket model. NPC trade previews and real purchased tickets
+should use the same item stack path instead of hard-coded GUI-only ticket art.
+Inventory item models use local portals item textures copied from the approved
+stele assets so item model stitching does not depend on GUI-library texture
+paths. Ticket custom names and lore explicitly disable Minecraft's default
+italic styling so Nether/End tickets read like ordinary named service items.
 
 The client travel confirmation prompt extends Core `ElarionScreen` and uses
 the shared Core civic shell, body, icon-frame, and action-button helpers. The
 screen remains presentation-only: it renders the server-authored prompt
-snapshot and sends only the existing typed travel confirmation request.
+snapshot and sends only the existing typed travel confirmation request. The
+prompt payload carries an explicit cost kind (`free`, `ticket`, or `fee`) so
+the client never infers payment-slot visibility or ticket/currency art from
+localized requirement text. Fee prompts render the shared Sigil currency icon
+inside the framed slot; ticket prompts render Nether/End ticket art; free
+prompts omit the payment slot.
 
 Metrics include `portal-field-queued`, `portal-field-placed`,
 `portal-field-removed`, `portal-field-failed`, `portal-field-queue-full`,
@@ -180,3 +237,17 @@ declared complete.
   entities must never trigger portal travel.
 - Detection must stay limited to active indexed endpoints, without global
   per-tick entity scans.
+
+## Structural Cleanup Notes
+
+Phase 13 classified `PortalRouteService` before extraction. It remains the
+canonical owner of live portal route state, entitlements, free passages, and
+travel authority. `PortalEndpointIndex`, `PortalFieldController`, and
+`PortalStateMigration` remain valid helper boundaries. Route administration is
+now isolated in `PortalRouteAdminMutator`, schedule and field lifecycle in
+`PortalScheduleReconciler`, and bounded endpoint-entry prompts in
+`PortalPlayerPromptDetector`. `PortalTravelExecutor` now coordinates tested
+ticket/payment rollback and successful-only state/history/stat changes, while
+`PortalWorldTravelGuard` owns transient setup and movement authorization. All
+remain behind public `PortalRouteService` facades and none owns a second copy
+of `PortalState`. See `docs/reports/PHASE_13_PORTAL_EXTRACTIONS.md`.

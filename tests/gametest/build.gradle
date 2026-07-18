@@ -14,6 +14,9 @@ dependencies {
     implementation(project(path: ':addons:offerings', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
+    implementation(project(path: ':addons:portals', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
     implementation(project(path: ':addons:npcs', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }

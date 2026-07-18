@@ -8,7 +8,7 @@ public final class PortalConfigDefaults {
               nether:
                 display-name: "Nether Gate"
                 description: "A scheduled passage between %capital% and the Nether."
-                source-dimension: "elarion:lobby"
+                source-dimension: "elarion:worldheart"
                 destination-dimension: "minecraft:the_nether"
                 enabled: true
                 mode: "scheduled_ticketed"
@@ -34,7 +34,7 @@ public final class PortalConfigDefaults {
               end:
                 display-name: "End Gate"
                 description: "A scheduled passage between %capital% and the End."
-                source-dimension: "elarion:lobby"
+                source-dimension: "elarion:worldheart"
                 destination-dimension: "minecraft:the_end"
                 enabled: true
                 mode: "scheduled_ticketed"
@@ -61,7 +61,7 @@ public final class PortalConfigDefaults {
                 display-name: "Ancient Gate"
                 description: "An ancient passage between %realm_official% and %capital%."
                 source-dimension: "elarion:realm_world_1"
-                destination-dimension: "elarion:lobby"
+                destination-dimension: "elarion:worldheart"
                 enabled: true
                 mode: "fee_passage"
                 passage:
@@ -80,7 +80,7 @@ public final class PortalConfigDefaults {
                 display-name: "Ancient Gate"
                 description: "An ancient passage between %realm_official% and %capital%."
                 source-dimension: "elarion:realm_world_2"
-                destination-dimension: "elarion:lobby"
+                destination-dimension: "elarion:worldheart"
                 enabled: true
                 mode: "fee_passage"
                 passage:
@@ -99,7 +99,7 @@ public final class PortalConfigDefaults {
                 display-name: "Ancient Gate"
                 description: "An ancient passage between %realm_official% and %capital%."
                 source-dimension: "elarion:realm_world_3"
-                destination-dimension: "elarion:lobby"
+                destination-dimension: "elarion:worldheart"
                 enabled: true
                 mode: "fee_passage"
                 passage:
@@ -117,7 +117,7 @@ public final class PortalConfigDefaults {
               neutral:
                 display-name: "Neutral Gate"
                 description: "An always-open passage available to every traveler."
-                source-dimension: "elarion:lobby"
+                source-dimension: "*"
                 destination-dimension: "*"
                 enabled: true
                 mode: "always_open"

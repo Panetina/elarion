@@ -27,6 +27,8 @@ import panetina.elarion.addons.government.service.GovernmentStateService;
 import panetina.elarion.addons.government.service.GovernmentUiSessionService;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.CitizenRecord;
+import panetina.elarion.core.model.ChronicleProjection;
+import panetina.elarion.core.model.ChronicleRenderContext;
 import panetina.elarion.core.model.PublicHistoryEntry;
 import panetina.elarion.core.model.RealmDefinition;
 
@@ -258,7 +260,7 @@ public final class GovernmentBlockInteractions {
             return;
         }
         if (!belongsToRealm(api, player, realm.get().id())) {
-            player.sendMessage(Text.literal("Only citizens of this Realm may use its Civic Forum."), false);
+            player.sendMessage(Text.literal("Only Embers of this Realm may use its Civic Forum."), false);
             return;
         }
         sendCivicSnapshot(api, definitions, states, player, realm.get().id(),
@@ -273,7 +275,7 @@ public final class GovernmentBlockInteractions {
             String realmId
     ) {
         if (!belongsToRealm(api, player, realmId)) {
-            throw new IllegalArgumentException("Only citizens of this Realm may open its Civic Forum.");
+            throw new IllegalArgumentException("Only Embers of this Realm may open its Civic Forum.");
         }
         sendCivicSnapshot(api, definitions, states, player, realmId,
                 createSession(player, "civic_forum", realmId, player.getWorld(), player.getBlockPos()), "");
@@ -294,7 +296,7 @@ public final class GovernmentBlockInteractions {
             return;
         }
         if (!belongsToRealm(api, player, realm.get().id())) {
-            player.sendMessage(Text.literal("Only citizens of this Realm may use its Seat of Rule."), false);
+            player.sendMessage(Text.literal("Only Embers of this Realm may use its Seat of Rule."), false);
             return;
         }
         if (!states.canOpenSeatOfRule(player, realm.get().id())) {
@@ -364,7 +366,7 @@ public final class GovernmentBlockInteractions {
                 voteEndsAt = vote.map(candidate -> candidate.endsAt).orElse(0L);
                 rows.add(row("government_form", "Government Form",
                         "The first vote starts a 24h window. Plurality wins; ties trigger a runoff.",
-                        locked ? gates.governmentVoteLockMessage() : eligible ? "Ready" : "Active citizens only",
+                        locked ? gates.governmentVoteLockMessage() : eligible ? "Ready" : "Active Embers only",
                         !locked && eligible, false));
                 boolean formRowsUnlocked = !locked && eligible;
                 String activeFormId = state.activeGovernmentFormId();
@@ -379,7 +381,7 @@ public final class GovernmentBlockInteractions {
                 boolean colorRowsUnlocked = eligible;
                 rows.add(row("realm_color", "Realm Color",
                         "The first vote starts a 24h window. The winning vanilla color is applied after resolution.",
-                        eligible ? "Ready" : "Active citizens only",
+                        eligible ? "Ready" : "Active Embers only",
                         eligible, false));
                 forms = colorRows(states, vote, player.getUuid(), colorRowsUnlocked, state.votedColor());
             }
@@ -432,7 +434,7 @@ public final class GovernmentBlockInteractions {
             }
             case CITIZEN_FEATURES -> {
                 title = "Current Votes";
-                subtitle = "Active citizen votes and recent results for " + api.realms().officialName(realm) + ".";
+                subtitle = "Active Ember votes and recent results for " + api.realms().officialName(realm) + ".";
                 rows.addAll(currentVoteRows(api, states, player.getUuid(), realm.id()));
                 modules = citizenModules();
             }
@@ -446,7 +448,7 @@ public final class GovernmentBlockInteractions {
                 fallbackMessage(message, locked, eligible, lockMessage), primaryAction,
                 session.id(), screenId(screen), "", screenId(screen), title, true, false,
                 "civic_forum", "current_votes", formLabel(definitions, state),
-                authorityLabel(api, definitions, state), "Citizen Assembly",
+                authorityLabel(api, definitions, state), "Ember Assembly",
                 selectedColor(realm, state), "civic_crest", "",
                 rows, forms, offices, modules));
     }
@@ -551,8 +553,8 @@ public final class GovernmentBlockInteractions {
             subtitle = "Government chronicle entries for " + api.realms().officialName(realm) + ".";
             rows = historyRows(api, states.governmentHistory(realm.id(), 40), states.laws(realm.id()), false);
         } else {
-            title = "Citizen Proposals";
-            subtitle = "Submit and follow citizen proposals for " + api.realms().officialName(realm) + ".";
+            title = "Ember Proposals";
+            subtitle = "Submit and follow Ember proposals for " + api.realms().officialName(realm) + ".";
             rows = proposalRows(api, states.proposals(realm.id()), false, player.getUuid(), states, player, realm.id());
             primaryAction = states.eligibleCitizen(player, realm.id()) ? "create_proposal" : "";
         }
@@ -563,7 +565,7 @@ public final class GovernmentBlockInteractions {
                 fallbackMessage(message, false, states.eligibleCitizen(player, realm.id()), ""), primaryAction,
                 session.id(), "civic_module_" + module, "civic_features", "civic_features", title, false, true,
                 "civic_forum", module, formLabel(definitions, states.realm(realm.id())),
-                authorityLabel(api, definitions, states.realm(realm.id())), "Citizen Assembly",
+                authorityLabel(api, definitions, states.realm(realm.id())), "Ember Assembly",
                 selectedColor(realm, states.realm(realm.id())), "civic_crest", "",
                 rows, List.of(), "offices".equals(module) ? rows : List.of(), citizenModules()));
     }
@@ -608,7 +610,7 @@ public final class GovernmentBlockInteractions {
             rows = officeRows(api, states, form, states.realm(realm.id()));
         } else {
             title = "Review";
-            subtitle = "Approve or reject pending citizen proposals.";
+            subtitle = "Approve or reject pending Ember proposals.";
             rows = proposalRows(api, states.proposals(realm.id()), canReviewProposals, player.getUuid(),
                     states, player, realm.id());
             primaryAction = states.isAuthority(realm.id(), player.getUuid()) ? "send_notice" : "";
@@ -645,7 +647,7 @@ public final class GovernmentBlockInteractions {
                 .forEach(proposal -> rows.add(proposalVoteRow(api, states, proposal, viewer, "recent_vote")));
         if (rows.isEmpty()) {
             return List.of(row("empty", "No Active Votes",
-                    "No active citizen votes are open. Recent Government outcomes appear here for 24 hours.",
+                    "No active Ember votes are open. Recent Government outcomes appear here for 24 hours.",
                     "Empty", false, false));
         }
         return rows;
@@ -679,7 +681,7 @@ public final class GovernmentBlockInteractions {
                 iconForCategory(proposal.category()),
                 categoryLabel(proposal.category()),
                 actor,
-                ratification ? "Citizen vote" : statusLabel(proposal.status()),
+                ratification ? "Ember vote" : statusLabel(proposal.status()),
                 approvals,
                 rejections,
                 threshold,
@@ -834,7 +836,7 @@ public final class GovernmentBlockInteractions {
 
     private static List<GovernmentUiOpenPayload.Row> citizenModules() {
         return List.of(
-                navigationRow("proposals", "Proposals", "Create and track citizen proposals.", "Open", true, false),
+                navigationRow("proposals", "Proposals", "Create and track Ember proposals.", "Open", true, false),
                 navigationRow("laws", "Laws", "Read active law and civic records.", "Open", true, false),
                 navigationRow("projects", "Projects", "Read approved project records.", "Open", true, false),
                 navigationRow("offices", "Offices", "View current authority holders.", "Open", true, false),
@@ -844,7 +846,7 @@ public final class GovernmentBlockInteractions {
 
     static List<GovernmentUiOpenPayload.Row> seatModuleRows(GovernmentFormDefinition form) {
         List<GovernmentUiOpenPayload.Row> rows = new ArrayList<>();
-        rows.add(navigationRow("review", "Review", "Review pending citizen proposals.", "Open", true, false));
+        rows.add(navigationRow("review", "Review", "Review pending Ember proposals.", "Open", true, false));
         rows.add(navigationRow("laws", "Laws", "View and archive active laws.", "Open", true, false));
         rows.add(navigationRow("projects", "Projects", "View approved project records.", "Open", true, false));
         rows.add(navigationRow("offices", "Offices", "View and manage authority holders.", "Open", true, false));
@@ -904,7 +906,7 @@ public final class GovernmentBlockInteractions {
             String realmId
     ) {
         if (proposals.isEmpty()) {
-            return List.of(row("empty", "No Proposals", "No citizen proposals are recorded yet.", "Waiting", false, false));
+            return List.of(row("empty", "No Proposals", "No Ember proposals are recorded yet.", "Waiting", false, false));
         }
         List<GovernmentProposalRecord> visible = proposals.stream()
                 .filter(GovernmentBlockInteractions::visibleProposal)
@@ -929,7 +931,7 @@ public final class GovernmentBlockInteractions {
                             : proposal.status() == GovernmentProposalStatus.FINAL_TEXT_REVIEW
                             ? canAct ? "Review" : "Wording review"
                             : proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
-                            ? authorityView ? "Citizen Vote"
+                            ? authorityView ? "Ember Vote"
                             : proposal.citizenVotes().containsKey(viewer) ? "Voted" : "Ratify"
                             : proposal.status() == GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION
                             ? canAct ? "Finalize" : "Approved"
@@ -953,7 +955,7 @@ public final class GovernmentBlockInteractions {
                             proposal.status() == GovernmentProposalStatus.ENACTED,
                             iconForCategory(proposal.category()), categoryLabel(proposal.category()), actor,
                             proposal.status() == GovernmentProposalStatus.CITIZEN_RATIFICATION
-                                    ? "Citizen vote" : authorityView ? "Authority review" : "Proposal",
+                                    ? "Ember vote" : authorityView ? "Authority review" : "Proposal",
                             approveCount, rejectCount, threshold, proposal.createdAt());
                 })
                 .toList();
@@ -1015,10 +1017,13 @@ public final class GovernmentBlockInteractions {
     ) {
         List<GovernmentUiOpenPayload.Row> rows = new ArrayList<>();
         for (PublicHistoryEntry entry : history) {
+            if (!GovernmentChronicleText.visibleInArchive(entry)) continue;
+            String actorName = historyActorName(api, entry);
+            ChronicleProjection projection = api.publicHistory().project(entry, new ChronicleRenderContext(actorName));
             rows.add(new GovernmentUiOpenPayload.Row(
                     entry.eventId().toString(),
-                    historyTitle(entry),
-                    uiTextForDisplay(api, entry.text()),
+                    projection.title(),
+                    uiTextForDisplay(api, projection.body()),
                     timeLabel(entry.timestamp()),
                     true,
                     true,
@@ -1026,9 +1031,9 @@ public final class GovernmentBlockInteractions {
                     0L,
                     "history",
                     iconForHistory(entry),
-                    "History",
-                    historyActorName(api, entry),
-                    historyDetailLabel(entry),
+                    projection.category(),
+                    actorName,
+                    projection.detailLabel(),
                     0L,
                     0L,
                     0L,
@@ -1060,7 +1065,7 @@ public final class GovernmentBlockInteractions {
         GovernmentFormDefinition form = definitions.require(state.activeGovernmentFormId());
         return authorityLabel(form, state, uuid -> api.citizens().find(uuid)
                 .map(GovernmentBlockInteractions::citizenName)
-                .orElse("Unknown Citizen"));
+                .orElse("Unknown Ember"));
     }
 
     static String authorityLabel(
@@ -1171,7 +1176,7 @@ public final class GovernmentBlockInteractions {
     private static String fallbackMessage(String message, boolean locked, boolean eligible, String lockMessage) {
         if (message != null && !message.isBlank()) return message;
         if (locked) return lockMessage == null ? "" : lockMessage;
-        if (!eligible) return "Only active citizens of this Realm can use this civic action.";
+        if (!eligible) return "Only active Embers of this Realm can use this civic action.";
         return "";
     }
 
@@ -1300,7 +1305,7 @@ public final class GovernmentBlockInteractions {
             if (!state.officeHolders().containsKey("president")) {
                 return "Elect one President first. Council elections open after the President is chosen.";
             }
-            return "Elect up to three Councilors. Each citizen may approve three different candidates.";
+            return "Elect up to three Councilors. Each Ember may approve three different candidates.";
         }
         if ("theocracy".equals(state.activeGovernmentFormId())) {
             String faith = state.faithDisplayName().isBlank() ? "the founding faith" : state.faithDisplayName();
@@ -1308,7 +1313,7 @@ public final class GovernmentBlockInteractions {
                     + ". Synod Members are appointed by the High Priest after founding.";
         }
         if ("confederation".equals(state.activeGovernmentFormId())) {
-            return "Elect up to three group Delegates. Each citizen may approve three different candidates.";
+            return "Elect up to three group Delegates. Each Ember may approve three different candidates.";
         }
         return "Choose the first authority holders for " + formName(definitions, state) + ".";
     }
@@ -1327,10 +1332,10 @@ public final class GovernmentBlockInteractions {
     private static String foundingElectionRules(RealmGovernmentState state) {
         return switch (state.activeGovernmentFormId()) {
             case "republic" -> state.officeHolders().containsKey("president")
-                    ? "Councilor nominations run first. Voting opens after nominations close. Each citizen may approve up to three Councilor candidates."
-                    : "President nominations run first. Voting opens after nominations close. Each citizen may approve one President candidate.";
+                    ? "Councilor nominations run first. Voting opens after nominations close. Each Ember may approve up to three Councilor candidates."
+                    : "President nominations run first. Voting opens after nominations close. Each Ember may approve one President candidate.";
             case "theocracy" -> "High Priest nominations run first. Voting opens after nominations close. The High Priest chooses Synod Members after founding.";
-            case "confederation" -> "Delegate nominations run first. Voting opens after nominations close. Each citizen may approve up to three different Delegate candidates.";
+            case "confederation" -> "Delegate nominations run first. Voting opens after nominations close. Each Ember may approve up to three different Delegate candidates.";
             default -> "Nominations run first. Voting opens after nominations close. Multi-seat offices accept multiple approvals.";
         };
     }
@@ -1447,50 +1452,18 @@ public final class GovernmentBlockInteractions {
     }
 
     private static String historyTitle(PublicHistoryEntry entry) {
-        if (entry == null || entry.type().isBlank()) return "Government Event";
-        String friendly = switch (entry.type()) {
-            case "founding-nominated" -> "Candidate Nominated";
-            case "founding-election-phase-resolved" -> "Election Phase Completed";
-            case "founding-election-resolved" -> "Founding Election Completed";
-            case "proposal-created" -> "Citizen Proposal Submitted";
-            case "proposal-approved" -> "Proposal Approved";
-            case "proposal-citizen-ratification-opened" -> "Citizen Vote Opened";
-            case "vote-resolved" -> "Founding Vote Resolved";
-            case "realm-name-chosen" -> "Realm Name Chosen";
-            case "realm-color-chosen" -> "Realm Color Chosen";
-            case "government-form-chosen" -> "Government Form Chosen";
-            case "theocracy-faith-chosen" -> "Founding Faith Chosen";
-            case "monarchy-succession" -> "Monarch Succeeded";
-            case "monarchy-vacancy" -> "Monarchy Became Vacant";
-            default -> "";
-        };
-        if (!friendly.isBlank()) return friendly;
-        String[] parts = entry.type().replace('_', '-').split("-");
-        StringBuilder builder = new StringBuilder();
-        for (String part : parts) {
-            if (part.isBlank()) continue;
-            if (!builder.isEmpty()) builder.append(' ');
-            builder.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
-        }
-        return builder.isEmpty() ? "Government Event" : builder.toString();
+        return GovernmentChronicleText.historyTitle(entry == null ? "" : entry.type());
     }
 
     private static String historyActorName(ElarionApi api, PublicHistoryEntry entry) {
         if (entry == null || entry.actorId() == null) return "Realm Government";
         return api.citizens().find(entry.actorId())
                 .map(GovernmentBlockInteractions::citizenName)
-                .orElse("Former citizen");
+                .orElse("Former Ember");
     }
 
     private static String historyDetailLabel(PublicHistoryEntry entry) {
-        if (entry == null) return "Civic record";
-        return switch (entry.type()) {
-            case "founding-nominated" -> "Entered the founding election";
-            case "founding-election-phase-resolved", "founding-election-resolved" -> "Election result recorded";
-            case "proposal-created" -> "Proposal entered public record";
-            case "vote-resolved" -> "Winning choice recorded";
-            default -> "Government chronicle";
-        };
+        return GovernmentChronicleText.project(entry, "").detailLabel();
     }
 
     private static String timeLabel(long timestamp) {
@@ -1513,7 +1486,7 @@ public final class GovernmentBlockInteractions {
     }
 
     private static String holderNames(ElarionApi api, Set<UUID> holders) {
-        if (holders == null || holders.isEmpty()) return "No citizens assigned.";
+        if (holders == null || holders.isEmpty()) return "No Embers assigned.";
         return holders.stream()
                 .map(uuid -> citizenName(api, uuid))
                 .sorted()
@@ -1528,7 +1501,7 @@ public final class GovernmentBlockInteractions {
         return api.citizens().find(uuid)
                 .map(GovernmentBlockInteractions::citizenName)
                 .filter(name -> !name.isBlank())
-                .orElse("Unknown Citizen");
+                .orElse("Unknown Ember");
     }
 
     private static String citizenName(CitizenRecord citizen) {
@@ -1536,7 +1509,7 @@ public final class GovernmentBlockInteractions {
         if (citizen.lastKnownUsername() != null && !citizen.lastKnownUsername().isBlank()) {
             return citizen.lastKnownUsername();
         }
-        return "Unknown Citizen";
+        return "Unknown Ember";
     }
 
     static String uiTextForDisplay(ElarionApi api, String text) {
@@ -1544,7 +1517,7 @@ public final class GovernmentBlockInteractions {
         Matcher matcher = UUID_TEXT_PATTERN.matcher(text);
         StringBuilder builder = new StringBuilder();
         while (matcher.find()) {
-            String replacement = "Unknown Citizen";
+            String replacement = "Unknown Ember";
             try {
                 UUID uuid = UUID.fromString(matcher.group());
                 String name = citizenName(api, uuid);

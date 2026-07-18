@@ -15,9 +15,11 @@ public final class NpcConfigDefaults {
               worldheart_banker:
                 display-name: "Worldheart Banker"
                 description: "A %capital% banker example. Bank actions are registered later by Economy."
-                skin: dunk_banker
-                portrait: placeholder_portrait
+                skin: worldheart_banker
+                portrait: worldheart_banker_portrait
                 dialogue: worldheart_banker
+                faction: worldheart
+                tax-jurisdiction: "world:elarion:worldheart"
                 tags:
                   - bank
                   - worldheart
@@ -26,6 +28,119 @@ public final class NpcConfigDefaults {
                 # 0 means use ui.yml default-interaction-range-blocks.
                 interaction-range-blocks: 0
                 enabled: true
+              worldheart_trader:
+                display-name: "Worldheart Trader"
+                description: "A %capital% trader example with server-authored stock and prices."
+                skin: worldheart_trader
+                portrait: worldheart_trader_portrait
+                dialogue: worldheart_trader
+                faction: worldheart
+                trade-catalog: worldheart_trader
+                tax-jurisdiction: "world:elarion:worldheart"
+                tags:
+                  - trade
+                  - worldheart
+                  - service
+                required-ability: ""
+                interaction-range-blocks: 0
+                enabled: true
+            """;
+
+    public static final String TRADES = """
+            # NPC merchant catalogs. Rows are server-authored; clients only
+            # request quotes and confirmations.
+            config-version: 1
+            trades:
+              worldheart_trader:
+                offers:
+                  - id: nether_gate_ticket_bundle
+                    direction: buy
+                    label: "Nether Gate Ticket"
+                    subtitle: "2 ticket bundle"
+                    item: "elarion:portal_ticket"
+                    count: 2
+                    custom-model-data: 1
+                    price-key: "portal.ticket.nether"
+                    custom-name: "Nether Gate Ticket"
+                    lore:
+                      - "Grants one Nether Gate passage."
+                    price: 25
+                    stock-limit: 12
+                    restock-amount: 4
+                    restock-interval-seconds: 1800
+                    enabled: true
+                  - id: end_gate_ticket_bundle
+                    direction: buy
+                    label: "End Gate Ticket"
+                    subtitle: "2 ticket bundle"
+                    item: "elarion:portal_ticket"
+                    count: 2
+                    custom-model-data: 2
+                    price-key: "portal.ticket.end"
+                    custom-name: "End Gate Ticket"
+                    lore:
+                      - "Grants one End Gate passage."
+                    price: 40
+                    stock-limit: 8
+                    restock-amount: 2
+                    restock-interval-seconds: 3600
+                    enabled: true
+                  - id: cobblestone
+                    direction: buy
+                    label: "Cobblestone"
+                    subtitle: "1 block"
+                    item: "minecraft:cobblestone"
+                    count: 1
+                    price: 1
+                    stock-limit: 256
+                    restock-amount: 64
+                    restock-interval-seconds: 900
+                    enabled: true
+                  - id: cobblestone_buyback
+                    direction: sell
+                    label: "Cobblestone"
+                    subtitle: "Trader buys clean stone"
+                    item: "minecraft:cobblestone"
+                    count: 1
+                    price-key: "npc.sell.cobblestone"
+                    price: 1
+                    sell-match: exact_item
+                    component-policy: vanilla_only
+                    max-quantity: 64
+                    stock-destination: placed_npc
+                    destination-offer: cobblestone
+                    enabled: true
+                  - id: protection_armor
+                    direction: buy
+                    label: "Protection IV Armor"
+                    subtitle: "Diamond chestplate"
+                    item: "minecraft:diamond_chestplate"
+                    count: 1
+                    enchantments:
+                      - id: "minecraft:protection"
+                        level: 4
+                    price: 250
+                    stock-limit: 4
+                    restock-amount: 1
+                    restock-interval-seconds: 7200
+                    enabled: true
+                  - id: bulwark_of_the_gate
+                    direction: buy
+                    label: "Bulwark of the Gate"
+                    subtitle: "Named armour with lore"
+                    item: "minecraft:diamond_chestplate"
+                    count: 1
+                    custom-name: "Bulwark of the Gate"
+                    lore:
+                      - "A merchant-marked plate with old Nether ash in the seams."
+                    enchantments:
+                      - id: "minecraft:protection"
+                        level: 4
+                    price: 375
+                    stock-limit: 1
+                    restock-amount: 1
+                    restock-interval-seconds: 14400
+                    enabled: true
             """;
 
     public static final String SKINS = """
@@ -49,10 +164,18 @@ public final class NpcConfigDefaults {
                 fallback-type: "placeholder"
                 fallback-texture: ""
                 adapter: ""
-              dunk_banker:
-                display-name: "Dunk Banker"
+              worldheart_banker:
+                display-name: "Worldheart Banker"
                 type: "texture"
-                texture: "elarion:textures/entity/npc/dunk_banker.png"
+                texture: "elarion:textures/entity/npc/worldheart_banker.png"
+                player-name: ""
+                fallback-type: "texture"
+                fallback-texture: "elarion:textures/entity/npc/worldheart_banker.png"
+                adapter: ""
+              worldheart_trader:
+                display-name: "Worldheart Trader"
+                type: "texture"
+                texture: "elarion:textures/entity/npc/worldheart_trader.png"
                 player-name: ""
                 fallback-type: "placeholder"
                 fallback-texture: ""
@@ -76,6 +199,20 @@ public final class NpcConfigDefaults {
                 type: "player_head"
                 texture: ""
                 player-name: "Panyel"
+                fallback-type: "placeholder"
+                fallback-texture: ""
+              worldheart_banker_portrait:
+                display-name: "Worldheart Banker Portrait"
+                type: "texture"
+                texture: "elarion_core:textures/gui/library/portraits/32x32/portrait_character_portrait_icons_03_icons_03.png"
+                player-name: ""
+                fallback-type: "placeholder"
+                fallback-texture: ""
+              worldheart_trader_portrait:
+                display-name: "Worldheart Trader Portrait"
+                type: "texture"
+                texture: "elarion_core:textures/gui/library/portraits/32x32/portrait_character_portrait_icons_27_icons_27.png"
+                player-name: ""
                 fallback-type: "placeholder"
                 fallback-texture: ""
             """;
@@ -126,12 +263,25 @@ public final class NpcConfigDefaults {
                 sound: "minecraft:entity.villager.yes"
                 voice: ""
                 options:
-                  # Normal option: sends the player to another dialogue node.
-                  # Use button-text for the clickable label and player-text for
-                  # what appears in the player dialogue bubble after selection.
+                  - id: open_bank
+                    button-text: "Open Bank"
+                    player-text: "I would like to use the bank."
+                    presentation-role: "open_bank"
+                    next: bank
+                  - id: lore
+                    button-text: "What are %currency_plural%?"
+                    player-text: "What are %currency_plural%?"
+                    next: currency
+              bank:
+                presentation: bank
+                text: "Deposit carried %currency_plural% or withdraw from your account."
+                sound: "minecraft:entity.villager.yes"
+                voice: ""
+                options:
                   - id: deposit
                     button-text: "Deposit %currency_plural%."
                     player-text: "I would like to Deposit %currency_plural%."
+                    presentation-role: "deposit"
                     sound: "minecraft:ui.button.click"
                     voice: ""
                     prompt:
@@ -140,10 +290,11 @@ public final class NpcConfigDefaults {
                       action: "elarion:economy_deposit_currency_amount"
                       max-digits: 10
                       min-amount: 1
-                    next: intro
+                    next: bank
                   - id: withdraw
                     button-text: "Withdraw %currency_plural%."
                     player-text: "I would like to Withdraw %currency_plural%."
+                    presentation-role: "withdraw"
                     sound: "minecraft:ui.button.click"
                     voice: ""
                     prompt:
@@ -152,11 +303,12 @@ public final class NpcConfigDefaults {
                       action: "elarion:economy_withdraw_currency_amount"
                       max-digits: 10
                       min-amount: 1
+                    next: bank
+                  - id: back
+                    button-text: "Back to Conversation"
+                    player-text: "Let us speak instead."
+                    presentation-role: "back"
                     next: intro
-                  - id: lore
-                    button-text: "What are %currency_plural%?"
-                    player-text: "What are %currency_plural%?"
-                    next: currency
               currency:
                 text: "The %treasury% mints official currency known as %currency_plural%. Every %currency% bears the %seal%, the ancient mark recognized by every %realm_term%."
                 sound: "minecraft:entity.villager.yes"
@@ -165,6 +317,62 @@ public final class NpcConfigDefaults {
                   - id: back
                     button-text: "Back."
                     player-text: "I understand. Back to banking."
+                    next: intro
+            """;
+
+    public static final String TRADER_DIALOGUE = """
+            config-version: 1
+            id: worldheart_trader
+            root: intro
+            nodes:
+              intro:
+                text: "I keep a small table of useful goods for travelers. Browse stock, buy what you need, or sell clean materials."
+                sound: "minecraft:entity.villager.trade"
+                voice: ""
+                options:
+                  - id: open_trade
+                    button-text: "Trade"
+                    player-text: "Show me what you trade."
+                    presentation-role: "open_trade"
+                    next: trade
+                  - id: ask_goods
+                    button-text: "What do you sell?"
+                    player-text: "What kind of goods do you keep?"
+                    next: goods
+              trade:
+                presentation: trade
+                text: "Browse goods or prepare items to sell. Stock, prices, and trades stay server-authoritative."
+                sound: "minecraft:entity.villager.trade"
+                voice: ""
+                options:
+                  - id: buy
+                    button-text: "Buy Goods"
+                    player-text: "I want to buy goods."
+                    presentation-role: "buy"
+                    next: trade
+                  - id: sell
+                    button-text: "Sell Goods"
+                    player-text: "I want to sell goods."
+                    presentation-role: "sell"
+                    next: trade
+                  - id: back
+                    button-text: "Back to Conversation"
+                    player-text: "Let us speak instead."
+                    presentation-role: "back"
+                    next: intro
+              goods:
+                text: "My stall shows stock, prices, and accepted buyback items. The Worldheart ledger records every trade."
+                sound: "minecraft:entity.villager.yes"
+                voice: ""
+                options:
+                  - id: open_trade
+                    button-text: "Open Trade"
+                    player-text: "Let me see the stall."
+                    presentation-role: "open_trade"
+                    next: trade
+                  - id: back
+                    button-text: "Back."
+                    player-text: "Back to the start."
                     next: intro
             """;
 }

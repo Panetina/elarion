@@ -18,10 +18,21 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class ElarionCollectionService {
+    public static final String SHELL_TITLE = "Character Menu";
+    public static final String SHELL_SUBTITLE = "Profile, reputation, mounts, pets, and titles.";
+    public static final String PROFILE_TAB_ID = "profile";
+
     private static final Map<String, Integer> PINNED_TAB_ORDER = Map.of(
-            "mounts", 0,
-            "pets", 1,
-            "titles", 2);
+            PROFILE_TAB_ID, 0,
+            "reputation", 1,
+            "mounts", 2,
+            "pets", 3,
+            "titles", 4);
+    private static final ElarionCollectionTab PROFILE_TAB = new ElarionCollectionTab(
+            PROFILE_TAB_ID,
+            "Profile",
+            "Public Ember identity and Realm summary.",
+            List.of());
     private static final ElarionCollectionTab PETS_TAB = new ElarionCollectionTab(
             "pets",
             "Pets",
@@ -45,6 +56,10 @@ public final class ElarionCollectionService {
             originalOrder.putIfAbsent(tab.id(), originalOrder.size());
             tabs.add(tab);
         }
+        if (tabs.stream().noneMatch(tab -> PROFILE_TAB_ID.equals(tab.id()))) {
+            originalOrder.putIfAbsent(PROFILE_TAB.id(), originalOrder.size());
+            tabs.add(PROFILE_TAB);
+        }
         if (tabs.stream().noneMatch(tab -> "pets".equals(tab.id()))) {
             originalOrder.putIfAbsent(PETS_TAB.id(), originalOrder.size());
             tabs.add(PETS_TAB);
@@ -55,11 +70,13 @@ public final class ElarionCollectionService {
         String selected = normalize(selectedTabId);
         String requested = selected;
         if (selected.isBlank() || tabs.stream().noneMatch(tab -> tab.id().equals(requested))) {
-            selected = tabs.isEmpty() ? "" : tabs.getFirst().id();
+            selected = tabs.stream().anyMatch(tab -> PROFILE_TAB_ID.equals(tab.id()))
+                    ? PROFILE_TAB_ID
+                    : tabs.isEmpty() ? "" : tabs.getFirst().id();
         }
         return new ElarionCollectionSnapshot(
-                "Collection",
-                "Mounts, pets, and titles.",
+                SHELL_TITLE,
+                SHELL_SUBTITLE,
                 selected,
                 message,
                 tabs);

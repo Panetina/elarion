@@ -1,22 +1,29 @@
 package panetina.elarion.core;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
+import panetina.elarion.core.client.CitizenProfileClientState;
 import panetina.elarion.core.client.ClientIdentityCache;
 import panetina.elarion.core.client.ElarionAdminPanelScreen;
 import panetina.elarion.core.client.ElarionCollectionScreen;
 import panetina.elarion.core.client.ElarionConfigEditClientState;
 import panetina.elarion.core.client.ElarionNotificationHud;
+import panetina.elarion.core.client.ElarionUiComponentGalleryScreen;
 import panetina.elarion.core.client.CharacterCreationFlow;
 import panetina.elarion.core.client.CharacterRealmAssignmentScreen;
 import panetina.elarion.core.network.CollectionOpenPayload;
 import panetina.elarion.core.network.CollectionOpenRequestPayload;
+import panetina.elarion.core.network.CitizenProfileSnapshotPayload;
+import panetina.elarion.core.network.CitizenProfileOpenPayload;
 import panetina.elarion.core.network.AdminPanelOpenPayload;
 import panetina.elarion.core.network.IdentitySyncRequestPayload;
 import panetina.elarion.core.network.IdentitySyncPayload;
@@ -32,6 +39,7 @@ import panetina.elarion.core.client.ui.ElarionUiThemes;
 
 public final class ElarionCoreClient implements ClientModInitializer {
     private static KeyBinding collectionKey;
+    private static boolean vanillaSaveHotbarBindingChecked;
 
     @Override
     public void onInitializeClient() {
@@ -42,6 +50,8 @@ public final class ElarionCoreClient implements ClientModInitializer {
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_C,
                 "category.elarion_core.ui"));
+        registerCharacterMenuCommand();
+        registerUiGalleryCommandAlias();
         ClientPlayNetworking.registerGlobalReceiver(IdentitySyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientIdentityCache.update(payload)));
         ClientPlayNetworking.registerGlobalReceiver(UiThemeSyncPayload.ID, (payload, context) ->
@@ -61,6 +71,13 @@ public final class ElarionCoreClient implements ClientModInitializer {
                         context.client().setScreen(new ElarionCollectionScreen(payload.snapshot()));
                     }
                 }));
+        ClientPlayNetworking.registerGlobalReceiver(CitizenProfileSnapshotPayload.ID, (payload, context) ->
+                context.client().execute(() -> CitizenProfileClientState.update(payload.snapshot())));
+        ClientPlayNetworking.registerGlobalReceiver(CitizenProfileOpenPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    CitizenProfileClientState.update(payload.profile());
+                    context.client().setScreen(new ElarionCollectionScreen(payload.collection(), true));
+                }));
         ClientPlayNetworking.registerGlobalReceiver(AdminPanelOpenPayload.ID, (payload, context) ->
                 context.client().execute(() -> {
                     if (context.client().currentScreen instanceof ElarionAdminPanelScreen screen) {
@@ -74,13 +91,12 @@ public final class ElarionCoreClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(ElarionConfigEditOpenPayload.ID, (payload, context) ->
                 context.client().execute(() -> ElarionConfigEditClientState.open(payload.control())));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (!vanillaSaveHotbarBindingChecked && client.options != null) {
+                vanillaSaveHotbarBindingChecked = unbindVanillaSaveHotbarActivator(client);
+            }
             if (client.player == null || collectionKey == null) return;
             while (collectionKey.wasPressed()) {
-                if (client.currentScreen instanceof ElarionCollectionScreen) {
-                    client.setScreen(null);
-                } else {
-                    ClientPlayNetworking.send(CollectionOpenRequestPayload.INSTANCE);
-                }
+                toggleCollection(client);
             }
         });
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
@@ -88,6 +104,7 @@ public final class ElarionCoreClient implements ClientModInitializer {
             ElarionUiThemes.clear();
             ElarionNotificationHud.update(ElarionNotificationSnapshot.EMPTY);
             CharacterCreationFlow.clear();
+            CitizenProfileClientState.clear();
             ElarionConfigEditClientState.clear();
             ClientPlayNetworking.send(IdentitySyncRequestPayload.INSTANCE);
             ClientPlayNetworking.send(CharacterCreationStatusRequestPayload.INSTANCE);
@@ -98,7 +115,58 @@ public final class ElarionCoreClient implements ClientModInitializer {
             ElarionUiThemes.clear();
             ElarionNotificationHud.update(ElarionNotificationSnapshot.EMPTY);
             CharacterCreationFlow.clear();
+            CitizenProfileClientState.clear();
             ElarionConfigEditClientState.clear();
         });
+    }
+
+    private static void registerCharacterMenuCommand() {
+        ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
+            if (!opensCharacterMenuCommand(command)) return true;
+            toggleCollection(MinecraftClient.getInstance());
+            return false;
+        });
+    }
+
+    private static void registerUiGalleryCommandAlias() {
+        if (!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
+        ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
+            if (!"elarion-ui-gallery".equals(rootCommand(command))) return true;
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client != null) client.setScreen(new ElarionUiComponentGalleryScreen());
+            return false;
+        });
+    }
+
+    private static boolean unbindVanillaSaveHotbarActivator(MinecraftClient client) {
+        if (client == null || client.options == null) return false;
+        KeyBinding key = client.options.saveToolbarActivatorKey;
+        if (key == null) return true;
+        if (!"key.keyboard.c".equals(key.getBoundKeyTranslationKey())) return true;
+        key.setBoundKey(InputUtil.UNKNOWN_KEY);
+        KeyBinding.updateKeysByCode();
+        client.options.write();
+        return true;
+    }
+
+    private static void toggleCollection(MinecraftClient client) {
+        if (client == null || client.player == null) return;
+        if (client.currentScreen instanceof ElarionCollectionScreen) {
+            client.setScreen(null);
+            return;
+        }
+        ClientPlayNetworking.send(CollectionOpenRequestPayload.INSTANCE);
+    }
+
+    private static String rootCommand(String command) {
+        if (command == null) return "";
+        String trimmed = command.trim().toLowerCase(java.util.Locale.ROOT);
+        if (trimmed.startsWith("/")) trimmed = trimmed.substring(1).trim();
+        int space = trimmed.indexOf(' ');
+        return space < 0 ? trimmed : trimmed.substring(0, space);
+    }
+
+    static boolean opensCharacterMenuCommand(String command) {
+        return "charactermenu".equals(rootCommand(command));
     }
 }

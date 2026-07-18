@@ -10,11 +10,17 @@ Commands: `/e offerings ...`.
 
 Network packets: `ShrineUiOpenPayload`, `ShrineContributionSubmitPayload`.
 
-GUI/screens: `ShrineOfFoundationScreen`, shared Core UI primitives.
+GUI/screens: `ShrineOfFoundationScreen`, using the shared civic shell, selected
+tabs, compact rows, reward slots, numeric modal, and native item tooltips.
 
 Storage/persistence: `world/elarion/addon-state/offerings/state.json`, `projects.json`, `anchors.json`.
 
-Dependencies: Core history, Core rewards, Core active citizen eligibility, Economy for banked currency offerings.
+Config reload safety: Offering project definitions and Shrine UI config are
+committed as one service snapshot. A failed second-stage UI load preserves the
+previous active project/UI pair.
+
+Dependencies: Core history, Core rewards, Core active citizen eligibility,
+Economy for carried physical-currency offerings and audited refunds.
 
 Related systems: Economy, Realms, Chronicles, NPCs, future Ledger and ceremonies.
 

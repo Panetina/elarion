@@ -28,7 +28,7 @@ public final class QuestStorage {
 
     public QuestRuntimeState load(Path root) {
         return JsonStateStorage.read(root.resolve("state.json"), GSON, QuestRuntimeState.class,
-                QuestRuntimeState::new, QuestRuntimeState::copy, logger, "quests-state");
+                QuestRuntimeState::new, QuestStorage::normalize, logger, "quests-state");
     }
 
     public void save(MinecraftServer server, QuestRuntimeState state) {
@@ -42,5 +42,13 @@ public final class QuestStorage {
 
     private Path root(MinecraftServer server) {
         return explicitRoot != null ? explicitRoot : JsonStateStorage.addonStateRoot(server, "quests");
+    }
+
+    private static QuestRuntimeState normalize(QuestRuntimeState state) {
+        if (state.schemaVersion <= 0) state.schemaVersion = QuestRuntimeState.CURRENT_SCHEMA_VERSION;
+        if (state.schemaVersion != QuestRuntimeState.CURRENT_SCHEMA_VERSION) {
+            throw new IllegalStateException("Unsupported quest state schema " + state.schemaVersion);
+        }
+        return state.copy();
     }
 }

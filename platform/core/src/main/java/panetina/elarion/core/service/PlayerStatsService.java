@@ -43,6 +43,16 @@ public final class PlayerStatsService {
         return value;
     }
 
+    public void set(UUID uuid, String key, long value) {
+        PlayerStats stats = get(uuid);
+        stats.set(normalize(key), value);
+        dirty.mark(uuid);
+    }
+
+    public long value(UUID uuid, String key) {
+        return get(uuid).value(normalize(key));
+    }
+
     public void saveIfDue() {
         long now = System.currentTimeMillis();
         if (now - lastSaveAt < SAVE_INTERVAL_MILLIS) return;

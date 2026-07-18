@@ -1,7 +1,11 @@
 package panetina.elarion.core.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.LoggerFactory;
+import panetina.elarion.core.config.CoreConfigManager;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -10,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class NicknameServiceTest {
+    @TempDir
+    Path tempDir;
+
     @Test
     void equivalentVariantsShareOneComparisonKey() {
         List<String> variants = List.of(
@@ -59,5 +66,15 @@ final class NicknameServiceTest {
         assertFalse(NicknameService.hasAllowedCharacters("Jean123"));
         assertFalse(NicknameService.hasValidStructure("Jean--Luc"));
         assertFalse(NicknameService.hasValidStructure("'Jean"));
+    }
+
+    @Test
+    void unsafeMinecraftUsernameIsNotUsedAsCharacterNamePrefill() {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("nickname-test"), tempDir);
+        config.load();
+        NicknameService service = new NicknameService(config, null);
+
+        assertEquals("", service.safePrefill("Player903"));
+        assertEquals("Phase Scout", service.safePrefill("  pHASE   sCOUT "));
     }
 }

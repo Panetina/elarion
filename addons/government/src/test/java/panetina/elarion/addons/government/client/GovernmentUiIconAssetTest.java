@@ -48,11 +48,11 @@ final class GovernmentUiIconAssetTest {
 
     @Test
     void iconResolverMapsKnownIdsAndAliasesToTextures() {
-        assertEquals("textures/gui/icons/civic_crest.png",
+        assertEquals("textures/gui/library/armor/32x32/pack_2_shield_0872.png",
                 GovernmentUiIcons.texturePath("civic_crest").orElseThrow());
         assertEquals("textures/gui/icons/dark_green.png",
                 GovernmentUiIcons.texturePath("dark green").orElseThrow());
-        assertEquals("textures/gui/icons/law.png",
+        assertEquals("textures/gui/library/documents/32x32/pack_2_book_0301.png",
                 GovernmentUiIcons.texturePath("published_record").orElseThrow());
         assertFalse(GovernmentUiIcons.texturePath("unknown_custom_thing").isPresent());
     }
@@ -62,7 +62,7 @@ final class GovernmentUiIconAssetTest {
         Set<String> paths = new HashSet<>();
         for (String iconId : Set.of("current_votes", "proposal", "law", "project", "office", "history")) {
             String path = GovernmentUiIcons.texturePath(iconId).orElseThrow();
-            assertTrue(path.startsWith(GovernmentUiIcons.ICON_PATH));
+            assertTrue(path.startsWith("textures/gui/library/"));
             assertTrue(paths.add(path), "Repeated tab icon texture path: " + iconId);
         }
     }

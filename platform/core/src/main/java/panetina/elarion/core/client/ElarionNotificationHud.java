@@ -6,7 +6,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -18,6 +17,9 @@ import panetina.elarion.core.client.ui.ElarionUiThemes;
 import panetina.elarion.core.client.ui.ElarionHudOverlayRegistry;
 import panetina.elarion.core.client.ui.ElarionCivicColors;
 import panetina.elarion.core.client.ui.ElarionCivicUi;
+import panetina.elarion.core.client.ui.ElarionEmptyStateLayout;
+import panetina.elarion.core.client.ui.ElarionItemSlotLayout;
+import panetina.elarion.core.client.ui.ElarionUiIcons;
 import panetina.elarion.core.model.ElarionNotificationAction;
 import panetina.elarion.core.model.ElarionNotificationCategory;
 import panetina.elarion.core.model.ElarionNotificationEntry;
@@ -39,14 +41,6 @@ public final class ElarionNotificationHud {
             Identifier.of("elarion_core", "textures/gui/notifications/realm_nonew.png");
     private static final Identifier REALM_NEW_TEXTURE =
             Identifier.of("elarion_core", "textures/gui/notifications/realm_new.png");
-    private static final Identifier QUEST_NONEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/quest_nonew.png");
-    private static final Identifier QUEST_NEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/quest_new.png");
-    private static final Identifier WORLD_NONEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/world_nonew.png");
-    private static final Identifier WORLD_NEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/world_new.png");
     private static final int SCREEN_MARGIN = ElarionNotificationHudLayout.SCREEN_MARGIN;
     private static final int RAIL_WIDTH = ElarionNotificationHudLayout.RAIL_WIDTH;
     private static final int PANEL_X = ElarionNotificationHudLayout.PANEL_X;
@@ -65,7 +59,6 @@ public final class ElarionNotificationHud {
     private static final int QUEST_Y = 58;
     private static final int WORLD_Y = 85;
     private static final int SOURCE_SIZE = 16;
-    private static final int LARGE_SOURCE_SIZE = 32;
     private static final int DISPLAY_SIZE = 24;
     private static final int ACCESSORY_Y = WORLD_Y + DISPLAY_SIZE + 9;
     private static final int ICON_DRAW_SIZE = 16;
@@ -284,6 +277,9 @@ public final class ElarionNotificationHud {
         int iconX = (RAIL_WIDTH - ICON_DRAW_SIZE) / 2;
         int iconY = y + (DISPLAY_SIZE - ICON_DRAW_SIZE) / 2;
         drawRailGlyph(context, icon, unread, iconX, iconY, true);
+        if (unread && (icon == RailIcon.QUEST || icon == RailIcon.WORLD)) {
+            drawUnreadMarker(context, RAIL_WIDTH - 11, y + 3);
+        }
     }
 
     private static void drawRailSlot(DrawContext context, int y, boolean selected, boolean pointerVisible) {
@@ -314,10 +310,8 @@ public final class ElarionNotificationHud {
                     textureX, textureY, ICON_DRAW_SIZE);
             case REALM -> drawScaledTexture(context, unread ? REALM_NEW_TEXTURE : REALM_NONEW_TEXTURE,
                     textureX, textureY, ICON_DRAW_SIZE);
-            case QUEST -> drawScaledTexture(context, unread ? QUEST_NEW_TEXTURE : QUEST_NONEW_TEXTURE,
-                    x - 1, y - 1, ICON_DRAW_SIZE + 2, LARGE_SOURCE_SIZE);
-            case WORLD -> drawScaledTexture(context, unread ? WORLD_NEW_TEXTURE : WORLD_NONEW_TEXTURE,
-                    x - 1, y - 1, ICON_DRAW_SIZE + 2, LARGE_SOURCE_SIZE);
+            case QUEST -> ElarionUiIcons.drawOrDefault(context, "quest", x - 1, y - 1, ICON_DRAW_SIZE + 2);
+            case WORLD -> ElarionUiIcons.drawOrDefault(context, "world", x - 1, y - 1, ICON_DRAW_SIZE + 2);
         }
     }
 
@@ -345,14 +339,17 @@ public final class ElarionNotificationHud {
         int listX = listX();
         int listWidth = listWidth();
         if (entries.isEmpty()) {
-            ElarionCivicUi.rowSurface(context, listX, LIST_TOP, listWidth, EMPTY_CARD_HEIGHT, false, false, true);
+            ElarionEmptyStateLayout.EmptyState emptyLayout = ElarionEmptyStateLayout.compact(
+                    listX, LIST_TOP, listWidth, EMPTY_CARD_HEIGHT, ElarionUiTypography.lineHeight());
+            ElarionCivicUi.rowSurface(context, emptyLayout.panel().x(), emptyLayout.panel().y(),
+                    emptyLayout.panel().width(), emptyLayout.panel().height(), false, false, true);
             String emptyTitle = emptyTitle();
             String emptyBody = emptyBody();
             ElarionUiTypography.draw(context, renderer, emptyTitle,
-                    listX + 7, LIST_TOP + 7, CIVIC_GOLD_LIGHT, false);
+                    emptyLayout.titleX(), emptyLayout.titleY(), CIVIC_GOLD_LIGHT, false);
             ElarionUiRenderer.wrappedClipped(context, renderer, Text.literal(emptyBody),
-                    listX + 7, LIST_TOP + 9 + ElarionUiTypography.lineHeight(), listWidth - 14,
-                    EMPTY_CARD_HEIGHT - 16 - ElarionUiTypography.lineHeight(),
+                    emptyLayout.body().x(), emptyLayout.body().y(), emptyLayout.body().width(),
+                    emptyLayout.body().height(),
                     style.textColor(), style.mutedColor());
             return;
         }
@@ -525,29 +522,14 @@ public final class ElarionNotificationHud {
             DrawContext context, ElarionNotificationAction action, int x, int y, int color
     ) {
         String normalized = actionText(action.id(), action.label());
-        if (normalized.contains("dismiss") || normalized.contains("decline") || normalized.contains("reject")) {
-            for (int offset = 0; offset < 5; offset++) {
-                context.fill(x + 1 + offset, y + 1 + offset, x + 2 + offset, y + 2 + offset, color);
-                context.fill(x + 5 - offset, y + 1 + offset, x + 6 - offset, y + 2 + offset, color);
-            }
-            return;
-        }
-        if (normalized.contains("view")) {
-            context.fill(x + 1, y + 1, x + 6, y + 2, color);
-            context.fill(x, y + 2, x + 2, y + 6, color);
-            context.fill(x + 5, y + 2, x + 7, y + 6, color);
-            context.fill(x + 2, y + 6, x + 6, y + 7, color);
-            context.fill(x + 6, y + 6, x + 8, y + 8, color);
-            return;
-        }
-        if (normalized.contains("claim") || normalized.contains("accept") || normalized.contains("approve")) {
-            context.fill(x + 1, y + 4, x + 3, y + 6, color);
-            context.fill(x + 3, y + 5, x + 4, y + 7, color);
-            context.fill(x + 4, y + 2, x + 6, y + 6, color);
-            return;
-        }
-        context.fill(x + 1, y + 3, x + 7, y + 5, color);
-        context.fill(x + 5, y + 1, x + 8, y + 7, color);
+        String icon = normalized.contains("dismiss") || normalized.contains("decline")
+                || normalized.contains("reject") ? "dismiss"
+                : normalized.contains("view") ? "view"
+                : normalized.contains("claim") ? "claim"
+                : normalized.contains("accept") || normalized.contains("approve") ? "accept"
+                : normalized.contains("back") ? "back"
+                : "go_to";
+        ElarionUiIcons.drawOrDefault(context, icon, x, y, 8);
     }
 
     private static void drawLocalButton(
@@ -603,13 +585,12 @@ public final class ElarionNotificationHud {
         int startX = x + Math.max(0, (width - gridWidth) / 2);
         for (int index = 0; index < visible; index++) {
             var reward = entry.rewards().get(index);
-            int row = index / columns;
-            int column = index % columns;
-            int slotX = startX + column * (slot + gap);
-            int slotY = y + row * (slot + gap);
-            ElarionUiRenderer.beveledBox(context, slotX, slotY, slot, slot, style.insetColor(), style);
-            drawRewardPreviewIcon(context, renderer, reward.icon(), reward.count(), slotX, slotY, slot);
-            if (inside(mouseX, mouseY, slotX, slotY, slot, slot)) {
+            ElarionItemSlotLayout.Slot rewardSlot =
+                    ElarionItemSlotLayout.gridSlot(startX, y, index, columns, slot, gap, 1);
+            ElarionUiRenderer.beveledBox(context, rewardSlot.bounds().x(), rewardSlot.bounds().y(),
+                    rewardSlot.bounds().width(), rewardSlot.bounds().height(), style.insetColor(), style);
+            drawRewardPreviewIcon(context, renderer, reward.icon(), reward.count(), rewardSlot);
+            if (rewardSlot.contains(mouseX, mouseY)) {
                 hoveredReward = reward;
                 hoveredRewardStack = rewardStack(reward);
             }
@@ -839,10 +820,17 @@ public final class ElarionNotificationHud {
             return;
         }
         if (entry.category() == ElarionNotificationCategory.REWARD) {
-            drawCenteredItem(context, new ItemStack(Items.CHEST), x, y, size);
+            ElarionUiIcons.drawOrDefault(context, "reward", x, y, size);
             return;
         }
-        String icon = entry.icon() == null || entry.icon().isBlank() ? "item:minecraft:paper" : entry.icon();
+        String icon = entry.icon() == null || entry.icon().isBlank()
+                || "item:minecraft:paper".equals(entry.icon())
+                ? semanticNotificationIcon(entry)
+                : entry.icon();
+        if (ElarionUiIcons.has(icon)) {
+            ElarionUiIcons.drawOrDefault(context, icon, x, y, size);
+            return;
+        }
         if (icon.startsWith("item:")) {
             Identifier itemId = Identifier.tryParse(icon.substring("item:".length()));
             if (itemId != null && Registries.ITEM.containsId(itemId)) {
@@ -854,6 +842,16 @@ public final class ElarionNotificationHud {
         if (texture != null) context.drawTexture(texture, x + 2, y + 2, 0, 0, size - 4, size - 4, 16, 16);
     }
 
+    private static String semanticNotificationIcon(ElarionNotificationEntry entry) {
+        return switch (entry.category()) {
+            case PERSONAL, MAIL -> "mail";
+            case REALM, GOVERNMENT -> "realm";
+            case QUEST -> "quest";
+            case WORLD -> "world";
+            case REWARD -> "reward";
+        };
+    }
+
     private static void drawCenteredItem(DrawContext context, ItemStack stack, int x, int y, int size) {
         int itemX = x + Math.max(0, (size - 16) / 2);
         int itemY = y + Math.max(0, (size - 16) / 2);
@@ -861,30 +859,52 @@ public final class ElarionNotificationHud {
     }
 
     private static void drawRewardPreviewIcon(
-            DrawContext context, TextRenderer renderer, String rawIcon, int count, int x, int y, int size
+            DrawContext context,
+            TextRenderer renderer,
+            String rawIcon,
+            int count,
+            ElarionItemSlotLayout.Slot slot
     ) {
         String icon = rawIcon == null ? "" : rawIcon;
         if (icon.startsWith("item:")) {
             Identifier id = Identifier.tryParse(icon.substring("item:".length()));
             if (id != null && Registries.ITEM.containsId(id)) {
                 ItemStack stack = new ItemStack(Registries.ITEM.get(id), Math.max(1, count));
-                int itemX = x + Math.max(1, (size - 16) / 2);
-                int itemY = y + Math.max(1, (size - 16) / 2);
-                context.drawItem(stack, itemX, itemY);
-                context.drawItemInSlot(renderer, stack, itemX, itemY);
+                context.drawItem(stack, slot.itemDrawX(), slot.itemDrawY());
+                context.drawItemInSlot(renderer, stack, slot.itemDrawX(), slot.itemDrawY());
                 return;
             }
         }
+        if (ElarionUiIcons.has(icon)) {
+            int drawSize = Math.min(16, Math.max(1, slot.bounds().width() - 4));
+            int drawX = slot.bounds().x() + (slot.bounds().width() - drawSize) / 2;
+            int drawY = slot.bounds().y() + (slot.bounds().height() - drawSize) / 2;
+            ElarionUiIcons.drawOrDefault(context, icon, drawX, drawY, drawSize);
+            if (count > 1) {
+                String visibleCount = String.valueOf(count);
+                ElarionUiTypography.draw(context, renderer, visibleCount,
+                        slot.bounds().x() + slot.bounds().width() - 2 - ElarionUiTypography.width(renderer, visibleCount),
+                        slot.bounds().y() + slot.bounds().height() - 10,
+                        0xFFFFFFFF, true);
+            }
+            return;
+        }
+        if (icon.isBlank()) {
+            ElarionUiIcons.drawOrDefault(context, "reward", slot.itemDrawX(), slot.itemDrawY(),
+                    Math.max(1, slot.item().width()));
+            return;
+        }
         Identifier texture = Identifier.tryParse(icon);
         if (texture != null) {
-            int drawSize = Math.min(16, Math.max(1, size - 4));
-            int drawX = x + (size - drawSize) / 2;
-            int drawY = y + (size - drawSize) / 2;
+            int drawSize = Math.min(16, Math.max(1, slot.bounds().width() - 4));
+            int drawX = slot.bounds().x() + (slot.bounds().width() - drawSize) / 2;
+            int drawY = slot.bounds().y() + (slot.bounds().height() - drawSize) / 2;
             context.drawTexture(texture, drawX, drawY, 0, 0, drawSize, drawSize, 16, 16);
             if (count > 1) {
                 String visibleCount = String.valueOf(count);
                 ElarionUiTypography.draw(context, renderer, visibleCount,
-                        x + size - 2 - ElarionUiTypography.width(renderer, visibleCount), y + size - 10,
+                        slot.bounds().x() + slot.bounds().width() - 2 - ElarionUiTypography.width(renderer, visibleCount),
+                        slot.bounds().y() + slot.bounds().height() - 10,
                         0xFFFFFFFF, true);
             }
         }

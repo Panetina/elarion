@@ -19,7 +19,7 @@ import java.util.Map;
 
 public final class ElarionMountCollectionPreviewRenderer implements ElarionCollectionPreviewRegistry.PreviewRenderer {
     private static final float PREVIEW_YAW_DEGREES = -40.0F;
-    private static final double PREVIEW_PADDING = 1.18D;
+    private static final double PREVIEW_PADDING = 1.14D;
     private static final double PREVIEW_ANIMATION_SPEED = 0.6D;
 
     private final Map<ElarionMountType, ElarionMountEntity> previews = new EnumMap<>(ElarionMountType.class);
@@ -63,8 +63,9 @@ public final class ElarionMountCollectionPreviewRenderer implements ElarionColle
             return false;
         }
         mount.setMountType(type);
-        mount.setAnimationTimeScale(PREVIEW_ANIMATION_SPEED);
-        mount.age = (int) client.world.getTime();
+        double animationSpeed = type == ElarionMountType.WYVERN ? 0.0D : PREVIEW_ANIMATION_SPEED;
+        mount.setAnimationTimeScale(animationSpeed);
+        mount.age = type == ElarionMountType.WYVERN ? 0 : (int) client.world.getTime();
         mount.setYaw(45.0F);
         mount.prevYaw = 45.0F;
         mount.bodyYaw = 45.0F;
@@ -122,7 +123,28 @@ public final class ElarionMountCollectionPreviewRenderer implements ElarionColle
         if (bounds == null) {
             return 0;
         }
-        return (int) Math.round(-height * 0.5D + 6.0D + bounds.centerY() * size);
+        return (int) Math.round(-height * 0.5D + 6.0D + bounds.centerY() * size)
+                + previewArtYOffset(type);
+    }
+
+    static PreviewFrame previewFrame(ElarionMountType type, int width, int height) {
+        PreviewBounds bounds = previewBounds(type);
+        if (bounds == null) {
+            int size = fallbackPreviewSize(width, height);
+            int left = (width - size) / 2;
+            int top = (height - size) / 2;
+            return new PreviewFrame(left, top, left + size, top + size);
+        }
+        int size = previewSize(type, width, height);
+        int xOffset = previewXOffset(type, size);
+        int yOffset = previewYOffset(type, height, size);
+        double centerX = width * 0.5D + xOffset;
+        double baseY = height - 6.0D + yOffset;
+        return new PreviewFrame(
+                (int) Math.floor(centerX + bounds.minX() * size),
+                (int) Math.floor(baseY - bounds.maxY() * size),
+                (int) Math.ceil(centerX + bounds.maxX() * size),
+                (int) Math.ceil(baseY - bounds.minY() * size));
     }
 
     private static PreviewBounds previewBounds(ElarionMountType type) {
@@ -168,16 +190,31 @@ public final class ElarionMountCollectionPreviewRenderer implements ElarionColle
 
     private static int previewArtXOffset(ElarionMountType type) {
         return switch (type) {
-            case CHINESE_DRAGON -> 16;
-            case SCIFI_BIKE -> 34;
+            case AIRSHIP -> -17;
+            case BEE -> 17;
+            case CHINESE_DRAGON -> 37;
+            case SCIFI_BIKE -> 85;
+            case WYVERN -> -23;
             default -> 0;
         };
     }
 
     private static double previewArtScale(ElarionMountType type) {
         return switch (type) {
+            case AIRSHIP -> 0.94D;
+            case SCIFI_BIKE -> 0.86D;
             case WYVERN -> 1.22D;
             default -> 1.0D;
+        };
+    }
+
+    private static int previewArtYOffset(ElarionMountType type) {
+        return switch (type) {
+            case AIRSHIP -> 16;
+            case BEE -> -22;
+            case CHINESE_DRAGON -> 34;
+            case WYVERN -> 32;
+            default -> 0;
         };
     }
 
@@ -196,6 +233,24 @@ public final class ElarionMountCollectionPreviewRenderer implements ElarionColle
 
         double centerY() {
             return (minY + maxY) * 0.5D;
+        }
+    }
+
+    record PreviewFrame(int left, int top, int right, int bottom) {
+        int width() {
+            return right - left;
+        }
+
+        int height() {
+            return bottom - top;
+        }
+
+        int centerX() {
+            return (left + right) / 2;
+        }
+
+        int centerY() {
+            return (top + bottom) / 2;
         }
     }
 }

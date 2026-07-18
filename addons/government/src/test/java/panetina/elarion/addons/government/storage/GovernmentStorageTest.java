@@ -11,11 +11,14 @@ import panetina.elarion.addons.government.model.GovernmentProposalStatus;
 import panetina.elarion.addons.government.model.GovernmentVoteState;
 import panetina.elarion.addons.government.model.GovernmentVoteType;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GovernmentStorageTest {
     @TempDir
@@ -62,6 +65,7 @@ class GovernmentStorageTest {
         storage.save(root, state);
         GovernmentState loaded = storage.load(root);
 
+        assertEquals(GovernmentState.CURRENT_SCHEMA_VERSION, loaded.schemaVersion);
         assertEquals("theocracy", loaded.realms.get("realm1").activeGovernmentFormId());
         assertEquals("Oak", loaded.realms.get("realm1").votedDisplayName());
         assertEquals("OAK", loaded.realms.get("realm1").votedTag());
@@ -87,5 +91,22 @@ class GovernmentStorageTest {
         assertEquals(1L, loadedTerm.approvedCount());
         assertEquals(1L, loadedTerm.rejectedCount());
         assertEquals("aquatic", loaded.authorityTitleRestores.get("realm1|" + citizen));
+    }
+
+    @Test
+    void unsupportedFutureSchemaIsQuarantined() throws Exception {
+        Files.createDirectories(root);
+        Path stateFile = root.resolve("state.json");
+        Files.writeString(stateFile, "{\"schemaVersion\":99,\"realms\":{}}");
+
+        GovernmentStorage storage = new GovernmentStorage(LoggerFactory.getLogger("government-test"), root);
+        GovernmentState loaded = storage.load(root);
+
+        assertEquals(GovernmentState.CURRENT_SCHEMA_VERSION, loaded.schemaVersion);
+        assertTrue(loaded.realms.isEmpty());
+        assertFalse(Files.exists(stateFile));
+        try (var files = Files.list(root)) {
+            assertTrue(files.anyMatch(path -> path.getFileName().toString().startsWith("state.json.corrupt-")));
+        }
     }
 }

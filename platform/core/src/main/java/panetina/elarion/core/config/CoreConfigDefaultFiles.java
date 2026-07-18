@@ -117,9 +117,9 @@ final class CoreConfigDefaultFiles {
                         visibility-scope: "REALM"
                         spawn:
                           world: "elarion:realm_world_1"
-                          x: 0
-                          y: 64
-                          z: 0
+                          x: -367
+                          y: 75
+                          z: 138
                           yaw: 0
                           pitch: 0
                         # Optional flags:
@@ -134,9 +134,9 @@ final class CoreConfigDefaultFiles {
                         visibility-scope: "REALM"
                         spawn:
                           world: "elarion:realm_world_2"
-                          x: 0
-                          y: 64
-                          z: 0
+                          x: 3000
+                          y: 128
+                          z: 3920
                           yaw: 0
                           pitch: 0
                         flags: [ ]
@@ -148,9 +148,9 @@ final class CoreConfigDefaultFiles {
                         visibility-scope: "REALM"
                         spawn:
                           world: "elarion:realm_world_3"
-                          x: 0
-                          y: 64
-                          z: 0
+                          x: 6061
+                          y: 84
+                          z: 5122
                           yaw: 0
                           pitch: 0
                         flags: [ ]
@@ -160,10 +160,11 @@ final class CoreConfigDefaultFiles {
 
                     titles:
                       citizen:
-                        description: "A citizen of %server%."
-                        display-name: "Citizen"
+                        description: "An Ember of %server%."
+                        display-name: "Ember"
                         prefix: ""
                         suffix: ""
+                        color: "#C9C9C9"
                         priority: 0
                         visible-under-username: true
                         acquisition-mode: "DEFAULT"
@@ -175,6 +176,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "News Reporter"
                         prefix: ""
                         suffix: ""
+                        color: "#9CC8FF"
                         priority: 20
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -187,6 +189,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Diplomat"
                         prefix: ""
                         suffix: ""
+                        color: "#9CC8FF"
                         priority: 30
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -199,6 +202,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Monarch"
                         prefix: ""
                         suffix: ""
+                        color: "#FFD36A"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -210,6 +214,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Heir"
                         prefix: ""
                         suffix: ""
+                        color: "#E6B45A"
                         priority: 60
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -221,6 +226,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "President"
                         prefix: ""
                         suffix: ""
+                        color: "#FFD36A"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -232,6 +238,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Councilor"
                         prefix: ""
                         suffix: ""
+                        color: "#58D1A5"
                         priority: 60
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -243,6 +250,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Holy Priest"
                         prefix: ""
                         suffix: ""
+                        color: "#C084FF"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -254,6 +262,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Synod Member"
                         prefix: ""
                         suffix: ""
+                        color: "#C084FF"
                         priority: 60
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -265,6 +274,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Delegate"
                         prefix: ""
                         suffix: ""
+                        color: "#E6B45A"
                         priority: 70
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -276,6 +286,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Officer"
                         prefix: ""
                         suffix: ""
+                        color: "#5CB7E8"
                         priority: 50
                         visible-under-username: true
                         acquisition-mode: "ADMIN_ONLY"
@@ -287,6 +298,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Goblin Slayer"
                         prefix: ""
                         suffix: ""
+                        color: "#8DDCFF"
                         priority: 40
                         visible-under-username: true
                         acquisition-mode: "PROGRESSION"
@@ -298,6 +310,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Dragon Slayer"
                         prefix: ""
                         suffix: ""
+                        color: "#FFA83D"
                         priority: 100
                         visible-under-username: true
                         acquisition-mode: "PROGRESSION"
@@ -309,6 +322,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Aquatic"
                         prefix: ""
                         suffix: ""
+                        color: "#5ED1D1"
                         priority: 50
                         visible-under-username: true
                         acquisition-mode: "PROGRESSION"
@@ -327,6 +341,7 @@ final class CoreConfigDefaultFiles {
                         display-name: "Maze Runner"
                         prefix: ""
                         suffix: ""
+                        color: "#FFA83D"
                         priority: 80
                         visible-under-username: true
                         acquisition-mode: "PROGRESSION"
@@ -527,6 +542,7 @@ final class CoreConfigDefaultFiles {
                         - "world"
                         - "administration"
                         - "security"
+                        - "npc"
 
                     public-query:
                       default-weeks: 8
@@ -535,7 +551,7 @@ final class CoreConfigDefaultFiles {
 
                     # Current Core categories include:
                     # citizen, progression, realm, diplomacy, leadership,
-                    # reward, world, administration, title, security
+                    # reward, world, administration, title, security, npc
                     """),
             Map.entry("commands.yml", """
                     config-version: 1

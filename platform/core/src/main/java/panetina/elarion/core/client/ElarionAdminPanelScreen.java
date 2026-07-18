@@ -7,6 +7,7 @@ import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import panetina.elarion.core.client.ui.ElarionCivicColors;
 import panetina.elarion.core.client.ui.ElarionCivicUi;
+import panetina.elarion.core.client.ui.ElarionModalLayout;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
 import panetina.elarion.core.client.ui.ElarionScreen;
 import panetina.elarion.core.client.ui.ElarionTextInput;
@@ -44,13 +45,18 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
     private static final int CONTENT_BOTTOM = PANEL_HEIGHT - 32;
     private static final int ACTION_TOP = CONTENT_TOP + 118;
     private static final int ACTION_GAP = 5;
-    private static final int CONFIG_MODAL_X = 118;
-    private static final int CONFIG_MODAL_Y = 70;
-    private static final int CONFIG_MODAL_WIDTH = 424;
-    private static final int CONFIG_MODAL_HEIGHT = 292;
+    private static final int CONFIG_MODAL_X = 102;
+    private static final int CONFIG_MODAL_Y = 58;
+    private static final int CONFIG_MODAL_WIDTH = 456;
+    private static final int CONFIG_MODAL_HEIGHT = 324;
     private static final int CONFIG_EDIT_VALUE_MAX = 2048;
     private static final String CONFIG_EDIT_REASON = "admin-panel-config-edit-preview";
     private static final String CONFIG_EDIT_APPLY_REASON = "admin-panel-config-edit-apply";
+    private static final int ACTION_MODAL_WIDTH = 380;
+    private static final int ACTION_MODAL_CONFIRM_HEIGHT = 158;
+    private static final int ACTION_MODAL_INPUT_HEIGHT = 176;
+    private static final int ACTION_MODAL_BUTTON_WIDTH = 112;
+    private static final int ACTION_MODAL_BUTTON_HEIGHT = 20;
     private static final float MAX_SCALE = 0.95F;
 
     private ElarionAdminPanelSnapshot snapshot;
@@ -300,8 +306,7 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
             boolean selected = row.id().equals(selectedRowId);
             boolean hovered = inside(mouseX, mouseY, rowX, y, LIST_WIDTH - 16, ROW_HEIGHT);
             if (row.danger()) {
-                ElarionUiRenderer.beveledBox(context, rowX, y, LIST_WIDTH - 16, ROW_HEIGHT,
-                        ElarionCivicColors.BUTTON_DESTRUCTIVE, ElarionCivicColors.DESTRUCTIVE_BORDER, style);
+                renderDangerRowSurface(context, rowX, y, LIST_WIDTH - 16, ROW_HEIGHT, selected, hovered, style);
             } else {
                 ElarionCivicUi.rowSurface(context, rowX, y, LIST_WIDTH - 16, ROW_HEIGHT,
                         selected, hovered, false);
@@ -347,9 +352,9 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
             buttonY += BUTTON_HEIGHT + ACTION_GAP;
         }
         if (actions.size() > visibleActionCount()) {
-            String hint = (actionList.firstVisible() + 1) + "-" + actionList.lastVisibleExclusive() + "/" + actions.size();
-            ElarionUiTypography.draw(context, textRenderer, hint, x + DETAIL_WIDTH - 10 - ElarionUiTypography.width(textRenderer, hint),
-                    CONTENT_BOTTOM - 8, style.mutedColor(), false);
+            drawRangeMarker(context, x + DETAIL_WIDTH / 2, CONTENT_BOTTOM - 9,
+                    actionList.firstVisible() + 1, actionList.lastVisibleExclusive(), actions.size(),
+                    style.mutedColor());
         }
     }
 
@@ -362,115 +367,129 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
 
     private void renderModal(DrawContext context, double mouseX, double mouseY, ElarionUiStyle style) {
         if (pendingAction == null) return;
-        int x = 150;
-        int y = 126;
-        int w = 340;
-        int h = 142;
+        ActionModalLayout modal = actionModalLayout(pendingActionHasInput());
         context.fill(0, 0, PANEL_WIDTH, PANEL_HEIGHT, ElarionCivicColors.MODAL_OVERLAY);
-        ElarionCivicUi.headerShell(context, x, y, w, h, 28);
+        ElarionCivicUi.headerShell(context, modal.x(), modal.y(), modal.width(), modal.height(), 30);
         String title = pendingAction.requiresConfirmation()
                 ? pendingAction.confirmationTitle()
                 : pendingAction.parameterLabel();
         if (title.isBlank()) title = pendingAction.label();
-        context.drawCenteredTextWithShadow(textRenderer, title, x + w / 2, y + 12,
-                "danger".equals(pendingAction.style()) ? ElarionCivicColors.DESTRUCTIVE_TEXT : style.titleColor());
+        ElarionUiTypography.drawCentered(context, textRenderer,
+                ElarionUiTypography.ellipsize(textRenderer, title, modal.width() - 42),
+                modal.x() + modal.width() / 2, modal.y() + 12,
+                "danger".equals(pendingAction.style()) ? ElarionCivicColors.DESTRUCTIVE_TEXT : style.titleColor(),
+                false);
         String body = pendingAction.requiresConfirmation()
                 ? pendingAction.confirmationBody()
                 : "Enter " + pendingAction.parameterLabel() + ".";
-        ElarionUiRenderer.wrappedClipped(context, textRenderer, Text.literal(body),
-                x + 16, y + 32, w - 32, 48, style.textColor(), style.mutedColor());
+        ElarionCivicUi.messageBody(context, modal.bodyX(), modal.bodyY(), modal.bodyWidth(), modal.bodyHeight(),
+                "danger".equals(pendingAction.style()) ? ElarionCivicColors.REJECT_RED : ElarionCivicColors.GOLD_BORDER);
+        ElarionUiTypography.wrappedClipped(context, textRenderer, Text.literal(body),
+                modal.bodyX() + 8, modal.bodyY() + 8, modal.bodyWidth() - 16, modal.bodyHeight() - 12,
+                style.textColor(), style.mutedColor());
         if (input != null) {
-            ElarionCivicUi.thinBox(context, x + 18, y + 84, w - 36, 18,
+            ElarionCivicUi.thinBox(context, modal.inputX(), modal.inputY(), modal.inputWidth(), 18,
                     ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_SHADOW);
             boolean empty = input.text().isBlank();
             String value = empty ? pendingAction.parameterPlaceholder()
                     : input.text() + (input.caretVisible() ? "_" : "");
-            ElarionUiTypography.draw(context, textRenderer, ElarionUiRenderer.ellipsize(textRenderer, value, w - 46),
-                    x + 24, y + 89, empty ? style.mutedColor() : style.textColor(), false);
+            ElarionUiTypography.draw(context, textRenderer,
+                    ElarionUiRenderer.ellipsize(textRenderer, value, modal.inputWidth() - 12),
+                    modal.inputX() + 6, modal.inputY() + 5, empty ? style.mutedColor() : style.textColor(), false);
             if (pendingAction != null && !pendingAction.parameterSuggestions().isEmpty()) {
                 String hint = "Tab: " + ElarionUiRenderer.ellipsize(textRenderer,
-                        String.join(", ", pendingAction.parameterSuggestions()), w - 46);
-                ElarionUiTypography.draw(context, textRenderer, hint, x + 24, y + 106,
+                        String.join(", ", pendingAction.parameterSuggestions()), modal.inputWidth() - 12);
+                ElarionUiTypography.draw(context, textRenderer, hint, modal.inputX() + 6, modal.inputY() + 22,
                         style.mutedColor(), false);
             }
         }
-        ElarionCivicUi.compactActionButton(context, textRenderer, x + 44, y + h - 30, 104, 20,
-                "Cancel", inside(mouseX, mouseY, x + 44, y + h - 30, 104, 20), false, true,
+        ElarionCivicUi.divider(context, modal.x() + 14, modal.buttonY() - 9, modal.width() - 28);
+        ElarionCivicUi.compactActionButton(context, textRenderer, modal.cancelX(), modal.buttonY(),
+                ACTION_MODAL_BUTTON_WIDTH, ACTION_MODAL_BUTTON_HEIGHT,
+                "Cancel", inside(mouseX, mouseY, modal.cancelX(), modal.buttonY(),
+                        ACTION_MODAL_BUTTON_WIDTH, ACTION_MODAL_BUTTON_HEIGHT), false, true,
                 ElarionCivicUi.Tone.NORMAL, style);
-        ElarionCivicUi.compactActionButton(context, textRenderer, x + w - 148, y + h - 30, 104, 20,
+        ElarionCivicUi.compactActionButton(context, textRenderer, modal.submitX(), modal.buttonY(),
+                ACTION_MODAL_BUTTON_WIDTH, ACTION_MODAL_BUTTON_HEIGHT,
                 pendingAction.requiresConfirmation() ? "Confirm" : "Submit",
-                inside(mouseX, mouseY, x + w - 148, y + h - 30, 104, 20),
+                inside(mouseX, mouseY, modal.submitX(), modal.buttonY(),
+                        ACTION_MODAL_BUTTON_WIDTH, ACTION_MODAL_BUTTON_HEIGHT),
                 false, true, actionTone(pendingAction.style()), style);
     }
 
     private void renderConfigEditShell(DrawContext context, double mouseX, double mouseY, ElarionUiStyle style) {
         ElarionConfigEditControl control = configEditControl();
         if (control == null) return;
-        int x = CONFIG_MODAL_X;
-        int y = CONFIG_MODAL_Y;
-        int w = CONFIG_MODAL_WIDTH;
-        int h = CONFIG_MODAL_HEIGHT;
+        ConfigEditLayout modal = configEditLayout();
+        int x = modal.x();
+        int y = modal.y();
+        int w = modal.width();
         context.fill(0, 0, PANEL_WIDTH, PANEL_HEIGHT, ElarionCivicColors.MODAL_OVERLAY);
-        ElarionCivicUi.headerShell(context, x, y, w, h, 28);
-        context.drawCenteredTextWithShadow(textRenderer,
+        ElarionCivicUi.headerShell(context, x, y, w, modal.height(), modal.headerHeight());
+        ElarionUiTypography.drawCentered(context, textRenderer,
                 ElarionUiRenderer.ellipsize(textRenderer, control.label(), w - 76),
-                x + w / 2, y + 12, style.titleColor());
-        ElarionCivicUi.compactActionButton(context, textRenderer, x + w - 54, y + 9, 38, 18,
-                "Close", inside(mouseX, mouseY, x + w - 54, y + 9, 38, 18), false, true,
+                x + w / 2, y + ElarionCivicUi.centeredTextY(textRenderer, 0, modal.headerHeight()),
+                style.titleColor(), false);
+        ElarionCivicUi.compactActionButton(context, textRenderer, modal.topCloseX(), modal.topCloseY(),
+                modal.topCloseWidth(), modal.topCloseHeight(),
+                "Close", inside(mouseX, mouseY, modal.topCloseX(), modal.topCloseY(),
+                        modal.topCloseWidth(), modal.topCloseHeight()), false, true,
                 ElarionCivicUi.Tone.NORMAL, style);
 
         ElarionUiRenderer.wrappedClipped(context, textRenderer, Text.literal(control.description()),
-                x + 18, y + 34, w - 36, 32, style.textColor(), style.mutedColor());
+                modal.bodyX(), modal.descriptionY(), modal.bodyWidth(), modal.descriptionHeight(),
+                style.textColor(), style.mutedColor());
 
-        int lineY = y + 76;
-        lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Path", control.path());
-        lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Current", control.currentDisplayValue());
-        lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Default", control.defaultDisplayValue());
-        lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Type",
+        int lineY = modal.metadataY();
+        lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Path", control.path());
+        lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Current", control.currentDisplayValue());
+        lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Default", control.defaultDisplayValue());
+        lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Type",
                 control.valueType().name().toLowerCase(Locale.ROOT));
         String bounds = boundsLabel(control);
         if (!bounds.isBlank()) {
-            lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Bounds", bounds);
+            lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Bounds", bounds);
         }
         if (!control.choices().isEmpty()) {
-            lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Choices",
+            lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Choices",
                     String.join(", ", control.choices()));
         }
-        lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Runtime",
+        lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Runtime",
                 control.restartRequired() ? "Restart required" : control.runtimeReloadable() ? "Reload required" : "Static");
-        lineY = renderConfigEditLine(context, style, x + 18, lineY, w - 36, "Permissions",
+        lineY = renderConfigEditLine(context, style, modal.bodyX(), lineY, modal.bodyWidth(), "Permissions",
                 "read " + control.readPermission().label() + " / write " + control.writePermission().label());
 
-        ElarionUiTypography.draw(context, textRenderer, "Proposed:", x + 18, lineY + 4, style.titleColor(), false);
-        ElarionCivicUi.thinBox(context, x + 86, lineY + 1, w - 104, 18,
+        int proposedY = Math.max(lineY + 4, modal.proposedY());
+        ElarionUiTypography.draw(context, textRenderer, "Proposed:", modal.bodyX(), proposedY + 4, style.titleColor(), false);
+        ElarionCivicUi.thinBox(context, modal.proposedInputX(), proposedY + 1, modal.proposedInputWidth(), 18,
                 ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_SHADOW);
         String proposed = configEditInput == null ? control.currentDisplayValue()
                 : configEditInput.text() + (configEditInput.caretVisible() ? "_" : "");
         ElarionUiTypography.draw(context, textRenderer,
-                ElarionUiRenderer.ellipsize(textRenderer, proposed, w - 116),
-                x + 92, lineY + 6, configEditInput == null || configEditInput.text().isBlank()
+                ElarionUiRenderer.ellipsize(textRenderer, proposed, modal.proposedInputWidth() - 12),
+                modal.proposedInputX() + 6, proposedY + 6, configEditInput == null || configEditInput.text().isBlank()
                         ? style.mutedColor() : style.textColor(), false);
 
-        int resultY = lineY + 26;
-        int resultHeight = Math.max(28, y + h - 42 - resultY);
-        ElarionCivicUi.messageBody(context, x + 18, resultY, w - 36, resultHeight,
+        int resultY = proposedY + 26;
+        int resultHeight = Math.max(28, modal.buttonY() - 10 - resultY);
+        ElarionCivicUi.messageBody(context, modal.bodyX(), resultY, modal.bodyWidth(), resultHeight,
                 matchingConfigEditResult(control) == null
                         ? ElarionCivicColors.GOLD_SHADOW : ElarionCivicColors.ACTIVE_GREEN);
         ElarionUiRenderer.wrappedClipped(context, textRenderer,
                 Text.literal(configEditResultText(control)),
-                x + 26, resultY + 8, w - 52, resultHeight - 12,
+                modal.bodyX() + 8, resultY + 8, modal.bodyWidth() - 16, resultHeight - 12,
                 matchingConfigEditResult(control) == null ? style.mutedColor() : style.feedbackColor(),
                 style.mutedColor());
 
-        int buttonY = y + h - 34;
-        ElarionCivicUi.compactActionButton(context, textRenderer, x + 86, buttonY, 92, 20,
-                "Validate", inside(mouseX, mouseY, x + 86, buttonY, 92, 20), false,
+        ElarionCivicUi.divider(context, x + 14, modal.buttonY() - 10, w - 28);
+        ElarionCivicUi.compactActionButton(context, textRenderer, modal.validateX(), modal.buttonY(), modal.buttonWidth(), 20,
+                "Validate", inside(mouseX, mouseY, modal.validateX(), modal.buttonY(), modal.buttonWidth(), 20), false,
                 canValidateConfigEdit(), ElarionCivicUi.Tone.NORMAL, style);
-        ElarionCivicUi.compactActionButton(context, textRenderer, x + 188, buttonY, 92, 20,
-                "Apply", inside(mouseX, mouseY, x + 188, buttonY, 92, 20), false,
+        ElarionCivicUi.compactActionButton(context, textRenderer, modal.applyX(), modal.buttonY(), modal.buttonWidth(), 20,
+                "Apply", inside(mouseX, mouseY, modal.applyX(), modal.buttonY(), modal.buttonWidth(), 20), false,
                 canApplyConfigEdit(control), ElarionCivicUi.Tone.PRIMARY, style);
-        ElarionCivicUi.compactActionButton(context, textRenderer, x + w - 116, buttonY, 92, 20,
-                "Close", inside(mouseX, mouseY, x + w - 116, buttonY, 92, 20), false, true,
+        ElarionCivicUi.compactActionButton(context, textRenderer, modal.closeX(), modal.buttonY(), modal.buttonWidth(), 20,
+                "Close", inside(mouseX, mouseY, modal.closeX(), modal.buttonY(), modal.buttonWidth(), 20), false, true,
                 ElarionCivicUi.Tone.NORMAL, style);
     }
 
@@ -496,6 +515,27 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
         return "danger".equals(style) ? ElarionCivicUi.Tone.DESTRUCTIVE : ElarionCivicUi.Tone.NORMAL;
     }
 
+    private void renderDangerRowSurface(
+            DrawContext context,
+            int x,
+            int y,
+            int width,
+            int height,
+            boolean selected,
+            boolean hovered,
+            ElarionUiStyle style
+    ) {
+        int fill = hovered ? ElarionCivicColors.BUTTON_DESTRUCTIVE_HOVER : ElarionCivicColors.BUTTON_DESTRUCTIVE;
+        int border = selected ? ElarionCivicColors.ACTIVE_GREEN : ElarionCivicColors.DESTRUCTIVE_BORDER;
+        ElarionUiRenderer.beveledBox(context, x, y, width, height, fill, border, style);
+        if (selected) {
+            context.fill(x + 2, y + 3, x + 4, y + height - 3, ElarionCivicColors.ACTIVE_GREEN);
+        }
+        if (width > 6 && height > 6) {
+            context.fill(x + 3, y + 2, x + width - 3, y + 3, ElarionCivicColors.REJECT_RED);
+        }
+    }
+
     private static String boundsLabel(ElarionConfigEditControl control) {
         if (control.minimum().isBlank() && control.maximum().isBlank()) return "";
         return (control.minimum().isBlank() ? "*" : control.minimum())
@@ -504,38 +544,34 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
 
     private boolean handleModalClick(double lx, double ly) {
         if (pendingAction == null) return false;
-        int x = 150;
-        int y = 126;
-        int w = 340;
-        int h = 142;
-        if (inside(lx, ly, x + 44, y + h - 30, 104, 20)) {
+        ActionModalLayout modal = actionModalLayout(pendingActionHasInput());
+        if (inside(lx, ly, modal.cancelX(), modal.buttonY(),
+                ACTION_MODAL_BUTTON_WIDTH, ACTION_MODAL_BUTTON_HEIGHT)) {
             cancelModal();
             return true;
         }
-        if (inside(lx, ly, x + w - 148, y + h - 30, 104, 20)) {
+        if (inside(lx, ly, modal.submitX(), modal.buttonY(),
+                ACTION_MODAL_BUTTON_WIDTH, ACTION_MODAL_BUTTON_HEIGHT)) {
             submitModal();
             return true;
         }
-        return inside(lx, ly, x, y, w, h);
+        return inside(lx, ly, modal.x(), modal.y(), modal.width(), modal.height());
     }
 
     private boolean handleConfigEditShellClick(double lx, double ly) {
         ElarionConfigEditControl control = configEditControl();
         if (control == null) return false;
-        int x = CONFIG_MODAL_X;
-        int y = CONFIG_MODAL_Y;
-        int w = CONFIG_MODAL_WIDTH;
-        int h = CONFIG_MODAL_HEIGHT;
-        if (inside(lx, ly, x + w - 54, y + 9, 38, 18)
-                || inside(lx, ly, x + w - 116, y + h - 34, 92, 20)) {
+        ConfigEditLayout modal = configEditLayout();
+        if (inside(lx, ly, modal.topCloseX(), modal.topCloseY(), modal.topCloseWidth(), modal.topCloseHeight())
+                || inside(lx, ly, modal.closeX(), modal.buttonY(), modal.buttonWidth(), 20)) {
             closeConfigEditShell();
             return true;
         }
-        if (inside(lx, ly, x + 86, y + h - 34, 92, 20)) {
+        if (inside(lx, ly, modal.validateX(), modal.buttonY(), modal.buttonWidth(), 20)) {
             sendConfigEditValidation(control);
             return true;
         }
-        if (inside(lx, ly, x + 188, y + h - 34, 92, 20)) {
+        if (inside(lx, ly, modal.applyX(), modal.buttonY(), modal.buttonWidth(), 20)) {
             sendConfigEditApply(control);
             return true;
         }
@@ -695,6 +731,10 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
         input = null;
     }
 
+    private boolean pendingActionHasInput() {
+        return pendingAction != null && !pendingAction.parameterKey().isBlank();
+    }
+
     private void send(ElarionAdminPanelAction action, Map<String, String> params, boolean confirmed) {
         ElarionAdminPanelRow row = selectedRow();
         if (row == null) return;
@@ -775,6 +815,73 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
                 ACTION_TOP, visibleActionsFor(), tabWidth(6), tabX(5, 6) + tabWidth(6));
     }
 
+    static ActionModalLayout actionModalLayout(boolean withInput) {
+        int width = ACTION_MODAL_WIDTH;
+        int height = withInput ? ACTION_MODAL_INPUT_HEIGHT : ACTION_MODAL_CONFIRM_HEIGHT;
+        int bodyHeight = withInput ? 48 : 66;
+        ElarionModalLayout.TwoButtonModal layout = ElarionModalLayout.twoButtonModal(
+                PANEL_WIDTH,
+                PANEL_HEIGHT,
+                new ElarionModalLayout.Spec(
+                        width,
+                        height,
+                        18,
+                        36,
+                        bodyHeight,
+                        8,
+                        30,
+                        ACTION_MODAL_BUTTON_WIDTH,
+                        ACTION_MODAL_BUTTON_HEIGHT,
+                        16
+                )
+        );
+        return new ActionModalLayout(
+                layout.x(),
+                layout.y(),
+                layout.width(),
+                layout.height(),
+                layout.bodyX(),
+                layout.bodyY(),
+                layout.bodyWidth(),
+                layout.bodyHeight(),
+                layout.inputX(),
+                layout.inputY(),
+                layout.inputWidth(),
+                layout.cancelX(),
+                layout.submitX(),
+                layout.buttonY()
+        );
+    }
+
+    static ConfigEditLayout configEditLayout() {
+        int x = CONFIG_MODAL_X;
+        int y = CONFIG_MODAL_Y;
+        int width = CONFIG_MODAL_WIDTH;
+        int height = CONFIG_MODAL_HEIGHT;
+        int headerHeight = 30;
+        int bodyX = x + 18;
+        int bodyWidth = width - 36;
+        int descriptionY = y + 36;
+        int descriptionHeight = 32;
+        int metadataY = y + 78;
+        int proposedY = y + 190;
+        int proposedInputX = x + 94;
+        int proposedInputWidth = width - 112;
+        int buttonY = y + height - 34;
+        int buttonWidth = 94;
+        int buttonGap = 12;
+        int totalButtonWidth = buttonWidth * 3 + buttonGap * 2;
+        int validateX = x + (width - totalButtonWidth) / 2;
+        int applyX = validateX + buttonWidth + buttonGap;
+        int closeX = applyX + buttonWidth + buttonGap;
+        return new ConfigEditLayout(
+                x, y, width, height, headerHeight,
+                x + width - 56, y + 8, 40, 18,
+                bodyX, bodyWidth, descriptionY, descriptionHeight, metadataY,
+                proposedY, proposedInputX, proposedInputWidth,
+                validateX, applyX, closeX, buttonY, buttonWidth);
+    }
+
     static int tabWidth(int tabCount) {
         int count = Math.max(1, tabCount);
         return Math.max(76, (PANEL_WIDTH - TAB_X * 2 - TAB_GAP * (count - 1)) / count);
@@ -795,6 +902,33 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
     private static int visibleActionsFor() {
         int height = CONTENT_BOTTOM - ACTION_TOP - 14;
         return Math.max(1, (height + ACTION_GAP) / (BUTTON_HEIGHT + ACTION_GAP));
+    }
+
+    private void drawRangeMarker(
+            DrawContext context,
+            int centerX,
+            int y,
+            int first,
+            int last,
+            int total,
+            int color
+    ) {
+        String label = "Rows " + first + "-" + last + " / " + total;
+        int labelWidth = ElarionUiTypography.width(textRenderer, label);
+        int left = centerX - (labelWidth + 16) / 2;
+        drawRangeArrow(context, left, y + 4, false, color);
+        ElarionUiTypography.draw(context, textRenderer, label, left + 8, y, color, false);
+        drawRangeArrow(context, left + labelWidth + 10, y + 4, true, color);
+    }
+
+    private static void drawRangeArrow(DrawContext context, int x, int y, boolean up, int color) {
+        if (up) {
+            context.fill(x + 1, y, x + 2, y + 1, color);
+            context.fill(x, y + 1, x + 3, y + 2, color);
+            return;
+        }
+        context.fill(x, y, x + 3, y + 1, color);
+        context.fill(x + 1, y + 1, x + 2, y + 2, color);
     }
 
     private int listX() {
@@ -834,6 +968,64 @@ public final class ElarionAdminPanelScreen extends ElarionScreen {
     ) {
         int contentHeight() {
             return contentBottom - contentTop;
+        }
+    }
+
+    record ActionModalLayout(
+            int x,
+            int y,
+            int width,
+            int height,
+            int bodyX,
+            int bodyY,
+            int bodyWidth,
+            int bodyHeight,
+            int inputX,
+            int inputY,
+            int inputWidth,
+            int cancelX,
+            int submitX,
+            int buttonY
+    ) {
+        int bottom() {
+            return y + height;
+        }
+
+        int buttonBottom() {
+            return buttonY + ACTION_MODAL_BUTTON_HEIGHT;
+        }
+    }
+
+    record ConfigEditLayout(
+            int x,
+            int y,
+            int width,
+            int height,
+            int headerHeight,
+            int topCloseX,
+            int topCloseY,
+            int topCloseWidth,
+            int topCloseHeight,
+            int bodyX,
+            int bodyWidth,
+            int descriptionY,
+            int descriptionHeight,
+            int metadataY,
+            int proposedY,
+            int proposedInputX,
+            int proposedInputWidth,
+            int validateX,
+            int applyX,
+            int closeX,
+            int buttonY,
+            int buttonWidth
+    ) {
+        int bottom() {
+            return y + height;
+        }
+
+        int buttonBottom() {
+            return buttonY + BUTTON_HEIGHT;
         }
     }
 }

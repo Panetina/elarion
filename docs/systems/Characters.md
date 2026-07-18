@@ -28,6 +28,7 @@ available after a 24-hour real-time cooldown.
 - S2C: `CharacterRealmAssignmentPayload`
 - C2S: `CharacterCreationStatusRequestPayload`
 - C2S: `CharacterCreationSubmitPayload`
+- C2S: `CharacterRealmAssignmentConfirmPayload`
 
 On client join, Core requests the current character-creation status once the
 client world/player are available. The client queues the mandatory screen and
@@ -42,15 +43,27 @@ or an admin runs the recreate-now command.
 
 Character creation uses the shared Core `ElarionTextInput` helper for the name
 and biography fields. Validation errors keep the local field contents intact.
+Core only sends a character-name prefill when the proposed account name or
+existing nickname already satisfies the configured name character, structure,
+and length rules. Invalid generated/test account names such as `Player745`
+produce an empty field instead of a prefilled value the server will reject.
 The biography field is multiline, bounded to 500 characters, and scrolls inside
-the input area instead of growing the screen.
+the input area instead of growing the screen. The client screen uses the
+approved Option A civic onboarding layout: step strip, identity preview,
+bounded biography panel, biography readiness check, and bottom action band.
 
 After a new character is accepted, Core automatically assigns Realm-less new
 players to one of `realm1`, `realm2`, or `realm3`. The selected Realm is chosen
 from the least-populated Realm set with random tie-breaking. Existing migrated
 citizens keep their current Realm. The follow-up Realm assignment panel is
 presentation only; future manual Realm choosing is shown disabled and does not
-own membership state.
+own membership state. The current placement screen renders up to three vertical
+Realm rows, highlights the assigned Realm, shows server-provided population
+counts, and owns the final continue action. Character creation sends the Realm
+assignment panel before closing the creation screen. `Confirm Placement` sends
+`CharacterRealmAssignmentConfirmPayload`; Core teleports the player only from
+that confirm packet, not directly from the `realm-assigned` citizen-change
+event.
 
 ## Reset Contract
 

@@ -33,6 +33,29 @@ final class ElarionConversationControllerTest {
     }
 
     @Test
+    void disabledTypingImmediatelyEnablesInput() {
+        ElarionConversationController controller =
+                new ElarionConversationController("Question", "Answer", false, 45);
+
+        assertEquals(ElarionConversationController.Phase.AWAITING_INPUT, controller.phase());
+        assertEquals("Question", controller.playerText());
+        assertEquals("Answer", controller.npcText());
+        assertFalse(controller.completeCurrentPhase());
+        assertTrue(controller.canSubmit());
+    }
+
+    @Test
+    void nullTextSafelyFallsBackToChoicePrompt() {
+        ElarionConversationController controller =
+                new ElarionConversationController(null, null, false, 45);
+
+        assertEquals(ElarionConversationController.Phase.AWAITING_INPUT, controller.phase());
+        assertEquals("Choose a response.", controller.playerText());
+        assertEquals("", controller.npcText());
+        assertTrue(controller.canSubmit());
+    }
+
+    @Test
     void submissionCanOnlyBeClaimedOnce() {
         ElarionConversationController controller =
                 new ElarionConversationController("", "", false, 45);

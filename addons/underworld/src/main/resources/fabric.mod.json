@@ -4,7 +4,7 @@
     "version":  "${version}",
     "name":  "Elarion Underworld",
     "icon": "assets/elarion_underworld/icon.png",
-    "description":  "Underworld addon shell backed by Elarion Core citizen status.",
+    "description":  "Underworld addon shell backed by Elarion Core Ember status.",
     "authors":  [
                     "Panyel"
                 ],

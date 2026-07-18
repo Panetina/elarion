@@ -4,7 +4,6 @@ import panetina.elarion.core.client.ui.ElarionUiTypography;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.PlayerSkinDrawer;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import panetina.elarion.addons.npcs.client.ui.ElarionConversationController;
@@ -15,6 +14,7 @@ import panetina.elarion.core.client.ui.ElarionCivicUi;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
 import panetina.elarion.core.client.ui.ElarionScreen;
 import panetina.elarion.core.client.ui.ElarionNumericInput;
+import panetina.elarion.core.client.ui.ElarionTooltipShellLayout;
 import panetina.elarion.core.client.ui.ElarionUiCard;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
@@ -45,12 +45,9 @@ public final class NpcDialogueScreen extends ElarionScreen {
     private int logicalHeight;
     private int headerY;
     private int npcRowY;
-    private int playerRowY;
     private int cardsY;
     private int optionY;
     private int optionHeight;
-    private int footerY;
-    private int footerHeight;
     private int optionRowHeight;
     private int scrollbarWidth;
     private ElarionConversationController.Phase lastPhase;
@@ -97,22 +94,13 @@ public final class NpcDialogueScreen extends ElarionScreen {
         ElarionCivicUi.attachedShell(context, 0, 0, logicalWidth, logicalHeight, headerBandHeight() + 6);
         renderHeader(context, logicalMouseX, logicalMouseY);
         renderNpcRow(context);
-        renderPlayerRow(context);
-        if (!dialogue.cards().isEmpty()) {
-            ElarionUiRenderer.cards(context, textRenderer, padding, cardsY,
-                    logicalWidth - padding * 2, dialogue.cards().stream()
-                            .map(card -> new ElarionUiCard(
-                                    card.id(), card.label(), card.icon(), card.count(),
-                                    card.currencyAmount(), card.disabled()))
-                            .toList(), style);
-        }
         renderOptions(context, logicalMouseX, logicalMouseY);
+        renderCards(context);
         renderPromptOverlay(context, logicalMouseX, logicalMouseY);
-        renderFooter(context, logicalMouseX, logicalMouseY);
 
         context.getMatrices().pop();
         if (relationshipHovered) {
-            context.drawTooltip(textRenderer, Text.literal(relationTooltip()), mouseX, mouseY);
+            renderRelationshipTooltip(context, mouseX, mouseY);
         }
     }
 
@@ -122,14 +110,14 @@ public final class NpcDialogueScreen extends ElarionScreen {
         double y = layout.logicalY(mouseY);
         if (!insidePanel(x, y)) return false;
 
-        if (inside(x, y, closeX(), footerY, closeWidth(), footerHeight)) {
+        if (inside(x, y, closeX(), closeY(), closeSize(), closeSize())) {
             close();
             return true;
         }
         if (activePrompt != null) {
             return true;
         }
-        if (conversation.completeCurrentPhase()) return true;
+        if (dialogue.typingClickCompletes() && conversation.completeCurrentPhase()) return true;
 
         if (inside(x, y, scrollbarX(), optionY, scrollbarWidth, optionHeight)
                 && optionList.maximumFirstVisible() > 0) {
@@ -219,7 +207,7 @@ public final class NpcDialogueScreen extends ElarionScreen {
         }
         if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER
                 || keyCode == GLFW.GLFW_KEY_SPACE) {
-            if (conversation.completeCurrentPhase()) return true;
+            if (dialogue.typingClickCompletes() && conversation.completeCurrentPhase()) return true;
             if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER)
                     && conversation.canSubmit() && optionList.selectedIndex() >= 0) {
                 activateOption(optionList.selectedIndex());
@@ -280,26 +268,22 @@ public final class NpcDialogueScreen extends ElarionScreen {
         layout = ElarionScaledLayout.fit(
                 width, height, logicalWidth, logicalHeight, 8, dialogue.minimumUiScalePercent());
 
-        int headerHeight = dialogue.showRelationBar() ? 30 : 18;
+        int headerHeight = hasRelationship() ? 40 : 34;
         int npcRowHeight = Math.max(clamp(dialogue.npcRowHeight(), 58, 110),
                 clamp(dialogue.portraitSize(), 44, 80) + 8);
-        int playerRowHeight = Math.max(clamp(dialogue.playerRowHeight(), 44, 90),
-                clamp(dialogue.playerPortraitSize(), 28, 48) + 8);
         int cardsHeight = dialogue.cards().isEmpty() ? 0 : 30 + dialogue.contentGap();
 
         headerY = padding;
         npcRowY = padding + headerHeight + dialogue.contentGap();
-        playerRowY = npcRowY + npcRowHeight + dialogue.contentGap();
-        cardsY = playerRowY + playerRowHeight + dialogue.contentGap();
-        footerHeight = clamp(dialogue.compactButtonHeight(), 14, 20);
-        footerY = logicalHeight - padding - footerHeight;
-        optionY = cardsY + cardsHeight;
-        optionHeight = Math.max(dialogue.optionRowHeight(), footerY - dialogue.contentGap() - optionY);
-        optionRowHeight = clamp(dialogue.optionRowHeight(), 14, 24);
+        optionY = npcRowY + npcRowHeight + dialogue.contentGap();
+        optionRowHeight = ElarionUiTypography.controlHeight(
+                clamp(dialogue.optionRowHeight(), 18, 26), textRenderer, 8);
         scrollbarWidth = clamp(dialogue.scrollbarWidth(), 4, 10);
-        int rowsThatFit = Math.max(1, optionHeight / optionRowHeight);
-        int visibleRows = Math.min(Math.max(1, dialogue.visibleOptionRows()), rowsThatFit);
+        int availableOptionHeight = logicalHeight - padding - cardsHeight - optionY;
+        int visibleRows = visibleOptionRows(
+                dialogue.options().size(), dialogue.visibleOptionRows(), availableOptionHeight, optionRowHeight);
         optionHeight = visibleRows * optionRowHeight;
+        cardsY = optionY + optionHeight + dialogue.contentGap();
 
         int saved = SAVED_SCROLL.getOrDefault(scrollKey(), 0);
         optionList = new ElarionVirtualList(dialogue.options().size(), visibleRows, saved);
@@ -307,49 +291,42 @@ public final class NpcDialogueScreen extends ElarionScreen {
     }
 
     private void renderHeader(DrawContext context, double mouseX, double mouseY) {
-        ElarionUiTypography.draw(context, textRenderer, dialogue.npcName(), padding, headerY, style.titleColor(), false);
+        drawScreenTitle(context, dialogue.npcName(), padding, headerY, style.titleColor());
+        String subtitle = hasRelationship() ? relationTooltip() : "";
+        if (!subtitle.isBlank()) {
+            ElarionUiTypography.draw(context, textRenderer, subtitle, padding, headerY + 17,
+                    style.mutedColor(), false);
+        }
+        ElarionCivicUi.closeButton(context, closeX(), closeY(), closeSize());
         if (dialogue.hasCurrencyBalance()) {
-            int badgeY = 3 + (headerBandHeight() - 30) / 2;
+            int badgeY = headerY + 19;
             ElarionUiRenderer.currencyBadge(context, textRenderer,
-                    logicalWidth - padding - ElarionUiRenderer.CURRENCY_BADGE_WIDTH,
+                    closeX() - 5 - ElarionUiRenderer.CURRENCY_BADGE_WIDTH,
                     badgeY, dialogue.currencyBalance(), dialogue.currencyPlural(), style);
         }
-        if (dialogue.showRelationBar()) {
-            renderRelationshipHearts(context, padding, headerY + 13, mouseX, mouseY);
+        if (hasRelationship()) {
+            int heartsX = Math.max(padding, closeX() - 63);
+            renderRelationshipHearts(context, heartsX, headerY + 5, mouseX, mouseY);
         }
     }
 
     private void renderNpcRow(DrawContext context) {
         int portraitSize = clamp(dialogue.portraitSize(), 44, 80);
         int portraitX = padding;
-        int portraitY = npcRowY + Math.max(0, (dialogue.npcRowHeight() - portraitSize) / 2);
+        int rowHeight = Math.max(dialogue.npcRowHeight(), portraitSize);
+        int portraitY = npcRowY + Math.max(0, (rowHeight - portraitSize) / 2);
         int bubbleX = portraitX + portraitSize + dialogue.contentGap();
         int bubbleWidth = logicalWidth - padding - bubbleX;
         ElarionNpcPortraitRenderer.render(
                 context, textRenderer, dialogue, portraitX, portraitY, portraitSize, style);
+        String speaker = conversation.phase() == ElarionConversationController.Phase.PLAYER_TYPING
+                ? "You" : dialogue.npcName();
+        String body = conversation.phase() == ElarionConversationController.Phase.PLAYER_TYPING
+                ? conversation.playerText() : conversation.npcText();
         ElarionUiRenderer.dialogueBox(
                 context, textRenderer, bubbleX, npcRowY, bubbleWidth,
-                Math.max(dialogue.npcRowHeight(), portraitSize), "", conversation.npcText(),
+                rowHeight, speaker, body,
                 dialogue.feedbackError() ? style.errorColor() : style.textColor(), style);
-    }
-
-    private void renderPlayerRow(DrawContext context) {
-        int portraitSize = clamp(dialogue.playerPortraitSize(), 28, 48);
-        int portraitX = logicalWidth - padding - portraitSize;
-        int portraitY = playerRowY + Math.max(0, (dialogue.playerRowHeight() - portraitSize) / 2);
-        int bubbleWidth = portraitX - dialogue.contentGap() - padding;
-        ElarionUiRenderer.dialogueBox(
-                context, textRenderer, padding, playerRowY, bubbleWidth,
-                Math.max(dialogue.playerRowHeight(), portraitSize), "You", conversation.playerText(), style);
-        var player = MinecraftClient.getInstance().player;
-        if (player != null) {
-            ElarionUiRenderer.portraitFrame(
-                    context, textRenderer, portraitX, portraitY, portraitSize, "", style);
-            PlayerSkinDrawer.draw(
-                    context, player.getSkinTextures(), portraitX + 4, portraitY + 4, portraitSize - 8);
-        } else {
-            ElarionUiRenderer.portraitFrame(context, textRenderer, portraitX, portraitY, portraitSize, "You", style);
-        }
     }
 
     private void renderOptions(DrawContext context, double mouseX, double mouseY) {
@@ -371,19 +348,22 @@ public final class NpcDialogueScreen extends ElarionScreen {
         renderScrollbar(context);
     }
 
+    private void renderCards(DrawContext context) {
+        if (dialogue.cards().isEmpty()) return;
+        ElarionUiRenderer.cards(context, textRenderer, padding, cardsY,
+                logicalWidth - padding * 2, dialogue.cards().stream()
+                        .map(card -> new ElarionUiCard(
+                                card.id(), card.label(), card.icon(), card.count(),
+                                card.currencyAmount(), card.disabled()))
+                        .toList(), style);
+    }
+
     private void renderScrollbar(DrawContext context) {
         if (dialogue.options().size() <= optionList.visibleRows()) return;
         ElarionUiRenderer.scrollbar(
                 context, scrollbarX(), optionY, scrollbarWidth, optionHeight,
                 optionList.firstVisible(), optionList.visibleRows(), dialogue.options().size(),
                 ElarionUiThemes.variant(dialogue.themeVariant()));
-    }
-
-    private void renderFooter(DrawContext context, double mouseX, double mouseY) {
-        boolean hovered = inside(mouseX, mouseY, closeX(), footerY, closeWidth(), footerHeight);
-        ElarionCivicUi.compactActionButton(
-                context, textRenderer, closeX(), footerY, closeWidth(), footerHeight,
-                "Close", hovered, hovered && mouseDown(), true, ElarionCivicUi.Tone.NORMAL, style);
     }
 
     private void submitOption(int index) {
@@ -425,9 +405,9 @@ public final class NpcDialogueScreen extends ElarionScreen {
     private void renderPromptOverlay(DrawContext context, double mouseX, double mouseY) {
         if (activePrompt == null) return;
         int x = padding;
-        int y = playerRowY;
+        int y = npcRowY;
         int width = logicalWidth - padding * 2;
-        int height = Math.max(dialogue.playerRowHeight(), 56);
+        int height = Math.max(dialogue.npcRowHeight(), 64);
         ElarionCivicUi.headerShell(context, x, y, width, height, 20);
         ElarionUiTypography.draw(context, textRenderer, activePrompt.promptQuestion(), x + 7, y + 6, style.titleColor(), false);
         int inputX = x + 7;
@@ -482,10 +462,6 @@ public final class NpcDialogueScreen extends ElarionScreen {
         return x >= 0 && y >= 0 && x < logicalWidth && y < logicalHeight;
     }
 
-    private int closeWidth() {
-        return Math.min(84, (logicalWidth - padding * 2) / 3);
-    }
-
     private int headerBandHeight() {
         return Math.max(24, npcRowY - dialogue.contentGap() - 3);
     }
@@ -496,7 +472,15 @@ public final class NpcDialogueScreen extends ElarionScreen {
     }
 
     private int closeX() {
-        return (logicalWidth - closeWidth()) / 2;
+        return logicalWidth - padding - closeSize();
+    }
+
+    private int closeY() {
+        return headerY;
+    }
+
+    private int closeSize() {
+        return 18;
     }
 
     private int promptMaxDigits() {
@@ -537,6 +521,26 @@ public final class NpcDialogueScreen extends ElarionScreen {
         return separator >= 0 && separator + 1 < label.length()
                 ? label.substring(separator + 1).trim()
                 : label.trim();
+    }
+
+    private void renderRelationshipTooltip(DrawContext context, int mouseX, int mouseY) {
+        String text = relationTooltip();
+        int contentWidth = Math.min(180, Math.max(54, ElarionUiTypography.width(textRenderer, text)));
+        int contentHeight = ElarionUiTypography.lineHeight();
+        ElarionTooltipShellLayout.Tooltip tooltip = ElarionTooltipShellLayout.tooltip(
+                mouseX, mouseY, width, height, contentWidth, contentHeight, 5, 8);
+        ElarionCivicUi.thinBox(context, tooltip.shell().x(), tooltip.shell().y(),
+                tooltip.shell().width(), tooltip.shell().height(),
+                ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_BORDER);
+        ElarionUiTypography.draw(context, textRenderer,
+                ElarionUiTypography.ellipsize(textRenderer, text, tooltip.content().width()),
+                tooltip.content().x(), tooltip.content().y(), style.textColor(), false);
+    }
+
+    private boolean hasRelationship() {
+        return dialogue.showRelationBar()
+                && dialogue.relationLabel() != null
+                && !dialogue.relationLabel().isBlank();
     }
 
     private void drawHeart(DrawContext context, int x, int y, int filledHalves) {
@@ -585,5 +589,23 @@ public final class NpcDialogueScreen extends ElarionScreen {
 
     private static int clamp(int value, int minimum, int maximum) {
         return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    static int visibleOptionRows(int optionCount, int requestedRows, int availableHeight, int rowHeight) {
+        int rowsThatFit = Math.max(1, availableHeight / Math.max(1, rowHeight));
+        int requested = Math.max(1, Math.min(3, requestedRows));
+        return Math.max(1, Math.min(Math.max(1, optionCount), Math.min(requested, rowsThatFit)));
+    }
+
+    private void drawScreenTitle(DrawContext context, String title, int x, int y, int color) {
+        float scale = 1.2F * ElarionUiTypography.scale();
+        int maximumWidth = Math.max(24, closeX() - x - 70);
+        int unscaledWidth = Math.max(1, (int) Math.floor(maximumWidth / scale));
+        String visible = textRenderer.trimToWidth(title == null ? "" : title, unscaledWidth);
+        context.getMatrices().push();
+        context.getMatrices().translate(x, y, 0.0F);
+        context.getMatrices().scale(scale, scale, 1.0F);
+        context.drawText(textRenderer, visible, 0, 0, color, false);
+        context.getMatrices().pop();
     }
 }

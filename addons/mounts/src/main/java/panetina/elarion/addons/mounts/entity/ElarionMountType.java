@@ -1,5 +1,7 @@
 package panetina.elarion.addons.mounts.entity;
 
+import panetina.elarion.core.model.ElarionCollectionRank;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -123,6 +125,20 @@ public enum ElarionMountType {
 
     public MovementProfile movementProfile() {
         return movementProfile;
+    }
+
+    public String collectionRankLabel() {
+        return collectionRank().label();
+    }
+
+    public int collectionRankColor() {
+        return collectionRank().color();
+    }
+
+    public ElarionCollectionRank collectionRank() {
+        if (this == SCIFI_BIKE) return ElarionCollectionRank.LEGENDARY;
+        if (this == AIRSHIP || this == GHAST || this == HOT_AIR_BALLOON) return ElarionCollectionRank.COMMON;
+        return ElarionCollectionRank.UNCOMMON;
     }
 
     public static ElarionMountType byId(String id) {

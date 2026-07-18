@@ -5,6 +5,9 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 import panetina.elarion.addons.government.network.GovernmentUiOpenPayload;
+import panetina.elarion.core.client.ui.ElarionDetailBodyLayout;
+import panetina.elarion.core.client.ui.ElarionDetailCardLayout;
+import panetina.elarion.core.client.ui.ElarionSemanticRowLayout;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
 import panetina.elarion.core.model.ElarionUiThemeVariant;
@@ -39,27 +42,26 @@ public final class GovernmentUiComponents {
         GovernmentUiGlyphs.rowBox(context, x, y, width, height, selected, hovered, muted, style);
 
         int iconSize = height <= 38 ? 16 : 20;
-        int iconX = x + 10;
-        int iconY = y + Math.max(4, (height - iconSize) / 2);
-        GovernmentUiGlyphs.icon(context, iconX, iconY, iconSize, iconId, style);
+        ElarionSemanticRowLayout.CompactRecordRow layout = ElarionSemanticRowLayout.compactRecordRow(
+                x, y, width, height, 10, iconSize, 34, 126);
+        GovernmentUiGlyphs.icon(context, layout.icon().x(), layout.icon().y(), layout.icon().width(),
+                iconId, style);
 
-        int metricX = metricColumnX(x, width);
-        int textX = x + 34;
-        int titleMax = Math.max(72, metricX - textX - 10);
         int titleColor = selected || row.selectedByViewer() ? GovernmentUiGlyphs.ACTIVE_GREEN : theme.titleColor();
-        ElarionUiTypography.draw(context, renderer, ElarionUiRenderer.ellipsize(renderer, row.title(), titleMax),
-                textX, y + 5, titleColor, false);
+        ElarionUiTypography.draw(context, renderer,
+                ElarionUiRenderer.ellipsize(renderer, row.title(), layout.titleMaxWidth()),
+                layout.titleX(), layout.titleY(), titleColor, false);
 
         String visibleTag = tag == null ? "" : tag.trim();
         if (!visibleTag.isBlank()) {
-            GovernmentUiGlyphs.tag(context, renderer, textX, y + height - 14, visibleTag,
-                    !muted, Math.min(88, Math.max(34, metricX - textX - 12)), style);
+            GovernmentUiGlyphs.tag(context, renderer, layout.titleX(), layout.tagY(), visibleTag,
+                    !muted, Math.min(88, Math.max(34, layout.metricX() - layout.titleX() - 12)), style);
         }
 
-        drawMetric(context, renderer, metricX, y + 6, x + width - 7, metricIcon, metric,
+        drawMetric(context, renderer, layout.metricX(), layout.metricY(), layout.metricRight(), metricIcon, metric,
                 stateColor(row.state(), theme.textColor()), style);
         if (secondaryMetric != null && !secondaryMetric.isBlank()) {
-            drawMetric(context, renderer, metricX, y + height - 16, x + width - 7,
+            drawMetric(context, renderer, layout.metricX(), layout.secondaryMetricY(), layout.metricRight(),
                     secondaryIcon, secondaryMetric, theme.titleColor(), style);
         }
     }
@@ -77,18 +79,21 @@ public final class GovernmentUiComponents {
             ElarionUiThemeVariant theme,
             ElarionUiStyle style
     ) {
-        GovernmentUiGlyphs.iconFrame(context, x, y, DETAIL_ICON_SIZE, iconId, style);
-        int titleX = x + DETAIL_ICON_SIZE + 14;
-        int titleWidth = Math.max(1, width - DETAIL_ICON_SIZE - 18);
-        ElarionUiTypography.draw(context, renderer, ElarionUiRenderer.ellipsize(renderer, row.title(), titleWidth),
-                titleX, y + 4, GovernmentUiGlyphs.ACTIVE_GREEN, false);
+        ElarionDetailCardLayout.IdentityHeader layout = ElarionDetailCardLayout.identityHeader(
+                x, y, width, DETAIL_ICON_SIZE, 14, 4, 22, 40);
+        GovernmentUiGlyphs.iconFrame(context, layout.icon().x(), layout.icon().y(), layout.icon().width(),
+                iconId, style);
+        ElarionUiTypography.draw(context, renderer,
+                ElarionUiRenderer.ellipsize(renderer, row.title(), layout.textWidth()),
+                layout.textX(), layout.titleY(), GovernmentUiGlyphs.ACTIVE_GREEN, false);
         String visibleTag = tag == null || tag.isBlank() ? row.state() : tag;
         if (visibleTag != null && !visibleTag.isBlank()) {
-            GovernmentUiGlyphs.tag(context, renderer, titleX, y + 22, visibleTag, row.unlocked(), 96, style);
+            GovernmentUiGlyphs.tag(context, renderer, layout.textX(), layout.tagY(), visibleTag, row.unlocked(), 96, style);
         }
         if (actorLabel != null && !actorLabel.isBlank()) {
-            ElarionUiTypography.draw(context, renderer, ElarionUiRenderer.ellipsize(renderer, actorLabel, titleWidth),
-                    titleX, y + 40, theme.mutedColor(), false);
+            ElarionUiTypography.draw(context, renderer,
+                    ElarionUiRenderer.ellipsize(renderer, actorLabel, layout.textWidth()),
+                    layout.textX(), layout.subtitleY(), theme.mutedColor(), false);
         }
     }
 
@@ -102,8 +107,9 @@ public final class GovernmentUiComponents {
             ElarionUiThemeVariant theme,
             ElarionUiStyle style
     ) {
-        GovernmentUiGlyphs.icon(context, x, y - 3, 16, iconId, style);
-        ElarionUiTypography.draw(context, renderer, label, x + 22, y, theme.titleColor(), false);
+        ElarionDetailBodyLayout.SectionTitle layout = ElarionDetailBodyLayout.sectionTitle(x, y, 16, 6, -3);
+        GovernmentUiGlyphs.icon(context, layout.icon().x(), layout.icon().y(), layout.icon().width(), iconId, style);
+        ElarionUiTypography.draw(context, renderer, label, layout.textX(), layout.textY(), theme.titleColor(), false);
     }
 
     public static void divider(DrawContext context, int x, int y, int width) {
@@ -120,8 +126,10 @@ public final class GovernmentUiComponents {
             int height,
             ElarionUiThemeVariant theme
     ) {
+        ElarionDetailBodyLayout.BodyText layout = ElarionDetailBodyLayout.bodyText(x, y, width, height);
         ElarionUiRenderer.wrappedClipped(context, renderer, Text.literal(text == null ? "" : text),
-                x, y, width, height, theme.textColor(), theme.mutedColor());
+                layout.body().x(), layout.body().y(), layout.body().width(), layout.body().height(),
+                theme.textColor(), theme.mutedColor());
     }
 
     public static void voteOptionRow(

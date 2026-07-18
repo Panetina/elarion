@@ -47,13 +47,13 @@ class GovernmentProposalRecordTest {
                         10L)
                 .withVote(president, true)
                 .withStatus(GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION, president, 20L)
-                .withFinalText("Road Tax", "Citizens pay a small road tax.", president, 30L)
+                .withFinalText("Road Tax", "Embers pay a small road tax.", president, 30L)
                 .withStatusAndClearedReview(GovernmentProposalStatus.FINAL_TEXT_REVIEW, president, 30L)
                 .withVote(council, true);
 
         assertEquals(GovernmentProposalStatus.FINAL_TEXT_REVIEW, proposal.status());
         assertEquals("Road Tax", proposal.finalTitle());
-        assertEquals("Citizens pay a small road tax.", proposal.finalBody());
+        assertEquals("Embers pay a small road tax.", proposal.finalBody());
         assertEquals(1, proposal.reviewVotes().size());
         assertTrue(proposal.reviewVotes().get(council));
     }

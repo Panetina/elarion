@@ -7,6 +7,7 @@ public enum EconomyTransactionType {
     REWARD,
     FEE,
     TAX,
+    PUBLIC_REVENUE,
     SINK,
     TREASURY_GRANT,
     ADMIN_ADJUSTMENT

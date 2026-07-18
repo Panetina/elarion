@@ -7,6 +7,8 @@ public record EconomyAccount(EconomyAccountType type, String id) {
     public static final EconomyAccount MINT = system("mint");
     public static final EconomyAccount BURN = system("burn");
     public static final EconomyAccount PHYSICAL_CURRENCY = system("physical_currency");
+    public static final EconomyAccount WORLDHEART_TREASURY =
+            new EconomyAccount(EconomyAccountType.WORLDHEART, "worldheart");
 
     public EconomyAccount {
         if (type == null) throw new IllegalArgumentException("Account type is required");

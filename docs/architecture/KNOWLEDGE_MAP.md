@@ -12,6 +12,8 @@ Elarion
 |   |-- INDEX.md
 |   |-- docs/ai/CURRENT_STATUS.md
 |   |-- docs/ai/AI_SEARCH_HINTS.md
+|   |-- docs/ai/routes.json
+|   |-- docs/ai/archive/ (explicit history only)
 |   `-- docs/architecture/KNOWLEDGE_MAP.md
 |-- Architecture
 |   |-- docs/architecture/PROJECT_STRUCTURE.md
@@ -69,14 +71,17 @@ Elarion
 - `RULES.md` decides permanent policy.
 - `AGENTS.md` decides local Codex behavior and source-map rules.
 - `INDEX.md` decides ownership and navigation.
+- `docs/ai/routes.json` decides bounded task routing; it points to authority but
+  does not replace it.
 - `TODO.md` decides current work.
 - `PLANS.md` decides future ideas.
 - `LORE.md` decides established canon.
 
 ## Exclusion Rule
 
-`addons/angling/reference/**` is upstream reference material. Ignore it unless
-Angling porting is explicitly active.
+`docs/ai/archive/**`, `external/**`, and `addons/angling/reference/**` are
+excluded from ordinary task context. Read them only for explicit historical,
+upstream, or Angling-porting work.
 
 If a document conflicts with source, mark the document stale and update it
 before building on it.

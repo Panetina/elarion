@@ -47,6 +47,9 @@ public final class GovernmentStateService {
     private static final Duration FOUNDING_VOTE_DURATION = Duration.ofHours(24);
     private static final Duration RUNOFF_VOTE_DURATION = Duration.ofHours(12);
     private static final int VOTE_RESOLUTION_INTERVAL_TICKS = 20;
+    private static final String SOURCE_SYSTEM = "elarion_government";
+    private static final String OPEN_CIVIC_FORUM_ACTION = "elarion_government:open_civic_forum";
+    private static final String NOTIFICATION_ICON = "realm";
     private static final Map<String, String> AUTHORITY_TITLE_IDS = Map.of(
             "monarch", "government_monarch",
             "heir", "government_heir",
@@ -64,6 +67,7 @@ public final class GovernmentStateService {
     private final GovernmentDefinitionService definitions;
     private final GovernmentStorage storage;
     private GovernmentState state = new GovernmentState();
+    private final Map<UUID, List<GovernmentOfficeTermRecord>> officeTermsByHolder = new LinkedHashMap<>();
     private MinecraftServer server;
     private int voteResolutionTicks;
     private int authorityCleanupTicks;
@@ -87,7 +91,9 @@ public final class GovernmentStateService {
                 state.realms.computeIfAbsent(realm.id(), RealmGovernmentState::empty));
         boolean repairedFounding = reconcileFoundingCompletion();
         reconcileLegacyRepublicPetitions();
+        officeTermsByHolder.clear();
         reconcileOfficeTerms();
+        rebuildOfficeTermIndex();
         sanitizeStoredVotes();
         boolean repairedColor = reconcileResolvedColorVotes();
         reconcileAuthorityTitles();
@@ -117,6 +123,10 @@ public final class GovernmentStateService {
         return state.realms.values();
     }
 
+    public String realmDisplayName(String realmId) {
+        return api.realms().find(realmId).map(api.realms()::displayName).orElse(realmId == null ? "" : realmId);
+    }
+
     public int resetRealm(String realmId) {
         String normalizedRealm = normalize(realmId);
         if (api.realms().find(normalizedRealm).isEmpty()) {
@@ -129,6 +139,7 @@ public final class GovernmentStateService {
         state.proposals.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
         state.laws.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
         state.officeTerms.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
+        rebuildOfficeTermIndex();
         state.authorityTitleRestores.keySet().removeIf(key -> key.startsWith(normalizedRealm + "|"));
         save();
         refreshIdentities();
@@ -144,6 +155,7 @@ public final class GovernmentStateService {
         state.proposals.clear();
         state.laws.clear();
         state.officeTerms.clear();
+        officeTermsByHolder.clear();
         state.authorityTitleRestores.clear();
         save();
         refreshIdentities();
@@ -187,7 +199,7 @@ public final class GovernmentStateService {
         api.realmDeliveries().notifyRealm(
                 normalizedRealm,
                 "Realm Name Selected",
-                "Citizens selected " + updated.votedDisplayName() + " as the Realm name and ["
+                "Embers selected " + updated.votedDisplayName() + " as the Realm name and ["
                         + updated.votedTag() + "] as its public tag.",
                 "government",
                 null);
@@ -344,7 +356,7 @@ public final class GovernmentStateService {
         save();
         if (openingProposalWindow) {
             notifyVoteStage(realm, "Realm Name Proposals Open",
-                    "Citizens may propose a founding name and public tag for the next 24 hours.",
+                    "Embers may propose a founding name and public tag for the next 24 hours.",
                     "name-proposals:" + vote.round, vote.proposalEndsAt);
         }
         api.history().recordChronicle("government", "name-proposed", player.getUuid(), "realm", realm, realm,
@@ -396,7 +408,7 @@ public final class GovernmentStateService {
         save();
         if (openingProposalWindow) {
             notifyVoteStage(realm, "Founding Faith Proposals Open",
-                    "Citizens may propose the faith the High Priest and Synod will represent.",
+                    "Embers may propose the faith the High Priest and Synod will represent.",
                     "faith-proposals:" + vote.round, vote.proposalEndsAt);
         }
         notifyPersonal(player.getUuid(), "faith-proposal-accepted",
@@ -444,11 +456,11 @@ public final class GovernmentStateService {
         save();
         if (openingProposalWindow) {
             notifyVoteStage(realm, "Founding Nominations Open",
-                    "Citizens may nominate themselves for the first authority offices.",
+                    "Embers may nominate themselves for the first authority offices.",
                     "founding-nominations:" + vote.round, vote.proposalEndsAt);
         }
         api.history().recordChronicle("government", "founding-nominated", player.getUuid(), "realm", realm, realm,
-                Map.of("form", form.id()), "A citizen entered the founding election.");
+                Map.of("form", form.id()), "An Ember entered the founding election.");
         notifyPersonal(player.getUuid(), "founding-nomination-accepted",
                 realm + ":nomination:" + player.getUuid(),
                 "Nomination Accepted",
@@ -502,7 +514,7 @@ public final class GovernmentStateService {
             reason = lockMessage == null || lockMessage.isBlank() ? "Founding election is locked." : lockMessage;
             canNominate = false;
         } else if (!activeCitizen) {
-            reason = "Only active citizens of this Realm may enter the election.";
+            reason = "Only active Embers of this Realm may enter the election.";
             canNominate = false;
         } else if (!nominationsOpen) {
             reason = "Nominations are closed. Voting is now open.";
@@ -513,7 +525,7 @@ public final class GovernmentStateService {
         } else if ("republic".equals(form.id()) && "council_member".equals(officeId)
                 && playerId != null
                 && government.officeHolders().getOrDefault("president", Set.of()).contains(playerId)) {
-            reason = "The elected President cannot also serve as Councilor. Another citizen must be nominated.";
+            reason = "The elected President cannot also serve as Councilor. Another Ember must be nominated.";
             canNominate = false;
         } else if ("delegate".equals(officeId) && !delegateEligible) {
             reason = "Only an eligible group leader may stand as a Confederation Delegate.";
@@ -675,7 +687,7 @@ public final class GovernmentStateService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown office " + officeId + " for " + form.id()));
         CitizenRecord citizen = api.citizens().find(citizenId)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown citizen " + citizenId));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Ember " + citizenId));
         if (!normalizedRealm.equals(citizen.realmId())) {
             throw new IllegalArgumentException("Office holder must belong to the Realm.");
         }
@@ -695,7 +707,7 @@ public final class GovernmentStateService {
         refreshIdentities();
         api.history().recordChronicle("government", "office-assigned", citizenId, "office", officeId,
                 normalizedRealm, java.util.Map.of("office", officeId, "form", form.id()),
-                "A citizen was assigned to " + office.displayName() + " in " + officialName(normalizedRealm) + ".");
+                "An Ember was assigned to " + office.displayName() + " in " + officialName(normalizedRealm) + ".");
         api.realmDeliveries().notifyRealm(normalizedRealm, "Authority Appointed",
                 citizenName(citizen) + " was appointed as " + office.displayName() + ".",
                 "government", citizenId);
@@ -729,7 +741,7 @@ public final class GovernmentStateService {
         refreshIdentities();
         api.history().recordChronicle("government", "office-removed", citizenId, "office", officeId,
                 normalizedRealm, java.util.Map.of("office", officeId),
-                "A citizen was removed from " + officeId + " in " + officialName(normalizedRealm) + ".");
+                "An Ember was removed from " + officeId + " in " + officialName(normalizedRealm) + ".");
         api.realmDeliveries().notifyRealm(normalizedRealm, "Authority Changed",
                 "The office of " + officeId.replace('_', ' ') + " changed.",
                 "government", citizenId);
@@ -748,7 +760,7 @@ public final class GovernmentStateService {
                     Map.of("office", officeId, "form", form.id(), "reason", "vacancy"),
                     "The " + office + " election reopened after the office became vacant.");
             notifyVoteStage(normalizedRealm, office + " Election Reopened",
-                    "The " + office + " office is vacant. Eligible citizens may nominate themselves in the Civic Forum.",
+                    "The " + office + " office is vacant. Eligible Embers may nominate themselves in the Civic Forum.",
                     "founding-election:vacancy:" + officeId + ":" + System.currentTimeMillis(), 0L);
             emit("leadership-election-reopened", citizenId, normalizedRealm, "office", officeId,
                     Map.of("office", officeId, "form", form.id(), "reason", "vacancy"));
@@ -764,6 +776,20 @@ public final class GovernmentStateService {
                 .filter(term -> normalizedOffice.isBlank() || normalizedOffice.equals(normalize(term.officeId())))
                 .filter(GovernmentOfficeTermRecord::active)
                 .sorted(Comparator.comparingLong(GovernmentOfficeTermRecord::chosenAt))
+                .toList();
+    }
+
+    public List<GovernmentOfficeTermRecord> officeTermsFor(UUID holderId, int limit) {
+        return boundedOfficeTerms(officeTermsByHolder, holderId, limit);
+    }
+
+    static List<GovernmentOfficeTermRecord> boundedOfficeTerms(
+            Map<UUID, List<GovernmentOfficeTermRecord>> index, UUID holderId, int limit) {
+        if (holderId == null || index == null) return List.of();
+        int boundedLimit = Math.max(1, Math.min(32, limit));
+        return index.getOrDefault(holderId, List.of()).stream()
+                .sorted(Comparator.comparingLong(GovernmentOfficeTermRecord::chosenAt).reversed())
+                .limit(boundedLimit)
                 .toList();
     }
 
@@ -789,7 +815,7 @@ public final class GovernmentStateService {
         RealmGovernmentState government = realm(realm);
         requireOfficeManager(actor, government, officeId, true);
         CitizenRecord citizen = resolveCitizen(realm, citizenNameOrId)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown Realm citizen " + citizenNameOrId + "."));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Realm Ember " + citizenNameOrId + "."));
         return assignOffice(realm, officeId, citizen.uuid());
     }
 
@@ -803,7 +829,7 @@ public final class GovernmentStateService {
         RealmGovernmentState government = realm(realm);
         requireOfficeManager(actor, government, officeId, false);
         CitizenRecord citizen = resolveCitizen(realm, citizenNameOrId)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown Realm citizen " + citizenNameOrId + "."));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown Realm Ember " + citizenNameOrId + "."));
         if (!government.officeHolders().getOrDefault(officeId, Set.of()).contains(citizen.uuid())) {
             throw new IllegalArgumentException(citizenName(citizen) + " does not hold " + officeId + ".");
         }
@@ -915,16 +941,16 @@ public final class GovernmentStateService {
         save();
         api.history().recordChronicle("government", "proposal-created", player.getUuid(), "proposal", id,
                 realm, Map.of("category", cleanCategory, "title", cleanTitle),
-                "A citizen created a civic proposal.");
+                "An Ember created a civic proposal.");
         notifyPersonal(player.getUuid(), "proposal-created", realm + ":proposal-created:" + id,
                 "Proposal Submitted",
                 citizenPetition
-                        ? "Your proposal \"" + cleanTitle + "\" is now open for citizen support."
+                        ? "Your proposal \"" + cleanTitle + "\" is now open for Ember support."
                         : "Your proposal \"" + cleanTitle + "\" was sent to the Seat of Rule.",
                 Map.of("realmId", realm, "proposalId", id, "category", cleanCategory));
         if (citizenPetition) {
-            api.realmDeliveries().notifyRealm(realm, "Citizen Proposal Open",
-                    "\"" + cleanTitle + "\" is open for citizen approval in the Civic Forum.",
+            api.realmDeliveries().notifyRealm(realm, "Ember Proposal Open",
+                    "\"" + cleanTitle + "\" is open for Ember approval in the Civic Forum.",
                     "government", player.getUuid());
         } else {
             notifyInitialProposalReviewers(realm, cleanCategory, "Proposal Awaiting Review",
@@ -1012,7 +1038,7 @@ public final class GovernmentStateService {
             throw new IllegalArgumentException("Unknown proposal " + proposalId + ".");
         }
         if (proposal.status() != GovernmentProposalStatus.CITIZEN_RATIFICATION) {
-            throw new IllegalArgumentException("That proposal is not open for citizen voting.");
+            throw new IllegalArgumentException("That proposal is not open for Ember voting.");
         }
         GovernmentProposalRecord updated = proposal.withCitizenVote(player.getUuid(), approve);
         int threshold = activeCitizenThreshold(realm);
@@ -1024,12 +1050,12 @@ public final class GovernmentStateService {
                         GovernmentProposalStatus.PENDING, player.getUuid(), System.currentTimeMillis());
                 state.proposals.put(proposal.id(), pendingReview);
                 save();
-                notifyInitialProposalReviewers(realm, proposal.category(), "Citizen Proposal Approved",
-                        "\"" + proposal.title() + "\" reached citizen support and is ready for authority review.",
+                notifyInitialProposalReviewers(realm, proposal.category(), "Ember Proposal Approved",
+                        "\"" + proposal.title() + "\" reached Ember support and is ready for authority review.",
                         "proposal-review:" + proposal.id(),
                         Map.of("realmId", realm, "proposalId", proposal.id(), "category", proposal.category()));
                 api.realmDeliveries().notifyRealm(realm, "Proposal Sent To Government",
-                        "\"" + proposal.title() + "\" reached citizen support and moved to authority review.",
+                        "\"" + proposal.title() + "\" reached Ember support and moved to authority review.",
                         "government", player.getUuid());
                 emit("government-proposal-citizen-approved", player.getUuid(), realm, "proposal", proposal.id(),
                         Map.of("status", "pending_authority_review", "category", proposal.category()));
@@ -1043,7 +1069,7 @@ public final class GovernmentStateService {
             state.realms.put(realm, realm(realm).withoutPendingProposal(proposal.id()));
             save();
             api.realmDeliveries().notifyRealm(realm, "Law Ratified",
-                    "\"" + record.title() + "\" was approved by citizens and is now active.",
+                    "\"" + record.title() + "\" was approved by Embers and is now active.",
                     "government", player.getUuid());
             emit("government-proposal-citizen-ratified", player.getUuid(), realm, "proposal", proposal.id(),
                     Map.of("status", "enacted", "category", proposal.category(), "recordId", record.id()));
@@ -1051,7 +1077,7 @@ public final class GovernmentStateService {
         }
         if (rejections >= threshold) {
             api.realmDeliveries().notifyRealm(realm, "Law Rejected",
-                    "\"" + proposal.title() + "\" failed citizen ratification.",
+                    "\"" + proposal.title() + "\" failed Ember ratification.",
                     "government", player.getUuid());
             emit("government-proposal-citizen-ratified", player.getUuid(), realm, "proposal", proposal.id(),
                     Map.of("status", "rejected", "category", proposal.category()));
@@ -1647,7 +1673,7 @@ public final class GovernmentStateService {
 
     private void requireEligible(ServerPlayerEntity player, String realmId) {
         if (!eligibleCitizen(player, realmId)) {
-            throw new IllegalArgumentException("Only active citizens of this Realm can do that.");
+            throw new IllegalArgumentException("Only active Embers of this Realm can do that.");
         }
     }
 
@@ -1789,7 +1815,7 @@ public final class GovernmentStateService {
             api.realmDeliveries().notifyRealm(
                     vote.realmId,
                     "Founding Election Complete",
-                    "Citizens elected " + winnerIds.size() + " founding authority holder"
+                    "Embers elected " + winnerIds.size() + " founding authority holder"
                             + (winnerIds.size() == 1 ? "." : "s."),
                     "government",
                     null);
@@ -1929,8 +1955,8 @@ public final class GovernmentStateService {
     private String nextFoundingPhaseMessage(GovernmentFormDefinition form, RealmGovernmentState current) {
         return switch (form.id()) {
             case "republic" -> current.officeHolders().containsKey("president")
-                    ? "Citizens may now nominate Councilors. Each citizen may approve up to three different candidates."
-                    : "Citizens may now nominate the President.";
+                    ? "Embers may now nominate Councilors. Each Ember may approve up to three different candidates."
+                    : "Embers may now nominate the President.";
             case "theocracy" -> "The High Priest has been chosen. Synod appointments are handled by the High Priest through authority office management.";
             default -> "The next founding election phase is ready.";
         };
@@ -1973,7 +1999,7 @@ public final class GovernmentStateService {
                     .orElse(officeId);
         }
         CitizenRecord citizen = api.citizens().find(citizenId).orElse(null);
-        String name = citizen == null ? "Unknown Citizen" : citizenName(citizen);
+        String name = citizen == null ? "Unknown Ember" : citizenName(citizen);
         String office = officeLabel(definitions.require(formId), officeId);
         return office.isBlank() ? name : office + " " + name;
     }
@@ -2055,18 +2081,14 @@ public final class GovernmentStateService {
         api.notifications().publishRealm(
                 realmId,
                 ElarionNotificationCategory.GOVERNMENT,
-                "elarion_government",
+                SOURCE_SYSTEM,
                 "vote-stage",
                 realmId + ":" + dedupe,
                 title,
                 body,
                 "Civic Forum",
-                "item:minecraft:writable_book",
-                List.of(
-                        new ElarionNotificationAction(
-                                "elarion_government:open_civic_forum", "Open Forum", true),
-                        new ElarionNotificationAction(
-                                ElarionNotificationService.DISMISS, "Dismiss", true)),
+                NOTIFICATION_ICON,
+                governmentNotificationActions(Map.of("realmId", realmId)),
                 Map.of("realmId", realmId),
                 expiresAt);
     }
@@ -2083,16 +2105,25 @@ public final class GovernmentStateService {
         api.notifications().publishPersonal(
                 recipientId,
                 ElarionNotificationCategory.PERSONAL,
-                "elarion_government",
+                SOURCE_SYSTEM,
                 eventType,
                 dedupe,
                 title,
                 body,
                 "Government",
-                "item:minecraft:writable_book",
-                List.of(new ElarionNotificationAction(ElarionNotificationService.DISMISS, "Dismiss", true)),
+                NOTIFICATION_ICON,
+                governmentNotificationActions(metadata),
                 metadata,
                 api.notifications().defaultExpiry());
+    }
+
+    private static List<ElarionNotificationAction> governmentNotificationActions(Map<String, String> metadata) {
+        if (metadata != null && !metadata.getOrDefault("realmId", "").isBlank()) {
+            return List.of(
+                    new ElarionNotificationAction(OPEN_CIVIC_FORUM_ACTION, "Open Forum", true),
+                    new ElarionNotificationAction(ElarionNotificationService.DISMISS, "Dismiss", true));
+        }
+        return List.of(new ElarionNotificationAction(ElarionNotificationService.DISMISS, "Dismiss", true));
     }
 
     private void notifyAuthority(String realmId, String title, String body, String dedupe, Map<String, String> metadata) {
@@ -2151,14 +2182,14 @@ public final class GovernmentStateService {
         api.history().recordChronicle("government", "proposal-citizen-ratification-opened",
                 actor.getUuid(), "proposal", proposal.id(), realm,
                 Map.of("category", proposal.category(), "title", proposal.title()),
-                "A Republic law proposal was sent to citizens for ratification.");
+                "A Republic law proposal was sent to Embers for ratification.");
         notifyPersonal(proposal.authorId(), "proposal-ratification-opened",
                 realm + ":proposal-ratification-opened:" + proposal.id(),
-                "Proposal Sent To Citizens",
-                "The official wording for \"" + finalTitle(proposal) + "\" was approved and now needs citizen approval.",
+                "Proposal Sent To Embers",
+                "The official wording for \"" + finalTitle(proposal) + "\" was approved and now needs Ember approval.",
                 Map.of("realmId", realm, "proposalId", proposal.id(), "category", proposal.category()));
         api.realmDeliveries().notifyRealm(realm, "Law Vote Opened",
-                "\"" + finalTitle(proposal) + "\" now needs citizen ratification.",
+                "\"" + finalTitle(proposal) + "\" now needs Ember ratification.",
                 "government", actor.getUuid());
         emit("government-proposal-citizen-ratification-opened", actor.getUuid(), realm, "proposal", proposal.id(),
                 Map.of("category", proposal.category(), "title", finalTitle(proposal)));
@@ -2424,25 +2455,45 @@ public final class GovernmentStateService {
         if (active.isPresent()) return;
         GovernmentOfficeTermRecord term = GovernmentOfficeTermRecord.active(realmId, officeId, holderId, chosenAt);
         state.officeTerms.put(term.key(), term);
+        indexOfficeTerm(term);
     }
 
     private void closeOfficeTerm(String realmId, String officeId, UUID holderId, long removedAt) {
         if (holderId == null) return;
-        state.officeTerms.replaceAll((key, term) -> term.active()
+        updateHolderTerms(holderId, term -> term.active()
                 && normalize(term.realmId()).equals(normalize(realmId))
                 && normalize(term.officeId()).equals(normalize(officeId))
-                && holderId.equals(term.holderId())
-                ? term.withRemovedAt(removedAt)
-                : term);
+                ? term.withRemovedAt(removedAt) : term);
     }
 
     private void recordOfficeDecision(String realmId, UUID holderId, boolean approved) {
         if (holderId == null) return;
-        state.officeTerms.replaceAll((key, term) -> term.active()
+        updateHolderTerms(holderId, term -> term.active()
                 && normalize(term.realmId()).equals(normalize(realmId))
-                && holderId.equals(term.holderId())
-                ? term.withDecision(approved)
-                : term);
+                ? term.withDecision(approved) : term);
+    }
+
+    private void rebuildOfficeTermIndex() {
+        officeTermsByHolder.clear();
+        state.officeTerms.values().forEach(this::indexOfficeTerm);
+    }
+
+    private void indexOfficeTerm(GovernmentOfficeTermRecord term) {
+        if (term == null || term.holderId() == null) return;
+        officeTermsByHolder.computeIfAbsent(term.holderId(), ignored -> new ArrayList<>()).add(term);
+    }
+
+    private void updateHolderTerms(UUID holderId,
+                                   java.util.function.UnaryOperator<GovernmentOfficeTermRecord> update) {
+        List<GovernmentOfficeTermRecord> current = officeTermsByHolder.getOrDefault(holderId, List.of());
+        if (current.isEmpty()) return;
+        List<GovernmentOfficeTermRecord> updated = new ArrayList<>(current.size());
+        for (GovernmentOfficeTermRecord term : current) {
+            GovernmentOfficeTermRecord next = update.apply(term);
+            state.officeTerms.put(term.key(), next);
+            updated.add(next);
+        }
+        officeTermsByHolder.put(holderId, updated);
     }
 
     private Optional<CitizenRecord> resolveCitizen(String realmId, String nameOrId) {

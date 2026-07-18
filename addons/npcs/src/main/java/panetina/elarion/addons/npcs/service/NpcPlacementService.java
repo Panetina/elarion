@@ -37,6 +37,7 @@ public final class NpcPlacementService {
     private final Logger logger;
     private final NpcDefinitionService definitions;
     private final NpcPlacementStorage storage;
+    private final NpcTaxJurisdictionResolver taxJurisdictions;
     private final Map<UUID, PlacedNpcRecord> placed = new LinkedHashMap<>();
     private final Set<UUID> reconciling = new HashSet<>();
     private MinecraftServer server;
@@ -45,16 +46,26 @@ public final class NpcPlacementService {
     };
 
     public NpcPlacementService(Logger logger, NpcDefinitionService definitions, NpcPlacementStorage storage) {
+        this(logger, definitions, storage, new NpcTaxJurisdictionResolver(ignored -> Optional.empty()));
+    }
+
+    public NpcPlacementService(
+            Logger logger,
+            NpcDefinitionService definitions,
+            NpcPlacementStorage storage,
+            NpcTaxJurisdictionResolver taxJurisdictions
+    ) {
         this.logger = logger;
         this.definitions = definitions;
         this.storage = storage;
+        this.taxJurisdictions = taxJurisdictions;
     }
 
     public void bind(MinecraftServer server) {
         this.server = server;
         this.bound = false;
         placed.clear();
-        storage.load(server).values().forEach(record ->
+        storage.load(server, this::resolveTaxJurisdiction).values().forEach(record ->
                 placed.put(record.id(), ensureHandle(record)));
         this.bound = true;
     }
@@ -133,6 +144,7 @@ public final class NpcPlacementService {
                 "",
                 creator.getUuid(),
                 System.currentTimeMillis());
+        record = resolveTaxJurisdiction(record);
         placed.put(record.id(), record);
         record = reconcile(record).record();
         placed.put(record.id(), record);
@@ -161,6 +173,7 @@ public final class NpcPlacementService {
                 source.dialogueOverride(),
                 creator.getUuid(),
                 System.currentTimeMillis());
+        copy = resolveTaxJurisdiction(copy);
         placed.put(copy.id(), copy);
         copy = reconcile(copy).record();
         placed.put(copy.id(), copy);
@@ -184,7 +197,6 @@ public final class NpcPlacementService {
     public Optional<PlacedNpcRecord> move(String idOrHandle, ServerPlayerEntity player) {
         PlacedNpcRecord current = find(idOrHandle).orElse(null);
         if (current == null) return Optional.empty();
-        discardAllAnchors(current);
         PlacedNpcRecord moved = current.moved(
                 player.getWorld().getRegistryKey().getValue().toString(),
                 player.getX(),
@@ -192,6 +204,8 @@ public final class NpcPlacementService {
                 player.getZ(),
                 player.getYaw(),
                 player.getPitch());
+        moved = resolveTaxJurisdiction(moved);
+        discardAllAnchors(current);
         placed.put(current.id(), moved);
         moved = reconcile(moved).record();
         placed.put(current.id(), moved);
@@ -243,8 +257,10 @@ public final class NpcPlacementService {
 
     public void respawnAll() {
         if (server == null) return;
+        Map<UUID, PlacedNpcRecord> resolved = new LinkedHashMap<>();
+        placed.forEach((id, record) -> resolved.put(id, resolveTaxJurisdiction(record)));
         Map<UUID, PlacedNpcRecord> updated = new LinkedHashMap<>();
-        placed.forEach((id, record) -> {
+        resolved.forEach((id, record) -> {
             removalListener.accept(id);
             updated.put(id, reconcile(record).record());
         });
@@ -252,6 +268,10 @@ public final class NpcPlacementService {
         placed.putAll(updated);
         save();
         broadcastVisuals();
+    }
+
+    public void validateTaxJurisdictions() {
+        placed.values().forEach(this::resolveTaxJurisdiction);
     }
 
     public Optional<PlacedNpcRecord> face(String idOrHandle, ServerPlayerEntity player) {
@@ -292,6 +312,7 @@ public final class NpcPlacementService {
     public RepairResult repair(String idOrHandle) {
         PlacedNpcRecord record = find(idOrHandle).orElse(null);
         if (record == null) return RepairResult.notFound();
+        record = resolveTaxJurisdiction(record);
         removalListener.accept(record.id());
         ReconcileResult result = reconcile(record);
         placed.put(record.id(), result.record());
@@ -301,11 +322,13 @@ public final class NpcPlacementService {
     }
 
     public RepairResult repairAll() {
+        Map<UUID, PlacedNpcRecord> resolved = new LinkedHashMap<>();
+        placed.forEach((id, record) -> resolved.put(id, resolveTaxJurisdiction(record)));
         int removed = 0;
         int spawned = 0;
         int reused = 0;
         Map<UUID, PlacedNpcRecord> updated = new LinkedHashMap<>();
-        for (PlacedNpcRecord record : placed.values()) {
+        for (PlacedNpcRecord record : resolved.values()) {
             removalListener.accept(record.id());
             ReconcileResult result = reconcile(record);
             updated.put(record.id(), result.record());
@@ -504,6 +527,13 @@ public final class NpcPlacementService {
         return record.handle() == null || record.handle().isBlank()
                 ? record.withHandle(nextHandle(record.definitionId()))
                 : record;
+    }
+
+    private PlacedNpcRecord resolveTaxJurisdiction(PlacedNpcRecord record) {
+        String policy = definitions.npc(record.definitionId())
+                .map(NpcDefinition::taxJurisdiction)
+                .orElse("auto");
+        return taxJurisdictions.resolve(record, policy);
     }
 
     private String nextHandle(String definitionId) {

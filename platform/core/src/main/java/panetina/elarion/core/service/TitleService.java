@@ -106,7 +106,7 @@ public final class TitleService {
         if (maybeTitle.isEmpty()) return new TitleOperation(false, "Unknown title: " + titleId);
         TitleDefinition title = maybeTitle.get();
         if (citizen.hasUnlockedTitle(title.id())) {
-            return new TitleOperation(true, "Citizen already has title: " + title.id());
+            return new TitleOperation(true, "Ember already has title: " + title.id());
         }
         if (title.ownershipMode() == TitleOwnershipMode.GLOBALLY_UNIQUE) {
             if (claimState.retiredTitles().contains(title.id())) {
@@ -133,7 +133,7 @@ public final class TitleService {
         if (maybeTitle.isEmpty()) return new TitleOperation(false, "Unknown title: " + titleId);
         TitleDefinition title = maybeTitle.get();
         if (!citizen.hasUnlockedTitle(title.id())) {
-            return new TitleOperation(false, "Citizen does not have title: " + title.id());
+            return new TitleOperation(false, "Ember does not have title: " + title.id());
         }
         citizen.revokeTitle(title.id());
         citizens.save(citizen, "title-revoked");
@@ -187,7 +187,7 @@ public final class TitleService {
         TitleDefinition title = maybeTitle.get();
         ensureDefaultTitle(citizen);
         if (!citizen.hasUnlockedTitle(title.id())) {
-            return new TitleOperation(false, "Citizen has not unlocked title: " + title.id());
+            return new TitleOperation(false, "Ember has not unlocked title: " + title.id());
         }
         citizen.setActiveTitleId(title.id());
         citizens.save(citizen, "title-active-set");
@@ -281,9 +281,9 @@ public final class TitleService {
         Optional<TitleDefinition> maybeTitle = find(rule.titleId());
         if (maybeTitle.isEmpty()) return new TitleOperation(false, "Unknown title: " + rule.titleId());
         CitizenRecord citizen = citizens.find(uuid).orElse(null);
-        if (citizen == null) return new TitleOperation(false, "Unknown citizen: " + uuid);
+        if (citizen == null) return new TitleOperation(false, "Unknown Ember: " + uuid);
         TitleDefinition title = maybeTitle.get();
-        if (citizen.hasUnlockedTitle(title.id())) return new TitleOperation(true, "Citizen already has title: " + title.id());
+        if (citizen.hasUnlockedTitle(title.id())) return new TitleOperation(true, "Ember already has title: " + title.id());
         TitleOperation grant = grant(citizen, title.id(), actorId, reason);
         if (grant.success()) {
             history.recordChronicle("title", "progression-unlocked", actorId, "player",
@@ -320,7 +320,7 @@ public final class TitleService {
         TitleClaim existing = claimState.claims().get(title.id());
         if (existing != null) {
             if (existing.owner().equals(citizenId)) {
-                return new TitleOperation(true, "Citizen already owns unique claim: " + title.id());
+                return new TitleOperation(true, "Ember already owns unique claim: " + title.id());
             }
             history.recordChronicle("title", "unique-claim-failed", actorId, "title",
                     title.id(), "", Map.of(

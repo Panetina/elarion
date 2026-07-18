@@ -68,13 +68,13 @@ public final class OfferingConfigLoader {
                     integer(map, "row-height", defaults.rowHeight()),
                     integer(map, "icon-size", defaults.iconSize()),
                     integer(map, "close-button-width", defaults.closeButtonWidth()),
-                    api.serverIdentity().replace(string(map, "rewards-placeholder", defaults.rewardsPlaceholder())),
-                    api.serverIdentity().replace(string(map, "history-placeholder", defaults.historyPlaceholder())),
-                    api.serverIdentity().replace(string(map, "contribution-placeholder",
+                    api.system().placeholders().replaceIdentity(string(map, "rewards-placeholder", defaults.rewardsPlaceholder())),
+                    api.system().placeholders().replaceIdentity(string(map, "history-placeholder", defaults.historyPlaceholder())),
+                    api.system().placeholders().replaceIdentity(string(map, "contribution-placeholder",
                             defaults.contributionPlaceholder())),
-                    api.serverIdentity().replace(string(map, "event-title", defaults.eventTitle())),
-                    api.serverIdentity().replace(string(map, "event-body", defaults.eventBody())),
-                    api.serverIdentity().replace(string(map, "event-locked-body", defaults.eventLockedBody())));
+                    api.system().placeholders().replaceIdentity(string(map, "event-title", defaults.eventTitle())),
+                    api.system().placeholders().replaceIdentity(string(map, "event-body", defaults.eventBody())),
+                    api.system().placeholders().replaceIdentity(string(map, "event-locked-body", defaults.eventLockedBody())));
             validateUi(api, config, file);
             return config;
         } catch (IOException exception) {
@@ -110,8 +110,8 @@ public final class OfferingConfigLoader {
             String id = string(map, "id");
             return new OfferingProjectDefinition(
                     id,
-                    api.serverIdentity().replace(string(map, "display-name")),
-                    api.serverIdentity().replace(string(map, "description")),
+                    api.system().placeholders().replaceIdentity(string(map, "display-name")),
+                    api.system().placeholders().replaceIdentity(string(map, "description")),
                     bool(map, "enabled", true),
                     OfferingScope.parse(string(map, "scope")),
                     bool(map, "repeatable", false),
@@ -135,7 +135,7 @@ public final class OfferingConfigLoader {
         Map<String, Object> map = raw instanceof Map<?, ?> value ? (Map<String, Object>) value : Map.of();
         OfferingPresentation defaults = OfferingPresentation.defaults();
         return new OfferingPresentation(
-                api.serverIdentity().replace(string(map, "level-text", defaults.levelText())),
+                api.system().placeholders().replaceIdentity(string(map, "level-text", defaults.levelText())),
                 string(map, "icon", defaults.icon()));
     }
 
@@ -151,8 +151,8 @@ public final class OfferingConfigLoader {
             Map<String, Object> map = (Map<String, Object>) raw;
             result.add(new panetina.elarion.addons.offerings.model.OfferingProjectLevel(
                     string(map, "id"),
-                    api.serverIdentity().replace(string(map, "display-name")),
-                    api.serverIdentity().replace(string(map, "description")),
+                    api.system().placeholders().replaceIdentity(string(map, "display-name")),
+                    api.system().placeholders().replaceIdentity(string(map, "description")),
                     requirements(map.get("requirements")),
                     milestones(map.get("milestones")),
                     presentation(api, map.get("presentation"))));

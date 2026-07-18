@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,13 +19,15 @@ final class QuestConfigLoaderTest {
     Path temp;
 
     @Test
-    void createsQuestlineDirectoryWithoutLoreDefaults() {
+    void createsEmptyQuestlineDirectoryWithoutLoreDefaults() throws IOException {
         QuestConfigLoader loader = new QuestConfigLoader(LoggerFactory.getLogger("test"), temp);
 
         var definitions = loader.load();
 
         assertTrue(Files.exists(temp.resolve("questlines")));
-        assertFalse(Files.exists(temp.resolve("questlines").resolve("red_thread_beneath_foundation.yml")));
+        try (var paths = Files.list(temp.resolve("questlines"))) {
+            assertTrue(paths.findAny().isEmpty());
+        }
         assertTrue(definitions.isEmpty());
     }
 

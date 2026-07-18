@@ -16,7 +16,8 @@ public final class EconomyItems {
     public static final Identifier ITEM_GROUP_ID = Identifier.of("elarion", "economy");
     public static final RegistryKey<ItemGroup> ITEM_GROUP_KEY =
             RegistryKey.of(RegistryKeys.ITEM_GROUP, ITEM_GROUP_ID);
-    public static final Item CURRENCY = new Item(new Item.Settings().maxCount(64));
+    public static final int CURRENCY_MAX_STACK_SIZE = 999;
+    public static final Item CURRENCY = new Item(new Item.Settings().maxCount(CURRENCY_MAX_STACK_SIZE));
     public static ItemGroup ITEM_GROUP;
     private static boolean registered;
 

@@ -145,6 +145,29 @@ public-history rows. Seat and Civic share the same compact Government chrome:
 attached header/body frame, four equal metadata cells, tabs spanning the full
 content width, compact tags, and dark-track progress rows.
 
+Government archive/history rows use the Government-owned
+`GovernmentChronicleText` renderer registered through
+`api.publicHistory().registerRenderer(...)`. Core remains the owner of durable
+history, public-history metadata, and renderer dispatch; Government maps known
+proposal, civic-record, election, office, identity, and vacancy event types to
+player-facing title/body/category/detail labels for Civic Forum History and
+Seat of Rule Archive. Private `vote-cast` events are intentionally hidden from
+these archive lists. Archive rows show a detail label plus age/time, not two
+duplicated timestamp columns.
+
+The first Phase 8 template-family pilots are Government `proposal-approved`,
+`proposal-rejected`, and `civic-record-created`. They use Core
+`ChronicleTemplateFamily` and `ChronicleVariantSelector` with 10 authored
+variants each, required `title` metadata, optional `category` metadata, and
+safe missing-title fallbacks. Other Government Chronicle families still use the
+older switch-based projection until their own slice migrates them.
+
+Government notifications publish through Core notification storage with the
+`elarion_government` source system. Realm-scoped Government notification
+actions use the same `Open Forum` plus `Dismiss` action shape and the shared
+Realm/Government semantic icon; the action still revalidates player Realm
+membership and opens a server-authored Civic Forum snapshot.
+
 The client renderer now uses shared Government row/detail/vote components for
 both Civic and Seat. Record rows reserve fixed slots for icon, title, compact
 tag, metrics, and secondary time/state text. Detail panels share the same
@@ -182,6 +205,10 @@ Editable definitions:
 config/elarion/addons/government/government.yml
 config/elarion/addons/government/forms/<form-id>/form.yml
 ```
+
+`GovernmentDefinitionService` commits settings and form definitions together.
+Failed form reloads preserve the previous active settings/forms snapshot
+instead of applying only part of the config.
 
 Runtime state:
 
@@ -307,6 +334,10 @@ is not a separate Religion addon yet.
   still needed.
 
 ## Do Not Duplicate This System By Creating
+
+Government profile history uses the owner-maintained office-term holder index.
+Profile reads are newest-first and capped; they must not query civic archives
+or Core history while rendering.
 
 - A second Realm identity owner.
 - A second office/authority owner.

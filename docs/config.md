@@ -1,6 +1,6 @@
 # Elarion Config And State
 
-Last reviewed: 2026-07-06
+Last reviewed: 2026-07-08
 
 Author: Panyel  
 Team: Panetina Team
@@ -79,6 +79,16 @@ The first registered domains are:
   `/e reload` operations. Dynamic Realm, title, progression-region,
   unlock-rule, reward, and reward-action rows are fixed to the IDs/indexes
   present when the domain is registered.
+  Core title definitions may include optional `color: "#RRGGBB"` values.
+  Missing built-in title colors are migrated in-place for known Core title IDs
+  without overwriting admin-customized colors. Existing configs that still use
+  the old shipped default-title gold `#D19B42` are migrated to the current
+  white-gray Ember display default `#C9C9C9`. Its stable config ID remains
+  `citizen` for compatibility. The same color is used by identity title
+  rendering and Character Menu title presentation. Explicit configured colors
+  always win. When a custom definition omits `color`, known title families use
+  the shared rank palette, globally unique titles fall back to Legendary, and
+  otherwise the title uses simple white.
 - `groups`, backed by `GroupConfigDescriptors`. It exposes read-only
   `groups.yml` values from the current validated `GroupService.config()`
   snapshot.
@@ -86,13 +96,23 @@ The first registered domains are:
   `economy.yml` values from `EconomyTransactionService.config()` and
   `service_prices.yml` metadata from `EconomyPricingService.definitions()`.
   Built-in service price IDs compare current values against shipped defaults;
-  custom price IDs default to their current validated value.
+  custom price IDs default to their current validated value. The domain also
+  exposes bank interest, bank withdrawal tax, and shop sales tax policy.
+  Interest is processed in bounded account batches when enabled. Withdrawal
+  tax applies only when converting bank balance to physical currency; deposits
+  are untaxed.
 - `worlds`, backed by `WorldsConfigDescriptors`. It exposes read-only
   `worlds.yml` metadata from the loaded `WorldsConfigManager`: schema,
   lobby routing, current world keys/counts, and per-world identity/type/rule
   summaries. Dynamic world entries are descriptor rows for the worlds present
   when the domain is registered; summary values continue to read the active
-  manager snapshot.
+  manager snapshot. The shipped managed-world defaults include lobby, three
+  Realm overworlds, Worldheart, and Underworld. The Realm/Worldheart seeds and
+  spawn/border centers are: `realm_world_1`
+  `-4581459134664415489` at `-367,75,138`, `realm_world_2`
+  `-8539746165762652083` at `3000,128,3920`, `realm_world_3`
+  `3812826322966527666` at `6061,84,5122`, and `worldheart`
+  `-7114969613679385277` at `-86,82,-48`.
 - `portals`, backed by `PortalConfigDescriptors`. It exposes read-only
   `routes.yml` and `ui.yml` metadata from the loaded Portal definition
   service: route IDs, modes, source/destination dimensions, Economy price keys,
@@ -112,12 +132,55 @@ The first registered domains are:
   Dynamic form entries are descriptor rows for the forms present when the
   domain is registered; values continue to read the active definition snapshot.
 - `npcs`, backed by `NpcConfigDescriptors`. It exposes read-only NPC
-  definitions, skin and portrait profiles, dialogue graph summaries, and UI
-  settings from `NpcDefinitionService`. The domain registers after the first
-  successful definition load. Dynamic NPC, profile, and dialogue rows are
-  fixed to the IDs present at registration; their values continue to read the
-  active definition snapshot. Decimal range values are currently exposed as
-  strings because the shared descriptor registry has no decimal codec yet.
+  definitions, skin and portrait profiles, trade catalog summaries, dialogue
+  graph summaries, and UI settings from `NpcDefinitionService`. The domain
+  registers after the first successful definition load. Dynamic NPC, profile,
+  trade, and dialogue rows are fixed to the IDs present at registration; their
+  values continue to read the active definition snapshot. Generated defaults
+  include `worldheart_banker`, `worldheart_trader`, and
+  `trades.yml` catalog `worldheart_trader`, but existing config files are not
+  overwritten by the default writer. The generated banker/trader profiles use
+  dedicated texture skins and curated 32x32 portrait library assets. A loaded
+  `worldheart_trader` with a missing or blank `trade-catalog` is bridged in
+  memory to the generated `worldheart_trader` catalog, and the known legacy
+  `worldheart_trader.cobblestone_buyback` route is bridged to
+  `destination-offer: cobblestone` when missing. Custom trader definitions and
+  custom Sell stock routes still need explicit catalog and destination IDs.
+  Trade offers may include
+  `custom-model-data` for server-authored item preview art, `price-key` as an
+  Economy hook for taxes, inflation, or dynamic merchant pricing, and
+  `stock-limit` / `restock-amount` / `restock-interval-seconds` for finite
+  per-placed-NPC stock. Zero stock limit means unlimited. Sell offers may set
+  `direction: sell`, `sell-match`, `component-policy`, `max-quantity`,
+  `stock-destination`, and `destination-offer`; descriptors expose those fields
+  and validation accepts enabled Sell rows when the matching/component policies
+  are valid and `placed_npc` stock destinations target a BUY offer. The
+  default Nether/End ticket
+  offers use custom model data to select the same Portal ticket stele models
+  used by real purchased ticket stacks. Each NPC definition exposes a stable
+  `faction`: `realm:<id>`, `worldheart`, `underworld`, or a custom faction id.
+  Faction ids drive the Character Menu Reputation tab and remain separate from
+  territorial tax routing. Each NPC definition also exposes
+  `tax-jurisdiction`: `auto`, `realm:<id>`, or
+  `world:<namespaced-id>`. `auto` resolves to the canonical Realm owning the
+  placement world and otherwise to that world. Explicit policies must match
+  the placement world. Generated Worldheart banker/trader definitions use
+  `world:elarion:worldheart`. Dialogue descriptors expose the active node
+  presentation kinds. Dialogue nodes accept `presentation:
+  dialogue|bank|trade`. `trade` currently provides server-authoritative BUY
+  purchases and SELL buybacks through NPC-owned catalog/stock/purchase/sale
+  state and optional Economy settlement. Validation rejects prompts and
+  executable actions on trade-node options so trade mutations stay on the
+  dedicated request path. Options
+  accept stable `presentation-role` identifiers so clients do not parse
+  localized labels. Narrative options may declare `one-time: true`; durable
+  story actions use `elarion_npcs:set_story_flag`, `clear_story_flag`,
+  `set_ending`, and `set_reentry_node`, while conditions use
+  `story_flag_set` and `ending_is`. Explicit public-history outcomes require
+  both `history-worthy: true` and `history-outcome`. Legacy root-level Economy deposit/withdraw prompts are
+  projected into a dedicated bank node in memory without rewriting
+  administrator files. Decimal range values are currently exposed as strings
+  because the shared descriptor registry has no decimal codec yet.
 - `quests`, backed by `QuestConfigDescriptors`. It exposes read-only quest
   package metadata and graph summaries from `QuestDefinitionService`: scope,
   root stage, version, tags, actors, variables, stages, evidence, endings,
@@ -591,7 +654,11 @@ archive:
     - world
     - administration
     - security
+    - npc
 ```
+
+`npc` includes only explicitly `history-worthy` meaningful story outcomes;
+ordinary dialogue choices and service interactions are not recorded.
 
 Public-memory feed bounds are configured separately from OP command bounds:
 
@@ -618,6 +685,11 @@ Each mount entry can define the locked/unlocked row text and locked/unlocked
 detail text used by the Core Collection screen. Realm vendor text may use the
 `{realm}` token. Runtime unlocks and active mount choices remain in world
 state, not config.
+
+Mount rarity/accent presentation is code-owned by `ElarionMountType`, not this
+text file. Airship, Hot Air Balloon, and Ghast are Common Realm baseline
+mounts; Bee, Chinese Dragon, and Wyvern are Uncommon future reward/progression
+mounts; Sci-Fi Bike is Legendary for the future full-advancement route.
 
 `MountConfigDescriptors` exposes the loaded text snapshot through the read-only
 Admin Panel config browser. The descriptor surface is bounded by
@@ -647,9 +719,27 @@ config/elarion/addons/economy/economy.yml
 ```
 
 The file controls snapshot frequency, forced transaction journal writes,
-bounded OP query limits, Governor mode, and monitor window size. The default
-Governor mode is `MONITOR_ONLY`; config values do not enable automatic price,
-reward, tax, or interest changes.
+bounded operation receipt retention, bounded OP query limits, Governor mode,
+monitor window size, bank interest,
+bank withdrawal tax, and shop sales tax policy. The default Governor mode is
+`MONITOR_ONLY`; Governor config values do not enable automatic adaptive price
+or reward changes. Bank interest is separately disabled by default and only
+accrues when `bank.interest.enabled` is true.
+
+`/e economy reload` uses a two-stage prepare/commit boundary. Both
+`economy.yml` and `service_prices.yml` must parse and validate successfully
+before either runtime service is changed. A pricing error therefore preserves
+the complete previous Economy snapshot instead of partially reloading
+transaction settings.
+
+```yaml
+operations:
+  receipt-retention-days: 30
+  max-receipts: 10000
+```
+
+These values bound the O(1) idempotency index used by retry-safe addon
+transactions. They do not widen transaction-history scans.
 
 Economy runtime state lives under:
 
@@ -657,6 +747,20 @@ Economy runtime state lives under:
 world/elarion/addon-state/economy/
 ```
 
-`economy-state.json` is a compact schema-versioned wallet/treasury snapshot.
+`economy-state.json` is a compact schema-versioned wallet/treasury/operation
+receipt snapshot. Schema v2 adds bounded idempotent receipts; schema v1 is
+backed up and atomically migrated on load.
 Monthly transaction JSONL files are the durable write-ahead journal and audit
 source. A transaction append must succeed before any balance changes.
+
+Mutable category tax overrides are runtime policy, not editable definition
+config, and live in `tax-policies.json` beside Economy state. The strict file
+stores Realm/Worldheart authority, category, basis points, and revision.
+Future Seat of Rule and owner Admin Panel editors must call Economy's
+server-authorized policy API; they must not edit or duplicate this file.
+
+Worldheart governing authority is runtime world state, not active config. It is
+persisted by Core in `world/elarion/worldheart/authority.json` and defaults to
+system governance by the lore-facing `Hollow Emperor`. Future config/Admin UI
+may expose controlled authority tools, but gameplay code must use the Core
+Worldheart service rather than reading a config string or fake player ID.

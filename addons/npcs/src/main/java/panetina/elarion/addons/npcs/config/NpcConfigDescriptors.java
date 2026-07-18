@@ -9,6 +9,8 @@ import panetina.elarion.addons.npcs.model.NpcDefinition;
 import panetina.elarion.addons.npcs.model.NpcPortraitProfile;
 import panetina.elarion.addons.npcs.model.NpcSkinProfile;
 import panetina.elarion.addons.npcs.model.NpcUiConfig;
+import panetina.elarion.addons.npcs.model.NpcTradeCatalogDefinition;
+import panetina.elarion.addons.npcs.model.NpcTradeOfferDefinition;
 import panetina.elarion.core.config.ElarionConfigCategory;
 import panetina.elarion.core.config.ElarionConfigCodec;
 import panetina.elarion.core.config.ElarionConfigDomain;
@@ -35,9 +37,21 @@ public final class NpcConfigDescriptors {
             Supplier<Collection<NpcSkinProfile>> skins,
             Supplier<Collection<NpcPortraitProfile>> portraits,
             Supplier<Collection<DialogueDefinition>> dialogues,
+            Supplier<Collection<NpcTradeCatalogDefinition>> trades,
             Supplier<NpcUiConfig> ui
     ) {
-        registry.registerDomain(domain(npcs, skins, portraits, dialogues, ui));
+        registry.registerDomain(domain(npcs, skins, portraits, dialogues, trades, ui));
+    }
+
+    public static void register(
+            ElarionConfigRegistry registry,
+            Supplier<Collection<NpcDefinition>> npcs,
+            Supplier<Collection<NpcSkinProfile>> skins,
+            Supplier<Collection<NpcPortraitProfile>> portraits,
+            Supplier<Collection<DialogueDefinition>> dialogues,
+            Supplier<NpcUiConfig> ui
+    ) {
+        register(registry, npcs, skins, portraits, dialogues, List::of, ui);
     }
 
     public static ElarionConfigDomain domain(
@@ -45,12 +59,14 @@ public final class NpcConfigDescriptors {
             Supplier<Collection<NpcSkinProfile>> skins,
             Supplier<Collection<NpcPortraitProfile>> portraits,
             Supplier<Collection<DialogueDefinition>> dialogues,
+            Supplier<Collection<NpcTradeCatalogDefinition>> trades,
             Supplier<NpcUiConfig> ui
     ) {
         List<NpcDefinition> npcSnapshot = sortedNpcs(npcs);
         List<NpcSkinProfile> skinSnapshot = sortedSkins(skins);
         List<NpcPortraitProfile> portraitSnapshot = sortedPortraits(portraits);
         List<DialogueDefinition> dialogueSnapshot = sortedDialogues(dialogues);
+        List<NpcTradeCatalogDefinition> tradeSnapshot = sortedTrades(trades);
         NpcUiConfig uiSnapshot = safeUi(ui);
         return new ElarionConfigDomain(
                 "npcs",
@@ -61,6 +77,7 @@ public final class NpcConfigDescriptors {
                         "config/elarion/addons/npcs/npcs.yml",
                         "config/elarion/addons/npcs/skins.yml",
                         "config/elarion/addons/npcs/portraits.yml",
+                        "config/elarion/addons/npcs/trades.yml",
                         "config/elarion/addons/npcs/ui.yml",
                         "config/elarion/addons/npcs/dialogues/*.yml"),
                 "/e npc reload",
@@ -81,10 +98,25 @@ public final class NpcConfigDescriptors {
                                 "Current loaded dialogue graph summaries.",
                                 dialogueEntries(dialogues, dialogueSnapshot)),
                         new ElarionConfigCategory(
+                                "trades",
+                                "Trade Catalogs",
+                                "Current loaded read-only merchant catalog summaries.",
+                                tradeEntries(trades, tradeSnapshot)),
+                        new ElarionConfigCategory(
                                 "ui",
                                 "Dialogue UI",
                                 "NPC dialogue layout, typing, and feedback settings.",
                                 uiEntries(ui, uiSnapshot))));
+    }
+
+    public static ElarionConfigDomain domain(
+            Supplier<Collection<NpcDefinition>> npcs,
+            Supplier<Collection<NpcSkinProfile>> skins,
+            Supplier<Collection<NpcPortraitProfile>> portraits,
+            Supplier<Collection<DialogueDefinition>> dialogues,
+            Supplier<NpcUiConfig> ui
+    ) {
+        return domain(npcs, skins, portraits, dialogues, List::of, ui);
     }
 
     private static List<ElarionConfigEntry<?>> npcEntries(
@@ -124,6 +156,15 @@ public final class NpcConfigDescriptors {
             entries.add(npcStringEntry(npc, "dialogue", "Dialogue",
                     "Dialogue graph opened by this NPC.",
                     npcs, NpcDefinition::dialogue, false));
+            entries.add(npcStringEntry(npc, "faction", "Faction",
+                    "Stable reputation faction: worldheart, underworld, realm:<id>, or a custom id.",
+                    npcs, NpcDefinition::faction, false));
+            entries.add(npcStringEntry(npc, "trade-catalog", "Trade Catalog",
+                    "Optional read-only trade catalog shown by trade presentation nodes.",
+                    npcs, NpcDefinition::tradeCatalog, false));
+            entries.add(npcStringEntry(npc, "tax-jurisdiction", "Tax Jurisdiction",
+                    "Placement policy: auto, realm:<id>, or world:<namespaced-id>.",
+                    npcs, NpcDefinition::taxJurisdiction));
             entries.add(npcStringEntry(npc, "tags", "Tags",
                     "Admin/filtering tags on this NPC definition.",
                     npcs, value -> String.join(", ", value.tags()), false));
@@ -133,6 +174,121 @@ public final class NpcConfigDescriptors {
             entries.add(npcStringEntry(npc, "interaction-range-blocks", "Interaction Range",
                     "NPC-specific interaction range; 0 uses the UI default.",
                     npcs, value -> Double.toString(value.interactionRangeBlocks()), false));
+        }
+        return entries;
+    }
+
+    private static List<ElarionConfigEntry<?>> tradeEntries(
+            Supplier<Collection<NpcTradeCatalogDefinition>> trades,
+            List<NpcTradeCatalogDefinition> snapshot
+    ) {
+        List<ElarionConfigEntry<?>> entries = new ArrayList<>();
+        entries.add(intEntry("trades.count", "Trade Catalog Count",
+                "Number of currently loaded read-only trade catalogs.",
+                "trades.yml.trades", snapshot.size(), () -> sortedTrades(trades).size(),
+                0, Integer.MAX_VALUE));
+        entries.add(stringEntry("trades.ids", "Trade Catalog IDs",
+                "Comma-separated trade catalog IDs currently known to NPCs.",
+                "trades.yml.trades", ids(snapshot, NpcTradeCatalogDefinition::id),
+                () -> ids(sortedTrades(trades), NpcTradeCatalogDefinition::id), false));
+        for (NpcTradeCatalogDefinition catalog : snapshot) {
+            entries.add(intEntry(tradeId(catalog, "offers.count"), tradeLabel(catalog, "Offer Count"),
+                    "Number of parsed offers in this catalog.", tradePath(catalog, "offers"),
+                    catalog.offers().size(), () -> currentTrade(trades, catalog).offers().size(), 0, 128));
+            for (NpcTradeOfferDefinition offer : catalog.offers()) {
+                String prefix = "offers." + key(offer.id()) + ".";
+                entries.add(stringEntry(tradeId(catalog, prefix + "label"),
+                        tradeLabel(catalog, offer.id() + " Label"), "Server-authored offer label.",
+                        tradePath(catalog, "offers." + offer.id() + ".label"), offer.label(),
+                        () -> currentOffer(trades, catalog, offer).label(), false));
+                entries.add(stringEntry(tradeId(catalog, prefix + "direction"),
+                        tradeLabel(catalog, offer.id() + " Direction"),
+                        "Offer direction. Buy rows spend physical Sigils; Sell rows use server escrow and wallet payout.",
+                        tradePath(catalog, "offers." + offer.id() + ".direction"), offer.direction(),
+                        () -> currentOffer(trades, catalog, offer).direction(),
+                        List.of("buy", "sell")));
+                entries.add(boolEntry(tradeId(catalog, prefix + "enabled"),
+                        tradeLabel(catalog, offer.id() + " Enabled"),
+                        "Whether this offer is active.",
+                        tradePath(catalog, "offers." + offer.id() + ".enabled"), offer.enabled(),
+                        () -> currentOffer(trades, catalog, offer).enabled()));
+                entries.add(stringEntry(tradeId(catalog, prefix + "item"),
+                        tradeLabel(catalog, offer.id() + " Item"), "Item preview registry ID.",
+                        tradePath(catalog, "offers." + offer.id() + ".item"), offer.itemId(),
+                        () -> currentOffer(trades, catalog, offer).itemId(), false));
+                entries.add(intEntry(tradeId(catalog, prefix + "count"),
+                        tradeLabel(catalog, offer.id() + " Count"),
+                        "Configured unit stack count for this offer.",
+                        tradePath(catalog, "offers." + offer.id() + ".count"),
+                        offer.count(),
+                        () -> currentOffer(trades, catalog, offer).count(), 1, 64));
+                entries.add(intEntry(tradeId(catalog, prefix + "custom-model-data"),
+                        tradeLabel(catalog, offer.id() + " Custom Model Data"),
+                        "Optional item custom model data used for server-authored preview art.",
+                        tradePath(catalog, "offers." + offer.id() + ".custom-model-data"),
+                        offer.customModelData(),
+                        () -> currentOffer(trades, catalog, offer).customModelData(), 0, Integer.MAX_VALUE));
+                entries.add(stringEntry(tradeId(catalog, prefix + "price-key"),
+                        tradeLabel(catalog, offer.id() + " Price Key"),
+                        "Optional Economy pricing hook for future taxes, inflation, or dynamic merchant pricing.",
+                        tradePath(catalog, "offers." + offer.id() + ".price-key"), offer.priceKey(),
+                        () -> currentOffer(trades, catalog, offer).priceKey(), false));
+                entries.add(stringEntry(tradeId(catalog, prefix + "price"),
+                        tradeLabel(catalog, offer.id() + " Price"), "Display-only price in Sigils.",
+                        tradePath(catalog, "offers." + offer.id() + ".price"), Long.toString(offer.price()),
+                        () -> Long.toString(currentOffer(trades, catalog, offer).price()), false));
+                entries.add(intEntry(tradeId(catalog, prefix + "stock-limit"),
+                        tradeLabel(catalog, offer.id() + " Stock Limit"),
+                        "Maximum units available per placed NPC. Zero means unlimited.",
+                        tradePath(catalog, "offers." + offer.id() + ".stock-limit"),
+                        offer.stockLimit(),
+                        () -> currentOffer(trades, catalog, offer).stockLimit(), 0, 100_000));
+                entries.add(intEntry(tradeId(catalog, prefix + "restock-amount"),
+                        tradeLabel(catalog, offer.id() + " Restock Amount"),
+                        "Units restored each restock interval. Zero means refill to the stock limit.",
+                        tradePath(catalog, "offers." + offer.id() + ".restock-amount"),
+                        offer.restockAmount(),
+                        () -> currentOffer(trades, catalog, offer).restockAmount(), 0, 100_000));
+                entries.add(stringEntry(tradeId(catalog, prefix + "restock-interval-seconds"),
+                        tradeLabel(catalog, offer.id() + " Restock Interval"),
+                        "Seconds between lazy restocks. Zero disables automatic restocking.",
+                        tradePath(catalog, "offers." + offer.id() + ".restock-interval-seconds"),
+                        Long.toString(offer.restockIntervalSeconds()),
+                        () -> Long.toString(currentOffer(trades, catalog, offer).restockIntervalSeconds()), false));
+                entries.add(stringEntry(tradeId(catalog, prefix + "sell-match"),
+                        tradeLabel(catalog, offer.id() + " Sell Match"),
+                        "Sell-only item matching policy used by server escrow validation.",
+                        tradePath(catalog, "offers." + offer.id() + ".sell-match"),
+                        offer.sellMatch(),
+                        () -> currentOffer(trades, catalog, offer).sellMatch(),
+                        List.of("exact_item", "exact_stack")));
+                entries.add(stringEntry(tradeId(catalog, prefix + "component-policy"),
+                        tradeLabel(catalog, offer.id() + " Component Policy"),
+                        "Sell-only component policy used when matching item components.",
+                        tradePath(catalog, "offers." + offer.id() + ".component-policy"),
+                        offer.componentPolicy(),
+                        () -> currentOffer(trades, catalog, offer).componentPolicy(),
+                        List.of("vanilla_only", "exact_components")));
+                entries.add(intEntry(tradeId(catalog, prefix + "max-quantity"),
+                        tradeLabel(catalog, offer.id() + " Max Quantity"),
+                        "Sell-only maximum accepted quantity for one sale request.",
+                        tradePath(catalog, "offers." + offer.id() + ".max-quantity"),
+                        offer.maxQuantity(),
+                        () -> currentOffer(trades, catalog, offer).maxQuantity(), 0, 64));
+                entries.add(stringEntry(tradeId(catalog, prefix + "stock-destination"),
+                        tradeLabel(catalog, offer.id() + " Stock Destination"),
+                        "Sell-only destination for sold items after escrow and payout.",
+                        tradePath(catalog, "offers." + offer.id() + ".stock-destination"),
+                        offer.stockDestination(),
+                        () -> currentOffer(trades, catalog, offer).stockDestination(),
+                        List.of("none", "placed_npc")));
+                entries.add(stringEntry(tradeId(catalog, prefix + "destination-offer"),
+                        tradeLabel(catalog, offer.id() + " Destination Offer"),
+                        "Sell-only BUY offer ID that receives stock when stock-destination is placed_npc.",
+                        tradePath(catalog, "offers." + offer.id() + ".destination-offer"),
+                        offer.destinationOfferId(),
+                        () -> currentOffer(trades, catalog, offer).destinationOfferId(), false));
+            }
         }
         return entries;
     }
@@ -248,12 +404,21 @@ public final class NpcConfigDescriptors {
             entries.add(dialogueStringEntry(dialogue, "nodes.ids", "Node IDs",
                     "Comma-separated dialogue node IDs.",
                     dialogues, value -> keys(value.nodes().keySet()), false));
+            entries.add(dialogueStringEntry(dialogue, "presentations", "Presentation Kinds",
+                    "Distinct server-authored presentation kinds used by dialogue nodes.",
+                    dialogues, NpcConfigDescriptors::presentationKinds, false));
             entries.add(dialogueIntEntry(dialogue, "options.count", "Option Count",
                     "Total number of dialogue options.",
                     dialogues, NpcConfigDescriptors::optionCount, 0, Integer.MAX_VALUE));
+            entries.add(dialogueIntEntry(dialogue, "options.one-time-count", "One-Time Option Count",
+                    "Number of options persisted as consumed after successful use.",
+                    dialogues, NpcConfigDescriptors::oneTimeOptionCount, 0, Integer.MAX_VALUE));
             entries.add(dialogueIntEntry(dialogue, "actions.count", "Action Count",
                     "Total number of configured dialogue actions.",
                     dialogues, NpcConfigDescriptors::actionCount, 0, Integer.MAX_VALUE));
+            entries.add(dialogueIntEntry(dialogue, "actions.history-worthy-count", "History-Worthy Action Count",
+                    "Number of actions configured to emit meaningful structured NPC history outcomes.",
+                    dialogues, NpcConfigDescriptors::historyWorthyActionCount, 0, Integer.MAX_VALUE));
             entries.add(dialogueStringEntry(dialogue, "actions.types", "Action Types",
                     "Action types referenced by this dialogue.",
                     dialogues, NpcConfigDescriptors::actionTypes, false));
@@ -720,6 +885,27 @@ public final class NpcConfigDescriptors {
         return fallback;
     }
 
+    private static NpcTradeCatalogDefinition currentTrade(
+            Supplier<Collection<NpcTradeCatalogDefinition>> trades,
+            NpcTradeCatalogDefinition fallback
+    ) {
+        for (NpcTradeCatalogDefinition trade : sortedTrades(trades)) {
+            if (trade.id().equals(fallback.id())) return trade;
+        }
+        return fallback;
+    }
+
+    private static NpcTradeOfferDefinition currentOffer(
+            Supplier<Collection<NpcTradeCatalogDefinition>> trades,
+            NpcTradeCatalogDefinition catalog,
+            NpcTradeOfferDefinition fallback
+    ) {
+        return currentTrade(trades, catalog).offers().stream()
+                .filter(offer -> offer.id().equals(fallback.id()))
+                .findFirst()
+                .orElse(fallback);
+    }
+
     private static NpcUiConfig safeUi(Supplier<NpcUiConfig> ui) {
         NpcUiConfig value = ui == null ? null : ui.get();
         return value == null ? NpcUiConfig.defaults() : value;
@@ -751,6 +937,14 @@ public final class NpcConfigDescriptors {
         Collection<DialogueDefinition> value = dialogues == null ? null : dialogues.get();
         if (value == null) return List.of();
         return value.stream().sorted(Comparator.comparing(DialogueDefinition::id)).toList();
+    }
+
+    private static List<NpcTradeCatalogDefinition> sortedTrades(
+            Supplier<Collection<NpcTradeCatalogDefinition>> trades
+    ) {
+        Collection<NpcTradeCatalogDefinition> value = trades == null ? null : trades.get();
+        if (value == null) return List.of();
+        return value.stream().sorted(Comparator.comparing(NpcTradeCatalogDefinition::id)).toList();
     }
 
     private static String npcId(NpcDefinition npc, String field) {
@@ -793,6 +987,18 @@ public final class NpcConfigDescriptors {
         return dialogue.id() + " " + fieldLabel;
     }
 
+    private static String tradeId(NpcTradeCatalogDefinition catalog, String field) {
+        return "trades." + key(catalog.id()) + "." + field;
+    }
+
+    private static String tradePath(NpcTradeCatalogDefinition catalog, String field) {
+        return "trades.yml.trades." + catalog.id() + "." + field;
+    }
+
+    private static String tradeLabel(NpcTradeCatalogDefinition catalog, String fieldLabel) {
+        return catalog.id() + " " + fieldLabel;
+    }
+
     private static String profileLabel(String profileId, String fieldLabel) {
         return profileId + " " + fieldLabel;
     }
@@ -815,11 +1021,34 @@ public final class NpcConfigDescriptors {
         return dialogue.nodes().values().stream().mapToInt(node -> node.options().size()).sum();
     }
 
+    private static int oneTimeOptionCount(DialogueDefinition dialogue) {
+        return (int) dialogue.nodes().values().stream()
+                .flatMap(node -> node.options().stream())
+                .filter(DialogueOption::oneTime)
+                .count();
+    }
+
+    private static String presentationKinds(DialogueDefinition dialogue) {
+        return dialogue.nodes().values().stream()
+                .map(node -> node.presentation().id())
+                .distinct()
+                .sorted()
+                .collect(java.util.stream.Collectors.joining(", "));
+    }
+
     private static int actionCount(DialogueDefinition dialogue) {
         return dialogue.nodes().values().stream()
                 .flatMap(node -> node.options().stream())
                 .mapToInt(option -> option.actions().size())
                 .sum();
+    }
+
+    private static int historyWorthyActionCount(DialogueDefinition dialogue) {
+        return (int) dialogue.nodes().values().stream()
+                .flatMap(node -> node.options().stream())
+                .flatMap(option -> option.actions().stream())
+                .filter(DialogueAction::historyWorthy)
+                .count();
     }
 
     private static String actionTypes(DialogueDefinition dialogue) {

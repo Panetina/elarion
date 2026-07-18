@@ -349,7 +349,7 @@ public record GovernmentUiOpenPayload(
     }
 
     private static String defaultRoleLabel(String screenType) {
-        return "seat_of_rule".equals(defaultScreenFamily(screenType)) ? "Authority Seat" : "Citizen Assembly";
+        return "seat_of_rule".equals(defaultScreenFamily(screenType)) ? "Authority Seat" : "Ember Assembly";
     }
 
     private static String defaultAuthorityLabel(String screenType) {

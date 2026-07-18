@@ -14,6 +14,29 @@ Core is the only canonical owner for citizens, Realms, titles, abilities,
 identity, rewards, history, server identity, shared infrastructure, and the
 generic Collection menu shell.
 
+## External Platform Boundary
+
+```text
+Fabric Core/addons (canonical game truth)
+  -> signed bounded projection outbox
+  -> website read models
+  -> public World Ledger / account views / Discord-safe notifications
+
+Website whitelist workflow
+  -> signed ordered command outbox
+  -> Core bridge
+  -> canonical Minecraft whitelist
+
+Launcher
+  -> signed immutable release feed and managed client files
+  -> never receives server, database, Discord, or release-signing secrets
+```
+
+The website owns web sessions, OAuth links, applications, review/audit state,
+permissions, and acknowledged read models. Discord is an identity/notification
+adapter. Neither surface may read addon storage or become a second owner of
+game state.
+
 ## Direct Dependencies
 
 ```text
@@ -89,6 +112,37 @@ Core domain events   -> bounded cross-addon lifecycle signals
 Core notifications  -> persistent player-facing event projections
 ```
 
+## Character Menu Target
+
+```text
+Core Character Menu shell
+  -> Core CitizenProfileService for aggregation and visibility filtering
+  -> Core identity / Realm / active-title / progression projection
+  -> Core bounded public-history LEDGER query
+  -> existing Core Collection service for Unlockables
+
+Addon profile contributor
+  -> reads only addon-owned cached state or bounded summary
+  -> returns authorized presentation data
+  -> never exposes addon storage or mutates state
+
+Existing Collection provider
+  -> remains addon-owned unlock/action projection
+  -> retains server-authoritative action validation
+```
+
+`Character Menu` is the player-facing shell label and `/charactermenu` command alias.
+Collection remains the internal Unlockables contract so Mounts, Titles,
+packets, config, runtime state, and addon APIs do not require a breaking
+rename. `CitizenProfileService` now owns the Core profile aggregation boundary,
+server-side visibility filtering, bounded section/field/card caps, and
+Core identity/Realm/active-title/progression projections. Profile
+request/snapshot payload records are registered as a read-only
+server-authoritative request/response path. Addon profile contributors are a
+separate read-only contract; Government currently contributes active office
+role metadata through that path. Contributors must not be modeled as
+Collection actions, copied into Core state, or backed by broad storage scans.
+
 ## Project Revamp Audit Note
 
 Phase 0 Slice 1 of the project-wide revamp verified that the current dependency
@@ -132,6 +186,22 @@ Quest dialogue choices should follow the same rule: NPCs dispatch registered
 Quest actions and conditions, while Quests owns questline state.
 Quests may reference placed NPC UUIDs through the NPC API for actor bindings,
 but NPCs remain the owner of placement records and dialogue sessions.
+
+Proposed NPC trade ownership follows a one-way optional integration, not an
+`NPCs <-> Economy` cycle:
+
+```text
+NPCs trade service
+  -> owns catalogs, offer eligibility, stock, session/replay state, purchase journal
+  -> optional NPC-owned Economy adapter
+       -> Economy public API owns price resolution, charge/refund/payout receipts
+  -> Core deferred rewards own restart-safe delivery actions
+```
+
+This contract is audited in `docs/reports/NPC_TRADE_OWNER_AUDIT.md`. The
+Economy idempotent receipt foundation is implemented; NPC jurisdiction,
+purchase journaling, stock, and mutation remain pending. The current trade
+screen remains a non-mutating preview.
 
 Core registers its server lifecycle callbacks before invoking custom addon
 entrypoints, then invokes addon entrypoints in deterministic required-dependency
@@ -195,3 +265,39 @@ Raw JSONL
   -> public history API
   -> future newspaper/ledger/NPC rumor/search UI
 ```
+
+## Proposed NPC Trade Jurisdiction Dependency
+
+```text
+Core RealmService -> canonical Realm/world ownership lookup
+Core WorldheartGovernanceService -> Worldheart authority and govern checks
+NPC definition    -> tax-jurisdiction policy
+NPC placement     -> resolved Realm/world registration
+NPC trade adapter -> Economy price/tax quote and idempotent receipt API
+Economy           -> tax calculation, recipient account, transaction journal,
+                     Realm treasuries, and stable Worldheart treasury
+```
+
+NPCs must not own tax rates or treasury balances. Economy must not read NPC
+placement storage. The client receives a bounded quote and never supplies an
+authoritative tax, total, recipient, item, or price. See
+`docs/reports/NPC_TRADE_PURCHASE_FOUNDATION_PROPOSAL.md`.
+
+The NPC definition/placement jurisdiction path is implemented. Core's
+`RealmService.ownerForWorld` is read through the public API during placement
+resolution; Core does not store NPC registrations, and Economy does not read
+NPC placement files.
+
+The quote edge is optional: NPCs suggests Economy and loads its adapter only
+when Economy is present. Economy never depends on NPCs. NPCs owns catalog and
+jurisdiction inputs; Economy owns rates, quote arithmetic, and settlement.
+The shipped banker prompt IDs are recognized by NPC config validation as
+optional-provider contracts, but NPCs does not register Economy handlers.
+Without Economy, unavailable providers disable bank/trade settlement and the
+isolated loader matrix in
+`docs/reports/PHASE_14_OPTIONAL_ADDON_ABSENCE_QA.md` must remain green.
+
+Worldheart authority is deliberately not Economy treasury ownership. Core may
+answer whether OP4 or a future ascended ruler can govern Worldheart, but
+Economy keeps `WORLDHEART_TREASURY` as a domain treasury before and after any
+future succession event.

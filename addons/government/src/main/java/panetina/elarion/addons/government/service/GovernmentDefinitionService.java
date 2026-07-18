@@ -7,7 +7,9 @@ import panetina.elarion.core.api.ElarionApi;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public final class GovernmentDefinitionService {
     private final ElarionApi api;
@@ -19,8 +21,21 @@ public final class GovernmentDefinitionService {
     }
 
     public void load() {
-        settings = GovernmentConfigLoader.loadSettings();
-        forms = GovernmentConfigLoader.load(api);
+        load(GovernmentConfigLoader::loadSettings, () -> GovernmentConfigLoader.load(api));
+    }
+
+    void load(
+            Supplier<GovernmentSettings> settingsLoader,
+            Supplier<Map<String, GovernmentFormDefinition>> formsLoader
+    ) {
+        Objects.requireNonNull(settingsLoader, "settingsLoader");
+        Objects.requireNonNull(formsLoader, "formsLoader");
+        GovernmentSettings nextSettings = Objects.requireNonNull(settingsLoader.get(), "settings");
+        Map<String, GovernmentFormDefinition> nextForms =
+                Map.copyOf(Objects.requireNonNull(formsLoader.get(), "forms"));
+
+        settings = nextSettings;
+        forms = nextForms;
     }
 
     public Collection<GovernmentFormDefinition> forms() {

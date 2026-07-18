@@ -2,6 +2,7 @@ package panetina.elarion.core.client;
 
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
@@ -14,6 +15,7 @@ public record ClientIdentity(
         String prefix,
         String suffix,
         String title,
+        int titleColorArgb,
         String leaderLabel,
         Formatting color,
         String realmName,
@@ -30,6 +32,7 @@ public record ClientIdentity(
         prefix = clean(prefix);
         suffix = clean(suffix);
         title = clean(title);
+        titleColorArgb = 0xFF000000 | (titleColorArgb & 0x00FFFFFF);
         leaderLabel = clean(leaderLabel);
         realmName = clean(realmName);
         realmId = clean(realmId);
@@ -50,11 +53,12 @@ public record ClientIdentity(
     }
 
     public Text hiddenTabName() {
-        return Text.literal("Unknown Citizen").formatted(Formatting.DARK_GRAY);
+        return Text.literal("Unknown Ember").formatted(Formatting.DARK_GRAY);
     }
 
     public Text titleText() {
-        return title.isBlank() ? Text.empty() : Text.literal(title);
+        return title.isBlank() ? Text.empty()
+                : Text.literal(title).styled(style -> style.withColor(TextColor.fromRgb(titleColorArgb & 0x00FFFFFF)));
     }
 
     public Text leaderText() {
@@ -63,6 +67,11 @@ public record ClientIdentity(
 
     public String baseName() {
         return nickname.isBlank() ? username : nickname;
+    }
+
+    public int nameColorArgb() {
+        Integer rgb = color.getColorValue();
+        return 0xFF000000 | ((rgb == null ? 0xFFFFFF : rgb) & 0x00FFFFFF);
     }
 
     public boolean hasSimpleNickname() {

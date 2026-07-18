@@ -10,6 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class GovernmentState {
+    public static final int CURRENT_SCHEMA_VERSION = 1;
+
+    public int schemaVersion = CURRENT_SCHEMA_VERSION;
     public Map<String, RealmGovernmentState> realms = new LinkedHashMap<>();
     public Map<String, GovernmentVoteState> votes = new LinkedHashMap<>();
     public Map<String, GovernmentProposalRecord> proposals = new LinkedHashMap<>();
@@ -19,6 +22,7 @@ public final class GovernmentState {
 
     public GovernmentState copy() {
         GovernmentState copy = new GovernmentState();
+        copy.schemaVersion = schemaVersion;
         copy.realms = realms == null ? new LinkedHashMap<>() : new LinkedHashMap<>(realms);
         copy.votes = votes == null ? new LinkedHashMap<>() : new LinkedHashMap<>(votes);
         copy.proposals = proposals == null ? new LinkedHashMap<>() : new LinkedHashMap<>(proposals);

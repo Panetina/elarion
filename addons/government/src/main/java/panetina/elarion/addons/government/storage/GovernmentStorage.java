@@ -28,7 +28,7 @@ public final class GovernmentStorage {
 
     public GovernmentState load(Path root) {
         return JsonStateStorage.read(root.resolve("state.json"), GSON, GovernmentState.class,
-                GovernmentState::new, GovernmentState::copy, logger, "government-state");
+                GovernmentState::new, GovernmentStorage::normalize, logger, "government-state");
     }
 
     public void save(MinecraftServer server, GovernmentState state) {
@@ -41,5 +41,13 @@ public final class GovernmentStorage {
 
     private Path root(MinecraftServer server) {
         return explicitRoot != null ? explicitRoot : JsonStateStorage.addonStateRoot(server, "government");
+    }
+
+    private static GovernmentState normalize(GovernmentState state) {
+        if (state.schemaVersion <= 0) state.schemaVersion = GovernmentState.CURRENT_SCHEMA_VERSION;
+        if (state.schemaVersion != GovernmentState.CURRENT_SCHEMA_VERSION) {
+            throw new IllegalStateException("Unsupported government state schema " + state.schemaVersion);
+        }
+        return state.copy();
     }
 }

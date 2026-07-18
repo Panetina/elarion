@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="SysOut" target="SYSTEM_OUT">
+            <Filters>
+                <RegexFilter regex="^Failed to verify authentication$" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Failed to fetch user properties$" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Couldn't connect to realms$" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="(?s).*Forge Config API Port.*(recommends|suggests).*Mod Menu.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Reference map '(climaterivers\.fabric|forgeconfigapiport\.common)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Error loading class: (jeresources/api/util/BiomeHelper|yalter/mousetweaks/Main|com/electronwill/nightconfig/core/io/IoUtils).*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^No data fixer registered for (sulfur_cube|creaking|happy_ghast|pale_oak_boat|pale_oak_chest_boat|biomesoplenty:boat|biomesoplenty:chest_boat|anomaly)$" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Registry 'minecraft:(wolf_sound_variant|cow_variant|chicken_variant|pig_variant|frog_variant|cat_variant)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Registry 'vanillabackport:(wolf_variant|frog_variant|cat_variant|sulfur_cube_archetypes)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Not all defined tags for registry ResourceKey.*is_birch_forest.*is_mangrove.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^\*\*\* Server will start in offline mode!$" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout>
+                <LoggerNamePatternSelector defaultPattern="%style{[%d{HH:mm:ss}]}{blue} %highlight{%-5level}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=green, TRACE=blue} %style{(%logger{1})}{cyan} %msg{nolookups}%n" disableAnsi="${sys:fabric.log.disableAnsi:-false}">
+                    <PatternMatch key="net.minecraft.,com.mojang." pattern="%style{[%d{HH:mm:ss}]}{blue} %highlight{%-5level}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=green, TRACE=blue} %style{(Minecraft)}{cyan} %msg{nolookups}%n"/>
+                </LoggerNamePatternSelector>
+            </PatternLayout>
+        </Console>
+
+        <Queue name="ServerGuiConsole" ignoreExceptions="true">
+            <PatternLayout>
+                <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss} %level] (%logger{1}) %msg{nolookups}%n">
+                    <PatternMatch key="net.minecraft.,com.mojang." pattern="[%d{HH:mm:ss} %level] %msg{nolookups}%n"/>
+                </LoggerNamePatternSelector>
+            </PatternLayout>
+        </Queue>
+
+        <RollingRandomAccessFile name="LatestFile" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
+            <Filters>
+                <RegexFilter regex="(?s).*Forge Config API Port.*(recommends|suggests).*Mod Menu.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Reference map '(climaterivers\.fabric|forgeconfigapiport\.common)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Error loading class: (jeresources/api/util/BiomeHelper|yalter/mousetweaks/Main|com/electronwill/nightconfig/core/io/IoUtils).*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^No data fixer registered for (sulfur_cube|creaking|happy_ghast|pale_oak_boat|pale_oak_chest_boat|biomesoplenty:boat|biomesoplenty:chest_boat|anomaly)$" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Registry 'minecraft:(wolf_sound_variant|cow_variant|chicken_variant|pig_variant|frog_variant|cat_variant)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Registry 'vanillabackport:(wolf_variant|frog_variant|cat_variant|sulfur_cube_archetypes)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Not all defined tags for registry ResourceKey.*is_birch_forest.*is_mangrove.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^\*\*\* Server will start in offline mode!$" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout>
+                <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss}] [%t/%level] (%logger{1}) %msg{nolookups}%n">
+                    <PatternMatch key="net.minecraft.,com.mojang." pattern="[%d{HH:mm:ss}] [%t/%level] (Minecraft) %msg{nolookups}%n"/>
+                </LoggerNamePatternSelector>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="DebugFile" fileName="logs/debug.log" filePattern="logs/debug-%i.log.gz">
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] (%logger) %msg{nolookups}%n"/>
+            <DefaultRolloverStrategy max="5" fileIndex="min"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="200MB"/>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+        </RollingRandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <Logger level="${sys:fabric.log.level:-info}" name="net.minecraft"/>
+        <Root level="all">
+            <AppenderRef ref="DebugFile" level="${sys:fabric.log.debug.level:-debug}"/>
+            <AppenderRef ref="SysOut" level="${sys:fabric.log.level:-info}"/>
+            <AppenderRef ref="LatestFile" level="${sys:fabric.log.level:-info}"/>
+            <AppenderRef ref="ServerGuiConsole" level="${sys:fabric.log.level:-info}"/>
+        </Root>
+    </Loggers>
+</Configuration>

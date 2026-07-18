@@ -14,7 +14,9 @@ import panetina.elarion.addons.economy.service.EconomyGovernorService;
 import panetina.elarion.addons.economy.service.EconomyInventoryService;
 import panetina.elarion.addons.economy.service.EconomyPricingService;
 import panetina.elarion.addons.economy.service.EconomyTransactionService;
+import panetina.elarion.addons.economy.service.EconomyTaxPolicyService;
 import panetina.elarion.addons.economy.storage.EconomyStorage;
+import panetina.elarion.addons.economy.storage.EconomyTaxPolicyStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 
@@ -39,6 +41,8 @@ public final class ElarionEconomyAddon implements ElarionAddon {
         EconomyInventoryService inventory = new EconomyInventoryService(transactions);
         EconomyGovernorService governor = new EconomyGovernorService(transactions);
         EconomyPricingService pricing = new EconomyPricingService();
+        EconomyTaxPolicyService taxPolicies = new EconomyTaxPolicyService(
+                new EconomyTaxPolicyStorage(), () -> transactions.config().shopSalesTaxBasisPoints());
         api.characters().registerResetHandler("elarion_economy", context -> {
             var source = panetina.elarion.addons.economy.model.EconomyAccount.player(context.accountId());
             long balance = transactions.balance(source);
@@ -54,7 +58,7 @@ public final class ElarionEconomyAddon implements ElarionAddon {
                     Map.of("characterId", context.characterId(), "reason", context.reason()));
             if (!result.successful()) throw new IllegalStateException(result.message());
         });
-        new ElarionEconomyApi(transactions, inventory, governor, pricing);
+        new ElarionEconomyApi(transactions, inventory, governor, pricing, taxPolicies);
         EconomyConfigDescriptors.register(api.system().configs(), transactions::config, pricing::definitions);
         EconomyNpcActions.register(api, transactions, inventory);
         EconomyRewardActions.register(api, transactions);
@@ -71,7 +75,10 @@ public final class ElarionEconomyAddon implements ElarionAddon {
         api.system().commands().registerHelpDescription(
                 "/e economy pulse", "Show the monitor-only Economy Governor pulse.");
 
-        ServerLifecycleEvents.SERVER_STARTED.register(transactions::bind);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            transactions.bind(server);
+            taxPolicies.bind(server);
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> transactions.tick());
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> transactions.shutdown());
         LOGGER.info("Elarion Economy initialized");

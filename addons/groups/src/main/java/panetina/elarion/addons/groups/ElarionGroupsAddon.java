@@ -9,6 +9,7 @@ import panetina.elarion.addons.groups.command.GroupCommands;
 import panetina.elarion.addons.groups.config.GroupConfigDescriptors;
 import panetina.elarion.addons.groups.config.GroupConfigLoader;
 import panetina.elarion.addons.groups.service.GroupService;
+import panetina.elarion.addons.groups.service.GroupProfileContributor;
 import panetina.elarion.addons.groups.storage.GroupStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
@@ -19,6 +20,7 @@ public final class ElarionGroupsAddon implements ElarionAddon {
     @Override
     public void initialize(ElarionApi api) {
         GroupService groups = new GroupService(api, new GroupStorage(LOGGER), GroupConfigLoader.load());
+        api.system().profiles().registerContributor(new GroupProfileContributor(groups));
         GroupConfigDescriptors.register(api.system().configs(), groups::config);
         api.characters().registerResetHandler("elarion_groups", context -> groups.resetCharacter(context.accountId()));
         new ElarionGroupsApi(groups);

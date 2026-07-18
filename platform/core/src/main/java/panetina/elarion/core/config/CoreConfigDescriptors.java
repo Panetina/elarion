@@ -205,6 +205,9 @@ public final class CoreConfigDescriptors {
             entries.add(titleStringEntry(title, "suffix", "Suffix",
                     "Suffix added by this title when configured.",
                     config, TitleDefinition::suffix, false));
+            entries.add(titleStringEntry(title, "color", "Title Color",
+                    "Hex #RRGGBB color used for this title in identity and Ember Ledger presentation.",
+                    config, value -> String.format("#%06X", value.colorArgb() & 0x00FFFFFF)));
             entries.add(titleIntEntry(title, "priority", "Priority",
                     "Display priority used when several titles are available.",
                     config, TitleDefinition::priority, Integer.MIN_VALUE, Integer.MAX_VALUE));
@@ -383,15 +386,15 @@ public final class CoreConfigDescriptors {
     private static ElarionConfigCategory citizenCategory(CoreConfigManager config) {
         return new ElarionConfigCategory(
                 "citizens",
-                "Citizens",
-                "Citizen defaults and activity-window settings.",
+                "Embers",
+                "Ember defaults and activity-window settings.",
                 List.of(
                         stringEntry("defaults.title", "Default Title",
-                                "Title ID assigned by default to citizens.",
+                                "Title ID assigned by default to Embers.",
                                 "citizens-defaults.yml.defaults.title",
                                 "citizen", config::defaultTitleId),
                         intEntry("activity.inactivity-days", "Inactivity Days",
-                                "Days an offline citizen remains active for population and eligibility checks.",
+                                "Days an offline Ember remains active for population and eligibility checks.",
                                 "activity.yml.citizens.inactivity-days",
                                 14, config::citizenInactivityDays, 1, Integer.MAX_VALUE)));
     }
@@ -446,7 +449,7 @@ public final class CoreConfigDescriptors {
                                 "[%alliance_chat%:%realm_short%] %player% » %message%",
                                 config::allianceChatFormat),
                         boolEntry("notices.scoped-join-leave", "Scoped Join/Leave Notices",
-                                "Scopes citizen join/leave notices instead of broadcasting globally.",
+                                "Scopes Ember join/leave notices instead of broadcasting globally.",
                                 "chat.yml.notices.scoped-join-leave", true, config::scopedJoinLeaveNotices),
                         stringEntry("notices.realm-format", "Realm Notice Format",
                                 "Formatting template for Realm-scoped notices.",
@@ -465,7 +468,7 @@ public final class CoreConfigDescriptors {
                 "Nickname enablement, uniqueness, reservations, and protected-name policy.",
                 List.of(
                         boolEntry("nickname.enabled", "Nicknames Enabled",
-                                "Allows citizens to use Core nicknames.",
+                                "Allows Embers to use Core nicknames.",
                                 "identity.yml.nickname.enabled", true, config::nicknamesEnabled),
                         intEntry("nickname.max-length", "Nickname Maximum Length",
                                 "Maximum nickname length.",
@@ -557,7 +560,7 @@ public final class CoreConfigDescriptors {
                         stringEntry("archive.chronicle-categories", "Chronicle Categories",
                                 "History categories included in Chronicle archive summaries.",
                                 "history.yml.archive.chronicle-categories",
-                                "administration, diplomacy, leadership, realm, realm-decision, reward, security, title, world",
+                                "administration, diplomacy, leadership, npc, realm, realm-decision, reward, security, title, world",
                                 () -> joined(config.historyChronicleCategories()), false),
                         intEntry("public-query.default-weeks", "Public Default Weeks",
                                 "Default public-history window in weeks.",

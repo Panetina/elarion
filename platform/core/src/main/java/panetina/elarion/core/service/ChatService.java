@@ -10,6 +10,7 @@ import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RealmRelationship;
 import panetina.elarion.core.model.PlayerIdentity;
+import panetina.elarion.core.placeholder.ElarionPlaceholderService;
 
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ public final class ChatService {
     private final HistoryService history;
     private final RealmGovernanceService governance;
     private final PlayerRestrictionService restrictions;
+    private final ElarionPlaceholderService placeholders;
     private final Map<UUID, Long> lastYellAt = new ConcurrentHashMap<>();
     private final Set<UUID> chatSpies = ConcurrentHashMap.newKeySet();
 
@@ -44,6 +46,7 @@ public final class ChatService {
         this.history = history;
         this.governance = governance;
         this.restrictions = restrictions;
+        this.placeholders = new ElarionPlaceholderService(config.serverIdentity());
     }
 
     public boolean sendRealmMessage(ServerPlayerEntity sender, String message) {
@@ -101,7 +104,7 @@ public final class ChatService {
         }
         if (recipients <= 1) {
             sender.sendMessage(Text.literal("Your " + config.serverIdentity().realmSingular()
-                            + " has no online allied citizens to receive alliance chat.")
+                            + " has no online allied Embers to receive alliance chat.")
                     .formatted(Formatting.RED), false);
         }
         history.record("chat", "alliance-message", sender.getUuid(), "player",
@@ -280,7 +283,7 @@ public final class ChatService {
     ) {
         MutableText output = Text.empty();
         int cursor = 0;
-        String renderedFormat = config.serverIdentity().replace(format);
+        String renderedFormat = placeholders.replaceIdentity(format);
         while (cursor < renderedFormat.length()) {
             int tokenStart = renderedFormat.indexOf('%', cursor);
             if (tokenStart < 0) {

@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "npc-persistence",
+      "task": "trace NPC NpcStoryStateStorage persistence restart behavior",
+      "mode": "explore",
+      "budgetTokens": 6000,
+      "expectedRoutes": ["persistence", "npcs"],
+      "requiredPaths": ["addons/npcs/src/main/java/panetina/elarion/addons/npcs/storage/NpcStoryStateStorage.java"],
+      "requiredDocs": ["docs/systems/Persistence.md", "docs/systems/NPCs.md"]
+    },
+    {
+      "id": "government-payload",
+      "task": "debug GovernmentUiOpenPayload packet registration and server validation",
+      "mode": "debug",
+      "budgetTokens": 12000,
+      "expectedRoutes": ["networking", "government"],
+      "requiredPaths": ["addons/government/src/main/java/panetina/elarion/addons/government/network/GovernmentUiOpenPayload.java"],
+      "requiredDocs": ["docs/systems/Networking.md", "docs/systems/Government.md"]
+    },
+    {
+      "id": "economy-config",
+      "task": "change EconomyConfigDescriptors config reload validation",
+      "mode": "change",
+      "budgetTokens": 7000,
+      "expectedRoutes": ["config", "economy"],
+      "requiredPaths": ["addons/economy/src/main/java/panetina/elarion/addons/economy/config/EconomyConfigDescriptors.java"],
+      "requiredDocs": ["docs/config.md", "docs/addons/economy.md"]
+    },
+    {
+      "id": "core-command",
+      "task": "change CitizenCommandRegistrar command permission help suggestions execution",
+      "mode": "change",
+      "budgetTokens": 7000,
+      "expectedRoutes": ["commands", "core"],
+      "requiredPaths": ["platform/core/src/main/java/panetina/elarion/core/command/CitizenCommandRegistrar.java"],
+      "requiredDocs": ["docs/commands.md"]
+    },
+    {
+      "id": "notification-ui",
+      "task": "debug ElarionNotificationHud screen layout rendering",
+      "mode": "debug",
+      "budgetTokens": 6000,
+      "expectedRoutes": ["gui"],
+      "requiredPaths": ["platform/core/src/main/java/panetina/elarion/core/client/ElarionNotificationHud.java"],
+      "requiredDocs": ["docs/systems/GUI.md"]
+    },
+    {
+      "id": "offering-events",
+      "task": "trace OfferingService milestone reward notification lifecycle",
+      "mode": "explore",
+      "budgetTokens": 7000,
+      "expectedRoutes": ["offerings"],
+      "requiredPaths": ["addons/offerings/src/main/java/panetina/elarion/addons/offerings/service/OfferingService.java"],
+      "requiredDocs": ["docs/systems/CommunityContribution.md"]
+    },
+    {
+      "id": "portal-travel",
+      "task": "debug PortalRouteService portal travel ticket server validation",
+      "mode": "debug",
+      "budgetTokens": 7000,
+      "expectedRoutes": ["portals"],
+      "requiredPaths": ["addons/portals/src/main/java/panetina/elarion/addons/portals/service/PortalRouteService.java"],
+      "requiredDocs": ["docs/systems/Portals.md"]
+    },
+    {
+      "id": "underworld-restart",
+      "task": "trace UnderworldService grave recovery persistence restart reconciliation",
+      "mode": "explore",
+      "budgetTokens": 7000,
+      "expectedRoutes": ["underworld", "persistence"],
+      "requiredPaths": ["addons/underworld/src/main/java/panetina/elarion/addons/underworld/service/UnderworldService.java"],
+      "requiredDocs": ["docs/systems/Underworld.md", "docs/systems/Persistence.md"]
+    },
+    {
+      "id": "quest-state",
+      "task": "trace QuestStateService quest scheduled consequence state",
+      "mode": "explore",
+      "budgetTokens": 6000,
+      "expectedRoutes": ["quests"],
+      "requiredPaths": ["addons/quests/src/main/java/panetina/elarion/addons/quests/service/QuestStateService.java"],
+      "requiredDocs": ["docs/systems/Quests.md"]
+    },
+    {
+      "id": "mount-flight",
+      "task": "debug ElarionMountFlightController mount flight movement",
+      "mode": "debug",
+      "budgetTokens": 6000,
+      "expectedRoutes": ["mounts"],
+      "requiredPaths": ["addons/mounts/src/main/java/panetina/elarion/addons/mounts/entity/ElarionMountFlightController.java"],
+      "requiredDocs": ["docs/addons/mounts.md"]
+    },
+    {
+      "id": "chronicle-library",
+      "task": "refactor ChronicleTemplateLibrary history variant selection",
+      "mode": "refactor",
+      "budgetTokens": 7000,
+      "expectedRoutes": ["chronicles"],
+      "requiredPaths": ["platform/core/src/main/java/panetina/elarion/core/service/ChronicleTemplateLibrary.java"],
+      "requiredDocs": ["docs/systems/Chronicles.md"]
+    },
+    {
+      "id": "core-api-impact",
+      "task": "trace ElarionApi Core ownership cross addon impact",
+      "mode": "explore",
+      "budgetTokens": 6000,
+      "expectedRoutes": ["core"],
+      "requiredPaths": ["platform/core/src/main/java/panetina/elarion/core/api/ElarionApi.java"],
+      "requiredDocs": ["docs/architecture/DEPENDENCY_GRAPH.md"]
+    }
+  ]
+}

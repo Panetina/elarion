@@ -14,6 +14,7 @@ public record IdentitySyncPayload(
         String prefix,
         String suffix,
         String title,
+        int titleColorArgb,
         String leaderLabel,
         String color,
         String realmName,
@@ -32,6 +33,7 @@ public record IdentitySyncPayload(
                 ElarionPacketCodecs.writeString(buffer, payload.prefix(), 128);
                 ElarionPacketCodecs.writeString(buffer, payload.suffix(), 128);
                 ElarionPacketCodecs.writeString(buffer, payload.title(), 128);
+                buffer.writeInt(payload.titleColorArgb());
                 ElarionPacketCodecs.writeString(buffer, payload.leaderLabel(), 128);
                 ElarionPacketCodecs.writeString(buffer, payload.color(), 32);
                 ElarionPacketCodecs.writeString(buffer, payload.realmName(), 128);
@@ -46,6 +48,7 @@ public record IdentitySyncPayload(
                     ElarionPacketCodecs.readString(buffer, 128),
                     ElarionPacketCodecs.readString(buffer, 128),
                     ElarionPacketCodecs.readString(buffer, 128),
+                    buffer.readInt(),
                     ElarionPacketCodecs.readString(buffer, 128),
                     ElarionPacketCodecs.readString(buffer, 32),
                     ElarionPacketCodecs.readString(buffer, 128),

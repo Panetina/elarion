@@ -35,7 +35,6 @@ Government, Offerings, Portal, Ledger, and Chronicle commands.
 /r <message>
 /w <message>
 /yell <message>
-/collection
 /group create <id> <tag> <display-name...>
 /group invite <player>
 /group accept <group>
@@ -55,8 +54,11 @@ Rules:
 - `/pm` and `/r` follow Realm/relationship visibility rules.
 - `/w` is local whisper chat, not private messaging.
 - `/yell` is local yell chat and uses its configured cooldown.
-- `/collection` opens the Core modular Collection menu. Mounts is the first
-  registered tab.
+- The Character Menu opens from the default `C` keybind. `/charactermenu` is a
+  hidden client command for manual use and is intentionally
+  not registered in the server command tree, `/help`, or slash recommendations.
+  Core clears vanilla's default Save Hotbar Activator binding when it still
+  owns `C`, so fresh clients do not shadow the Character Menu keybind.
 - `/group ...` manages the player's public group.
 - `/gc` sends group chat to current group members.
 - `/lc` sends Government authority chat to same-Realm authority holders.
@@ -82,7 +84,7 @@ Rules:
 /e realm ...
 /e realm announce <realm> <message...>
 /e realm mail <realm> "<title>" <message...>
-/e citizen ...
+/e Ember ...
 /e title ...
 /e ability ...
 /e reward ...
@@ -158,6 +160,7 @@ Rules:
 /e portal guide <route>
 /e portal setup enter <route> [x y z]
 /e portal setup return
+/e portal preview <neutral|nether|end|fee|blocked|return>
 /e portal endpoint set <route> a_gate|a_arrival|b_gate|b_arrival
 /e portal unlock|lock|remove <route>
 /e portal repair <route>|all
@@ -180,6 +183,7 @@ Rules:
 /e character recreate-now <player>
 /e character archive <player>
 /e npc reload
+/e npc open <npcId>
 /e npc place <npcDefinition> [north|east|south|west|here]
 /e npc place <npcDefinition> yaw <value>
 /e npc remove <npcId>
@@ -230,7 +234,9 @@ at OP level 4 so its vanilla permission-2 subcommands do not bypass the server
 command policy.
 
 NPC command IDs are readable placed IDs such as `worldheart_banker_1`, shown by
-`/e npc place` and `/e npc list`. `/e npc set skin <npcId> <skinProfile>` uses
+`/e npc place` and `/e npc list`. `/e npc open <npcId>` opens the normal
+conversation for a nearby placed NPC through the same server-authoritative
+session path as right-click interaction. `/e npc set skin <npcId> <skinProfile>` uses
 profiles from `config/elarion/addons/npcs/skins.yml` for future in-world body
 presentation metadata. `/e npc set portrait <npcId> <portraitProfile>` uses
 profiles from `config/elarion/addons/npcs/portraits.yml` and affects the
@@ -239,12 +245,14 @@ dialogue portrait rendered in the NPC GUI.
 `/e npc rotate <npcId> ...` stores a fixed direction/yaw.
 `/e npc repair <npcId|all>` reconciles missing, stale, or duplicate world
 entities from canonical placement state.
+`/e npc inspect <npcId>` also reports the resolved `realm:<id>` or
+`world:<world-id>` tax jurisdiction stored on that placement.
 
 Quest scope keys are explicit strings such as `realm:realm1`, `world:overworld`,
 `player:<uuid>`, or `global`. `/e quest reset <quest> <scope-key>` clears only
 that questline scope and its player records, actor bindings, and scheduled
 consequences; it does not reset NPC placements, Offering progress, Government
-state, or Core citizens. Actor binding commands map quest actor aliases to
+state, or Core Embers. Actor binding commands map quest actor aliases to
 placed NPC UUIDs through the NPC API while NPCs remain placement owners.
 
 ## Development Test Commands

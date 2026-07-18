@@ -24,6 +24,7 @@ import panetina.elarion.addons.portals.network.PortalTravelPromptPayload;
 import panetina.elarion.addons.portals.network.PortalVisualSyncPayload;
 import panetina.elarion.addons.portals.registry.PortalActions;
 import panetina.elarion.addons.portals.service.PortalDefinitionService;
+import panetina.elarion.addons.portals.service.PortalProfileContributor;
 import panetina.elarion.addons.portals.service.PortalRouteService;
 import panetina.elarion.addons.portals.service.PortalSelectionService;
 import panetina.elarion.addons.portals.storage.PortalStorage;
@@ -49,6 +50,8 @@ public final class ElarionPortalsAddon implements ElarionAddon {
         PortalRouteService routes = new PortalRouteService(
                 LOGGER, api, definitions, new PortalStorage(LOGGER));
         new ElarionPortalsApi(definitions, routes);
+        api.publicHistory().registerRenderer(PortalChronicleText.INSTANCE);
+        api.system().profiles().registerContributor(new PortalProfileContributor(api.playerStats()));
         PortalConfigDescriptors.register(api.system().configs(), definitions::all, definitions::ui);
         PortalActions.register(api, definitions, routes);
 
@@ -62,7 +65,7 @@ public final class ElarionPortalsAddon implements ElarionAddon {
             var ui = definitions.ui();
             ServerPlayNetworking.send(prompt.player(), new PortalTravelPromptPayload(
                     prompt.routeId(), prompt.title(), prompt.direction(),
-                    prompt.closesAt(), prompt.iconItem(), prompt.requirement(),
+                    prompt.closesAt(), prompt.iconItem(), prompt.costKind(), prompt.requirement(),
                     prompt.requirementColor(),
                     prompt.allowed(), prompt.message(),
                     ui.themeVariant(), ui.logicalWidth(), ui.logicalHeight(), ui.minimumScalePercent(),

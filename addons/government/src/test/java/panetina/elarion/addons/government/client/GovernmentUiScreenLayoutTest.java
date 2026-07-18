@@ -178,7 +178,7 @@ final class GovernmentUiScreenLayoutTest {
 
     @Test
     void categoryTagsUseDistinctStableColorRoles() {
-        assertTrue(GovernmentUiGlyphs.tagColor("Citizen Proposal") != GovernmentUiGlyphs.tagColor("Security"));
+        assertTrue(GovernmentUiGlyphs.tagColor("Ember Proposal") != GovernmentUiGlyphs.tagColor("Security"));
         assertTrue(GovernmentUiGlyphs.tagColor("Economy") != GovernmentUiGlyphs.tagColor("Culture"));
         assertEquals(GovernmentUiGlyphs.tagColor("Infrastructure"), GovernmentUiGlyphs.tagColor("realm_project"));
     }

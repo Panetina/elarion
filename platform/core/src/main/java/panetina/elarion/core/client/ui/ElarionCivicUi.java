@@ -115,14 +115,37 @@ public final class ElarionCivicUi {
             Tone tone,
             ElarionUiStyle style
     ) {
+        compactActionButton(context, renderer, x, y, width, height, label, hovered, pressed,
+                enabled, tone, style, 0);
+    }
+
+    public static void compactActionButton(
+            DrawContext context,
+            TextRenderer renderer,
+            int x,
+            int y,
+            int width,
+            int height,
+            String label,
+            boolean hovered,
+            boolean pressed,
+            boolean enabled,
+            Tone tone,
+            ElarionUiStyle style,
+            int textYOffset
+    ) {
         Tone safeTone = tone == null ? Tone.NORMAL : tone;
         compactActionButtonFrame(context, x, y, width, height, hovered, enabled, safeTone, style);
         String visible = ElarionUiRenderer.ellipsize(renderer, label, Math.max(1, width - 10));
         int textColor = !enabled ? style.mutedColor()
                 : safeTone == Tone.DESTRUCTIVE ? ElarionCivicColors.DESTRUCTIVE_TEXT : style.textColor();
         int textX = x + Math.max(4, (width - ElarionUiTypography.width(renderer, visible)) / 2);
-        int textY = y + Math.max(2, (height - ElarionUiTypography.fontHeight(renderer)) / 2) + (pressed ? 1 : 0);
+        int textY = centeredTextY(renderer, y, height) + textYOffset + (pressed ? 1 : 0);
         ElarionUiTypography.draw(context, renderer, visible, textX, textY, textColor, false);
+    }
+
+    public static int centeredTextY(TextRenderer renderer, int y, int height) {
+        return y + Math.max(1, (height - ElarionUiTypography.fontHeight(renderer)) / 2) + 1;
     }
 
     public static void compactActionButtonFrame(
@@ -189,17 +212,24 @@ public final class ElarionCivicUi {
             ElarionUiStyle style
     ) {
         String visible = ElarionUiRenderer.ellipsize(renderer, label == null ? "" : label,
-                Math.max(1, Math.max(18, maxWidth) - 10));
-        int width = Math.min(Math.max(18, maxWidth), Math.max(24, ElarionUiTypography.width(renderer, visible) + 10));
+                ElarionBadgeLayout.textMaxWidth(maxWidth));
+        ElarionBadgeLayout.Badge layout = ElarionBadgeLayout.badge(
+                x, y, maxWidth, ElarionUiTypography.width(renderer, visible));
         Tone safeTone = tone == null ? Tone.NORMAL : tone;
         int accent = chipAccent(safeTone);
         int fill = chipFill(safeTone);
-        context.fill(x, y, x + width, y + 10, fill);
-        context.fill(x, y, x + 2, y + 10, accent);
-        context.fill(x + 2, y, x + width, y + 1,
+        context.fill(layout.bounds().x(), layout.bounds().y(),
+                layout.bounds().x() + layout.bounds().width(),
+                layout.bounds().y() + layout.bounds().height(), fill);
+        context.fill(layout.accent().x(), layout.accent().y(),
+                layout.accent().x() + layout.accent().width(),
+                layout.accent().y() + layout.accent().height(), accent);
+        context.fill(layout.topLine().x(), layout.topLine().y(),
+                layout.topLine().x() + layout.topLine().width(),
+                layout.topLine().y() + layout.topLine().height(),
                 safeTone == Tone.MUTED ? ElarionCivicColors.GOLD_SHADOW : dim(accent));
         int textColor = safeTone == Tone.MUTED ? style.mutedColor() : style.textColor();
-        ElarionUiTypography.draw(context, renderer, visible, x + 5, y + 1, textColor, false);
+        ElarionUiTypography.draw(context, renderer, visible, layout.textX(), layout.textY(), textColor, false);
     }
 
     private static void drawSubtleGrid(DrawContext context, int x, int y, int width, int height) {

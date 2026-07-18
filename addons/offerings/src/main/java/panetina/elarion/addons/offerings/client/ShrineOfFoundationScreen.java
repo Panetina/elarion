@@ -14,9 +14,12 @@ import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import panetina.elarion.addons.offerings.network.ShrineUiOpenPayload;
 import panetina.elarion.addons.offerings.network.ShrineContributionSubmitPayload;
+import panetina.elarion.core.client.ui.ElarionCivicColors;
+import panetina.elarion.core.client.ui.ElarionCivicUi;
 import panetina.elarion.core.client.ui.ElarionNumericInput;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
 import panetina.elarion.core.client.ui.ElarionScreen;
+import panetina.elarion.core.client.ui.ElarionUiIcons;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
 import panetina.elarion.core.client.ui.ElarionUiThemes;
@@ -29,12 +32,12 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
     private static final int HEADER_PROGRESS_HEIGHT = 18;
     private static final int HEADER_TO_TABS_GAP = 8;
     private static final int TABS_TO_CONTENT_GAP = 8;
-    private static final int FOOTER_BUTTON_HEIGHT = 18;
+    static final int FOOTER_BUTTON_HEIGHT = 20;
     private static final int CONTRIBUTION_MESSAGE_HEIGHT = 22;
     private static final int CONTENT_INSET = 5;
     private static final int LIST_SCROLLBAR_GAP = 3;
     private static final int ROW_HORIZONTAL_PADDING = 8;
-    private static final int ROW_ICON_SIZE = 13;
+    private static final int ROW_ICON_SIZE = 16;
     private static final int ROW_ICON_GAP = 8;
     private static final int REWARD_SLOT_SIZE = 30;
     private static final int REWARD_SLOT_GAP = 6;
@@ -73,6 +76,19 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
     private int historyFirstVisible;
     private boolean draggingScrollbar;
 
+    static LayoutMetrics calculateLayout(
+            int logicalWidth, int logicalHeight, int padding, int summaryWidth, int gap, int tabHeight
+    ) {
+        int mainX = padding + summaryWidth + gap;
+        int progressY = padding + 32;
+        int tabsY = progressY + HEADER_PROGRESS_HEIGHT + HEADER_TO_TABS_GAP;
+        int contentTop = tabsY + tabHeight + TABS_TO_CONTENT_GAP;
+        int closeY = logicalHeight - padding - FOOTER_BUTTON_HEIGHT;
+        int contentBottom = closeY - gap;
+        return new LayoutMetrics(mainX, logicalWidth - mainX - padding, progressY, tabsY,
+                contentTop, contentBottom, closeY);
+    }
+
     public ShrineOfFoundationScreen(ShrineUiOpenPayload payload) {
         super(Text.literal(payload.title()));
         this.payload = payload;
@@ -98,14 +114,15 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
         padding = ElarionUiThemes.current().padding();
         layout = ElarionScaledLayout.fit(width, height, payload.logicalWidth(), payload.logicalHeight(),
                 8, payload.minimumScalePercent());
-        mainX = padding + payload.summaryWidth() + ElarionUiThemes.current().gap();
-        mainWidth = payload.logicalWidth() - mainX - padding;
-        progressY = padding + 32;
-        tabsY = progressY + HEADER_PROGRESS_HEIGHT + HEADER_TO_TABS_GAP;
+        LayoutMetrics metrics = calculateLayout(payload.logicalWidth(), payload.logicalHeight(), padding,
+                payload.summaryWidth(), ElarionUiThemes.current().gap(), payload.tabHeight());
+        mainX = metrics.mainX();
+        mainWidth = metrics.mainWidth();
+        progressY = metrics.progressY();
+        tabsY = metrics.tabsY();
         summaryY = tabsY;
-        contentTop = tabsY + payload.tabHeight() + TABS_TO_CONTENT_GAP;
-        contentBottom = payload.logicalHeight() - padding - FOOTER_BUTTON_HEIGHT
-                - ElarionUiThemes.current().gap();
+        contentTop = metrics.contentTop();
+        contentBottom = metrics.contentBottom();
         rebuildList();
     }
 
@@ -120,9 +137,8 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
         context.getMatrices().translate(layout.screenX(), layout.screenY(), 0.0F);
         context.getMatrices().scale(layout.scale(), layout.scale(), 1.0F);
 
-        ElarionUiRenderer.panel(context, 0, 0, payload.logicalWidth(), payload.logicalHeight(), theme);
-        ElarionUiRenderer.headerBand(context, 3, 3, payload.logicalWidth() - 6,
-                tabsY - HEADER_TO_TABS_GAP / 2 - 3, style);
+        ElarionCivicUi.attachedShell(context, 0, 0, payload.logicalWidth(), payload.logicalHeight(),
+                progressY + HEADER_PROGRESS_HEIGHT + 4);
         renderHeader(context);
         renderSummary(context, logicalMouseX, logicalMouseY);
         renderTabs(context, logicalMouseX, logicalMouseY);
@@ -138,14 +154,20 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
     private void renderHeader(DrawContext context) {
         String level = payload.levelText();
         int levelWidth = ElarionUiTypography.width(textRenderer, level);
-        String title = ElarionUiRenderer.ellipsize(textRenderer, payload.title(),
-                payload.logicalWidth() - padding * 2 - levelWidth - 12);
+        String title = "SHRINE OF FOUNDATION";
         String subtitle = ElarionUiRenderer.ellipsize(textRenderer, payload.subtitle(),
-                payload.logicalWidth() - padding * 2);
-        ElarionUiTypography.draw(context, textRenderer, title, padding, padding, lighten(theme.titleColor(), 0.15F), false);
-        ElarionUiTypography.draw(context, textRenderer, subtitle, padding, padding + 13, theme.mutedColor(), false);
+                payload.logicalWidth() - padding * 2 - levelWidth - 18);
+        int titleWidth = ElarionUiTypography.width(textRenderer, title);
+        int titleX = (payload.logicalWidth() - titleWidth) / 2;
+        ElarionCivicUi.headerOrnament(context, titleX - 12, padding + 5, true);
+        ElarionCivicUi.headerOrnament(context, titleX + titleWidth + 12, padding + 5, false);
+        ElarionUiTypography.draw(context, textRenderer, title, titleX, padding + 1,
+                lighten(theme.titleColor(), 0.15F), false);
+        ElarionUiTypography.draw(context, textRenderer, subtitle, padding, padding + 15, theme.mutedColor(), false);
         ElarionUiTypography.draw(context, textRenderer, level,
-                payload.logicalWidth() - padding - levelWidth, padding, theme.warningColor(), false);
+                payload.logicalWidth() - padding - levelWidth, padding + 15, theme.warningColor(), false);
+        ElarionCivicUi.thinBox(context, padding, progressY, payload.logicalWidth() - padding * 2,
+                HEADER_PROGRESS_HEIGHT, ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_BORDER);
         ElarionUiRenderer.progressBar(context, textRenderer, padding, progressY,
                 payload.logicalWidth() - padding * 2, HEADER_PROGRESS_HEIGHT,
                 payload.progressCurrent(), payload.progressRequired(), theme);
@@ -156,22 +178,34 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
         int y = summaryY;
         int width = payload.summaryWidth();
         int height = contentBottom - y;
-        ElarionUiRenderer.borderedBox(context, x, y, width, height, style);
+        ElarionCivicUi.thinBox(context, x, y, width, height,
+                ElarionCivicColors.ROOT_SURFACE, ElarionCivicColors.GOLD_BORDER);
         int iconX = x + (width - payload.iconSize()) / 2;
-        ElarionUiRenderer.icon(context, iconX, y + 10, payload.iconSize(), payload.icon(), theme);
+        int iconY = y + 10;
+        ElarionCivicUi.thinBox(context, iconX - 3, iconY - 3,
+                payload.iconSize() + 6, payload.iconSize() + 6,
+                ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_SHADOW);
+        ElarionUiIcons.drawOrDefault(context, summaryIcon(), iconX, iconY, payload.iconSize());
         int textY = y + payload.iconSize() + 20;
         int statusY = y + height - 16;
-        int rewardsY = Math.max(textY + 52, y + height / 2);
+        String projectTitle = ElarionUiRenderer.ellipsize(textRenderer, payload.title(), width - 16);
+        ElarionUiTypography.drawCentered(context, textRenderer, projectTitle, x + width / 2, textY,
+                lighten(theme.titleColor(), 0.15F), false);
+        int descriptionY = textY + 15;
+        int desiredRewardsHeight = rewardPanelDesiredHeight(width - 14, payload.rewardRows().size());
+        int rewardsY = Math.max(descriptionY + 38, statusY - desiredRewardsHeight - 8);
         int rewardsHeight = Math.max(54, statusY - rewardsY - 8);
         ElarionUiRenderer.wrappedClipped(context, textRenderer, Text.literal(payload.description()),
-                x + 8, textY, width - 16, Math.max(30, rewardsY - textY - 8),
+                x + 8, descriptionY, width - 16, Math.max(30, rewardsY - descriptionY - 8),
                 theme.textColor(), theme.mutedColor());
         renderSummaryRewards(context, x + 7, rewardsY, width - 14, rewardsHeight, mouseX, mouseY);
         int statusColor = "Completed".equalsIgnoreCase(payload.status())
                 ? theme.successColor() : "Inactive".equalsIgnoreCase(payload.status())
                 ? theme.disabledColor() : theme.warningColor();
         String status = payload.status();
-        ElarionUiTypography.draw(context, textRenderer, status, x + (width - ElarionUiTypography.width(textRenderer, status)) / 2,
+        ElarionCivicUi.divider(context, x + 6, statusY - 5, width - 12);
+        ElarionUiTypography.draw(context, textRenderer, status,
+                x + (width - ElarionUiTypography.width(textRenderer, status)) / 2,
                 statusY, statusColor, false);
     }
 
@@ -181,9 +215,19 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
             Tab tab = Tab.values()[index];
             int x = mainX + index * tabWidth;
             int width = index == Tab.values().length - 1 ? mainX + mainWidth - x : tabWidth;
-            ElarionUiRenderer.tab(context, textRenderer, x, tabsY, width, payload.tabHeight(),
-                    tab.label, selectedTab == tab,
-                    inside(mouseX, mouseY, x, tabsY, width, payload.tabHeight()), theme);
+            boolean selected = selectedTab == tab;
+            boolean hovered = inside(mouseX, mouseY, x, tabsY, width, payload.tabHeight());
+            ElarionCivicUi.rowSurface(context, x, tabsY, width, payload.tabHeight(), selected, hovered, false);
+            int iconSize = Math.min(16, payload.tabHeight() - 4);
+            int labelWidth = ElarionUiTypography.width(textRenderer, tab.label);
+            int groupWidth = iconSize + 5 + labelWidth;
+            int groupX = x + Math.max(5, (width - groupWidth) / 2);
+            int groupY = tabsY + Math.max(1, (payload.tabHeight() - iconSize) / 2);
+            ElarionUiIcons.drawOrDefault(context, tab == Tab.CONTRIBUTE ? "offering" : "history",
+                    groupX, groupY, iconSize);
+            ElarionUiTypography.draw(context, textRenderer, tab.label, groupX + iconSize + 5,
+                    ElarionCivicUi.centeredTextY(textRenderer, tabsY, payload.tabHeight()),
+                    selected ? theme.successColor() : theme.titleColor(), false);
         }
     }
 
@@ -228,8 +272,8 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
                 && ("items".equals(row.type()) || "currency".equals(row.type()));
         boolean hovered = interactive && activeRequirement == null
                 && inside(mouseX, mouseY, rowX, y, rowWidth, rowHeight);
-        int rowColor = hovered ? theme.buttonHoverColor() : theme.cardColor();
-        ElarionUiRenderer.beveledBox(context, rowX, y, rowWidth, rowHeight, rowColor, style);
+        ElarionCivicUi.rowSurface(context, rowX, y, rowWidth, rowHeight,
+                row.complete(), hovered, !interactive && !row.complete());
         int iconX = rowX + ROW_HORIZONTAL_PADDING;
         int iconY = y + (rowHeight - ROW_ICON_SIZE) / 2;
         int textY = y + (rowHeight - ElarionUiTypography.fontHeight(textRenderer)) / 2;
@@ -250,28 +294,30 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
         int height = 82;
         int x = mainX + (mainWidth - width) / 2;
         int y = contentTop + (contentBottom - contentTop - height) / 2;
-        ElarionUiRenderer.borderedBox(context, x, y, width, height, style);
+        ElarionCivicUi.headerShell(context, x, y, width, height, 22);
         String question = "currency".equals(activeRequirement.type())
                 ? "How much " + activeRequirement.label() + "?"
                 : "How many " + activeRequirement.label() + "?";
-        ElarionUiTypography.draw(context, textRenderer, question,
-                x + 8, y + 8, theme.titleColor(), false);
-        ElarionUiRenderer.beveledBox(context, x + 8, y + 24, width - 16, 18, theme.insetColor(), style);
+        ElarionUiTypography.drawCentered(context, textRenderer,
+                ElarionUiRenderer.ellipsize(textRenderer, question, width - 20),
+                x + width / 2, y + 7, theme.titleColor(), false);
+        ElarionCivicUi.thinBox(context, x + 8, y + 27, width - 16, 18,
+                ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_SHADOW);
         String value = numericInput.value() + (numericInput.caretVisible() ? "_" : "");
-        ElarionUiTypography.draw(context, textRenderer, value, x + 13, y + 29, theme.textColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, value, x + 13, y + 32, theme.textColor(), false);
         int buttonWidth = 72;
         int buttonHeight = 16;
         int cancelX = x + width - buttonWidth - 8;
         int submitX = cancelX - buttonWidth - 6;
         int buttonY = y + height - buttonHeight - 8;
-        ElarionUiRenderer.compactButton(context, textRenderer, submitX, buttonY,
+        ElarionCivicUi.compactActionButton(context, textRenderer, submitX, buttonY,
                 buttonWidth, buttonHeight, submitting ? "Sending..." : "Offer",
                 inside(mouseX, mouseY, submitX, buttonY, buttonWidth, buttonHeight),
-                false, !submitting && !numericInput.empty(), style);
-        ElarionUiRenderer.compactButton(context, textRenderer, cancelX, buttonY,
+                false, !submitting && !numericInput.empty(), ElarionCivicUi.Tone.PRIMARY, style);
+        ElarionCivicUi.compactActionButton(context, textRenderer, cancelX, buttonY,
                 buttonWidth, buttonHeight, "Cancel",
                 inside(mouseX, mouseY, cancelX, buttonY, buttonWidth, buttonHeight),
-                false, !submitting, style);
+                false, !submitting, ElarionCivicUi.Tone.NORMAL, style);
     }
 
     private void renderHistory(DrawContext context) {
@@ -293,8 +339,8 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
         for (int index = list.firstVisible(); index < list.lastVisibleExclusive(); index++) {
             int y = contentTop + CONTENT_INSET + (index - list.firstVisible()) * payload.rowHeight();
             ShrineUiOpenPayload.DonationRow row = rows.get(index);
-            ElarionUiRenderer.beveledBox(
-                    context, rowX, y, rowWidth, payload.rowHeight() - 2, theme.cardColor(), style);
+            ElarionCivicUi.rowSurface(
+                    context, rowX, y, rowWidth, payload.rowHeight() - 2, false, false, false);
             String offered = row.amount() + " " + row.offeringLabel();
             int nameWidth = ElarionUiTypography.width(textRenderer, row.contributor());
             String verb = " offered ";
@@ -312,8 +358,9 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
     }
 
     private void renderListBackground(DrawContext context) {
-        ElarionUiRenderer.beveledBox(
-                context, mainX, contentTop, mainWidth, contentBottom - contentTop, theme.insetColor(), style);
+        ElarionCivicUi.messageBody(
+                context, mainX, contentTop, mainWidth, contentBottom - contentTop,
+                ElarionCivicColors.GOLD_SHADOW);
     }
 
     private void renderScrollbar(DrawContext context, int count) {
@@ -339,6 +386,19 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
                 return;
             }
         }
+        if (ElarionUiIcons.has(icon)) {
+            ElarionUiIcons.drawOrDefault(context, icon, x, y, ROW_ICON_SIZE);
+            return;
+        }
+        String semantic = icon == null || icon.isBlank() ? "requirement" : switch (icon) {
+            case "currency" -> "bank";
+            case "items" -> "requirement";
+            default -> "";
+        };
+        if (!semantic.isBlank()) {
+            ElarionUiIcons.drawOrDefault(context, semantic, x, y, ROW_ICON_SIZE);
+            return;
+        }
         String raw = icon.startsWith("texture:") ? icon.substring("texture:".length()) : icon;
         Identifier texture = Identifier.tryParse(raw);
         if (texture != null) {
@@ -346,15 +406,21 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
         }
     }
 
+    private String summaryIcon() {
+        return ElarionUiIcons.has(payload.icon()) ? payload.icon() : "shrine";
+    }
+
     private void renderClose(DrawContext context, double mouseX, double mouseY) {
         int x = (payload.logicalWidth() - payload.closeButtonWidth()) / 2;
         int y = payload.logicalHeight() - padding - FOOTER_BUTTON_HEIGHT;
-        ElarionUiRenderer.compactButton(context, textRenderer, x, y,
+        ElarionCivicUi.divider(context, padding, y - ElarionUiThemes.current().gap() / 2,
+                payload.logicalWidth() - padding * 2);
+        ElarionCivicUi.compactActionButton(context, textRenderer, x, y,
                 payload.closeButtonWidth(), FOOTER_BUTTON_HEIGHT, "Close",
                 inside(mouseX, mouseY, x, y, payload.closeButtonWidth(), FOOTER_BUTTON_HEIGHT),
                 inside(mouseX, mouseY, x, y, payload.closeButtonWidth(), FOOTER_BUTTON_HEIGHT)
                         && mouseDown(),
-                true, style);
+                true, ElarionCivicUi.Tone.NORMAL, style);
     }
 
     @Override
@@ -560,39 +626,70 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
     private void renderSummaryRewards(
             DrawContext context, int x, int y, int width, int height, double mouseX, double mouseY
     ) {
-        ElarionUiRenderer.beveledBox(context, x, y, width, height, theme.insetColor(), style);
+        ElarionCivicUi.thinBox(context, x, y, width, height,
+                ElarionCivicColors.MESSAGE_BODY, ElarionCivicColors.GOLD_SHADOW);
         String title = "Rewards:";
-        ElarionUiTypography.draw(context, textRenderer, title, x + (width - ElarionUiTypography.width(textRenderer, title)) / 2,
+        int titleWidth = ElarionUiTypography.width(textRenderer, title);
+        ElarionCivicUi.headerOrnament(context, x + (width - titleWidth) / 2 - 10, y + 10, true);
+        ElarionCivicUi.headerOrnament(context, x + (width + titleWidth) / 2 + 10, y + 10, false);
+        ElarionUiTypography.draw(context, textRenderer, title, x + (width - titleWidth) / 2,
                 y + 7, theme.titleColor(), false);
-        int contentY = y + 22;
+        int contentY = y + 24;
+        int availableHeight = Math.max(0, height - 34);
         if (payload.rewardRows().isEmpty()) {
             ElarionUiRenderer.wrappedClipped(
                     context, textRenderer, Text.literal(payload.rewardsPlaceholder()),
-                    x + 7, contentY, width - 14, height - 29, theme.mutedColor(), theme.mutedColor());
+                    x + 7, contentY, width - 14, availableHeight, theme.mutedColor(), theme.mutedColor());
             return;
         }
-        int columns = Math.max(1, (width - 12 + REWARD_SLOT_GAP) / (REWARD_SLOT_SIZE + REWARD_SLOT_GAP));
-        int maximumRows = Math.max(1, (height - 28 + REWARD_SLOT_GAP)
-                / (REWARD_SLOT_SIZE + REWARD_SLOT_GAP));
+        int columns = rewardGridColumns(width);
+        int totalRows = Math.max(1, (payload.rewardRows().size() + columns - 1) / columns);
+        int slotSize = rewardSlotSizeForRows(availableHeight, totalRows);
+        int stride = slotSize + REWARD_SLOT_GAP;
+        int maximumRows = Math.max(1, (availableHeight + REWARD_SLOT_GAP) / stride);
         int visible = Math.min(payload.rewardRows().size(), columns * maximumRows);
+        int rowCount = Math.max(1, (visible + columns - 1) / columns);
+        int gridHeight = rowCount * slotSize + Math.max(0, rowCount - 1) * REWARD_SLOT_GAP;
+        int gridY = contentY + Math.max(0, (availableHeight - gridHeight) / 2);
         for (int index = 0; index < visible; index++) {
             var reward = payload.rewardRows().get(index);
             int column = index % columns;
             int row = index / columns;
             int rowStart = row * columns;
             int rowColumns = Math.min(columns, visible - rowStart);
-            int rowWidth = rowColumns * REWARD_SLOT_SIZE + Math.max(0, rowColumns - 1) * REWARD_SLOT_GAP;
+            int rowWidth = rowColumns * slotSize + Math.max(0, rowColumns - 1) * REWARD_SLOT_GAP;
             int startX = x + (width - rowWidth) / 2;
-            int slotX = startX + column * (REWARD_SLOT_SIZE + REWARD_SLOT_GAP);
-            int slotY = contentY + row * (REWARD_SLOT_SIZE + REWARD_SLOT_GAP);
-            ElarionUiRenderer.beveledBox(context, slotX, slotY, REWARD_SLOT_SIZE, REWARD_SLOT_SIZE,
-                    reward.disabled() ? theme.disabledColor() : theme.cardColor(), style);
-            renderRewardIcon(context, reward, slotX + 7, slotY + 7);
-            if (inside(mouseX, mouseY, slotX, slotY, REWARD_SLOT_SIZE, REWARD_SLOT_SIZE)) {
+            int slotX = startX + column * stride;
+            int slotY = gridY + row * stride;
+            ElarionCivicUi.thinBox(context, slotX, slotY, slotSize, slotSize,
+                    reward.disabled() ? ElarionCivicColors.BUTTON_DISABLED : ElarionCivicColors.CARD_SURFACE,
+                    reward.disabled() ? ElarionCivicColors.GOLD_SHADOW : ElarionCivicColors.GOLD_BORDER);
+            int iconOffset = Math.max(3, (slotSize - ROW_ICON_SIZE) / 2);
+            renderRewardIcon(context, reward, slotX + iconOffset, slotY + iconOffset);
+            if (inside(mouseX, mouseY, slotX, slotY, slotSize, slotSize)) {
                 hoveredReward = reward;
                 hoveredRewardStack = rewardStack(reward);
             }
         }
+    }
+
+    static int rewardGridColumns(int width) {
+        int capacity = Math.max(1, (width - 12 + REWARD_SLOT_GAP) / (REWARD_SLOT_SIZE + REWARD_SLOT_GAP));
+        return Math.max(1, Math.min(3, capacity));
+    }
+
+    static int rewardPanelDesiredHeight(int width, int rewardCount) {
+        if (rewardCount <= 0) return 58;
+        int columns = rewardGridColumns(width);
+        int rows = Math.max(1, (rewardCount + columns - 1) / columns);
+        return 28 + rows * REWARD_SLOT_SIZE + Math.max(0, rows - 1) * REWARD_SLOT_GAP + 12;
+    }
+
+    static int rewardSlotSizeForRows(int availableHeight, int rowCount) {
+        if (rowCount <= 0) return REWARD_SLOT_SIZE;
+        int gaps = Math.max(0, rowCount - 1) * REWARD_SLOT_GAP;
+        int fit = (availableHeight - gaps) / rowCount;
+        return Math.max(22, Math.min(REWARD_SLOT_SIZE, fit));
     }
 
     private void renderRewardIcon(
@@ -675,5 +772,16 @@ public final class ShrineOfFoundationScreen extends ElarionScreen {
         green += Math.round((255 - green) * amount);
         blue += Math.round((255 - blue) * amount);
         return alpha << 24 | red << 16 | green << 8 | blue;
+    }
+
+    record LayoutMetrics(
+            int mainX,
+            int mainWidth,
+            int progressY,
+            int tabsY,
+            int contentTop,
+            int contentBottom,
+            int closeY
+    ) {
     }
 }

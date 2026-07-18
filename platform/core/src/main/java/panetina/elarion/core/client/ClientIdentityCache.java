@@ -23,6 +23,7 @@ public final class ClientIdentityCache {
                 payload.prefix(),
                 payload.suffix(),
                 payload.title(),
+                payload.titleColorArgb(),
                 payload.leaderLabel(),
                 color == null ? Formatting.WHITE : color,
                 payload.realmName(),

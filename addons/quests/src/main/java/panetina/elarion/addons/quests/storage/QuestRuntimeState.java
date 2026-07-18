@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 public final class QuestRuntimeState {
+    public static final int CURRENT_SCHEMA_VERSION = 1;
+
+    public int schemaVersion = CURRENT_SCHEMA_VERSION;
     public Map<String, QuestlineState> questlines = new LinkedHashMap<>();
     public Map<String, QuestPlayerState> players = new LinkedHashMap<>();
     public Map<String, QuestActorBindingScope> actorBindings = new LinkedHashMap<>();
@@ -13,6 +16,7 @@ public final class QuestRuntimeState {
 
     public QuestRuntimeState copy() {
         QuestRuntimeState copy = new QuestRuntimeState();
+        copy.schemaVersion = schemaVersion;
         copy.questlines = new LinkedHashMap<>();
         if (questlines != null) {
             questlines.forEach((key, value) -> copy.questlines.put(key, value == null ? new QuestlineState() : value.copy()));

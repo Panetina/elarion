@@ -112,9 +112,9 @@ public final class SeatOfRuleScreen extends ElarionScreen {
     }
 
     private void renderHeader(DrawContext context, double mouseX, double mouseY) {
-        GovernmentUiGlyphs.crest(context, 13, 5, 36, payload.crestIconId(), style);
-        ElarionUiTypography.draw(context, textRenderer, "Seat of Rule", 58, 7, theme.titleColor(), false);
-        context.fill(58, 21, HEADER_CLOSE_X - 18, 22, GovernmentUiGlyphs.GOLD_SHADOW);
+        GovernmentUiGlyphs.crest(context, 15, 7, 32, payload.crestIconId(), style);
+        drawHeaderTitle(context, "Seat of Rule");
+        context.fill(58, 24, HEADER_CLOSE_X - 18, 25, GovernmentUiGlyphs.GOLD_SHADOW);
         int metaY = 29;
         renderHeaderSegment(context, 0, metaY, "realm_name", payload.realmName(), GovernmentUiGlyphs.ACTIVE_GREEN);
         renderHeaderSegment(context, 1, metaY, "office", authorityLabel(), theme.titleColor());
@@ -123,6 +123,15 @@ public final class SeatOfRuleScreen extends ElarionScreen {
         ElarionUiRenderer.compactButton(context, textRenderer, HEADER_CLOSE_X, 9, 16, 16,
                 "X", inside(mouseX, mouseY, HEADER_CLOSE_X, 9, 16, 16), true, style);
         hits.add(new Hit(HEADER_CLOSE_X, 9, 16, 16, "close", ""));
+    }
+
+    private void drawHeaderTitle(DrawContext context, String title) {
+        float scale = ElarionUiTypography.scale() * 1.25F;
+        context.getMatrices().push();
+        context.getMatrices().translate(58.0F, 9.0F, 0.0F);
+        context.getMatrices().scale(scale, scale, 1.0F);
+        context.drawText(textRenderer, title, 0, 0, theme.titleColor(), false);
+        context.getMatrices().pop();
     }
 
     private void renderHeaderSegment(
@@ -203,25 +212,27 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             boolean selected = row.id().equals(selectedRowId);
             boolean hover = inside(mouseX, mouseY, x, y, LEFT_WIDTH - 20, rowHeight);
             boolean office = row.kind().equals("office");
+            boolean history = row.kind().equals("history");
             String metric = office
                     ? row.metricLabel().isBlank() ? row.state() : row.metricLabel()
+                    : history ? row.metricLabel().isBlank() ? row.state() : row.metricLabel()
                     : row.voteCount() > 0 ? row.voteCount() + " votes" : row.state();
             String secondary = office
                     ? row.voteCount() + " / " + Math.max(1L, row.threshold()) + " seats"
+                    : history ? row.createdAt() > 0L ? ageLabel(row.createdAt()).replace("Submitted ", "") : ""
                     : row.createdAt() > 0L ? ageLabel(row.createdAt()).replace("Submitted ", "") : "";
             GovernmentUiComponents.recordRow(context, textRenderer, row, x, y, LEFT_WIDTH - 20, rowHeight,
                     selected || row.selectedByViewer(), hover, !row.unlocked(), row.iconId(),
                     row.category().isBlank() ? row.state() : row.category(), metric,
-                    office ? "timer" : row.voteCount() > 0 ? "people" : "current_votes",
+                    office ? "timer" : history ? "history" : row.voteCount() > 0 ? "people" : "current_votes",
                     secondary, office ? "people" : "timer", theme, style);
             hits.add(new Hit(x, y, LEFT_WIDTH - 20, rowHeight, "select", row.id()));
             y += rowHeight + ROW_GAP;
             drawn++;
         }
         if (drawn < visibleRows.size()) {
-            String hint = (rowFirstVisible + 1) + "-" + (rowFirstVisible + drawn) + " / " + visibleRows.size();
-            ElarionUiTypography.draw(context, textRenderer, hint, x + LEFT_WIDTH - 28 - ElarionUiTypography.width(textRenderer, hint), bottom - 9,
-                    theme.mutedColor(), false);
+            GovernmentUiGlyphs.rowRange(context, textRenderer, x + (LEFT_WIDTH - 20) / 2, bottom - 9,
+                    rowFirstVisible + 1, rowFirstVisible + drawn, visibleRows.size(), style);
         }
     }
 
@@ -386,14 +397,14 @@ public final class SeatOfRuleScreen extends ElarionScreen {
         GovernmentUiGlyphs.icon(context, x + 14, y + 12, 18, officeTool ? "office" : "law", style);
         ElarionUiTypography.draw(context, textRenderer, overlayTitle(), x + 40, y + 16, theme.titleColor(), false);
         renderInput(context, x + 14, y + 42, w - 28,
-                officeTool ? "Citizen nickname" : "Official title", titleInput, !bodyActive);
+                officeTool ? "Ember nickname" : "Official title", titleInput, !bodyActive);
         if (!officeTool) {
             renderTextArea(context, x + 14, y + 72, w - 28, 104, "Official body", bodyInput, bodyActive);
         }
         String hint = officeTool
                 ? "Uses Core nickname first; username also works."
                 : overlayAction.equals("finalize_proposal")
-                ? "This publishes the approved citizen proposal."
+                ? "This publishes the approved Ember proposal."
                 : "This creates a direct authority civic record.";
         ElarionUiTypography.draw(context, textRenderer, hint, x + 16, y + (officeTool ? 72 : 184), theme.mutedColor(), false);
         int cancelX = x + w - 152;

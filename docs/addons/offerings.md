@@ -17,9 +17,13 @@ Offerings owns:
 - project anchors
 - Offering progress counters
 - contributor totals
+- the owner-maintained Character Menu Offering score projection for new direct
+  accepted player contributions
 - bounded donation records
 - Offering-owned progression flags
 - optional per-instance display-name override used by quest memorial outcomes
+- bounded public Shrine progress and typed map-marker projections derived from
+  canonical Offering instances and anchors
 
 Offerings does not own:
 
@@ -50,6 +54,11 @@ metadata because it is generated but not parsed into a runtime model. Admin
 Panel discovery does not parse config files. Config editing, donation or
 progression behavior changes, rewards, Shrine block changes, reload semantic
 changes, packet changes, and persistence changes remain future approved slices.
+
+`/e offerings reload` prepares project definitions and Shrine UI config before
+publishing either snapshot through `OfferingDefinitionService`. If UI config
+loading fails after project parsing succeeds, the previous live project/UI
+snapshot remains active instead of leaving the addon in a mixed old/new state.
 
 Project definitions are reusable templates. Runtime instances can be:
 
@@ -107,21 +116,22 @@ The Shrine renders configured rewards as centered icon slots. Hovering a slot
 shows its `display-label` and `display-body` in a standard Minecraft tooltip.
 The project title is subtly brighter than ordinary themed headings so the
 active public project remains the primary visual landmark.
+When an instance is already completed, the Shrine UI projects requirement rows
+and totals as visually complete even if completion was forced/admin-triggered
+and the persisted progress map was not filled. This is a presentation-only
+projection; stored progress remains the audit trail of actual contributions.
 
 Offering instances may carry an optional display-name override. The Shrine UI
 uses that override as the title when present. Without an override, the title is
 the active level's configured presentation text, then the level display name,
 then the project display name. Progress, requirements, milestones, anchors, and
 project definitions remain owned by Offerings. Quests use this through the
-Offerings API for quest outcome names such as `Sorina's Stone`, `The Rowan
-Memorial`, or another content-pack memorial name; they do not own Shrine
-progress or anchors.
+Offerings API for content-defined outcome or memorial names; they do not own
+Shrine progress or anchors.
 
-Lore-facing Shrine stories, including `red_thread_beneath_foundation`, should
-stay in Quest/NPC/content-pack data. Offerings only supplies the reusable
-Shrine, Offering progress, milestones, rewards, reset behavior, and display-name
-projection target. No Mara/Sorina/Red Thread content belongs in Offering
-defaults.
+Future Shrine stories should stay in Quest/NPC/content-pack data. Offerings
+only supplies the reusable Shrine, Offering progress, milestones, rewards,
+reset behavior, and display-name projection target.
 
 `ui.yml` owns Shrine layout and placeholder text. Shared visual tokens come
 from Core `config/elarion/core/ui_theme.yml` variant `shrine`.
@@ -151,6 +161,22 @@ world/elarion/addon-state/offerings/
 Donation history retains at most 50 records per instance. Shrine UI snapshots
 send at most the newest 20 records. Full long-term public meaning belongs in
 Core history/Chronicle projections rather than unbounded Offering state.
+
+`OfferingWebProjectionPublisher` listens to accepted instance mutations and
+publishes `metric.shrine-contribution` plus `map.marker.shrine`. Startup makes
+one bounded pass over the compact instance snapshot. Ordinary contributions
+update only their affected instance. Contributor identities and donation
+records are never included. Removed instances/anchors publish inactive
+tombstones so the website cannot retain stale landmarks.
+
+`OfferingChronicleText` registers with Core public history and renders
+`project-completed`, `project-force-completed`, and
+`realm-global-access-changed` Chronicle projections through the shared
+template-family contract. The `offering.project-completed` and
+`offering.realm-global-access-changed` families have 10 authored stable
+variants, honor persisted `chronicle.variant` values, and fall back safely when
+older records lack context. Offering project state, donations, milestone
+execution, global-access flags, and reward delivery remain owned by Offerings.
 
 ## Commands
 
@@ -221,6 +247,15 @@ exposed.
 Future blocks, NPCs, Government pages, Quests, and Portals should use this API
 or registered actions instead of reading runtime files directly.
 
+Offerings also registers `OfferingProfileContributor` with Core's
+`CitizenProfileService`. It contributes the reserved Character Menu summary
+slot `offerings/offering-score` with `SELF` visibility by reading the bounded
+Core player-stat key `offerings_score`. `OfferingService` increments this stat
+only after a direct item or currency player contribution has been validated and
+persisted successfully. Event/admin progress injections do not count as a
+personal Offering score, old contributions are not backfilled, and the Ledger
+must not scan Offering instances or donation history to invent totals.
+
 ## Shrine Of Foundation
 
 The current placeholder item is:
@@ -244,22 +279,28 @@ Placement behavior:
   looking at with `/e offerings shrine link <instance>`.
 - Right-clicking a linked Shrine opens a responsive sacred project UI with
   Contribute and History tabs.
+- The Shrine uses the canonical civic brown/gold shell. `SHRINE OF FOUNDATION`
+  is the stable screen title; the server-authored active project title remains
+  visible in the left summary beside its description and rewards.
+- Selected tabs use a green border/accent, requirements use compact semantic
+  rows, and the contribution amount prompt uses the shared civic modal/buttons.
 - The main Shrine view keeps a compact Rewards summary in the left project
   column, so a separate Rewards tab is unnecessary.
 - Requirements and aggregate progress are server-authored. Item and currency
   rows open a bounded numeric prompt and send IDs plus requested amount only.
 - Item offerings consume matching inventory items by registry ID or configured
   item tag.
-- Currency offerings consume deposited Economy balance, not physical inventory
-  currency.
+- Currency offerings consume carried physical currency only. Banked currency
+  must be withdrawn first and is not charged directly by Shrine contributions.
 - The server caps requests to remaining progress, validates Shrine range/world,
   persists progress and donation records, then sends a fresh snapshot.
-- Requirement icons render at 80% of the standard Minecraft item size to keep
-  the rows visually balanced.
+- Requirement icons render at the standard 16px item size inside fixed-height
+  rows. Reward slots remain bounded and expose native item/enchantment tooltips.
 - History rows center the contributor nickname and offered amount. Contributor
   names use their Realm color, currency uses the violet-blue Sigil accent from
   the banking UI, and ordinary item labels use neutral gray.
-- Failed persistence restores items or creates a compensating Economy refund.
+- Failed persistence restores items or physical currency through Economy's
+  audited refund path.
 - Rewards use Core reward definitions and deterministic deferred grants.
 - Offline eligible recipients receive grants on next login.
 - Event requirements remain externally credited through registered actions.
@@ -307,5 +348,8 @@ These are intended for future NPCs, quests, rewards, and milestone pipelines.
 - Reward grants use deterministic IDs. Non-reward milestone handlers should be
   idempotent before stronger automatic retry semantics are enabled.
 - No per-tick global project scans exist in V1.
+- Character Menu Offering score reads the bounded `offerings_score` player
+  stat; profile snapshot creation must not scan project instances or donation
+  records.
 - Player-facing rich views must use bounded summaries or indexes before they
   become large-scale UI surfaces.

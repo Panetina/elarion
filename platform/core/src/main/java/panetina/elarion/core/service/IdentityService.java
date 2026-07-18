@@ -73,7 +73,7 @@ public final class IdentityService {
         chatName.append(Text.literal(baseName).formatted(color));
         if (!suffix.isBlank()) chatName.append(Text.literal(" " + suffix));
         Text titleText = title != null && title.visibleUnderUsername()
-                ? Text.literal(title.displayName())
+                ? Text.literal(title.displayName()).styled(style -> style.withColor(title.colorArgb() & 0x00FFFFFF))
                 : Text.empty();
         Text leaderText = authorityMarked ? crown() : Text.empty();
         VisibilityScope scope = realm == null ? VisibilityScope.REALM : realm.visibilityScope();

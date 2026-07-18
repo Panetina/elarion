@@ -10,6 +10,8 @@ import panetina.elarion.addons.underworld.network.GraveOpenPayload;
 import panetina.elarion.addons.underworld.network.GraveRecoverPayload;
 import panetina.elarion.core.client.ui.ElarionCivicColors;
 import panetina.elarion.core.client.ui.ElarionCivicUi;
+import panetina.elarion.core.client.ui.ElarionItemSlotLayout;
+import panetina.elarion.core.client.ui.ElarionListRangeMarker;
 import panetina.elarion.core.client.ui.ElarionScreen;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
@@ -19,10 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GraveRecoveryScreen extends ElarionScreen {
-    private static final int MAX_PANEL_WIDTH = 448;
-    private static final int MAX_PANEL_HEIGHT = 318;
-    private static final int MIN_PANEL_WIDTH = 330;
-    private static final int MIN_PANEL_HEIGHT = 238;
+    private static final int MAX_PANEL_WIDTH = 480;
+    private static final int MAX_PANEL_HEIGHT = 342;
+    private static final int MIN_PANEL_WIDTH = 350;
+    private static final int MIN_PANEL_HEIGHT = 258;
+    private static final int HEADER_HEIGHT = 48;
+    private static final int FOOTER_HEIGHT = 42;
+    private static final int STATUS_HEIGHT = 70;
     private static final int SLOT_SIZE = 26;
     private static final int SLOT_GAP = 5;
 
@@ -54,42 +59,35 @@ public final class GraveRecoveryScreen extends ElarionScreen {
         ElarionUiStyle style = ElarionUiStyle.from(ElarionUiThemes.variant("default"));
         context.fill(0, 0, width, height, style.backgroundOverlayColor());
 
-        int panelWidth = Math.max(MIN_PANEL_WIDTH, Math.min(MAX_PANEL_WIDTH, width - 32));
-        int panelHeight = Math.max(MIN_PANEL_HEIGHT, Math.min(MAX_PANEL_HEIGHT, height - 32));
-        int x = (width - panelWidth) / 2;
-        int y = (height - panelHeight) / 2;
-        int innerX = x + 16;
-        int innerWidth = panelWidth - 32;
-        int headerHeight = 42;
-        int footerHeight = 36;
-        int gridY = y + headerHeight + 74;
-        int gridBottom = y + panelHeight - footerHeight - 8;
-        int gridHeight = Math.max(SLOT_SIZE, gridBottom - gridY);
-        int columns = Math.max(1, Math.min(9, (innerWidth + SLOT_GAP) / (SLOT_SIZE + SLOT_GAP)));
-        int visibleRows = Math.max(1, gridHeight / (SLOT_SIZE + SLOT_GAP));
-        int maxFirstRow = Math.max(0, (displayEntries.size() + columns - 1) / columns - visibleRows);
+        Layout layout = layout();
+        int maxFirstRow = Math.max(0, (displayEntries.size() + layout.columns() - 1) / layout.columns()
+                - layout.visibleRows());
         firstRow = Math.max(0, Math.min(firstRow, maxFirstRow));
 
-        ElarionCivicUi.attachedShell(context, x, y, panelWidth, panelHeight, headerHeight);
-        ElarionCivicUi.headerOrnament(context, x + panelWidth / 2 - 104, y + 22, true);
-        ElarionCivicUi.headerOrnament(context, x + panelWidth / 2 + 104, y + 22, false);
-        context.drawCenteredTextWithShadow(textRenderer, payload.title(), width / 2, y + 15, style.titleColor());
+        ElarionCivicUi.attachedShell(context, layout.x(), layout.y(), layout.panelWidth(), layout.panelHeight(),
+                HEADER_HEIGHT);
+        ElarionCivicUi.headerOrnament(context, layout.x() + layout.panelWidth() / 2 - 116, layout.y() + 24, true);
+        ElarionCivicUi.headerOrnament(context, layout.x() + layout.panelWidth() / 2 + 116, layout.y() + 24, false);
+        String title = ElarionUiTypography.ellipsize(textRenderer, payload.title(), layout.panelWidth() - 150);
+        ElarionUiTypography.drawCentered(context, textRenderer, title, width / 2,
+                layout.y() + ElarionCivicUi.centeredTextY(textRenderer, 0, HEADER_HEIGHT) - 1,
+                style.titleColor(), false);
 
-        renderStatus(context, style, innerX, y + headerHeight + 8, innerWidth);
-        renderGrid(context, style, innerX, gridY, columns, visibleRows, mouseX, mouseY);
-        renderFooter(context, style, x, y, panelWidth, panelHeight, mouseX, mouseY);
+        renderStatus(context, style, layout.innerX(), layout.statusY(), layout.innerWidth());
+        renderGrid(context, style, layout, mouseX, mouseY);
+        renderFooter(context, style, layout, mouseX, mouseY);
         super.render(context, mouseX, mouseY, delta);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        int panelWidth = Math.max(MIN_PANEL_WIDTH, Math.min(MAX_PANEL_WIDTH, width - 32));
-        int innerWidth = panelWidth - 32;
-        int columns = Math.max(1, Math.min(9, (innerWidth + SLOT_GAP) / (SLOT_SIZE + SLOT_GAP)));
-        int panelHeight = Math.max(MIN_PANEL_HEIGHT, Math.min(MAX_PANEL_HEIGHT, height - 32));
-        int gridHeight = Math.max(SLOT_SIZE, panelHeight - 42 - 74 - 36 - 8);
-        int visibleRows = Math.max(1, gridHeight / (SLOT_SIZE + SLOT_GAP));
-        int maxFirstRow = Math.max(0, (displayEntries.size() + columns - 1) / columns - visibleRows);
+        Layout layout = layout();
+        if (!inside(mouseX, mouseY, layout.gridFrameX(), layout.gridFrameY(),
+                layout.gridFrameWidth(), layout.gridFrameHeight())) {
+            return false;
+        }
+        int maxFirstRow = Math.max(0, (displayEntries.size() + layout.columns() - 1) / layout.columns()
+                - layout.visibleRows());
         int direction = verticalAmount > 0.0D ? -1 : verticalAmount < 0.0D ? 1 : 0;
         if (direction == 0 || maxFirstRow <= 0) return false;
         firstRow = Math.max(0, Math.min(maxFirstRow, firstRow + direction));
@@ -98,18 +96,13 @@ public final class GraveRecoveryScreen extends ElarionScreen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int panelWidth = Math.max(MIN_PANEL_WIDTH, Math.min(MAX_PANEL_WIDTH, width - 32));
-        int panelHeight = Math.max(MIN_PANEL_HEIGHT, Math.min(MAX_PANEL_HEIGHT, height - 32));
-        int x = (width - panelWidth) / 2;
-        int y = (height - panelHeight) / 2;
-        int recoverX = x + panelWidth / 2 - 124;
-        int closeX = x + panelWidth / 2 + 22;
-        int buttonY = y + panelHeight - 30;
-        if (button == 0 && recoverEnabled() && inside(mouseX, mouseY, recoverX, buttonY, 124, 20)) {
+        Layout layout = layout();
+        if (button == 0 && recoverEnabled()
+                && inside(mouseX, mouseY, layout.recoverX(), layout.buttonY(), layout.recoverWidth(), 20)) {
             ClientPlayNetworking.send(new GraveRecoverPayload(payload.corpseId()));
             return true;
         }
-        if (button == 0 && inside(mouseX, mouseY, closeX, buttonY, 92, 20)) {
+        if (button == 0 && inside(mouseX, mouseY, layout.closeX(), layout.buttonY(), layout.closeWidth(), 20)) {
             close();
             return true;
         }
@@ -117,88 +110,140 @@ public final class GraveRecoveryScreen extends ElarionScreen {
     }
 
     private void renderStatus(DrawContext context, ElarionUiStyle style, int x, int y, int width) {
-        int chipWidth = Math.min(158, width);
-        ElarionCivicUi.statusChip(context, textRenderer, x, y + 6, statusText(), chipWidth,
+        ElarionCivicUi.thinBox(context, x, y, width, STATUS_HEIGHT,
+                ElarionCivicColors.ROOT_SURFACE, ElarionCivicColors.GOLD_BORDER);
+        ElarionCivicUi.messageBody(context, x + 2, y + 2, width - 4, STATUS_HEIGHT - 4,
+                payload.error() ? ElarionCivicColors.REJECT_RED : ElarionCivicColors.ACTIVE_GREEN);
+        int pad = 10;
+        int chipWidth = Math.min(168, width - pad * 2);
+        ElarionCivicUi.statusChip(context, textRenderer, x + pad, y + 9, statusText(), chipWidth,
                 statusTone(), style);
 
         String count = payload.totalItemCount() + (payload.totalItemCount() == 1 ? " item" : " items");
-        ElarionUiTypography.draw(context, textRenderer, count, x + width - ElarionUiTypography.width(textRenderer, count), y + 7,
-                style.mutedColor(), false);
+        ElarionUiTypography.drawRight(context, textRenderer, count, x + width - pad, y + 10,
+                payload.error() ? style.errorColor() : style.mutedColor(), false);
 
         String owner = payload.ownerName().isBlank() ? "" : "Belongs to " + payload.ownerName();
         if (!owner.isBlank()) {
-            ElarionUiTypography.draw(context, textRenderer, ElarionUiRenderer.ellipsize(textRenderer, owner, width),
-                    x, y + 30, style.mutedColor(), false);
+            ElarionUiTypography.draw(context, textRenderer,
+                    ElarionUiRenderer.ellipsize(textRenderer, owner, width - pad * 2),
+                    x + pad, y + 28, style.mutedColor(), false);
         }
 
         String body = payload.body();
         if (!body.isBlank()) {
-            context.drawCenteredTextWithShadow(textRenderer,
-                    ElarionUiRenderer.ellipsize(textRenderer, body, width),
-                    x + width / 2, y + 42, payload.error() ? style.errorColor() : style.textColor());
+            ElarionUiTypography.wrappedClipped(context, textRenderer, Text.literal(body),
+                    x + pad, y + 44, width - pad * 2, 20,
+                    payload.error() ? style.errorColor() : style.textColor(), style.mutedColor());
         }
     }
 
     private void renderGrid(
             DrawContext context,
             ElarionUiStyle style,
-            int x,
-            int y,
-            int columns,
-            int visibleRows,
+            Layout layout,
             int mouseX,
             int mouseY
     ) {
-        int start = firstRow * columns;
-        int end = Math.min(displayEntries.size(), start + columns * visibleRows);
+        ElarionCivicUi.thinBox(context, layout.gridFrameX(), layout.gridFrameY(),
+                layout.gridFrameWidth(), layout.gridFrameHeight(),
+                ElarionCivicColors.ROOT_SURFACE, ElarionCivicColors.GOLD_BORDER);
+        ElarionCivicUi.divider(context, layout.gridFrameX() + 10, layout.gridFrameY() + 20,
+                layout.gridFrameWidth() - 20);
+        ElarionUiTypography.draw(context, textRenderer, "Grave Contents",
+                layout.gridFrameX() + 12, layout.gridFrameY() + 8, style.titleColor(), false);
+
+        int start = firstRow * layout.columns();
+        int end = Math.min(displayEntries.size(), start + layout.columns() * layout.visibleRows());
         if (displayEntries.isEmpty()) {
             String empty = decoded ? "No visible items." : "Loading grave items...";
-            context.drawCenteredTextWithShadow(textRenderer, empty, width / 2, y + 16, style.mutedColor());
+            ElarionUiTypography.drawCentered(context, textRenderer, empty, layout.gridFrameX() + layout.gridFrameWidth() / 2,
+                    layout.slotY() + 8, style.mutedColor(), false);
             return;
         }
         for (int index = start; index < end; index++) {
             int local = index - start;
-            int slotX = x + (local % columns) * (SLOT_SIZE + SLOT_GAP);
-            int slotY = y + (local / columns) * (SLOT_SIZE + SLOT_GAP);
-            boolean hovered = inside(mouseX, mouseY, slotX, slotY, SLOT_SIZE, SLOT_SIZE);
-            ElarionCivicUi.thinBox(context, slotX, slotY, SLOT_SIZE, SLOT_SIZE,
+            ElarionItemSlotLayout.Slot slot = itemSlot(layout, local);
+            boolean hovered = slot.item().contains(mouseX, mouseY);
+            ElarionCivicUi.thinBox(context, slot.bounds().x(), slot.bounds().y(),
+                    slot.bounds().width(), slot.bounds().height(),
                     hovered ? ElarionCivicColors.CARD_HOVER : ElarionCivicColors.MESSAGE_BODY,
                     ElarionCivicColors.GOLD_BORDER);
             ItemStack stack = displayEntries.get(index).stack();
-            context.drawItem(stack, slotX + 5, slotY + 5);
-            context.drawItemInSlot(textRenderer, stack, slotX + 5, slotY + 5);
+            context.drawItem(stack, slot.itemDrawX(), slot.itemDrawY());
+            context.drawItemInSlot(textRenderer, stack, slot.itemDrawX(), slot.itemDrawY());
             if (hovered) {
                 context.drawItemTooltip(textRenderer, stack, mouseX, mouseY);
             }
         }
-        int totalRows = (displayEntries.size() + columns - 1) / columns;
-        if (totalRows > visibleRows) {
-            String scroll = (firstRow + 1) + " / " + Math.max(1, totalRows - visibleRows + 1);
-            ElarionUiTypography.draw(context, textRenderer, scroll, x + columns * (SLOT_SIZE + SLOT_GAP) + 4, y,
-                    style.mutedColor(), false);
+        int totalRows = (displayEntries.size() + layout.columns() - 1) / layout.columns();
+        if (totalRows > layout.visibleRows()) {
+            ElarionListRangeMarker.draw(context, textRenderer,
+                    layout.gridFrameX() + layout.gridFrameWidth() / 2, layout.gridFrameY() + 8,
+                    ElarionListRangeMarker.range(firstRow, layout.visibleRows(), totalRows), style.mutedColor());
         }
     }
 
     private void renderFooter(
             DrawContext context,
             ElarionUiStyle style,
-            int x,
-            int y,
-            int panelWidth,
-            int panelHeight,
+            Layout layout,
             int mouseX,
             int mouseY
     ) {
-        int recoverX = x + panelWidth / 2 - 124;
-        int closeX = x + panelWidth / 2 + 22;
-        int buttonY = y + panelHeight - 30;
-        ElarionCivicUi.compactActionButton(context, textRenderer, recoverX, buttonY, 124, 20,
-                "Recover All", inside(mouseX, mouseY, recoverX, buttonY, 124, 20), false,
+        ElarionCivicUi.divider(context, layout.x() + 12, layout.buttonY() - 10, layout.panelWidth() - 24);
+        ElarionCivicUi.compactActionButton(context, textRenderer, layout.recoverX(), layout.buttonY(),
+                layout.recoverWidth(), 20,
+                "Recover All", inside(mouseX, mouseY, layout.recoverX(), layout.buttonY(), layout.recoverWidth(), 20),
+                false,
                 recoverEnabled(), recoverEnabled() ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.MUTED,
                 style);
-        ElarionCivicUi.compactActionButton(context, textRenderer, closeX, buttonY, 92, 20,
-                "Close", inside(mouseX, mouseY, closeX, buttonY, 92, 20), false, true,
+        ElarionCivicUi.compactActionButton(context, textRenderer, layout.closeX(), layout.buttonY(),
+                layout.closeWidth(), 20,
+                "Close", inside(mouseX, mouseY, layout.closeX(), layout.buttonY(), layout.closeWidth(), 20),
+                false, true,
                 ElarionCivicUi.Tone.NORMAL, style);
+    }
+
+    private Layout layout() {
+        return calculateLayout(width, height);
+    }
+
+    static Layout calculateLayout(int screenWidth, int screenHeight) {
+        int panelWidth = Math.max(MIN_PANEL_WIDTH, Math.min(MAX_PANEL_WIDTH, screenWidth - 32));
+        int panelHeight = Math.max(MIN_PANEL_HEIGHT, Math.min(MAX_PANEL_HEIGHT, screenHeight - 32));
+        int x = (screenWidth - panelWidth) / 2;
+        int y = (screenHeight - panelHeight) / 2;
+        int innerX = x + 16;
+        int innerWidth = panelWidth - 32;
+        int statusY = y + HEADER_HEIGHT + 10;
+        int gridFrameX = innerX;
+        int gridFrameY = statusY + STATUS_HEIGHT + 10;
+        int gridFrameWidth = innerWidth;
+        int gridFrameBottom = y + panelHeight - FOOTER_HEIGHT - 10;
+        int gridFrameHeight = Math.max(SLOT_SIZE + 34, gridFrameBottom - gridFrameY);
+        int slotX = gridFrameX + 10;
+        int slotY = gridFrameY + 28;
+        int slotAreaWidth = Math.max(SLOT_SIZE, gridFrameWidth - 20);
+        int slotAreaHeight = Math.max(SLOT_SIZE, gridFrameHeight - 36);
+        int columns = Math.max(1, Math.min(10, (slotAreaWidth + SLOT_GAP) / (SLOT_SIZE + SLOT_GAP)));
+        int visibleRows = Math.max(1, slotAreaHeight / (SLOT_SIZE + SLOT_GAP));
+        int recoverWidth = 134;
+        int closeWidth = 96;
+        int gap = 14;
+        int totalButtonWidth = recoverWidth + closeWidth + gap;
+        int recoverX = x + (panelWidth - totalButtonWidth) / 2;
+        int closeX = recoverX + recoverWidth + gap;
+        int buttonY = y + panelHeight - 30;
+        return new Layout(x, y, panelWidth, panelHeight, innerX, innerWidth,
+                statusY, gridFrameX, gridFrameY, gridFrameWidth, gridFrameHeight,
+                slotX, slotY, columns, visibleRows, recoverX, closeX, buttonY,
+                recoverWidth, closeWidth);
+    }
+
+    static ElarionItemSlotLayout.Slot itemSlot(Layout layout, int visibleIndex) {
+        return ElarionItemSlotLayout.gridSlot(layout.slotX(), layout.slotY(), visibleIndex,
+                layout.columns(), SLOT_SIZE, SLOT_GAP, 5);
     }
 
     private void decodeEntriesIfReady() {
@@ -257,5 +302,29 @@ public final class GraveRecoveryScreen extends ElarionScreen {
     }
 
     private record DisplayEntry(GraveOpenPayload.Entry entry, ItemStack stack) {
+    }
+
+    record Layout(
+            int x,
+            int y,
+            int panelWidth,
+            int panelHeight,
+            int innerX,
+            int innerWidth,
+            int statusY,
+            int gridFrameX,
+            int gridFrameY,
+            int gridFrameWidth,
+            int gridFrameHeight,
+            int slotX,
+            int slotY,
+            int columns,
+            int visibleRows,
+            int recoverX,
+            int closeX,
+            int buttonY,
+            int recoverWidth,
+            int closeWidth
+    ) {
     }
 }

@@ -13,6 +13,7 @@ import panetina.elarion.addons.npcs.config.NpcConfigException;
 import panetina.elarion.addons.npcs.model.NpcDefinition;
 import panetina.elarion.addons.npcs.model.PlacedNpcRecord;
 import panetina.elarion.addons.npcs.service.NpcDefinitionService;
+import panetina.elarion.addons.npcs.service.NpcInteractionService;
 import panetina.elarion.addons.npcs.service.NpcPlacementService;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.command.CommandOutput;
@@ -27,11 +28,19 @@ public final class NpcCommands {
     public static LiteralArgumentBuilder<ServerCommandSource> create(
             ElarionApi api,
             NpcDefinitionService definitions,
-            NpcPlacementService placements
+            NpcPlacementService placements,
+            NpcInteractionService interactions
     ) {
         return literal("npc")
                 .requires(source -> source.hasPermissionLevel(4))
                 .then(literal("reload").executes(context -> reload(context.getSource(), api, definitions, placements)))
+                .then(literal("open")
+                        .then(idArgument("id", placements)
+                                .executes(context -> open(
+                                        context.getSource(),
+                                        placements,
+                                        interactions,
+                                        StringArgumentType.getString(context, "id")))))
                 .then(literal("place")
                         .then(argument("definition", StringArgumentType.word())
                                 .suggests((context, builder) -> CommandSource.suggestMatching(
@@ -241,7 +250,7 @@ public final class NpcCommands {
             NpcPlacementService placements
     ) {
         try {
-            definitions.reload(api);
+            definitions.reload(api, placements::validateTaxJurisdictions);
             placements.respawnAll();
             CommandOutput.success(source, "NPC configuration reloaded.", true);
             return 1;
@@ -271,6 +280,28 @@ public final class NpcCommands {
             CommandOutput.kv(source, "Definition", record.definitionId());
             CommandOutput.kv(source, "Facing yaw", record.yaw());
             CommandOutput.line(source, "Use /e npc inspect " + record.commandId() + " for details.");
+            return 1;
+        } catch (Exception exception) {
+            source.sendError(net.minecraft.text.Text.literal(exception.getMessage()));
+            return 0;
+        }
+    }
+
+    private static int open(
+            ServerCommandSource source,
+            NpcPlacementService placements,
+            NpcInteractionService interactions,
+            String id
+    ) {
+        try {
+            ServerPlayerEntity player = source.getPlayerOrThrow();
+            PlacedNpcRecord record = placements.find(id).orElse(null);
+            if (record == null) {
+                source.sendError(net.minecraft.text.Text.literal("Unknown placed NPC: " + id));
+                return 0;
+            }
+            if (!interactions.open(player, record.id())) return 0;
+            CommandOutput.success(source, "NPC dialogue opened.", false);
             return 1;
         } catch (Exception exception) {
             source.sendError(net.minecraft.text.Text.literal(exception.getMessage()));
@@ -360,6 +391,11 @@ public final class NpcCommands {
         CommandOutput.kv(source, "Definition", record.definitionId());
         CommandOutput.kv(source, "Entity", record.entityId());
         CommandOutput.kv(source, "World", record.worldId());
+        CommandOutput.kv(source, "Tax Jurisdiction",
+                record.hasTaxJurisdiction()
+                        ? record.taxJurisdictionKind().name().toLowerCase(java.util.Locale.ROOT)
+                        + ":" + record.taxJurisdictionId()
+                        : "unresolved");
         CommandOutput.kv(source, "Position", record.x() + ", " + record.y() + ", " + record.z());
         CommandOutput.kv(source, "Facing yaw", record.yaw());
         definitions.npc(record.definitionId()).ifPresent(definition -> {

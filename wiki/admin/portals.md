@@ -108,7 +108,7 @@ paid; it does not repeat the first-round-trip message after later paid journeys.
 Completing the configured Shrine milestone sets the Realm flag
 `ancient_gate_unlocked` and unlocks the matching Realm route. The unlock appears
 in that Realm's notification feed. This flag also makes the World notification
-icon available to the Realm's citizens.
+icon available to the Realm's Embers.
 
 Resetting the Realm's Shrine progression reverses that project-owned unlock:
 the `ancient_gate_unlocked` flag is cleared, the matching route is locked, and
@@ -147,7 +147,7 @@ visual:
   status-icon-item: "minecraft:netherrack"
 ```
 
-Nether and End unlocks publish World notifications only to citizens whose Realm
+Nether and End unlocks publish World notifications only to Embers whose Realm
 has unlocked global access. Open/close transitions do not create notification
 cards.
 

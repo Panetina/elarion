@@ -1,12 +1,29 @@
 # Portals
 
 Purpose: linked travel between configured source worlds and Worldheart,
-Nether, End, or future dimensions. Routes may be scheduled/ticketed,
-Economy-fee passages, or always-open.
+Nether, End, or future dimensions. Default Realm Ancient Gates link Realm
+worlds to Worldheart, and default Nether/End scheduled gates depart from
+Worldheart. The default Neutral Gate is unrestricted from any configured world
+to any configured world. Routes may be scheduled/ticketed, Economy-fee
+passages, or always-open.
 
 Main classes: `PortalRouteService`, `PortalDefinitionService`,
 `PortalFieldBlock`, `PortalTicketItem`, `PortalCommands`,
-`ElarionPortalsApi`.
+`ElarionPortalsApi`, `PortalProfileContributor`, `PortalRouteAdminMutator`,
+`PortalScheduleReconciler`, `PortalPlayerPromptDetector`,
+`PortalTravelExecutor`, `PortalWorldTravelGuard`.
+
+Phase 13 classification: `PortalRouteService` remains the canonical live route
+state owner, but admin mutation, schedule reconciliation, player prompt
+detection, travel execution, and setup/world-guard behavior are documented
+extraction candidates. Do not split them without preserving the public service
+facade and focused portal tests. See
+`docs/reports/PHASE_13_PORTAL_ROUTE_SERVICE_CLASSIFICATION.md`.
+
+Phase 13 completed all five classified extractions. `PortalRouteService` still
+owns canonical state and the stable public facade; travel and movement helpers
+operate only through narrow effects and transient guards. See
+`docs/reports/PHASE_13_PORTAL_EXTRACTIONS.md`.
 
 Entry point: `ElarionPortalsAddon`.
 
@@ -19,8 +36,11 @@ Network packets: travel prompt, travel confirmation, screen close, compact
 route visual synchronization, and compact route-status/timer synchronization.
 
 GUI/screens: `PortalConfirmationScreen`, built from the shared Core UI
-foundation. Client route-status icons render as notification-rail accessories
-through Core's `ElarionHudOverlayRegistry` and
+foundation. The travel prompt payload carries server-authored `costKind`
+presentation values (`free`, `ticket`, or `fee`), and the client uses that
+contract for payment-slot visibility and ticket/currency art instead of
+parsing requirement text. Client route-status icons render as notification-rail
+accessories through Core's `ElarionHudOverlayRegistry` and
 `ElarionNotificationHud.accessoryAnchor()`.
 
 Storage/persistence: `world/elarion/addon-state/portals/state.json`.
@@ -41,7 +61,8 @@ Portals shows the source restriction message instead of a generic denial.
 Extension points: config-defined route modes, Economy service-price keys,
 route-state transition listeners, registered
 unlock/lock/status/ticket-purchase actions, immutable `ElarionPortalsApi`,
-route definitions, and shared confirmation UI.
+route definitions, shared confirmation UI, and the owner-maintained Citizen
+Ledger portal-journey profile contributor.
 
 Risks: addon action-registration order for custom startup NPC dialogue,
 real-world timezone changes, obstructed endpoint interiors, and future
@@ -53,3 +74,10 @@ ineligible.
 Do not duplicate this system by creating: a second portal schedule manager,
 separate return-token storage, direct cross-addon teleport commands, or another
 ticket payment ledger.
+
+`PortalProfileContributor` contributes `portals/journeys` with `SELF`
+visibility by reading the Core player-stat key `portal_journeys`.
+`PortalRouteService` increments that stat only after successful
+server-authoritative travel. Existing travel history is not backfilled, and
+profile snapshot creation must not scan Portal runtime state or history
+records.

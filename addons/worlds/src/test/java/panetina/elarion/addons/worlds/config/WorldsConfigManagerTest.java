@@ -23,7 +23,8 @@ final class WorldsConfigManagerTest {
                 LoggerFactory.getLogger("worlds-config-test"), temp.resolve("worlds.yml"));
         config.load();
 
-        assertEquals(5, config.worlds().size());
+        assertEquals(6, config.worlds().size());
+        assertEquals(WorldType.OVERWORLD, config.worlds().get("worldheart").type());
         assertEquals(WorldType.VOID, config.worlds().get("lobby").type());
         assertEquals(WorldType.VOID, config.worlds().get("underworld").type());
         assertEquals("elarion:underworld", config.worlds().get("underworld").id());

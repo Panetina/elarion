@@ -1,6 +1,7 @@
 package panetina.elarion.addons.realms.config;
 
 import org.yaml.snakeyaml.Yaml;
+import org.slf4j.Logger;
 import panetina.elarion.core.api.AddonConfigFiles;
 
 import java.io.IOException;
@@ -54,6 +55,15 @@ public record RealmProtectionConfig(
 
     public static RealmProtectionConfig load() {
         Path path = AddonConfigFiles.writeDefault("realms", "protection.yml", DEFAULT_CONFIG);
+        return load(path, null, defaults());
+    }
+
+    public static RealmProtectionConfig load(Logger logger) {
+        Path path = AddonConfigFiles.writeDefault("realms", "protection.yml", DEFAULT_CONFIG);
+        return load(path, logger, defaults());
+    }
+
+    static RealmProtectionConfig load(Path path, Logger logger, RealmProtectionConfig fallback) {
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             Object loaded = new Yaml().load(reader);
             Map<?, ?> root = loaded instanceof Map<?, ?> map ? map : Map.of();
@@ -67,7 +77,10 @@ public record RealmProtectionConfig(
                     strings(root.get("extra-container-blocks"), defaults.extraContainerBlocks())
             );
         } catch (IOException | RuntimeException exception) {
-            throw new IllegalStateException("Unable to load Realm protection config " + path, exception);
+            if (logger != null) {
+                logger.error("Unable to load Realm protection config {}; using safe defaults", path, exception);
+            }
+            return fallback == null ? defaults() : fallback;
         }
     }
 

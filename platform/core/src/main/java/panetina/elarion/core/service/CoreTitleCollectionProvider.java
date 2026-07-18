@@ -5,6 +5,7 @@ import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.ElarionCollectionAction;
 import panetina.elarion.core.model.ElarionCollectionEntry;
 import panetina.elarion.core.model.ElarionCollectionTab;
+import panetina.elarion.core.model.ElarionTitlePresentation;
 import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.model.TitleOwnershipMode;
 
@@ -15,7 +16,7 @@ import java.util.Locale;
 public final class CoreTitleCollectionProvider implements ElarionCollectionService.TabProvider {
     private static final String TAB_ID = "titles";
     private static final String SET_ACTIVE = "set_active";
-    private static final String ICON = "minecraft:textures/item/name_tag.png";
+    private static final String ICON = "titles";
 
     private final CitizenService citizens;
     private final TitleService titles;
@@ -69,7 +70,10 @@ public final class CoreTitleCollectionProvider implements ElarionCollectionServi
                 ICON,
                 unlocked,
                 active,
-                active ? List.of() : List.of(new ElarionCollectionAction(SET_ACTIVE, "Set as active", unlocked)));
+                active ? List.of() : List.of(new ElarionCollectionAction(SET_ACTIVE, "Set as active", unlocked)),
+                title.colorArgb(),
+                ElarionTitlePresentation.rank(title).label(),
+                ElarionTitlePresentation.rank(title).color());
     }
 
     private static String unlockedSubtitle(TitleDefinition title) {

@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import panetina.elarion.addons.government.model.GovernmentFormDefinition;
 import panetina.elarion.addons.government.model.GovernmentOfficeDefinition;
 import panetina.elarion.addons.government.model.RealmGovernmentState;
+import panetina.elarion.core.model.ChronicleProjection;
+import panetina.elarion.core.model.PublicHistoryEntry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -100,7 +102,201 @@ class GovernmentBlockInteractionsTest {
                 "Proposer: " + uuid + " submitted a proposal.");
 
         assertFalse(visible.contains(uuid));
-        assertTrue(visible.contains("Unknown Citizen"));
+        assertTrue(visible.contains("Unknown Ember"));
+    }
+
+    @Test
+    void governmentChronicleProjectionUsesStructuredMetadata() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.fromString("11111111-1111-1111-1111-111111111111"),
+                1L,
+                "live-index",
+                "government",
+                "proposal-approved",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "proposal",
+                "proposal-1",
+                "realm1",
+                Map.of(
+                        "title", "Harbor Tax Reform",
+                        "category", "law",
+                        "chronicle.variant", "government.proposal-approved.01"),
+                "A civic proposal was approved.");
+
+        ChronicleProjection projection =
+                GovernmentChronicleText.project(entry, "Mara");
+
+        assertEquals("Proposal Approved", projection.title());
+        assertEquals("The law \"Harbor Tax Reform\" cleared Seat review and awaits final wording.", projection.body());
+        assertEquals("Law", projection.category());
+        assertEquals("Approved by authority", projection.detailLabel());
+        assertEquals("government.proposal-approved.01", projection.variantId());
+    }
+
+    @Test
+    void governmentChronicleProposalApprovedFamilyIsLibraryReady() {
+        assertTrue(GovernmentChronicleText.proposalApprovedFamily().isLibraryReady());
+    }
+
+    @Test
+    void governmentChronicleProposalApprovedVariantSelectionIsStable() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                1L,
+                "live-index",
+                "government",
+                "proposal-approved",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "proposal",
+                "proposal-1",
+                "realm1",
+                Map.of("title", "Market Stall Rules", "category", "law"),
+                "A civic proposal was approved.");
+
+        ChronicleProjection first = GovernmentChronicleText.project(entry, "Mara");
+        ChronicleProjection second = GovernmentChronicleText.project(entry, "Mara");
+
+        assertEquals(first.variantId(), second.variantId());
+        assertTrue(first.variantId().startsWith("government.proposal-approved."));
+        assertFalse(first.variantId().endsWith(".default"));
+        assertEquals(first.body(), second.body());
+    }
+
+    @Test
+    void governmentChronicleProposalApprovedUsesFallbackWhenTitleIsMissing() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.randomUUID(),
+                1L,
+                "live-index",
+                "government",
+                "proposal-approved",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "proposal",
+                "proposal-1",
+                "realm1",
+                Map.of("category", "law"),
+                "A civic proposal was approved.");
+
+        ChronicleProjection projection = GovernmentChronicleText.project(entry, "Mara");
+
+        assertEquals("A civic proposal was approved and awaits official wording.", projection.body());
+    }
+
+    @Test
+    void governmentChronicleProposalRejectedUsesTemplateFamily() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.randomUUID(),
+                1L,
+                "live-index",
+                "government",
+                "proposal-rejected",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "proposal",
+                "proposal-1",
+                "realm1",
+                Map.of(
+                        "title", "Closed Harbor",
+                        "category", "law",
+                        "chronicle.variant", "government.proposal-rejected.02"),
+                "A civic proposal was rejected.");
+
+        ChronicleProjection projection = GovernmentChronicleText.project(entry, "Mara");
+
+        assertTrue(GovernmentChronicleText.proposalRejectedFamily().isLibraryReady());
+        assertEquals("Proposal Rejected", projection.title());
+        assertEquals("\"Closed Harbor\" failed authority review as a law.", projection.body());
+        assertEquals("Law", projection.category());
+        assertEquals("Rejected by authority", projection.detailLabel());
+        assertEquals("government.proposal-rejected.02", projection.variantId());
+    }
+
+    @Test
+    void governmentChronicleProposalRejectedFallsBackWithoutTitle() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.randomUUID(),
+                1L,
+                "live-index",
+                "government",
+                "proposal-rejected",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "proposal",
+                "proposal-1",
+                "realm1",
+                Map.of("category", "law"),
+                "A civic proposal was rejected.");
+
+        ChronicleProjection projection = GovernmentChronicleText.project(entry, "Mara");
+
+        assertEquals("A civic proposal was rejected by the Seat of Rule.", projection.body());
+    }
+
+    @Test
+    void governmentChronicleCivicRecordCreatedUsesTemplateFamily() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.randomUUID(),
+                1L,
+                "live-index",
+                "government",
+                "civic-record-created",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "civic_record",
+                "law-1",
+                "realm1",
+                Map.of(
+                        "title", "Market Stall Rules",
+                        "category", "law",
+                        "chronicle.variant", "government.civic-record-created.04"),
+                "A Government civic record was created.");
+
+        ChronicleProjection projection = GovernmentChronicleText.project(entry, "Mara");
+
+        assertTrue(GovernmentChronicleText.civicRecordCreatedFamily().isLibraryReady());
+        assertEquals("Law Created", projection.title());
+        assertEquals("A new law, \"Market Stall Rules\", took effect.", projection.body());
+        assertEquals("Law", projection.category());
+        assertEquals("Official record created", projection.detailLabel());
+        assertEquals("government.civic-record-created.04", projection.variantId());
+    }
+
+    @Test
+    void governmentChronicleCivicRecordCreatedVariantSelectionIsStable() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.fromString("33333333-3333-3333-3333-333333333333"),
+                1L,
+                "live-index",
+                "government",
+                "civic-record-created",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "civic_record",
+                "law-1",
+                "realm1",
+                Map.of("title", "Granary Fund", "category", "project"),
+                "A Government civic record was created.");
+
+        ChronicleProjection first = GovernmentChronicleText.project(entry, "Mara");
+        ChronicleProjection second = GovernmentChronicleText.project(entry, "Mara");
+
+        assertEquals(first.variantId(), second.variantId());
+        assertTrue(first.variantId().startsWith("government.civic-record-created."));
+        assertEquals(first.body(), second.body());
+    }
+
+    @Test
+    void privateVoteCastEventsAreNotShownInCivicArchive() {
+        PublicHistoryEntry entry = new PublicHistoryEntry(
+                UUID.randomUUID(),
+                1L,
+                "live-index",
+                "government",
+                "vote-cast",
+                null,
+                "realm",
+                "realm1",
+                "realm1",
+                Map.of("type", "realm_name"),
+                "A private Government ballot was cast.");
+
+        assertFalse(GovernmentChronicleText.visibleInArchive(entry));
     }
 
     private static GovernmentFormDefinition form(String id, List<GovernmentOfficeDefinition> offices) {

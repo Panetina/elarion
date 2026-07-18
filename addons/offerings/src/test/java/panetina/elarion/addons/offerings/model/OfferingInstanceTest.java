@@ -34,7 +34,7 @@ final class OfferingInstanceTest {
     void resetKeepsIdentityAndAnchorButClearsProgress() {
         OfferingInstance instance = base()
                 .withProgress("currency", 5, UUID.randomUUID())
-                .withDisplayNameOverride("Sorina's Stone")
+                .withDisplayNameOverride("Builders' Memorial")
                 .advanceToLevel("foundation_iii")
                 .withProgress("items:minecraft:stone", 10, UUID.randomUUID())
                 .withCompletion(System.currentTimeMillis(), Set.of("m1"))
@@ -53,7 +53,7 @@ final class OfferingInstanceTest {
     @Test
     void resetCanRestoreFirstConfiguredLevel() {
         OfferingInstance instance = base()
-                .withDisplayNameOverride("Sorina's Stone")
+                .withDisplayNameOverride("Builders' Memorial")
                 .advanceToLevel("foundation_iii")
                 .withProgress("items:minecraft:stone", 10, UUID.randomUUID())
                 .reset("foundation_i");
@@ -68,11 +68,11 @@ final class OfferingInstanceTest {
     @Test
     void displayNameOverrideSurvivesProgressAndLevelAdvancement() {
         OfferingInstance instance = base()
-                .withDisplayNameOverride("Sorina's Stone")
+                .withDisplayNameOverride("Builders' Memorial")
                 .withProgress("item:minecraft:stone", 5, UUID.randomUUID())
                 .advanceToLevel("foundation_ii");
 
-        assertEquals("Sorina's Stone", instance.displayNameOverride());
+        assertEquals("Builders' Memorial", instance.displayNameOverride());
     }
 
     @Test

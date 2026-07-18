@@ -27,5 +27,8 @@
         "java": ">=21",
         "fabric-api": "*",
         "elarion_core": "*"
+    },
+    "suggests": {
+        "elarion_economy": "*"
     }
 }

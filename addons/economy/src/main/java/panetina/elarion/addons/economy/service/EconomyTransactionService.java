@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import panetina.elarion.addons.economy.config.EconomyConfig;
 import panetina.elarion.addons.economy.model.EconomyAccount;
 import panetina.elarion.addons.economy.model.EconomyAccountType;
+import panetina.elarion.addons.economy.model.EconomyOperationKey;
+import panetina.elarion.addons.economy.model.EconomyOperationReceipt;
 import panetina.elarion.addons.economy.model.EconomyTransaction;
 import panetina.elarion.addons.economy.model.EconomyTransactionType;
 import panetina.elarion.addons.economy.model.TransactionResult;
@@ -15,6 +17,12 @@ import panetina.elarion.core.service.ElarionDiagnostics;
 import panetina.elarion.core.service.ElarionTaskService;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.Iterator;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +32,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public final class EconomyTransactionService {
+    private static final int RECEIPT_PRUNE_BATCH = 100;
+    private static final long RECEIPT_PRUNE_INTERVAL_MILLIS = 60_000L;
     private final Logger logger;
     private final EconomyStorage storage;
     private final Predicate<String> realmExists;
@@ -34,6 +44,10 @@ public final class EconomyTransactionService {
     private MinecraftServer server;
     private boolean bound;
     private long nextSnapshotAt;
+    private long nextInterestAt;
+    private long nextReceiptPruneAt;
+    private List<String> interestQueue = List.of();
+    private int interestIndex;
     private CompletableFuture<Void> pendingSnapshot = CompletableFuture.completedFuture(null);
 
     public EconomyTransactionService(
@@ -58,18 +72,33 @@ public final class EconomyTransactionService {
         this.state = storage.load(server);
         this.bound = true;
         this.nextSnapshotAt = System.currentTimeMillis() + config.snapshotIntervalMillis();
+        this.nextInterestAt = System.currentTimeMillis() + config.bankInterestIntervalMillis();
+        pruneExpiredReceipts(System.currentTimeMillis(), Integer.MAX_VALUE);
+        enforceReceiptLimit();
+        this.nextReceiptPruneAt = System.currentTimeMillis() + RECEIPT_PRUNE_INTERVAL_MILLIS;
     }
 
     public synchronized void reload(EconomyConfig config) {
         this.config = config;
         this.nextSnapshotAt = System.currentTimeMillis() + config.snapshotIntervalMillis();
+        this.nextInterestAt = System.currentTimeMillis() + config.bankInterestIntervalMillis();
+        this.interestQueue = List.of();
+        this.interestIndex = 0;
+        pruneExpiredReceipts(System.currentTimeMillis(), Integer.MAX_VALUE);
+        enforceReceiptLimit();
     }
 
     public synchronized void tick() {
-        if (!bound || System.currentTimeMillis() < nextSnapshotAt) return;
-        if (!pendingSnapshot.isDone()) return;
+        if (!bound) return;
+        long now = System.currentTimeMillis();
+        processInterest(now);
+        if (now >= nextReceiptPruneAt) {
+            pruneExpiredReceipts(now, RECEIPT_PRUNE_BATCH);
+            nextReceiptPruneAt = now + RECEIPT_PRUNE_INTERVAL_MILLIS;
+        }
+        if (now < nextSnapshotAt || !pendingSnapshot.isDone()) return;
         EconomyState snapshot = state.copy();
-        nextSnapshotAt = System.currentTimeMillis() + config.snapshotIntervalMillis();
+        nextSnapshotAt = now + config.snapshotIntervalMillis();
         pendingSnapshot = tasks.submitIo("economy-snapshot-save", () -> storage.save(server, snapshot));
     }
 
@@ -86,7 +115,12 @@ public final class EconomyTransactionService {
 
     public synchronized long balance(EconomyAccount account) {
         if (account == null || account.type() == EconomyAccountType.SYSTEM) return 0L;
+        if (account.type() == EconomyAccountType.WORLDHEART) return state.worldheartTreasury();
         return balances(account).getOrDefault(account.id(), 0L);
+    }
+
+    public synchronized long calculateBankWithdrawalTax(long amount) {
+        return calculateBasisPointAmount(amount, config.bankWithdrawalTaxBasisPoints());
     }
 
     public TransactionResult execute(
@@ -139,8 +173,9 @@ public final class EconomyTransactionService {
                         TransactionStatus.BALANCE_OVERFLOW, "Balance limit exceeded.");
             }
 
+            Map<String, String> recordedMetadata = operationMessage(metadata, "Transaction completed.");
             EconomyTransaction transaction = transaction(type, from, to, amount, actor, reason,
-                    sourceSystem, true, "", fromBefore, fromAfter, toBefore, toAfter, metadata);
+                    sourceSystem, true, "", fromBefore, fromAfter, toBefore, toAfter, recordedMetadata);
             try {
                 storage.append(server, transaction, config.forceJournalWrites());
             } catch (IOException exception) {
@@ -159,6 +194,53 @@ public final class EconomyTransactionService {
             }
             return TransactionResult.success(transaction);
         }
+    }
+
+    public TransactionResult executeOnce(
+            EconomyOperationKey operation,
+            EconomyTransactionType type,
+            EconomyAccount from,
+            EconomyAccount to,
+            long amount,
+            UUID actor,
+            String reason,
+            String sourceSystem,
+            Map<String, String> metadata
+    ) {
+        if (operation == null) {
+            return TransactionResult.failure(TransactionStatus.IDEMPOTENCY_CONFLICT,
+                    "Operation key is required.");
+        }
+        Map<String, String> safeMetadata = metadata == null ? Map.of() : Map.copyOf(metadata);
+        if (containsOperationMetadata(safeMetadata)) {
+            return TransactionResult.failure(TransactionStatus.IDEMPOTENCY_CONFLICT,
+                    "Operation metadata keys are reserved.");
+        }
+        String fingerprint = fingerprint(type, from, to, amount, actor, reason, sourceSystem, safeMetadata);
+        synchronized (this) {
+            EconomyOperationReceipt existing = state.operationReceipts().get(operation.value());
+            if (existing != null) {
+                return existing.matches(fingerprint)
+                        ? existing.result()
+                        : TransactionResult.failure(TransactionStatus.IDEMPOTENCY_CONFLICT,
+                                "Operation ID was already used for a different request.");
+            }
+            Map<String, String> recorded = new java.util.LinkedHashMap<>(safeMetadata);
+            recorded.put(EconomyOperationReceipt.META_OWNER, operation.owner());
+            recorded.put(EconomyOperationReceipt.META_ID, operation.operationId().toString());
+            recorded.put(EconomyOperationReceipt.META_FINGERPRINT, fingerprint);
+            TransactionResult result = execute(type, from, to, amount, actor, reason, sourceSystem, recorded);
+            EconomyOperationReceipt.fromTransaction(result.transaction()).ifPresent(receipt -> {
+                state.operationReceipts().put(receipt.key().value(), receipt);
+                enforceReceiptLimit();
+            });
+            return result;
+        }
+    }
+
+    public synchronized java.util.Optional<EconomyOperationReceipt> receipt(EconomyOperationKey operation) {
+        if (operation == null) return java.util.Optional.empty();
+        return java.util.Optional.ofNullable(state.operationReceipts().get(operation.value()));
     }
 
     public TransactionResult transfer(
@@ -182,6 +264,19 @@ public final class EconomyTransactionService {
     ) {
         return execute(EconomyTransactionType.REWARD, EconomyAccount.MINT, destination,
                 amount, actor, reason, sourceSystem, Map.of());
+    }
+
+    public TransactionResult rewardOnce(
+            EconomyOperationKey operation,
+            EconomyAccount destination,
+            long amount,
+            UUID actor,
+            String reason,
+            String sourceSystem,
+            Map<String, String> metadata
+    ) {
+        return executeOnce(operation, EconomyTransactionType.REWARD, EconomyAccount.MINT, destination,
+                amount, actor, reason, sourceSystem, metadata);
     }
 
     public TransactionResult sink(
@@ -214,7 +309,7 @@ public final class EconomyTransactionService {
     }
 
     public synchronized long treasuryTotal() {
-        return sum(state.treasuries().values());
+        return Math.addExact(sum(state.treasuries().values()), state.worldheartTreasury());
     }
 
     public synchronized List<Long> walletBalancesDescending() {
@@ -227,6 +322,43 @@ public final class EconomyTransactionService {
 
     public EconomyConfig config() {
         return config;
+    }
+
+    private void processInterest(long now) {
+        if (!config.bankInterestEnabled() || config.bankInterestRateBasisPoints() <= 0) {
+            interestQueue = List.of();
+            interestIndex = 0;
+            nextInterestAt = now + config.bankInterestIntervalMillis();
+            return;
+        }
+        if (interestQueue.isEmpty()) {
+            if (now < nextInterestAt) return;
+            interestQueue = state.wallets().keySet().stream().sorted().toList();
+            interestIndex = 0;
+            nextInterestAt = now + config.bankInterestIntervalMillis();
+        }
+        int limit = Math.max(1, config.bankInterestMaxAccountsPerTick());
+        int processed = 0;
+        while (interestIndex < interestQueue.size() && processed++ < limit) {
+            String accountId = interestQueue.get(interestIndex++);
+            long balance = state.wallets().getOrDefault(accountId, 0L);
+            if (balance < config.bankInterestMinimumBalance()) continue;
+            long interest = Math.max(
+                    config.bankInterestMinimumPayout(),
+                    calculateBasisPointAmount(balance, config.bankInterestRateBasisPoints()));
+            if (interest < 1L) continue;
+            try {
+                UUID playerId = UUID.fromString(accountId);
+                reward(EconomyAccount.player(playerId), interest, null,
+                        "Bank interest", "elarion:economy");
+            } catch (IllegalArgumentException ignored) {
+                // Invalid account ids are already filtered at transaction boundaries.
+            }
+        }
+        if (interestIndex >= interestQueue.size()) {
+            interestQueue = List.of();
+            interestIndex = 0;
+        }
     }
 
     private TransactionResult recordFailure(
@@ -246,10 +378,11 @@ public final class EconomyTransactionService {
         }
         long fromBalance = balance(from);
         long toBalance = balance(to);
+        Map<String, String> recordedMetadata = operationMessage(metadata, message);
         EconomyTransaction transaction = transaction(
                 type == null ? EconomyTransactionType.TRANSFER : type,
                 from, to, amount, actor, reason, sourceSystem, false, status.name(),
-                fromBalance, fromBalance, toBalance, toBalance, metadata);
+                fromBalance, fromBalance, toBalance, toBalance, recordedMetadata);
         try {
             storage.append(server, transaction, config.forceJournalWrites());
             state.setLastAppliedSequence(transaction.sequence());
@@ -284,6 +417,9 @@ public final class EconomyTransactionService {
 
     private boolean valid(EconomyAccount account) {
         if (account.type() == EconomyAccountType.SYSTEM) return true;
+        if (account.type() == EconomyAccountType.WORLDHEART) {
+            return account.equals(EconomyAccount.WORLDHEART_TREASURY);
+        }
         if (account.type() == EconomyAccountType.REALM) return realmExists.test(account.id());
         try {
             UUID.fromString(account.id());
@@ -310,8 +446,12 @@ public final class EconomyTransactionService {
                     && (!toSystem || to.equals(EconomyAccount.PHYSICAL_CURRENCY));
             case FEE, SINK -> (!fromSystem || from.equals(EconomyAccount.PHYSICAL_CURRENCY))
                     && to.equals(EconomyAccount.BURN);
+            case PUBLIC_REVENUE -> from.equals(EconomyAccount.PHYSICAL_CURRENCY)
+                    && (to.type() == EconomyAccountType.REALM
+                    || to.equals(EconomyAccount.WORLDHEART_TREASURY));
             case TAX -> !fromSystem
-                    && (to.equals(EconomyAccount.BURN) || to.type() == EconomyAccountType.REALM);
+                    && (to.equals(EconomyAccount.BURN) || to.type() == EconomyAccountType.REALM
+                    || to.equals(EconomyAccount.WORLDHEART_TREASURY));
             case TREASURY_GRANT -> from.type() == EconomyAccountType.REALM
                     && to.type() == EconomyAccountType.PLAYER;
             case ADMIN_ADJUSTMENT -> from.equals(EconomyAccount.MINT) && !toSystem
@@ -320,11 +460,18 @@ public final class EconomyTransactionService {
     }
 
     private Map<String, Long> balances(EconomyAccount account) {
+        if (account.type() == EconomyAccountType.WORLDHEART) {
+            throw new IllegalArgumentException("Worldheart treasury uses dedicated balance storage");
+        }
         return account.type() == EconomyAccountType.PLAYER ? state.wallets() : state.treasuries();
     }
 
     private void setBalance(EconomyAccount account, long balance) {
         if (account.type() == EconomyAccountType.SYSTEM) return;
+        if (account.type() == EconomyAccountType.WORLDHEART) {
+            state.setWorldheartTreasury(balance);
+            return;
+        }
         Map<String, Long> balances = balances(account);
         if (balance == 0L) balances.remove(account.id());
         else balances.put(account.id(), balance);
@@ -336,11 +483,85 @@ public final class EconomyTransactionService {
                     "state", bound ? "active" : "unbound",
                     "walletAccounts", Integer.toString(state.wallets().size()),
                     "realmTreasuries", Integer.toString(state.treasuries().size()),
+                    "operationReceipts", Integer.toString(state.operationReceipts().size()),
                     "walletCurrency", Long.toString(walletTotal()),
                     "treasuryCurrency", Long.toString(treasuryTotal()),
                     "lastSequence", Long.toString(state.lastAppliedSequence())
             );
         }
+    }
+
+    private void pruneExpiredReceipts(long now, int limit) {
+        long cutoff = now - config.operationReceiptRetentionMillis();
+        int removed = 0;
+        Iterator<Map.Entry<String, EconomyOperationReceipt>> iterator =
+                state.operationReceipts().entrySet().iterator();
+        while (iterator.hasNext() && removed < limit) {
+            EconomyOperationReceipt receipt = iterator.next().getValue();
+            if (receipt.createdAt() >= cutoff) break;
+            iterator.remove();
+            removed++;
+        }
+    }
+
+    private void enforceReceiptLimit() {
+        while (state.operationReceipts().size() > config.operationReceiptMaxEntries()) {
+            Iterator<String> iterator = state.operationReceipts().keySet().iterator();
+            if (!iterator.hasNext()) return;
+            iterator.next();
+            iterator.remove();
+        }
+    }
+
+    private static boolean containsOperationMetadata(Map<String, String> metadata) {
+        return metadata.containsKey(EconomyOperationReceipt.META_OWNER)
+                || metadata.containsKey(EconomyOperationReceipt.META_ID)
+                || metadata.containsKey(EconomyOperationReceipt.META_FINGERPRINT)
+                || metadata.containsKey(EconomyOperationReceipt.META_MESSAGE);
+    }
+
+    private static Map<String, String> operationMessage(Map<String, String> metadata, String message) {
+        if (metadata == null || !metadata.containsKey(EconomyOperationReceipt.META_OWNER)) {
+            return metadata == null ? Map.of() : metadata;
+        }
+        Map<String, String> recorded = new java.util.LinkedHashMap<>(metadata);
+        recorded.put(EconomyOperationReceipt.META_MESSAGE, message == null ? "" : message);
+        return Map.copyOf(recorded);
+    }
+
+    private static String fingerprint(
+            EconomyTransactionType type,
+            EconomyAccount from,
+            EconomyAccount to,
+            long amount,
+            UUID actor,
+            String reason,
+            String sourceSystem,
+            Map<String, String> metadata
+    ) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            hashPart(digest, type == null ? "" : type.name());
+            hashPart(digest, from == null ? "" : from.key());
+            hashPart(digest, to == null ? "" : to.key());
+            hashPart(digest, Long.toString(amount));
+            hashPart(digest, actor == null ? "" : actor.toString());
+            hashPart(digest, reason == null ? "" : reason.trim());
+            hashPart(digest, sourceSystem == null ? "" : sourceSystem.trim());
+            metadata.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+                hashPart(digest, entry.getKey());
+                hashPart(digest, entry.getValue());
+            });
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
+
+    private static void hashPart(MessageDigest digest, String value) {
+        byte[] bytes = (value == null ? "" : value).getBytes(StandardCharsets.UTF_8);
+        digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(bytes.length).array());
+        digest.update(bytes);
     }
 
     private static long sum(Iterable<Long> values) {
@@ -353,6 +574,17 @@ public final class EconomyTransactionService {
             }
         }
         return total;
+    }
+
+    static long calculateBasisPointAmount(long amount, int basisPoints) {
+        if (amount < 1L || basisPoints < 1) return 0L;
+        try {
+            long product = Math.multiplyExact(amount, basisPoints);
+            if (product > Long.MAX_VALUE - 9_999L) return Long.MAX_VALUE;
+            return (product + 9_999L) / 10_000L;
+        } catch (ArithmeticException exception) {
+            return Long.MAX_VALUE;
+        }
     }
 
     private void requireServer() {

@@ -29,7 +29,7 @@ public final class ElarionMountsClient implements ClientModInitializer {
                 "key.elarion_mounts.dismount",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_R,
-                "category.elarion_mounts.mounts"));
+                "category.elarion_core.ui"));
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (client.player != null
                     && client.player.getVehicle() instanceof ElarionMountEntity

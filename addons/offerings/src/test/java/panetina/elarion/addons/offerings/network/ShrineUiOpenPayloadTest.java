@@ -17,7 +17,7 @@ final class ShrineUiOpenPayloadTest {
         ShrineUiOpenPayload.DisplayRow reward = new ShrineUiOpenPayload.DisplayRow(
                 "rank", "event", "Foundation Rank", "Unlocked at completion", "", 1, "", true);
         ShrineUiOpenPayload.DonationRow history = new ShrineUiOpenPayload.DonationRow(
-                "recent", "Citizen", 0xFF55FF55, 12, "Stone", 0xFFAAAAAA, "2026-06-14T00:00:00Z");
+                "recent", "Ember", 0xFF55FF55, 12, "Stone", 0xFFAAAAAA, "2026-06-14T00:00:00Z");
         ShrineUiOpenPayload payload = new ShrineUiOpenPayload(
                 "offering_realm_oak_1", "oak_foundation", "Shrine of Foundation",
                 "Realm of Oak", "A shared foundation project.", "Active", "Foundation I",

@@ -14,6 +14,17 @@ GUI/screens: none central yet; future Government/Ledger/Atlas views should consu
 
 Storage/persistence: `config/elarion/core/realms.yml`, `world/elarion/citizens`, Realm runtime/delivery storage.
 
+Realm spawn defaults:
+
+| Realm | Spawn world | Spawn |
+| --- | --- | --- |
+| `realm1` | `elarion:realm_world_1` | `-367, 75, 138` |
+| `realm2` | `elarion:realm_world_2` | `3000, 128, 3920` |
+| `realm3` | `elarion:realm_world_3` | `6061, 84, 5122` |
+
+Core owns these Realm spawn destinations. The Worlds addon owns the matching
+managed-world seeds, borders, and generation settings.
+
 Dependencies: Core config, Core history, ability system, messaging.
 
 Related systems: Government, Offerings, Economy treasuries, NPCs, Atlas, Chronicle.

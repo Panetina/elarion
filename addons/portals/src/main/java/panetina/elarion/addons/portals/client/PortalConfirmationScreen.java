@@ -13,6 +13,7 @@ import panetina.elarion.core.client.ui.ElarionCivicColors;
 import panetina.elarion.core.client.ui.ElarionCivicUi;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
 import panetina.elarion.core.client.ui.ElarionScreen;
+import panetina.elarion.core.client.ui.ElarionUiIcons;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
 import panetina.elarion.core.client.ui.ElarionUiThemes;
@@ -55,34 +56,41 @@ public final class PortalConfirmationScreen extends ElarionScreen {
         String heading = "Enter " + payload.gateName() + "?";
         ElarionUiTypography.draw(context, textRenderer, heading,
                 (payload.logicalWidth() - ElarionUiTypography.width(textRenderer, heading)) / 2,
-                15, theme.titleColor(), false);
+                ElarionCivicUi.centeredTextY(textRenderer, 0, 42), theme.titleColor(), false);
         ElarionCivicUi.messageBody(context, 18, 49, payload.logicalWidth() - 36, 78,
                 payload.allowed() ? ElarionCivicColors.ACTIVE_GREEN : ElarionCivicColors.REJECT_RED);
-        drawGateIcon(context, 32, 64);
+        boolean hasPaymentSlot = hasPaymentSlot(payload.costKind());
+        int textX = hasPaymentSlot ? 78 : 34;
+        int textWidth = payload.logicalWidth() - textX - 26;
+        if (hasPaymentSlot) {
+            drawGateIcon(context, 32, 64);
+        }
         int requirementColor = payload.requirementColor() != 0
                 ? payload.requirementColor()
                 : payload.allowed() ? theme.textColor() : theme.warningColor();
-        ElarionUiTypography.draw(context, textRenderer, payload.requirement(), 78, 63, requirementColor, false);
+        ElarionUiTypography.draw(context, textRenderer,
+                ElarionUiRenderer.ellipsize(textRenderer, payload.requirement(), textWidth),
+                textX, 63, requirementColor, false);
         String timing = payload.closesAt() <= 0 ? "Open continuously." : "Closes in " + remaining() + ".";
-        ElarionUiTypography.draw(context, textRenderer, timing, 78, 81, theme.mutedColor(), false);
+        ElarionUiTypography.draw(context, textRenderer,
+                ElarionUiRenderer.ellipsize(textRenderer, timing, textWidth),
+                textX, 81, theme.mutedColor(), false);
         if (!payload.message().isBlank()) {
-            ElarionUiTypography.draw(context, textRenderer,
-                    ElarionUiRenderer.ellipsize(textRenderer, payload.message(), payload.logicalWidth() - 104),
-                    78, 99, payload.allowed() ? theme.textColor() : theme.errorColor(), false);
+            ElarionUiTypography.wrappedClipped(context, textRenderer, Text.literal(payload.message()),
+                    textX, 99, textWidth, 24,
+                    payload.allowed() ? theme.textColor() : theme.errorColor(), theme.mutedColor());
         }
         int buttonY = payload.logicalHeight() - 42;
-        int gap = 12;
-        int total = payload.confirmButtonWidth() + payload.closeButtonWidth() + gap;
-        int confirmX = (payload.logicalWidth() - total) / 2;
-        int closeX = confirmX + payload.confirmButtonWidth() + gap;
-        boolean confirmHover = inside(mx, my, confirmX, buttonY, payload.confirmButtonWidth(), 20);
-        boolean closeHover = inside(mx, my, closeX, buttonY, payload.closeButtonWidth(), 20);
-        ElarionCivicUi.compactActionButton(context, textRenderer, confirmX, buttonY,
+        ButtonLayout buttons = buttonLayout(payload.logicalWidth(), payload.confirmButtonWidth(),
+                payload.closeButtonWidth(), 12);
+        boolean confirmHover = inside(mx, my, buttons.confirmX(), buttonY, payload.confirmButtonWidth(), 20);
+        boolean closeHover = inside(mx, my, buttons.closeX(), buttonY, payload.closeButtonWidth(), 20);
+        ElarionCivicUi.compactActionButton(context, textRenderer, buttons.confirmX(), buttonY,
                 payload.confirmButtonWidth(), 20, "Yes", confirmHover, false,
                 payload.allowed() && !submitted,
                 payload.allowed() && !submitted ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.MUTED,
                 style);
-        ElarionCivicUi.compactActionButton(context, textRenderer, closeX, buttonY,
+        ElarionCivicUi.compactActionButton(context, textRenderer, buttons.closeX(), buttonY,
                 payload.closeButtonWidth(), 20, "No", closeHover, false, true,
                 ElarionCivicUi.Tone.NORMAL, style);
         context.getMatrices().pop();
@@ -93,16 +101,14 @@ public final class PortalConfirmationScreen extends ElarionScreen {
         double mx = layout.logicalX(mouseX);
         double my = layout.logicalY(mouseY);
         int y = payload.logicalHeight() - 42;
-        int gap = 12;
-        int total = payload.confirmButtonWidth() + payload.closeButtonWidth() + gap;
-        int confirmX = (payload.logicalWidth() - total) / 2;
-        int closeX = confirmX + payload.confirmButtonWidth() + gap;
-        if (inside(mx, my, closeX, y, payload.closeButtonWidth(), 20)) {
+        ButtonLayout buttons = buttonLayout(payload.logicalWidth(), payload.confirmButtonWidth(),
+                payload.closeButtonWidth(), 12);
+        if (inside(mx, my, buttons.closeX(), y, payload.closeButtonWidth(), 20)) {
             close();
             return true;
         }
         if (!submitted && payload.allowed()
-                && inside(mx, my, confirmX, y, payload.confirmButtonWidth(), 20)) {
+                && inside(mx, my, buttons.confirmX(), y, payload.confirmButtonWidth(), 20)) {
             submitted = true;
             ClientPlayNetworking.send(new PortalTravelConfirmPayload(payload.routeId(), payload.direction()));
             return true;
@@ -121,13 +127,53 @@ public final class PortalConfirmationScreen extends ElarionScreen {
     private void drawGateIcon(DrawContext context, int x, int y) {
         ElarionCivicUi.thinBox(context, x, y, 32, 32,
                 ElarionCivicColors.ROOT_SURFACE, ElarionCivicColors.GOLD_BORDER);
+        if (PortalTravelPromptPayload.COST_FEE.equals(payload.costKind())) {
+            ElarionUiRenderer.currencyIcon(context, x + 7, y + 7, 18);
+            return;
+        }
+        String semantic = semanticGateIcon();
+        if (ElarionUiIcons.has(semantic)) {
+            ElarionUiIcons.drawOrDefault(context, semantic, x + 5, y + 5, 22);
+            return;
+        }
         Identifier id = Identifier.tryParse(payload.iconItem());
         if (id != null && Registries.ITEM.containsId(id)) {
             context.drawItem(new ItemStack(Registries.ITEM.get(id)), x + 8, y + 8);
         }
     }
 
+    private String semanticGateIcon() {
+        return semanticGateIcon(payload.routeId(), payload.costKind());
+    }
+
+    static boolean hasPaymentSlot(String costKind) {
+        return !PortalTravelPromptPayload.COST_FREE.equals(costKind);
+    }
+
+    static String semanticGateIcon(String routeId, String costKind) {
+        String route = routeId == null ? "" : routeId.toLowerCase(java.util.Locale.ROOT);
+        if (PortalTravelPromptPayload.COST_TICKET.equals(costKind)) {
+            if (route.contains("nether")) return "nether_ticket";
+            if (route.contains("end")) return "end_ticket";
+            return "portal_ticket";
+        }
+        if (PortalTravelPromptPayload.COST_FEE.equals(costKind)) return "portal_fee";
+        if (PortalTravelPromptPayload.COST_FREE.equals(costKind)) return "portal_free";
+        if (route.contains("nether")) return "nether_gate";
+        if (route.contains("end")) return "end_gate";
+        return "portal";
+    }
+
+    static ButtonLayout buttonLayout(int logicalWidth, int confirmWidth, int closeWidth, int gap) {
+        int total = confirmWidth + closeWidth + gap;
+        int confirmX = (logicalWidth - total) / 2;
+        return new ButtonLayout(confirmX, confirmX + confirmWidth + gap);
+    }
+
     private static boolean inside(double x, double y, int left, int top, int width, int height) {
         return x >= left && x < left + width && y >= top && y < top + height;
+    }
+
+    record ButtonLayout(int confirmX, int closeX) {
     }
 }

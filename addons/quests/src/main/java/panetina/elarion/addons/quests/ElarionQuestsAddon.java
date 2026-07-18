@@ -9,6 +9,7 @@ import panetina.elarion.addons.quests.command.QuestCommands;
 import panetina.elarion.addons.quests.config.QuestConfigDescriptors;
 import panetina.elarion.addons.quests.config.QuestConfigLoader;
 import panetina.elarion.addons.quests.service.QuestDefinitionService;
+import panetina.elarion.addons.quests.service.QuestProfileContributor;
 import panetina.elarion.addons.quests.service.QuestRegistryHandlers;
 import panetina.elarion.addons.quests.service.QuestStateService;
 import panetina.elarion.addons.quests.storage.QuestStorage;
@@ -24,6 +25,7 @@ public final class ElarionQuestsAddon implements ElarionAddon {
                 LOGGER, null, api.registries().conditions()::contains, api.registries().actions()::contains));
         QuestStateService states = new QuestStateService(LOGGER, api, definitions, new QuestStorage(LOGGER));
         new ElarionQuestsApi(definitions, states);
+        api.system().profiles().registerContributor(new QuestProfileContributor(api.playerStats()));
 
         api.system().abilities().register("elarion.quest.admin");
         QuestRegistryHandlers.register(api, definitions, states);

@@ -22,7 +22,7 @@ After opening the target UI, capture the Minecraft window:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\capture-minecraft-window.ps1 -Output build\ui-qa\<screen-name>.png
 ```
 
-Common UI entry points are `/e panel`, `/collection`, the notification HUD
+Common UI entry points are `/e panel`, `/charactermenu`, the notification HUD
 rail, linked Shrine blocks, Civic Forum or Seat of Rule blocks, placed NPCs,
 configured portal routes, and Underworld graves/tombs.
 
@@ -178,7 +178,7 @@ Use these for character-creation and True Death verification.
 - `trigger-true-death` moves the current character into the True Death flow.
 - `reset` clears the current test character state so the creation UI appears
   again.
-- `force-active` marks the lifecycle active after manual citizen edits. It does
+- `force-active` marks the lifecycle active after manual Ember edits. It does
   not restore archived character state or undo addon cleanup.
 
 ## Mount Tests

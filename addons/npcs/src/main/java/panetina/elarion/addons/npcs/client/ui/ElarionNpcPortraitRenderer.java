@@ -12,6 +12,8 @@ import panetina.elarion.addons.npcs.network.NpcDialogueOpenPayload;
 import panetina.elarion.addons.npcs.network.NpcVisualSyncPayload;
 
 public final class ElarionNpcPortraitRenderer {
+    private static final int IMAGE_INSET = 3;
+
     private ElarionNpcPortraitRenderer() {
     }
 
@@ -44,7 +46,7 @@ public final class ElarionNpcPortraitRenderer {
             var skin = NpcSkinResolver.playerSkin(dialogue.portraitPlayerName()).orElse(null);
             if (skin != null) {
                 ElarionUiRenderer.portraitFrame(context, textRenderer, x, y, size, "", style);
-                PlayerSkinDrawer.draw(context, skin, x + 4, y + 4, size - 8);
+                PlayerSkinDrawer.draw(context, skin, imageX(x), imageY(y), imageSize(size));
                 return true;
             }
         }
@@ -52,8 +54,8 @@ public final class ElarionNpcPortraitRenderer {
             Identifier texture = NpcSkinResolver.texture(dialogue.portrait()).orElse(null);
             if (texture != null) {
                 ElarionUiRenderer.portraitFrame(context, textRenderer, x, y, size, "", style);
-                context.drawTexture(texture, x + 4, y + 4, 0, 0,
-                        size - 8, size - 8, 64, 64);
+                int textureSize = textureSize(dialogue.portrait());
+                drawFullTexture(context, texture, imageX(x), imageY(y), imageSize(size), textureSize);
                 return true;
             }
         }
@@ -61,12 +63,21 @@ public final class ElarionNpcPortraitRenderer {
             Identifier fallback = NpcSkinResolver.texture(dialogue.portraitFallbackTexture()).orElse(null);
             if (fallback != null) {
                 ElarionUiRenderer.portraitFrame(context, textRenderer, x, y, size, "", style);
-                context.drawTexture(fallback, x + 4, y + 4, 0, 0,
-                        size - 8, size - 8, 64, 64);
+                int textureSize = textureSize(dialogue.portraitFallbackTexture());
+                drawFullTexture(context, fallback, imageX(x), imageY(y), imageSize(size), textureSize);
                 return true;
             }
         }
         return false;
+    }
+
+    private static void drawFullTexture(DrawContext context, Identifier texture, int x, int y, int size, int textureSize) {
+        context.drawTexture(texture, x, y, size, size, 0.0F, 0.0F,
+                textureSize, textureSize, textureSize, textureSize);
+    }
+
+    private static int textureSize(String raw) {
+        return raw != null && raw.contains("/32x32/") ? 32 : 64;
     }
 
     private static boolean renderSkinHead(
@@ -82,7 +93,7 @@ public final class ElarionNpcPortraitRenderer {
             var skin = NpcSkinResolver.playerSkin(visual.skinPlayerName()).orElse(null);
             if (skin != null) {
                 ElarionUiRenderer.portraitFrame(context, textRenderer, x, y, size, "", style);
-                PlayerSkinDrawer.draw(context, skin, x + 4, y + 4, size - 8);
+                PlayerSkinDrawer.draw(context, skin, imageX(x), imageY(y), imageSize(size));
                 return true;
             }
         }
@@ -93,11 +104,23 @@ public final class ElarionNpcPortraitRenderer {
         if (skinTexture == null) return false;
 
         ElarionUiRenderer.portraitFrame(context, textRenderer, x, y, size, "", style);
-        int inner = size - 8;
-        context.drawTexture(skinTexture, x + 4, y + 4, inner, inner,
+        int inner = imageSize(size);
+        context.drawTexture(skinTexture, imageX(x), imageY(y), inner, inner,
                 8.0F, 8.0F, 8, 8, 64, 64);
-        context.drawTexture(skinTexture, x + 4, y + 4, inner, inner,
+        context.drawTexture(skinTexture, imageX(x), imageY(y), inner, inner,
                 40.0F, 8.0F, 8, 8, 64, 64);
         return true;
+    }
+
+    private static int imageX(int frameX) {
+        return frameX + IMAGE_INSET;
+    }
+
+    private static int imageY(int frameY) {
+        return frameY + IMAGE_INSET + 1;
+    }
+
+    private static int imageSize(int frameSize) {
+        return Math.max(1, frameSize - IMAGE_INSET * 2);
     }
 }

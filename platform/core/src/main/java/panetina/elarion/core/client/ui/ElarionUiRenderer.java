@@ -88,7 +88,8 @@ public final class ElarionUiRenderer {
                 : pressed ? style.cardColor()
                 : hovered ? style.buttonHoverColor() : style.buttonColor();
         beveledBox(context, x, y, width, height, fill,
-                active && (hovered || pressed) ? style.titleColor() : style.borderColor(), style);
+                pressed ? ElarionCivicColors.ACTIVE_GREEN
+                        : active && hovered ? style.titleColor() : style.borderColor(), style);
         if (active && hovered && !pressed && width > 4 && height > 4) {
             context.fill(x + 3, y + 2, x + width - 3, y + 3, 0x22FFFFFF);
         }
@@ -96,7 +97,7 @@ public final class ElarionUiRenderer {
         int color = active ? style.textColor() : style.mutedColor();
         ElarionUiTypography.draw(context, renderer, visible,
                 x + Math.max(4, (width - ElarionUiTypography.width(renderer, visible)) / 2),
-                y + Math.max(2, (height - ElarionUiTypography.fontHeight(renderer)) / 2) + (pressed ? 1 : 0),
+                ElarionCivicUi.centeredTextY(renderer, y, height) + (pressed ? 1 : 0),
                 color, false);
     }
 
@@ -107,11 +108,11 @@ public final class ElarionUiRenderer {
         ElarionUiStyle style = ElarionUiStyle.from(theme);
         int fill = selected ? theme.cardColor() : hovered ? theme.buttonHoverColor() : theme.buttonColor();
         beveledBox(context, x, y, width, height, fill,
-                selected ? theme.titleColor() : theme.borderColor(), style);
+                selected ? ElarionCivicColors.ACTIVE_GREEN : theme.borderColor(), style);
         String visible = ellipsize(renderer, label, width - 8);
         ElarionUiTypography.draw(context, renderer, visible,
                 x + (width - ElarionUiTypography.width(renderer, visible)) / 2,
-                y + Math.max(2, (height - ElarionUiTypography.fontHeight(renderer)) / 2),
+                ElarionCivicUi.centeredTextY(renderer, y, height),
                 selected ? style.titleColor() : style.textColor(), false);
     }
 
@@ -206,6 +207,10 @@ public final class ElarionUiRenderer {
         ElarionUiTypography.draw(context, renderer, prefix, textX, textY, style.textColor(), false);
         ElarionUiTypography.draw(context, renderer, visibleValue,
                 textX + ElarionUiTypography.width(renderer, prefix), textY, 0xFF9696D1, false);
+    }
+
+    public static void currencyIcon(DrawContext context, int x, int y, int size) {
+        context.drawTexture(CURRENCY, x, y, size, size, 0.0F, 0.0F, 16, 16, 16, 16);
     }
 
     public static void relationBar(

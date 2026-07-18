@@ -3,6 +3,11 @@ import panetina.elarion.core.client.ui.ElarionUiTypography;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.font.TextRenderer;
+import panetina.elarion.core.client.ui.ElarionBadgeLayout;
+import panetina.elarion.core.client.ui.ElarionCivicUi;
+import panetina.elarion.core.client.ui.ElarionListRangeMarker;
+import panetina.elarion.core.client.ui.ElarionProgressTrackLayout;
+import panetina.elarion.core.client.ui.ElarionUiIcons;
 import panetina.elarion.core.client.ui.ElarionUiRenderer;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
 
@@ -86,6 +91,10 @@ public final class GovernmentUiGlyphs {
     }
 
     public static void icon(DrawContext context, int x, int y, int size, String iconId, ElarionUiStyle style) {
+        if (ElarionUiIcons.has(iconId)) {
+            ElarionUiIcons.drawOrDefault(context, iconId, x, y, size);
+            return;
+        }
         GovernmentUiIcons.identifier(iconId).ifPresentOrElse(
                 texture -> context.drawTexture(texture, x, y, size, size, 0, 0, 16, 16, 16, 16),
                 () -> draw(context, x, y, size, iconId, style)
@@ -163,6 +172,22 @@ public final class GovernmentUiGlyphs {
         thinBox(context, x, y, width, height, WARM_CARD, GOLD_BORDER);
     }
 
+    public static void rowRange(
+            DrawContext context,
+            TextRenderer renderer,
+            int centerX,
+            int y,
+            int first,
+            int last,
+            int total,
+            ElarionUiStyle style
+    ) {
+        int firstIndex = Math.max(0, first - 1);
+        int visibleCount = Math.max(1, last - first + 1);
+        ElarionListRangeMarker.draw(context, renderer, centerX, y,
+                ElarionListRangeMarker.range(firstIndex, visibleCount, total), style.mutedColor());
+    }
+
     public static void tag(
             DrawContext context,
             TextRenderer renderer,
@@ -185,15 +210,23 @@ public final class GovernmentUiGlyphs {
             int maxWidth,
             ElarionUiStyle style
     ) {
-        int safeMax = Math.max(18, maxWidth);
-        String visible = ElarionUiRenderer.ellipsize(renderer, displayTag(label), Math.max(1, safeMax - 10));
-        int width = Math.min(safeMax, tagWidth(renderer, visible));
+        String visible = ElarionUiRenderer.ellipsize(renderer, displayTag(label),
+                ElarionBadgeLayout.textMaxWidth(maxWidth));
+        ElarionBadgeLayout.Badge layout = ElarionBadgeLayout.badge(
+                x, y, maxWidth, ElarionUiTypography.width(renderer, visible));
         int border = active ? tagColor(label) : 0xFF746450;
         int fill = active ? tagFill(label) : 0x8815100B;
-        context.fill(x, y, x + width, y + 10, fill);
-        context.fill(x, y, x + 2, y + 10, border);
-        context.fill(x + 2, y, x + width, y + 1, active ? tagShadow(label) : GOLD_SHADOW);
-        ElarionUiTypography.draw(context, renderer, visible, x + 5, y + 1, active ? tagTextColor(label) : style.mutedColor(), false);
+        context.fill(layout.bounds().x(), layout.bounds().y(),
+                layout.bounds().x() + layout.bounds().width(),
+                layout.bounds().y() + layout.bounds().height(), fill);
+        context.fill(layout.accent().x(), layout.accent().y(),
+                layout.accent().x() + layout.accent().width(),
+                layout.accent().y() + layout.accent().height(), border);
+        context.fill(layout.topLine().x(), layout.topLine().y(),
+                layout.topLine().x() + layout.topLine().width(),
+                layout.topLine().y() + layout.topLine().height(), active ? tagShadow(label) : GOLD_SHADOW);
+        ElarionUiTypography.draw(context, renderer, visible, layout.textX(), layout.textY(),
+                active ? tagTextColor(label) : style.mutedColor(), false);
     }
 
     public static int tagWidth(TextRenderer renderer, String label) {
@@ -202,7 +235,7 @@ public final class GovernmentUiGlyphs {
 
     public static int tagColor(String label) {
         return switch (normalizedTag(label)) {
-            case "citizen proposal", "proposal", "active", "settled", "passed", "open", "proposed" -> ACTIVE_GREEN;
+            case "Ember proposal", "proposal", "active", "settled", "passed", "open", "proposed" -> ACTIVE_GREEN;
             case "security", "reject", "rejected" -> 0xFFE36A5A;
             case "economy", "law", "laws", "rule", "rules", "pending", "current" -> GOLD_BORDER;
             case "infrastructure", "project", "projects", "government proposal" -> 0xFF6EA7E8;
@@ -250,7 +283,7 @@ public final class GovernmentUiGlyphs {
         String visible = ElarionUiRenderer.ellipsize(renderer, label, Math.max(1, width - 10));
         int color = active ? style.textColor() : style.mutedColor();
         ElarionUiTypography.draw(context, renderer, visible, x + Math.max(4, (width - ElarionUiTypography.width(renderer, visible)) / 2),
-                y + Math.max(3, (height - 8) / 2), color, false);
+                ElarionCivicUi.centeredTextY(renderer, y, height), color, false);
     }
 
     public static void progressRow(
@@ -271,7 +304,6 @@ public final class GovernmentUiGlyphs {
         float ratio = Math.min(1.0F, Math.max(0.0F, value / (float) safeTotal));
         int trackX = x + (selectable ? 24 : 10);
         int trackWidth = GovernmentUiComponents.voteTrackWidth(width, selectable);
-        int fill = Math.round(trackWidth * ratio);
         int optionFill = selected ? WARM_CARD_SELECTED : 0xFF120B06;
         int optionBorder = selected ? color : 0xCC5B3513;
         context.fill(x, y, x + width, y + GovernmentUiComponents.VOTE_OPTION_HEIGHT, optionFill);
@@ -296,12 +328,21 @@ public final class GovernmentUiGlyphs {
                 textX, y + 6, color, false);
         ElarionUiTypography.draw(context, renderer, count, x + width - 8 - ElarionUiTypography.width(renderer, count),
                 y + 6, style.textColor(), false);
-        context.fill(trackX, y + 20, trackX + trackWidth, y + 24, 0xFF050302);
-        context.fill(trackX, y + 20, trackX + trackWidth, y + 21, 0xFF1B1008);
-        if (fill > 0) {
-            int fillRight = trackX + Math.min(trackWidth - 1, Math.max(1, fill));
-            context.fill(trackX + 1, y + 21, fillRight, y + 23, color);
-            context.fill(trackX + 1, y + 21, fillRight, y + 22, 0x44FFFFFF);
+        ElarionProgressTrackLayout.ProgressTrack track =
+                ElarionProgressTrackLayout.track(trackX, y + 20, trackWidth, 4, ratio);
+        context.fill(track.bounds().x(), track.bounds().y(),
+                track.bounds().x() + track.bounds().width(),
+                track.bounds().y() + track.bounds().height(), 0xFF050302);
+        context.fill(track.topLine().x(), track.topLine().y(),
+                track.topLine().x() + track.topLine().width(),
+                track.topLine().y() + track.topLine().height(), 0xFF1B1008);
+        if (track.hasFill()) {
+            context.fill(track.fill().x(), track.fill().y(),
+                    track.fill().x() + track.fill().width(),
+                    track.fill().y() + track.fill().height(), color);
+            context.fill(track.fill().x(), track.fill().y(),
+                    track.fill().x() + track.fill().width(),
+                    track.fill().y() + 1, 0x44FFFFFF);
         }
     }
 
@@ -422,7 +463,7 @@ public final class GovernmentUiGlyphs {
 
     private static int tagFill(String label) {
         return switch (normalizedTag(label)) {
-            case "citizen proposal", "proposal", "active", "settled", "passed", "open", "proposed" -> 0xCC142017;
+            case "Ember proposal", "proposal", "active", "settled", "passed", "open", "proposed" -> 0xCC142017;
             case "security", "reject", "rejected" -> 0xCC2A1412;
             case "economy", "law", "laws", "rule", "rules", "pending", "current" -> 0xCC24190D;
             case "infrastructure", "project", "projects", "government proposal" -> 0xCC121D2C;
@@ -439,7 +480,7 @@ public final class GovernmentUiGlyphs {
 
     private static int tagShadow(String label) {
         return switch (normalizedTag(label)) {
-            case "citizen proposal", "proposal", "active", "settled", "passed", "open", "proposed" -> ACTIVE_GREEN_SHADOW;
+            case "Ember proposal", "proposal", "active", "settled", "passed", "open", "proposed" -> ACTIVE_GREEN_SHADOW;
             case "security", "reject", "rejected" -> REJECT_RED_SHADOW;
             case "infrastructure", "project", "projects", "government proposal" -> 0xFF25425D;
             case "culture", "notice", "notices", "faith" -> 0xFF422B5E;

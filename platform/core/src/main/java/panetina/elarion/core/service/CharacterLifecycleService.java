@@ -188,8 +188,8 @@ public final class CharacterLifecycleService {
         dirty = true;
         save();
         Optional<CharacterRealmAssignmentPayload> assignment = assignBalancedRealmIfNeeded(player, migration);
-        sync(player, "");
         assignment.ifPresent(payload -> ServerPlayNetworking.send(player, payload));
+        sync(player, "");
         emit("character-created", player.getUuid(), record, Map.of(
                 "displayName", validation.nickname(),
                 "generation", Integer.toString(record.generation),
@@ -383,8 +383,9 @@ public final class CharacterLifecycleService {
                 || record.status == CharacterLifecycleStatus.CREATION_REQUIRED
                 || record.status == CharacterLifecycleStatus.TRUE_DEAD_COOLDOWN;
         CitizenRecord citizen = citizens.getOrCreate(player);
-        String prefill = citizen.nickname() == null || citizen.nickname().isBlank()
+        String preferredName = citizen.nickname() == null || citizen.nickname().isBlank()
                 ? player.getGameProfile().getName() : citizen.nickname();
+        String prefill = nicknames.safePrefill(preferredName);
         ServerPlayNetworking.send(player, new CharacterCreationRequirementPayload(
                 required, record.nonce, record.status.name(), record.eligibleAt,
                 prefill, record.biography, clean(feedback)));

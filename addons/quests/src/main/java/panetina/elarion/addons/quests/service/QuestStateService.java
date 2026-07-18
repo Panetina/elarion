@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class QuestStateService {
+    public static final String COMPLETED_QUESTS_STAT = "quests_completed";
     private static final int CONSEQUENCE_INTERVAL_TICKS = 20;
     private static final int MAX_CONSEQUENCES_PER_INTERVAL = 16;
     private static final Set<String> SCHEDULE_RESERVED_KEYS = Set.of(
@@ -233,12 +234,20 @@ public final class QuestStateService {
         if (!quest.endings().containsKey(ending)) return RegistryExecutionResult.failure("Unknown quest ending " + ending);
         String scopeKey = resolveScopeKey(quest, context.execution(), context.parameters());
         QuestlineState line = ensureLine(quest, scopeKey);
+        String previousEnding = line.endingId;
         line.endingId = ending;
         line.variables.put("final_ending", ending);
         line.updatedAt = System.currentTimeMillis();
         save();
+        if ((previousEnding == null || previousEnding.isBlank()) && context.execution().actorId() != null) {
+            incrementCompletedQuests(context.execution().actorId());
+        }
         emit("ending-locked", context.execution().actorId(), quest.id(), scopeKey, Map.of("ending", ending));
         return RegistryExecutionResult.ok("Quest ending locked: " + quest.endings().get(ending).displayName());
+    }
+
+    private void incrementCompletedQuests(UUID playerId) {
+        api.playerStats().increment(playerId, COMPLETED_QUESTS_STAT, 1L);
     }
 
     public synchronized RegistryExecutionResult scheduleConsequence(ActionContext context) {

@@ -13,7 +13,7 @@ import panetina.elarion.addons.npcs.network.NpcVisualSyncPayload;
 public final class ElarionNpcEntityRenderer
         extends LivingEntityRenderer<ElarionNpcEntity, PlayerEntityModel<ElarionNpcEntity>> {
     private static final Identifier DEFAULT_TEXTURE =
-            Identifier.of("elarion", "textures/entity/npc/dunk_banker.png");
+            Identifier.of("elarion", "textures/entity/npc/worldheart_banker.png");
 
     private final PlayerEntityModel<ElarionNpcEntity> normalModel;
     private final PlayerEntityModel<ElarionNpcEntity> slimModel;

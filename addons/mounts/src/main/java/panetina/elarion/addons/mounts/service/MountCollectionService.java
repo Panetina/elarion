@@ -97,15 +97,18 @@ public final class MountCollectionService {
     }
 
     public boolean isUnlocked(UUID playerId, ElarionMountType type) {
-        return collection(playerId).unlockedMounts.contains(type.id());
+        PlayerMountCollection collection = players.get(playerId);
+        return collection != null && collection.unlockedMounts.contains(type.id());
     }
 
     public Set<String> unlocked(UUID playerId) {
-        return Set.copyOf(collection(playerId).unlockedMounts);
+        PlayerMountCollection collection = players.get(playerId);
+        return collection == null ? Set.of() : Set.copyOf(collection.unlockedMounts);
     }
 
     public Optional<ElarionMountType> activeMount(UUID playerId) {
-        PlayerMountCollection collection = collection(playerId);
+        PlayerMountCollection collection = players.get(playerId);
+        if (collection == null) return Optional.empty();
         if (collection.activeMountId.isBlank()) {
             return Optional.empty();
         }

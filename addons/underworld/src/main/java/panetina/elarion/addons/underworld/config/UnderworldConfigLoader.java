@@ -65,6 +65,30 @@ public final class UnderworldConfigLoader {
 
     public static UnderworldConfig load(Logger logger) {
         Path file = AddonConfigFiles.writeDefault("underworld", "underworld.yml", DEFAULT_CONFIG);
+        return load(file, logger, UnderworldConfig.defaults(), "Failed to load underworld.yml; using defaults");
+    }
+
+    public static UnderworldConfig reload(Logger logger, UnderworldConfig previous) {
+        Path file = AddonConfigFiles.writeDefault("underworld", "underworld.yml", DEFAULT_CONFIG);
+        UnderworldConfig fallback = previous == null ? UnderworldConfig.defaults() : previous;
+        return load(file, logger, fallback, "Failed to reload underworld.yml; preserving previous valid config");
+    }
+
+    static UnderworldConfig load(Path file, Logger logger) {
+        return load(file, logger, UnderworldConfig.defaults(), "Failed to load underworld.yml; using defaults");
+    }
+
+    static UnderworldConfig reload(Path file, Logger logger, UnderworldConfig previous) {
+        UnderworldConfig fallback = previous == null ? UnderworldConfig.defaults() : previous;
+        return load(file, logger, fallback, "Failed to reload underworld.yml; preserving previous valid config");
+    }
+
+    private static UnderworldConfig load(
+            Path file,
+            Logger logger,
+            UnderworldConfig fallback,
+            String failureMessage
+    ) {
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             Object loaded = new Yaml().load(reader);
             if (!(loaded instanceof Map<?, ?> root)) return UnderworldConfig.defaults();
@@ -110,8 +134,8 @@ public final class UnderworldConfigLoader {
                     strings(underworld, "excluded-worlds", defaults.excludedWorlds())
             );
         } catch (IOException | RuntimeException exception) {
-            logger.error("Failed to load underworld.yml; using defaults", exception);
-            return UnderworldConfig.defaults();
+            logger.error(failureMessage, exception);
+            return fallback;
         }
     }
 

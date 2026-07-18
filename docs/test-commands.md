@@ -28,29 +28,45 @@ target Elarion UI in Minecraft, capture the window:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\capture-minecraft-window.ps1 -Output build\ui-qa\<screen-name>.png
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action command -Command '/e panel'
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action click -X 490 -Y 88
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action click -Button right -X 960 -Y 520
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action key -Keys '{ENTER}'
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action move -X 318 -Y 250
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action scroll -X 655 -Y 375 -Wheel -1 -Count 4
 powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\minecraft-qa.ps1 -Action capture -Output build\ui-qa\admin-panel.png
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\npc-trade-qa.ps1 -Action setup -World minecraft:overworld -ClickX 960 -ClickY 540 -TradeButtonX 960 -TradeButtonY 503 -OutputDir build\ui-qa\npc-trade-qa
+powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\npc-trade-qa.ps1 -Action capture-trader -World minecraft:overworld -ClickX 960 -ClickY 540 -TradeButtonX 960 -TradeButtonY 503 -OutputDir build\ui-qa\npc-trade-qa
 ```
 
 The script captures the Minecraft window contents by handle, so another
 overlapping desktop window should not appear in the output. If the graphics
 driver returns a black image, make the Minecraft window visible and retry with
 `-ScreenCapture`.
+If the client starts with a tiny/white framebuffer or the main menu appears
+blank, focus Minecraft and toggle `F11` once to force a window/framebuffer
+reset before restarting or changing shader state.
 Use `minecraft-qa.ps1` for faster repeated checks. It wraps focus/maximize,
 slash-command sending, native-cursor movement for hover/tooltips, client-area
-clicks, mouse-wheel scrolling, and screenshot capture around the same
-Minecraft window target. Later actions preserve an already maximized window.
+left/right clicks, keyboard actions, mouse-wheel scrolling, and screenshot
+capture around the same Minecraft window target. Later actions preserve an
+already maximized window.
+
+Use `npc-trade-qa.ps1` after joining the dev server to rebuild the default
+banker/trader test pair through normal OP `/e npc` commands. It is a QA wrapper,
+not a production shortcut. The helper assumes the client is in-world; pass
+`-CloseScreens` only when deliberately clearing an open UI before setup.
 
 Screen entry points for QA:
 
 - `/e panel`: Admin Panel and config edit shell.
-- `/collection`: Collection menu.
+- `C` keybind: Character Menu / unlockables menu. `/charactermenu`
+  are hidden client aliases for manual use and are not server command
+  recommendations.
 - HUD notification rail: notification drawer and detail/action states.
 - Linked Shrine block interaction: Shrine UI.
 - Civic Forum or Seat of Rule block interaction: Government UI.
 - Placed NPC interaction: NPC Dialogue.
-- Portal-route interaction: Portal Confirmation.
+- Portal-route interaction: Portal Confirmation. For prompt-only visual QA use
+  `/e portal preview <neutral|nether|end|fee|blocked|return>`.
 - Grave/tomb interaction: Grave Recovery.
 
 ## Commands

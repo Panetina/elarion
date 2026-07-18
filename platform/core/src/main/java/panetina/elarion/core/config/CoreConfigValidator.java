@@ -81,13 +81,19 @@ final class CoreConfigValidator {
             Map<String, Object> data = requiredMap(path, raw, errors);
             checkKeys(path, data, Set.of("description", "display-name", "prefix", "suffix", "priority",
                     "visible-under-username", "acquisition-mode", "ownership-mode",
-                    "hidden-from-discovery", "abilities", "active-effects"), errors);
+                    "hidden-from-discovery", "color", "abilities", "active-effects"), errors);
             if (data.containsKey("description")) {
                 requireString(path + ".description", data.get("description"), true, errors);
             }
             requireString(path + ".display-name", data.get("display-name"), false, errors);
             requireString(path + ".prefix", data.get("prefix"), true, errors);
             requireString(path + ".suffix", data.get("suffix"), true, errors);
+            if (data.containsKey("color")) {
+                String color = requireString(path + ".color", data.get("color"), false, errors);
+                if (color != null && !color.matches("#[0-9A-Fa-f]{6}")) {
+                    errors.add(path + ".color must use #RRGGBB format");
+                }
+            }
             requireNumber(path + ".priority", data.get("priority"), errors);
             requireBoolean(path + ".visible-under-username", data.get("visible-under-username"), errors);
             if (data.containsKey("acquisition-mode")) {

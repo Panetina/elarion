@@ -3,10 +3,9 @@ package panetina.elarion.addons.portals.client;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import panetina.elarion.addons.portals.network.PortalRouteStatusSyncPayload;
 import panetina.elarion.core.client.ElarionNotificationHud;
-import panetina.elarion.core.client.ui.ElarionUiRenderer;
+import panetina.elarion.core.client.ui.ElarionUiIcons;
 import panetina.elarion.core.client.ui.ElarionUiStyle;
 import panetina.elarion.core.client.ui.ElarionUiThemes;
 
@@ -14,13 +13,8 @@ import java.time.Duration;
 import java.util.List;
 
 public final class PortalStatusHud {
-    private static final Identifier NETHER_GATE_TEXTURE =
-            Identifier.of("elarion_portals", "textures/gui/portal_status/nether_gate.png");
-    private static final Identifier END_GATE_TEXTURE =
-            Identifier.of("elarion_portals", "textures/gui/portal_status/end_gate.png");
     private static final int X = 3;
     private static final int SLOT_SIZE = 24;
-    private static final int TEXTURE_SOURCE_SIZE = 32;
     private static final int SLOT_GAP = 3;
     private static final int CIVIC_ROOT = 0xFF090503;
     private static final int CIVIC_CARD = 0xFF171008;
@@ -130,16 +124,15 @@ public final class PortalStatusHud {
     private static void drawGateTexture(
             DrawContext context, PortalRouteStatusSyncPayload.Entry route, int x, int y, int size, boolean open
     ) {
-        Identifier texture = routeTexture(route);
-        context.drawTexture(texture, x, y, 0.0F, 0.0F, size, size, TEXTURE_SOURCE_SIZE, TEXTURE_SOURCE_SIZE);
+        ElarionUiIcons.drawOrDefault(context, routeIcon(route), x, y, size);
         if (!open) {
             context.fill(x, y, x + size, y + size, 0xAA090503);
         }
     }
 
-    private static Identifier routeTexture(PortalRouteStatusSyncPayload.Entry route) {
+    private static String routeIcon(PortalRouteStatusSyncPayload.Entry route) {
         String key = (route.routeId() + " " + route.displayName()).toLowerCase(java.util.Locale.ROOT);
-        return key.contains("end") ? END_GATE_TEXTURE : NETHER_GATE_TEXTURE;
+        return key.contains("end") ? "end_gate" : "nether_gate";
     }
 
     private static int brighten(int argb, int amount) {

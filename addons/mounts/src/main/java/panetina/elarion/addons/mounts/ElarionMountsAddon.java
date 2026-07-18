@@ -22,6 +22,7 @@ import panetina.elarion.addons.mounts.service.MountCollectionService;
 import panetina.elarion.addons.mounts.service.MountAdminPanelProvider;
 import panetina.elarion.addons.mounts.service.MountRealmAssignmentService;
 import panetina.elarion.addons.mounts.service.MountSessionService;
+import panetina.elarion.addons.mounts.service.MountProfileContributor;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.ElarionCollectionAction;
@@ -68,6 +69,7 @@ public final class ElarionMountsAddon implements ElarionAddon {
         ElarionMountEntities.initialize();
         ElarionMountItems.register();
         api.system().collections().registerTab(new MountCollectionTabProvider(api));
+        api.system().profiles().registerContributor(new MountProfileContributor(COLLECTIONS));
         api.system().adminPanel().registerProvider(new MountAdminPanelProvider(COLLECTIONS, SESSIONS));
         ServerTickEvents.END_SERVER_TICK.register(SESSIONS::tick);
         ServerLifecycleEvents.SERVER_STARTED.register(COLLECTIONS::bind);
@@ -291,7 +293,10 @@ public final class ElarionMountsAddon implements ElarionAddon {
                         isActive ? List.of() : List.of(new ElarionCollectionAction(
                                 SET_ACTIVE,
                                 "Set as active",
-                                unlocked))));
+                                unlocked)),
+                        type.collectionRankColor(),
+                        type.collectionRankLabel(),
+                        type.collectionRankColor()));
             }
             return new ElarionCollectionTab(TAB_ID, "Mounts", "Choose the mount summoned by R.", entries);
         }

@@ -52,8 +52,9 @@ final class WorldsConfigDefaults {
                 enabled: true
                 id: "elarion:realm_world_1"
                 type: "OVERWORLD"
-                seed: 11001
-                spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
+                seed: -4581459134664415489
+                spawn: { x: -367.0, y: 75.0, z: 138.0, yaw: 0.0, pitch: 0.0 }
+                border: { center-x: -367.0, center-z: 138.0, size: 10000.0 }
                 block-abundance:
                   minecraft:iron_ore: { retain-chance: 0.25, replace-with: "minecraft:stone" }
                   minecraft:deepslate_iron_ore: { retain-chance: 0.25, replace-with: "minecraft:deepslate" }
@@ -63,8 +64,9 @@ final class WorldsConfigDefaults {
                 enabled: true
                 id: "elarion:realm_world_2"
                 type: "OVERWORLD"
-                seed: 22002
-                spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
+                seed: -8539746165762652083
+                spawn: { x: 3000.0, y: 128.0, z: 3920.0, yaw: 0.0, pitch: 0.0 }
+                border: { center-x: 3000.0, center-z: 3920.0, size: 10000.0 }
                 block-abundance:
                   minecraft:sugar_cane: { retain-chance: 0.0, replace-with: "minecraft:air" }
                 mob-abundance: {}
@@ -73,8 +75,19 @@ final class WorldsConfigDefaults {
                 enabled: true
                 id: "elarion:realm_world_3"
                 type: "OVERWORLD"
-                seed: 33003
-                spawn: { x: 0.5, y: 80.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
+                seed: 3812826322966527666
+                spawn: { x: 6061.0, y: 84.0, z: 5122.0, yaw: 0.0, pitch: 0.0 }
+                border: { center-x: 6061.0, center-z: 5122.0, size: 10000.0 }
+                block-abundance: {}
+                mob-abundance: {}
+                gamerules: {}
+              worldheart:
+                enabled: true
+                id: "elarion:worldheart"
+                type: "OVERWORLD"
+                seed: -7114969613679385277
+                spawn: { x: -86.0, y: 82.0, z: -48.0, yaw: 0.0, pitch: 0.0 }
+                border: { center-x: -86.0, center-z: -48.0, size: 10000.0 }
                 block-abundance: {}
                 mob-abundance: {}
                 gamerules: {}

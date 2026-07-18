@@ -6,6 +6,9 @@ import panetina.elarion.core.config.CoreConfigManager;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.ChronicleArchive;
 import panetina.elarion.core.model.ChronicleEntry;
+import panetina.elarion.core.model.ChronicleProjection;
+import panetina.elarion.core.model.ChronicleRenderContext;
+import panetina.elarion.core.model.ChronicleRenderer;
 import panetina.elarion.core.model.HistoryEvent;
 import panetina.elarion.core.model.HistoryIndexEntry;
 import panetina.elarion.core.model.HistoryMonthIndex;
@@ -32,6 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public final class HistoryService {
@@ -39,7 +44,9 @@ public final class HistoryService {
     private final HistoryStorage storage;
     private final HistoryIndexStorage indexes;
     private final ChronicleArchiveStorage archives;
+    private final ChronicleRendererRegistry chronicleRenderers = new ChronicleRendererRegistry();
     private final AtomicBoolean archiveGenerationQueued = new AtomicBoolean();
+    private final CopyOnWriteArrayList<Consumer<HistoryEvent>> recordedListeners = new CopyOnWriteArrayList<>();
     private ElarionTaskService tasks;
     private MinecraftServer server;
     private long nextArchiveCheckAt;
@@ -97,8 +104,34 @@ public final class HistoryService {
         if (config.historyRecordingPolicy().allows(event.category(), event.type())) {
             storage.append(server, event);
             indexes.append(server, event);
+            for (Consumer<HistoryEvent> listener : recordedListeners) {
+                try {
+                    listener.accept(event);
+                } catch (RuntimeException ignored) {
+                    // Read-model integrations must never interrupt canonical history recording.
+                }
+            }
         }
         return event;
+    }
+
+    public AutoCloseable onRecorded(Consumer<HistoryEvent> listener) {
+        if (listener == null) return () -> { };
+        recordedListeners.add(listener);
+        return () -> recordedListeners.remove(listener);
+    }
+
+    public java.util.Optional<ChronicleProjection> publicProjection(
+            HistoryEvent event,
+            PublicHistoryConsumer consumer,
+            ChronicleRenderContext context
+    ) {
+        if (event == null || consumer == null) return java.util.Optional.empty();
+        if (!defaultPublicCategories(consumer).contains(normalize(event.category()))) {
+            return java.util.Optional.empty();
+        }
+        HistoryIndexEntry index = HistoryIndexEntry.from(event);
+        return java.util.Optional.of(projectPublicHistory(PublicHistoryEntry.fromIndex(index), context));
     }
 
     public HistoryEvent record(
@@ -252,6 +285,14 @@ public final class HistoryService {
         return new PublicHistoryResult(safeQuery.consumer(), archivesScanned, liveIndexesScanned, results);
     }
 
+    public void registerChronicleRenderer(ChronicleRenderer renderer) {
+        chronicleRenderers.register(renderer);
+    }
+
+    public ChronicleProjection projectPublicHistory(PublicHistoryEntry entry, ChronicleRenderContext context) {
+        return chronicleRenderers.project(entry, context);
+    }
+
     private void recordCitizenChange(ElarionEventBus.CitizenChanged event) {
         if (server == null) return;
         CitizenRecord citizen = event.citizen();
@@ -332,7 +373,8 @@ public final class HistoryService {
         if (!query.text().isBlank()) {
             String needle = query.text().toLowerCase(Locale.ROOT);
             String haystack = (entry.text() + " " + entry.category() + " " + entry.type()
-                    + " " + entry.realmId() + " " + entry.subjectId()).toLowerCase(Locale.ROOT);
+                    + " " + entry.realmId() + " " + entry.subjectId() + " "
+                    + String.join(" ", entry.metadata().values())).toLowerCase(Locale.ROOT);
             return haystack.contains(needle);
         }
         return true;

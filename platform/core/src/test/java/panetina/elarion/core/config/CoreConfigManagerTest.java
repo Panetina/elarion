@@ -22,11 +22,15 @@ final class CoreConfigManagerTest {
         config.load();
 
         assertTrue(config.realms().containsKey("realm1"));
-        assertEquals("A citizen of Elarion.", config.titles().get("citizen").description());
+        assertEquals("An Ember of Elarion.", config.titles().get("citizen").description());
         assertEquals(panetina.elarion.core.model.TitleAcquisitionMode.DEFAULT,
                 config.titles().get("citizen").acquisitionMode());
         assertEquals(panetina.elarion.core.model.TitleOwnershipMode.UNLIMITED,
                 config.titles().get("citizen").ownershipMode());
+        assertEquals(0xFFC9C9C9, config.titles().get("citizen").colorArgb());
+        assertEquals(0xFFFFD36A, config.titles().get("government_monarch").colorArgb());
+        assertEquals(0xFFC084FF, config.titles().get("government_synod_member").colorArgb());
+        assertEquals(0xFFFFA83D, config.titles().get("dragon_slayer").colorArgb());
         assertTrue(config.titles().get("aquatic").activeEffects().stream()
                 .anyMatch(effect -> effect.parameters().get("id").equals("minecraft:water_breathing")));
         assertEquals(panetina.elarion.core.model.TitleOwnershipMode.ONE_PER_PLAYER,
@@ -84,6 +88,65 @@ final class CoreConfigManagerTest {
         ConfigValidationException exception = assertThrows(ConfigValidationException.class, config::load);
         assertTrue(exception.errors().stream().anyMatch(error -> error.contains("font-scale-percent")));
         assertEquals(125, config.uiTheme().fontScalePercent());
+    }
+
+    @Test
+    void reloadsTitleColorsAndRejectsInvalidHexColors() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+        Path titles = tempDir.resolve("titles.yml");
+        String original = Files.readString(titles, StandardCharsets.UTF_8);
+
+        Files.writeString(titles, original.replace("color: \"#C9C9C9\"", "color: \"#44AAFF\""),
+                StandardCharsets.UTF_8);
+        config.load();
+        assertEquals(0xFF44AAFF, config.titles().get("citizen").colorArgb());
+
+        Files.writeString(titles, original.replace("color: \"#C9C9C9\"", "color: \"gold\""),
+                StandardCharsets.UTF_8);
+        ConfigValidationException exception = assertThrows(ConfigValidationException.class, config::load);
+        assertTrue(exception.errors().stream().anyMatch(error -> error.contains("titles.yml.titles.citizen.color")));
+        assertEquals(0xFF44AAFF, config.titles().get("citizen").colorArgb());
+    }
+
+    @Test
+    void migratesMissingKnownTitleColorsWithoutOverwritingCustomColors() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+        Path titles = tempDir.resolve("titles.yml");
+        String content = Files.readString(titles, StandardCharsets.UTF_8)
+                .replace("color: \"#C9C9C9\"", "")
+                .replace("color: \"#FFD36A\"", "color: \"#FFEEDD\"");
+        Files.writeString(titles, content, StandardCharsets.UTF_8);
+
+        config.load();
+
+        String migrated = Files.readString(titles, StandardCharsets.UTF_8);
+        assertEquals(0xFFC9C9C9, config.titles().get("citizen").colorArgb());
+        assertEquals(0xFFFFEEDD, config.titles().get("government_monarch").colorArgb());
+        assertTrue(migrated.contains("citizen:"));
+        assertTrue(migrated.contains("color: \"#C9C9C9\""));
+        assertTrue(migrated.contains("color: \"#FFEEDD\""));
+    }
+
+    @Test
+    void migratesOldCitizenDefaultTitleColorWithoutOverwritingCustomColors() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+        Path titles = tempDir.resolve("titles.yml");
+        String original = Files.readString(titles, StandardCharsets.UTF_8);
+
+        Files.writeString(titles, original.replace("color: \"#C9C9C9\"", "color: \"#D19B42\""),
+                StandardCharsets.UTF_8);
+        config.load();
+        assertEquals(0xFFC9C9C9, config.titles().get("citizen").colorArgb());
+        assertTrue(Files.readString(titles, StandardCharsets.UTF_8).contains("color: \"#C9C9C9\""));
+
+        Files.writeString(titles, original.replace("color: \"#C9C9C9\"", "color: \"#44AAFF\""),
+                StandardCharsets.UTF_8);
+        config.load();
+        assertEquals(0xFF44AAFF, config.titles().get("citizen").colorArgb());
+        assertTrue(Files.readString(titles, StandardCharsets.UTF_8).contains("color: \"#44AAFF\""));
     }
 
     @Test

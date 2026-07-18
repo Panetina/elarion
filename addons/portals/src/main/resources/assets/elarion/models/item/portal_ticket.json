@@ -1,6 +1,14 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/paper"
-  }
+    "layer0": "elarion:item/portal_ticket_nether"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "elarion:item/portal_ticket_end"
+    }
+  ]
 }

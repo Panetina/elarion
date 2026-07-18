@@ -8,7 +8,9 @@ Status: Generic package foundation implemented, authoring needed.
 quest state. It is the canonical owner for quest stages, flags, variables,
 evidence, endings, scheduled consequences, and quest actor bindings. NPCs,
 Shrines, rewards, and future systems should consume Quests through Core
-registries or `ElarionQuestsApi`, not by reading quest files directly.
+registries or `ElarionQuestsApi`, not by reading quest files directly. Quests
+also owns the Character Menu completed-quest summary projection for new
+player-authored quest ending locks.
 
 ## Config
 
@@ -67,6 +69,13 @@ bindings, and scheduled consequences. Actor bindings map
 Quests does not copy NPC dialogue trees, NPC placement ownership, Offering
 project templates, Government state, Core title/citizen data, or Chronicle
 history.
+
+The Character Menu completed-quest count is maintained separately as the Core
+player-stat key `quests_completed`. `QuestStateService` increments it only when
+a player actor locks an ending on a questline scope that did not already have
+an ending. Old questline endings are not backfilled, repeated ending locks on
+the same active scope do not add another count, and profile snapshot creation
+must not scan `state.json` to derive totals.
 
 ## Commands
 
@@ -158,16 +167,16 @@ actions:
     parameters:
       quest: "generic_foundation"
       instance: "offering_realm_realm1_1"
-      title: "Sorina's Stone"
+      title: "Builders' Memorial"
 ```
 
 The Quests addon requests the override through `ElarionOfferingsApi`.
 Offerings remains the owner of the instance and clears the override when that
 Offering instance is reset.
 
-Story packs such as `red_thread_beneath_foundation` should implement Shrine
-renaming only through content files and registered quest actions. They must not
-hard-code lore into Quests, NPCs, Offerings, or system defaults.
+Future story packs should implement Shrine renaming only through content files
+and registered quest actions. They must not hard-code lore into Quests, NPCs,
+Offerings, or system defaults.
 
 ## Events And Notifications
 
@@ -186,6 +195,11 @@ Quests emits Core domain events for meaningful state transitions:
 The `elarion_quests:notify` action publishes explicit Core Quest
 notifications to player, Realm, or World audiences. Ordinary dialogue browsing
 and failed conditions stay silent.
+
+`QuestProfileContributor` registers with Core's `CitizenProfileService` and
+contributes the reserved `quests/quests-completed` Ledger slot with `SELF`
+visibility by reading `quests_completed`. This is personal self/admin profile
+data, not public profile data.
 
 ## Future Editor Direction
 

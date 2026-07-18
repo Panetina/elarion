@@ -36,4 +36,23 @@ public final class PlayerStats {
             default -> customCounters.merge(key, safeAmount, Long::sum);
         };
     }
+
+    public void set(String key, long value) {
+        String normalized = key == null ? "" : key.trim().toLowerCase(java.util.Locale.ROOT);
+        if (normalized.isBlank()) return;
+        switch (normalized) {
+            case "zombie_kills" -> zombieKills = Math.max(0L, value);
+            case "dragon_kills" -> dragonKills = Math.max(0L, value);
+            default -> customCounters.put(normalized, Math.max(0L, value));
+        }
+    }
+
+    public long value(String key) {
+        String normalized = key == null ? "" : key.trim().toLowerCase(java.util.Locale.ROOT);
+        return switch (normalized) {
+            case "zombie_kills" -> zombieKills;
+            case "dragon_kills" -> dragonKills;
+            default -> customCounters.getOrDefault(normalized, 0L);
+        };
+    }
 }

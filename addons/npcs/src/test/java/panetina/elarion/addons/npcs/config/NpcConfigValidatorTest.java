@@ -9,7 +9,11 @@ import panetina.elarion.addons.npcs.model.DialogueOption;
 import panetina.elarion.addons.npcs.model.DialoguePrompt;
 import panetina.elarion.addons.npcs.model.NpcDefinition;
 import panetina.elarion.addons.npcs.model.NpcPortraitProfile;
+import panetina.elarion.addons.npcs.model.NpcPresentationKind;
 import panetina.elarion.addons.npcs.model.NpcSkinProfile;
+import panetina.elarion.addons.npcs.model.NpcTradeCatalogDefinition;
+import panetina.elarion.addons.npcs.model.NpcTradeEnchantmentDefinition;
+import panetina.elarion.addons.npcs.model.NpcTradeOfferDefinition;
 import panetina.elarion.addons.npcs.model.NpcUiConfig;
 
 import java.util.ArrayList;
@@ -22,6 +26,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 final class NpcConfigValidatorTest {
+    @Test
+    void reportsInvalidTaxJurisdictionPolicy() {
+        List<String> errors = new ArrayList<>();
+        NpcDefinition npc = new NpcDefinition(
+                "merchant", "Merchant", "", "", "", "", "",
+                "world:not a world", List.of(), "", 0.0D, false);
+
+        NpcConfigValidator.validate(
+                Map.of("merchant", npc), Map.of(), Map.of(), Map.of(), Map.of(),
+                ignored -> true, ignored -> true, errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains("invalid tax-jurisdiction")));
+    }
+
     @Test
     void acceptsValidNpcDialogueGraph() {
         List<String> errors = new ArrayList<>();
@@ -257,6 +275,445 @@ final class NpcConfigValidatorTest {
         assertEquals(List.of("bank", "worldheart"), definition.tags());
         assertEquals("elarion.bank.use", definition.requiredAbility());
         assertEquals(8.0D, definition.interactionRangeBlocks());
+    }
+
+    @Test
+    void acceptsNonMutatingTradePresentationShell() {
+        List<String> errors = new ArrayList<>();
+        DialogueOption buy = new DialogueOption(
+                "buy",
+                "Buy",
+                "Show me what you sell.",
+                "",
+                "",
+                "buy",
+                "trade",
+                List.of(),
+                List.of(),
+                DialoguePrompt.NONE,
+                false);
+        DialogueOption back = new DialogueOption(
+                "back",
+                "Back",
+                "Let us talk.",
+                "",
+                "",
+                "back",
+                "intro",
+                List.of(),
+                List.of(),
+                DialoguePrompt.NONE,
+                false);
+        DialogueNode intro = new DialogueNode(
+                "intro",
+                "Hello.",
+                "",
+                "",
+                List.of(),
+                List.of(buy));
+        DialogueNode trade = new DialogueNode(
+                "trade",
+                "Trade.",
+                "",
+                "",
+                NpcPresentationKind.TRADE,
+                List.of(),
+                List.of(),
+                List.of(back));
+
+        NpcConfigValidator.validate(
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of("dialogue", new DialogueDefinition(
+                        "dialogue", "intro", Map.of("intro", intro, "trade", trade))),
+                Set.of()::contains,
+                Set.of()::contains,
+                errors);
+
+        assertTrue(errors.isEmpty(), errors.toString());
+    }
+
+    @Test
+    void acceptsNpcTradeCatalogReferences() {
+        List<String> errors = new ArrayList<>();
+
+        NpcConfigValidator.validate(
+                Map.of("trader", new NpcDefinition(
+                        "trader", "Trader", "", "skin", "portrait", "dialogue",
+                        "market", List.of("trade"), "", 0.0D, true)),
+                Map.of("skin", new NpcSkinProfile("skin", "Skin", "player_body", "", "Panyel",
+                        "placeholder", "", "")),
+                Map.of("portrait", new NpcPortraitProfile("portrait", "Portrait", "player_head", "", "Panyel",
+                        "placeholder", "")),
+                Map.of("dialogue", dialogue("dialogue", "intro", "", "close")),
+                Map.of("market", new NpcTradeCatalogDefinition("market", List.of(
+                        new NpcTradeOfferDefinition(
+                                "ticket",
+                                "buy",
+                                "Nether Gate Ticket",
+                                "2 in stock",
+                                "minecraft:paper",
+                                2,
+                                "Gate Ticket",
+                                List.of("Valid for one opening window."),
+                                List.of(new NpcTradeEnchantmentDefinition("minecraft:protection", 1)),
+                                1,
+                                "portal.ticket.nether",
+                                25L,
+                                true),
+                        new NpcTradeOfferDefinition(
+                                "cobblestone_buyback",
+                                "sell",
+                                "Cobblestone",
+                                "Trader buys clean stone.",
+                                "minecraft:cobblestone",
+                                1,
+                                "",
+                                List.of(),
+                                List.of(),
+                                0,
+                                "npc.sell.cobblestone",
+                                1L,
+                                0,
+                                0,
+                                0L,
+                                false,
+                                "exact_item",
+                                "vanilla_only",
+                                64,
+                                "placed_npc",
+                                "ticket")))),
+                Set.of("has_realm")::contains,
+                Set.of("close")::contains,
+                errors);
+
+        assertTrue(errors.isEmpty(), errors.toString());
+    }
+
+    @Test
+    void rejectsPlacedNpcSellOffersWithoutValidBuyDestination() {
+        List<String> errors = new ArrayList<>();
+
+        NpcConfigValidator.validate(
+                Map.of("trader", new NpcDefinition(
+                        "trader", "Trader", "", "skin", "portrait", "dialogue",
+                        "market", List.of("trade"), "", 0.0D, true)),
+                Map.of("skin", new NpcSkinProfile("skin", "Skin", "player_body", "", "Panyel",
+                        "placeholder", "", "")),
+                Map.of("portrait", new NpcPortraitProfile("portrait", "Portrait", "player_head", "", "Panyel",
+                        "placeholder", "")),
+                Map.of("dialogue", dialogue("dialogue", "intro", "", "close")),
+                Map.of("market", new NpcTradeCatalogDefinition("market", List.of(
+                        new NpcTradeOfferDefinition(
+                                "missing_destination",
+                                "sell",
+                                "Cobblestone",
+                                "Trader buys clean stone.",
+                                "minecraft:cobblestone",
+                                1,
+                                "",
+                                List.of(),
+                                List.of(),
+                                0,
+                                "npc.sell.cobblestone",
+                                1L,
+                                0,
+                                0,
+                                0L,
+                                true,
+                                "exact_item",
+                                "vanilla_only",
+                                64,
+                                "placed_npc"),
+                        new NpcTradeOfferDefinition(
+                                "wrong_destination",
+                                "sell",
+                                "Stone",
+                                "Trader buys clean stone.",
+                                "minecraft:stone",
+                                1,
+                                "",
+                                List.of(),
+                                List.of(),
+                                0,
+                                "npc.sell.stone",
+                                1L,
+                                0,
+                                0,
+                                0L,
+                                true,
+                                "exact_item",
+                                "vanilla_only",
+                                64,
+                                "placed_npc",
+                                "missing_destination")))),
+                Set.of("has_realm")::contains,
+                Set.of("close")::contains,
+                errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains(
+                "missing_destination: destination-offer is required")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains(
+                "wrong_destination: destination-offer must point to a buy offer")));
+    }
+
+    @Test
+    void rejectsBrokenNpcTradeCatalogs() {
+        List<String> errors = new ArrayList<>();
+
+        NpcConfigValidator.validate(
+                Map.of("trader", new NpcDefinition(
+                        "trader", "Trader", "", "skin", "portrait", "dialogue",
+                        "missing_catalog", List.of("trade"), "", 0.0D, true)),
+                Map.of("skin", new NpcSkinProfile("skin", "Skin", "player_body", "", "Panyel",
+                        "placeholder", "", "")),
+                Map.of("portrait", new NpcPortraitProfile("portrait", "Portrait", "player_head", "", "Panyel",
+                        "placeholder", "")),
+                Map.of("dialogue", dialogue("dialogue", "intro", "", "close")),
+                Map.of("bad", new NpcTradeCatalogDefinition("bad", List.of(new NpcTradeOfferDefinition(
+                        "",
+                        "sell",
+                        "",
+                        "",
+                        "bad id",
+                        0,
+                        "",
+                        List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"),
+                        List.of(new NpcTradeEnchantmentDefinition("bad id", 0)),
+                        -1,
+                        "Bad Price Key!",
+                        0L,
+                        true)))),
+                Set.of("has_realm")::contains,
+                Set.of("close")::contains,
+                errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains("unknown trade catalog missing_catalog")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("offer : id cannot be blank")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("max-quantity must be between 1 and 64")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("label cannot be blank")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("invalid item id")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("count must be between 1 and 64")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("custom-model-data cannot be negative")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("price-key must use lowercase")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("price must be positive")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("lore cannot exceed 8 lines")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("invalid enchantment id")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains("enchantment level must be between 1 and 255")));
+    }
+
+    @Test
+    void rejectsMutatingTradePresentationOptions() {
+        List<String> errors = new ArrayList<>();
+        DialoguePrompt prompt = new DialoguePrompt(
+                "number",
+                "How many?",
+                "elarion:future_trade",
+                3,
+                1L,
+                0L);
+        DialogueOption buy = new DialogueOption(
+                "buy",
+                "Buy",
+                "I buy it.",
+                "",
+                "",
+                "buy",
+                "",
+                List.of(),
+                List.of(new DialogueAction("elarion:future_trade", Map.of(), true)),
+                prompt,
+                false);
+        DialogueNode trade = new DialogueNode(
+                "trade",
+                "Trade.",
+                "",
+                "",
+                NpcPresentationKind.TRADE,
+                List.of(),
+                List.of(),
+                List.of(buy));
+
+        NpcConfigValidator.validate(
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of("dialogue", new DialogueDefinition("dialogue", "trade", Map.of("trade", trade))),
+                Set.of()::contains,
+                Set.of("elarion:future_trade")::contains,
+                errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains(
+                "trade presentation options cannot execute actions")));
+        assertTrue(errors.stream().anyMatch(error -> error.contains(
+                "trade presentation options cannot use prompts")));
+    }
+
+    @Test
+    void reportsUnreachableDialogueNodes() {
+        List<String> errors = new ArrayList<>();
+        DialogueNode intro = new DialogueNode(
+                "intro", "Hello", "", "", List.of(), List.of());
+        DialogueNode hidden = new DialogueNode(
+                "hidden", "You should not see this", "", "", List.of(), List.of());
+
+        NpcConfigValidator.validate(
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of("dialogue", new DialogueDefinition(
+                        "dialogue", "intro", Map.of("intro", intro, "hidden", hidden))),
+                Set.of()::contains,
+                Set.of()::contains,
+                errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains(
+                "node hidden: unreachable from root intro")), errors.toString());
+    }
+
+    @Test
+    void acceptsReachableTerminalDialogueNodes() {
+        List<String> errors = new ArrayList<>();
+        DialogueNode intro = new DialogueNode(
+                "intro", "Hello", "", "", List.of(),
+                List.of(new DialogueOption(
+                        "finish",
+                        "Finish",
+                        "Goodbye",
+                        "",
+                        "",
+                        "ending",
+                        List.of(),
+                        List.of(),
+                        DialoguePrompt.NONE,
+                        false)));
+        DialogueNode ending = new DialogueNode(
+                "ending", "Done", "", "", List.of(), List.of());
+
+        NpcConfigValidator.validate(
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of("dialogue", new DialogueDefinition(
+                        "dialogue", "intro", Map.of("intro", intro, "ending", ending))),
+                Set.of()::contains,
+                Set.of()::contains,
+                errors);
+
+        assertTrue(errors.isEmpty(), errors.toString());
+    }
+
+    @Test
+    void reportsDuplicateOptionIdsWithinNode() {
+        List<String> errors = new ArrayList<>();
+        DialogueNode intro = new DialogueNode(
+                "intro",
+                "Hello",
+                "",
+                "",
+                List.of(),
+                List.of(
+                        new DialogueOption("repeat", "One", "One", "", "", "", List.of(), List.of(),
+                                DialoguePrompt.NONE, false),
+                        new DialogueOption("repeat", "Two", "Two", "", "", "", List.of(), List.of(),
+                                DialoguePrompt.NONE, false)));
+
+        NpcConfigValidator.validate(
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of("dialogue", new DialogueDefinition("dialogue", "intro", Map.of("intro", intro))),
+                Set.of()::contains,
+                Set.of()::contains,
+                errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains("duplicate option id")), errors.toString());
+    }
+
+    @Test
+    void reportsDuplicateVariantIdsWithinNode() {
+        List<String> errors = new ArrayList<>();
+        DialogueNode intro = new DialogueNode(
+                "intro",
+                "Hello",
+                "",
+                "",
+                NpcPresentationKind.DIALOGUE,
+                List.of(),
+                List.of(
+                        new panetina.elarion.addons.npcs.model.DialogueTextVariant(
+                                "memory", "One", "", "", List.of()),
+                        new panetina.elarion.addons.npcs.model.DialogueTextVariant(
+                                "memory", "Two", "", "", List.of())),
+                List.of());
+
+        NpcConfigValidator.validate(
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of("dialogue", new DialogueDefinition("dialogue", "intro", Map.of("intro", intro))),
+                Set.of()::contains,
+                Set.of()::contains,
+                errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains("duplicate variant id")), errors.toString());
+    }
+
+    @Test
+    void reportsServicePresentationWithoutExitOption() {
+        List<String> errors = new ArrayList<>();
+        DialogueNode trade = new DialogueNode(
+                "trade",
+                "Trade",
+                "",
+                "",
+                NpcPresentationKind.TRADE,
+                List.of(),
+                List.of(),
+                List.of(new DialogueOption(
+                        "refresh", "Refresh", "Refresh", "", "", "trade",
+                        List.of(), List.of(), DialoguePrompt.NONE, false)));
+
+        NpcConfigValidator.validate(
+                Map.of(),
+                Map.of(),
+                Map.of(),
+                Map.of("dialogue", new DialogueDefinition("dialogue", "trade", Map.of("trade", trade))),
+                Set.of()::contains,
+                Set.of()::contains,
+                errors);
+
+        assertTrue(errors.stream().anyMatch(error -> error.contains(
+                "trade presentation should provide an exit option")), errors.toString());
+    }
+
+    @Test
+    void validatesDurableStoryAndHistoryMetadata() {
+        List<String> errors = new ArrayList<>();
+        DialogueOption option = new DialogueOption(
+                "pledge", "Pledge", "I pledge.", "", "", "", "ending",
+                List.of(),
+                List.of(
+                        new DialogueAction("elarion_npcs:set_story_flag", Map.of(), false),
+                        new DialogueAction("elarion_npcs:set_reentry_node", Map.of("node", "missing"), false),
+                        new DialogueAction("elarion_npcs:set_ending", Map.of("ending", "allied"), true)),
+                DialoguePrompt.NONE, false, true);
+        DialogueNode root = new DialogueNode("root", "Choose", "", "", List.of(), List.of(option));
+        DialogueNode ending = new DialogueNode("ending", "Done", "", "", List.of(), List.of());
+
+        NpcConfigValidator.validate(Map.of(), Map.of(), Map.of(),
+                Map.of("story", new DialogueDefinition("story", "root", Map.of("root", root, "ending", ending))),
+                Set.of()::contains,
+                Set.of("elarion_npcs:set_story_flag", "elarion_npcs:set_reentry_node",
+                        "elarion_npcs:set_ending")::contains,
+                errors);
+
+        assertTrue(option.oneTime());
+        assertTrue(errors.stream().anyMatch(error -> error.contains("story flag action requires flag")), errors.toString());
+        assertTrue(errors.stream().anyMatch(error -> error.contains("invalid re-entry node missing")), errors.toString());
+        assertTrue(errors.stream().anyMatch(error -> error.contains("history-worthy action requires history-outcome")),
+                errors.toString());
     }
 
     @Test

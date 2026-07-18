@@ -8,7 +8,7 @@ Admin guide for Shrine of Foundation projects and Offering verification.
 
 `Implemented`, `Admin-only`
 
-Manual verification passed for item Offerings, banked currency Offerings, UI interaction, completion, Realm-citizen rewards, offline deferred rewards, restart persistence, reset/delete, and rejection paths.
+Manual verification passed for item Offerings, banked currency Offerings, UI interaction, completion, Realm-Ember rewards, offline deferred rewards, restart persistence, reset/delete, and rejection paths.
 
 Offerings owns Shrine blocks, project definitions, project instances, progress, donation records, milestones, and optional per-instance display-name overrides.
 
@@ -94,7 +94,9 @@ and global-stage portal/title behavior.
 
 - Item and currency offerings are server-authoritative.
 - Event requirements such as `builder_help` are credited by future registered systems, not by direct player UI.
-- Shrine UI uses the shared Core UI theme.
+- Shrine UI uses the shared civic brown/gold shell with selected Contribute and
+  History tabs, compact requirement rows, bounded reward slots, native reward
+  tooltips, and a server-authoritative amount prompt.
 - The current model is a placeholder 2x2 footprint and 5-block height.
 
 ## Source-Backed Notes

@@ -46,6 +46,16 @@ final class CharacterCreationPayloadTest {
     }
 
     @Test
+    void realmAssignmentConfirmCodecIsUnitPayload() {
+        PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
+
+        CharacterRealmAssignmentConfirmPayload.CODEC.encode(buffer, CharacterRealmAssignmentConfirmPayload.INSTANCE);
+
+        assertEquals(CharacterRealmAssignmentConfirmPayload.INSTANCE,
+                CharacterRealmAssignmentConfirmPayload.CODEC.decode(buffer));
+    }
+
+    @Test
     void submissionCodecRoundTrips() {
         CharacterCreationSubmitPayload payload = new CharacterCreationSubmitPayload(
                 "nonce", "Matie", "A short history.");

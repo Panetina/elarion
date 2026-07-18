@@ -7,6 +7,7 @@ import panetina.elarion.addons.npcs.model.DialogueDefinition;
 import panetina.elarion.addons.npcs.model.NpcDefinition;
 import panetina.elarion.addons.npcs.model.NpcPortraitProfile;
 import panetina.elarion.addons.npcs.model.NpcSkinProfile;
+import panetina.elarion.addons.npcs.model.NpcTradeCatalogDefinition;
 import panetina.elarion.addons.npcs.model.NpcUiConfig;
 import panetina.elarion.core.api.ElarionApi;
 
@@ -28,7 +29,20 @@ public final class NpcDefinitionService {
     }
 
     public void reload(ElarionApi api) {
-        load(api);
+        reload(api, () -> {
+        });
+    }
+
+    public void reload(ElarionApi api, Runnable runtimeValidator) {
+        NpcConfig previous = config;
+        NpcConfig candidate = loader.load(api);
+        config = candidate;
+        try {
+            if (runtimeValidator != null) runtimeValidator.run();
+        } catch (RuntimeException exception) {
+            config = previous;
+            throw exception;
+        }
         logger.info("Reloaded NPC definitions");
     }
 
@@ -48,6 +62,10 @@ public final class NpcDefinitionService {
         return config.dialogues().values();
     }
 
+    public Collection<NpcTradeCatalogDefinition> trades() {
+        return config.trades().values();
+    }
+
     public Optional<NpcDefinition> npc(String id) {
         return Optional.ofNullable(config.npcs().get(id));
     }
@@ -62,6 +80,10 @@ public final class NpcDefinitionService {
 
     public Optional<DialogueDefinition> dialogue(String id) {
         return Optional.ofNullable(config.dialogues().get(id));
+    }
+
+    public Optional<NpcTradeCatalogDefinition> trade(String id) {
+        return Optional.ofNullable(config.trades().get(id));
     }
 
     public NpcUiConfig ui() {

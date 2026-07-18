@@ -169,9 +169,15 @@ Gradle/Loom cache directories where practical.
 - Collection already provides a modular unlockable surface through
   `ElarionCollectionService` and tab providers.
 - Mounts owns mount unlock state and contributes to Collection.
-- Missing target capability: no dedicated `CitizenProfileService`,
-  `CitizenProfileContributor`, profile visibility model, or server-filtered
-  profile snapshot was found.
+- Slice 17E added the first dedicated Core profile boundary:
+  `CitizenProfileService`, `CitizenProfileContributor`,
+  `CitizenProfileRequestContext`, `CitizenProfileSnapshot`, section/field/card
+  records, and `ProfileVisibility`. It exposes Core-owned identity, Realm, and
+  active-title projections with server-side visibility filtering and bounded
+  section/field/card caps.
+- Remaining target capability: no addon profile contributors, profile network
+  packets, Character Menu Profile UI, or owner-maintained summaries for quests,
+  Offerings, NPC reputation, deaths, economy, groups, or other addon data.
 
 ### NPC Dialogue
 

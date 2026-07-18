@@ -19,6 +19,8 @@ import panetina.elarion.core.model.RewardAction;
 
 import java.util.List;
 import java.util.Locale;
+import panetina.elarion.core.placeholder.ElarionPlaceholderService;
+import panetina.elarion.core.placeholder.PlaceholderRenderContext;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -240,10 +242,11 @@ public final class RewardActionService {
     }
 
     private static String interpolate(String command, Context context) {
-        return command
-                .replace("{player}", context.player().getGameProfile().getName())
-                .replace("{uuid}", context.player().getUuidAsString())
-                .replace("{reward}", context.rewardId());
+        return ElarionPlaceholderService.resolveSchema(command, "platform:core/rewards",
+                PlaceholderRenderContext.COMMAND, Map.of(
+                        "player", context.player().getGameProfile().getName(),
+                        "uuid", context.player().getUuidAsString(),
+                        "reward", context.rewardId())).text();
     }
 
     private static String normalizeActionType(String value) {

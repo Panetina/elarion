@@ -20,7 +20,9 @@ public final class EconomyNpcActions {
 
     public static RegistryExecutionResult withdrawResult(TransactionResult result, int amount) {
         if (amount < 1) return RegistryExecutionResult.failure("Withdrawal amount must be positive.");
-        return result(result, "Withdrew " + currency(amount) + ".");
+        long tax = withdrawalTax(result);
+        String suffix = tax > 0L ? " Tax: " + currency(tax) + "." : "";
+        return result(result, "Withdrew " + currency(amount) + "." + suffix);
     }
 
     public static RegistryExecutionResult depositAllResult(TransactionResult result, int amount) {
@@ -103,6 +105,17 @@ public final class EconomyNpcActions {
         return result.successful()
                 ? RegistryExecutionResult.ok(success)
                 : RegistryExecutionResult.failure(result.message());
+    }
+
+    private static long withdrawalTax(TransactionResult result) {
+        if (result == null || result.transaction() == null) return 0L;
+        String raw = result.transaction().metadata().get("withdrawalTax");
+        if (raw == null || raw.isBlank()) return 0L;
+        try {
+            return Math.max(0L, Long.parseLong(raw));
+        } catch (NumberFormatException exception) {
+            return 0L;
+        }
     }
 
     private static String currency(long amount) {

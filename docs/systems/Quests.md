@@ -46,6 +46,8 @@ Quests owns:
 - quest package definitions
 - shared questline flags, variables, evidence, stages, and endings
 - player-scoped quest flags, variables, and seen evidence
+- the owner-maintained Character Menu completed-quest count for new
+  player-authored ending locks
 - actor bindings from quest actor alias to placed NPC UUID
 - scheduled quest consequences
 - Quest-category notifications and Core domain events emitted by quest state
@@ -136,6 +138,13 @@ notifications. The default `elarion_quests:notify` action supports `player`,
 `realm`, and `world` audiences and uses the Core `QUEST` category. Ordinary
 dialogue browsing does not notify.
 
+`QuestProfileContributor` contributes `quests/quests-completed` with `SELF`
+visibility by reading the Core player-stat key `quests_completed`.
+`QuestStateService` increments that stat only when a player actor locks an
+ending on a questline scope that did not already have an ending. Existing
+completed questlines are not backfilled, and repeated locks on the same active
+scope do not add another count.
+
 ## Performance Contract
 
 - Definitions are parsed once into immutable maps on load/reload.
@@ -143,5 +152,7 @@ dialogue browsing does not notify.
 - Runtime state uses atomic JSON writes.
 - Scheduled consequences are processed from the server tick path only once per
   second and are capped to 16 due actions per interval.
+- Character Menu completed quest count reads `quests_completed`; profile
+  snapshot creation must not scan quest runtime state.
 - Player-facing future views must use dedicated summaries or indexes before
   they expose broad quest history/search.

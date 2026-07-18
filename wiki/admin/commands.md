@@ -14,7 +14,6 @@ Implemented command surface for server owners and OP level 4 operators.
 /r <message>
 /w <message>
 /yell <message>
-/collection
 /group create <id> <tag> <display-name...>
 /group invite <player>
 /group accept <group>
@@ -25,6 +24,10 @@ Implemented command surface for server owners and OP level 4 operators.
 /gc <message>
 /lc <message>
 ```
+
+The Character Menu opens from the default `C` keybind. `/charactermenu` remains
+a hidden client command for manual use, but it is not
+advertised in slash recommendations or `/help`.
 
 ## Core Admin Commands
 
@@ -40,7 +43,7 @@ Implemented command surface for server owners and OP level 4 operators.
 /e realm ...
 /e realm announce <realm> <message...>
 /e realm mail <realm> "<title>" <message...>
-/e citizen ...
+/e Ember ...
 /e title ...
 /e ability ...
 /e reward ...
@@ -120,6 +123,7 @@ Quest scope keys are explicit strings such as `realm:realm1`, `world:overworld`,
 /e portal guide <route>
 /e portal setup enter <route> [x y z]
 /e portal setup return
+/e portal preview <neutral|nether|end|fee|blocked|return>
 /e portal endpoint set <route> a_gate|a_arrival|b_gate|b_arrival
 /e portal unlock|lock|remove <route>
 /e portal repair <route>|all

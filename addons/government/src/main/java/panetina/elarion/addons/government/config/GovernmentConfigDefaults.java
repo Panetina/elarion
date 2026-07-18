@@ -62,7 +62,7 @@ public final class GovernmentConfigDefaults {
     public static final String REPUBLIC_FORM = """
             id: republic
             display-name: "Republic"
-            description: "Citizens elect a president and council through public votes."
+            description: "Embers elect a president and council through public votes."
             official-name-template: "Republic of %realm%"
             enabled: true
             authority-offices:
@@ -106,7 +106,7 @@ public final class GovernmentConfigDefaults {
     public static final String THEOCRACY_FORM = """
             id: theocracy
             display-name: "Theocracy"
-            description: "Citizens first define a Realm faith, then elect one High Priest. The High Priest appoints up to three Synod Members after founding."
+            description: "Embers first define a Realm faith, then elect one High Priest. The High Priest appoints up to three Synod Members after founding."
             official-name-template: "Holy %realm%"
             enabled: true
             authority-offices:

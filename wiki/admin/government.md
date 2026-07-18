@@ -8,7 +8,7 @@ Admin guide for the first Government backend foundation.
 
 `Implemented foundation`, `Admin-only`, `Manual verification needed`
 
-Government currently owns config-defined forms, office metadata, action metadata, transition metadata, compact Realm government state, persisted founding votes, voted Realm identity/color overlays, assigned office holders, temporary office title overrides, Shrine/Foundation gate status, authority inactivity cleanup, two admin-placed Government blocks, focused Civic Forum UI snapshots/actions, citizen proposals, typed civic records, Seat of Rule proposal review/finalization/archive, and `/lc` authority eligibility.
+Government currently owns config-defined forms, office metadata, action metadata, transition metadata, compact Realm government state, persisted founding votes, voted Realm identity/color overlays, assigned office holders, temporary office title overrides, Shrine/Foundation gate status, authority inactivity cleanup, two admin-placed Government blocks, focused Civic Forum UI snapshots/actions, Ember proposals, typed civic records, Seat of Rule proposal review/finalization/archive, and `/lc` authority eligibility.
 
 Laws are one type of civic record in V1. Government does not yet implement taxes, treaties, treasury spending, automated enforcement, reform mechanics, or rich authority modules.
 
@@ -124,32 +124,32 @@ Current behavior:
 - UI actions require a recent server-issued session from the correct block,
   player, Realm, world, and range. Reopen the block if an action is rejected as
   stale.
-- Neutral players and citizens of another Realm cannot open that Realm's
+- Neutral players and Embers of another Realm cannot open that Realm's
   Civic Forum or Seat of Rule.
 - Before Foundation I, the Realm Name screen is visible but locked.
-- After Foundation I, active citizens can submit one Realm name/tag proposal
+- After Foundation I, active Embers can submit one Realm name/tag proposal
   during a 24h proposal window.
-- After proposals close, citizens vote from the proposal grid during a separate
+- After proposals close, Embers vote from the proposal grid during a separate
   24h voting window.
-- After a name vote resolves, citizens vote for one vanilla Minecraft Realm
+- After a name vote resolves, Embers vote for one vanilla Minecraft Realm
   color.
 - After the color vote resolves, the Government Form screen appears.
-- After Foundation II, active citizens can vote for Monarchy, Republic,
+- After Foundation II, active Embers can vote for Monarchy, Republic,
   Theocracy, or Confederation.
-- If Theocracy wins, the Founding Faith screen appears. Citizens propose and
+- If Theocracy wins, the Founding Faith screen appears. Embers propose and
   vote for the religion name/mark before electing religious leaders.
 - After the form vote resolves, or after the Theocracy faith vote resolves, the
   Founding Election screen appears.
-- After Foundation III, active citizens can nominate themselves during a 24h
+- After Foundation III, active Embers can nominate themselves during a 24h
   nomination window. The Civic Forum shows `Nominate Yourself` even before the
-  first candidate exists, then marks the citizen's row `You are nominated`.
-- After nominations close, citizens vote from the candidate grid during a
+  first candidate exists, then marks the Ember's row `You are nominated`.
+- After nominations close, Embers vote from the candidate grid during a
   separate 24h founding election window.
-- Republic founding is phased. Citizens elect one President first; after that
+- Republic founding is phased. Embers elect one President first; after that
   resolves, a second founding election opens for at least one and up to three
   Councilors. The elected President cannot nominate for or hold a Councilor
   seat.
-- Confederation delegate elections fill up to three seats. Each citizen may
+- Confederation delegate elections fill up to three seats. Each Ember may
   approve up to three different eligible group-leader candidates.
 - Theocracy founding elects one Holy Priest title holder. The office id remains
   `high_priest`. The Holy Priest chooses Synod Members after founding; the
@@ -179,22 +179,22 @@ These blocks are interaction anchors and UI entry points. Taxes, treaties,
 automated law enforcement, reform mechanics, and full office management remain
 future modules.
 
-Citizen proposals:
+Ember proposals:
 
-- after founding, active citizens open Civic Forum -> Proposals
+- after founding, active Embers open Civic Forum -> Proposals
 - choose a category with Left/Right in the proposal overlay
 - enter a title and bounded body
-- submitted Republic law proposals open citizen ratification first, then move
-  to authority review after enough citizen support
+- submitted Republic law proposals open Ember ratification first, then move
+  to authority review after enough Ember support
 
 Seat review:
 
 - authority holders open Seat of Rule -> Proposals
 - click `Approve` or `Reject` on a pending proposal
 - Monarchy uses Monarch approval
-- Theocracy law flow is citizen proposal -> Holy Priest approval -> Holy Priest
+- Theocracy law flow is Ember proposal -> Holy Priest approval -> Holy Priest
   final doctrine -> active law.
-- Republic law flow is citizen petition vote -> President review -> President
+- Republic law flow is Ember petition vote -> President review -> President
   final wording -> active law.
 - Confederation law proposals are decided only by the three delegates and need
   at least two `Approve` votes to pass. The delegate whose vote reaches the
@@ -203,10 +203,10 @@ Seat review:
 - Officers are excluded from proposal decisions in V1.
 - approved proposals move to `Finalize`; they do not become official records
   until authority writes the final official title/body
-- finalized citizen proposals become typed civic records and move out of the
+- finalized Ember proposals become typed civic records and move out of the
   active Proposals list into Laws or Projects
 - notices are authority-created Realm notifications plus Government history,
-  not citizen proposal categories; the Realm notification title identifies the
+  not Ember proposal categories; the Realm notification title identifies the
   authority holder who sent it
 - Monarchy authority can directly add laws or projects and send notices
 - Holy Priest authority can directly add laws or projects and send notices
@@ -268,10 +268,10 @@ Theocracy notes:
   form vote.
 - The founding election then chooses one Holy Priest title holder.
 - Synod Members are chosen by the Holy Priest after founding, not elected by
-  citizens.
+  Embers.
 - The Holy Priest can submit law doctrine directly; Synod approves or rejects the
   wording.
-- Citizens can submit appeal requests as proposals for the Holy Priest to
+- Embers can submit appeal requests as proposals for the Holy Priest to
   consider.
 - Rituals, holy sites, and succession-crisis UI are future modules.
 
@@ -311,13 +311,13 @@ releases the group lock; the election reopens only when no delegate remains.
 - The session layer is intentionally small and tested separately; gameplay
   checks still happen server-side before state is mutated.
 - Before Foundation I, name proposal controls should be locked.
-- After Foundation I, a citizen should be able to propose a name and tag.
+- After Foundation I, an Ember should be able to propose a name and tag.
 - Voting for a proposal should refresh the UI with live vote counts and a
   green selected-vote frame.
 - After vote expiry, the next stage should appear.
 - Right-clicking Seat of Rule should open a locked or authority-summary UI.
 - Seat module buttons are placeholders, but they still require a valid Seat
-  session and Realm citizen context.
+  session and Realm Ember context.
 - Proposal approval should show `Finalize` instead of immediately creating a
   law.
 - Finalizing a proposal should create the matching typed record and preserve
@@ -334,6 +334,7 @@ releases the group lock; the election reopens only when no delegate remains.
 - Block interactions: [../../addons/government/src/main/java/panetina/elarion/addons/government/GovernmentBlockInteractions.java](../../addons/government/src/main/java/panetina/elarion/addons/government/GovernmentBlockInteractions.java)
 - UI sessions: [../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentUiSessionService.java](../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentUiSessionService.java)
 - UI payload: [../../addons/government/src/main/java/panetina/elarion/addons/government/network/GovernmentUiOpenPayload.java](../../addons/government/src/main/java/panetina/elarion/addons/government/network/GovernmentUiOpenPayload.java)
-- UI screen: [../../addons/government/src/main/java/panetina/elarion/addons/government/client/GovernmentStatusScreen.java](../../addons/government/src/main/java/panetina/elarion/addons/government/client/GovernmentStatusScreen.java)
+- Civic Forum screen: [../../addons/government/src/main/java/panetina/elarion/addons/government/client/CivicForumScreen.java](../../addons/government/src/main/java/panetina/elarion/addons/government/client/CivicForumScreen.java)
+- Seat of Rule screen: [../../addons/government/src/main/java/panetina/elarion/addons/government/client/seat/SeatOfRuleScreen.java](../../addons/government/src/main/java/panetina/elarion/addons/government/client/seat/SeatOfRuleScreen.java)
 - Definitions: [../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentDefinitionService.java](../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentDefinitionService.java)
 - Runtime state: [../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentStateService.java](../../addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentStateService.java)

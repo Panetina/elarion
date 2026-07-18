@@ -1,85 +1,91 @@
 # RULES
 
-Permanent project policy for Elarion.
+Permanent Elarion policy. Keep this file compact; subsystem detail belongs in
+authoritative docs selected through `docs/ai/routes.json`.
 
-## Source Of Truth
+## Platform and Ownership
 
-- Fabric 1.21.1 is the target platform.
-- Core owns canonical truth: citizens, Realms, titles, identity, rewards,
-  history, permissions, and shared infrastructure.
-- Addons may extend behavior, but they must not duplicate Core state.
-- Config lives under `config/elarion/`.
-- Runtime state lives under `world/elarion/`.
+- Fabric 1.21.1 is the target and source of truth. NeoForge is reference-only.
+- Core owns canonical citizens, Realms, titles, identity, relationships,
+  rewards, history, permissions, server identity, shared UI, task queues, and
+  infrastructure.
+- Addons may extend behavior but must not duplicate Core or another addon's
+  state. Integrate through public APIs, registries, events, and bounded
+  projections.
+- Editable definitions live under `config/elarion/`; mutable runtime state lives
+  under `world/elarion/`.
+- Fabric remains canonical for game state. The website, launcher, Discord bot,
+  and bridge may consume signed bounded projections or submit typed commands,
+  but must not duplicate or directly mutate Core/addon-owned truth.
 
-## Architecture
+## Architecture and Performance
 
-- Prefer existing systems before creating new ones.
-- Prefer bounded, event-driven, cacheable work over polling or global scans.
-- Prefer explicit ownership boundaries over shared global logic.
-- Prefer small, local changes that fit the existing architecture.
-- Prefer stable extension points that future addons can reuse.
+- Search existing services, registries, payloads, UI primitives, storage, and
+  APIs before adding infrastructure.
+- Prefer small, local, data-driven, event-driven, cacheable changes with clear
+  ownership.
+- Avoid per-tick global scans, repeated parsing, broad history/state loads, and
+  heavy IO or allocation in hot paths.
+- Player-facing history/search views must use dedicated bounded indexes or
+  summaries, never raw JSONL scans as the long-term query path.
+- Treat client packets as requests only; the server validates authorization,
+  context, values, and mutations.
+- Use queued/batched writes, lazy loading, and explicit cache invalidation when
+  data can grow.
+- Core owns shared placeholder contracts, bounded resolution, visibility,
+  aliases, and diagnostics. Addons retain canonical domain values and expose
+  them only through registered side-effect-free resolvers.
+- Placeholder rendering must not perform storage/history/world/player scans,
+  IO, writes, mutation, network calls, or broad parsing. Resolution must bound
+  placeholder count, output length, nesting, cycles, memoization, and
+  diagnostics while preserving unknown tokens safely.
 
-## Events And Notifications
+## Config and Persistence
 
-- Every existing addon, and every new addon before it is considered complete,
-  must review its meaningful player-facing lifecycle events for notifications.
-- Addons own event meaning and authoritative validation. Core owns notification
-  persistence, audiences, actions, synchronization, and the shared HUD.
-- Meaningful state changes must expose a stable Core domain event through
-  `ElarionApi.system().events()` when future addons, Chronicle, newspapers,
-  NPC rumors, the website bridge, or diagnostics may need to react.
-- Notifications are explicit projections of domain events. Do not
-  automatically turn every event into a notification.
-- Use Personal for private outcomes, Realm for Realm-scoped civic events,
-  World for globally relevant unlocked events, and Quest for quest/task events.
-- Do not notify routine transactions, repeated progress ticks, UI browsing,
-  ordinary dialogue choices, or low-level diagnostics.
-- Do not create addon-owned inboxes, notification stores, HUD rails, polling
-  loops, or direct reads of another addon's runtime files.
-- Notification actions remain server-authoritative, deduplicated, bounded, and
-  persistent when the action must survive logout or restart.
+- Parse editable config into typed immutable snapshots, validate on
+  startup/reload, and keep reload behavior explicit.
+- Every parsed config domain or definition map change must update its read-only
+  descriptors, descriptor tests, `docs/config.md`, and affected addon docs.
+- Generated-only YAML is not active descriptor truth until a typed loader owns
+  it.
+- Persistence changes require round-trip, reload, and restart coverage as
+  applicable.
 
-## Documentation
+## Events and Notifications
 
-- `INDEX.md` is the navigation entry point.
-- `TODO.md` is current implementation work only.
-- `PLAN.md` is the short read-order / project memory file.
-- `PLANS.md` is future ideas and design direction.
-- `LORE.md` is the root lore summary.
-- `OPTIMIZATION_TRACKER.md` is the active optimization health tracker.
-- `docs/ai/CURRENT_STATUS.md` is the compact current-state handoff for new
-  AI/new PC recovery.
-- `docs/ai/AI_SEARCH_HINTS.md` is the targeted source lookup guide.
-- `docs/addons/<addon>.md` is the addon technical contract.
-- `docs/systems/<system>.md` is the cross-addon system contract.
-- `wiki/` is the human-readable admin/player manual.
+- Addon owners validate event meaning. Core owns shared event delivery,
+  notification persistence, audiences, actions, synchronization, and HUD.
+- Emit reusable Core domain events for meaningful lifecycle changes that future
+  addons or public-history consumers may need. Notifications are explicit,
+  selective projections; do not notify routine actions or diagnostics.
+- Chronicle/library-visible event families require ten authored stable
+  variants, metadata requirements, deterministic selection, fallback text, and
+  tests before promotion.
 
-## Documentation Maintenance Matrix
+## Quality and Documentation
 
-- Ownership, architecture, or source-map changes: update `INDEX.md`,
-  `AGENTS.md`, `CODEX.md`, the relevant `docs/systems/*.md`, and
-  `docs/addons/*.md`.
-- Commands or test commands: update `docs/commands.md`,
-  `docs/test-commands.md` when relevant, `wiki/admin/commands.md`, and the
-  affected admin wiki page.
-- Config, runtime state, APIs, packets, UI behavior, permissions, events, or
-  notifications: update the affected addon/system docs and wiki page.
-- Any new or changed parsed config, config-backed content, addon definition
-  file, or Core definition map must update or add the matching read-only
-  config descriptors, descriptor tests, `docs/config.md`, and affected addon
-  docs in the same slice unless the data is generated-only and not parsed into
-  a typed runtime snapshot. Generated-only YAML must be documented as not ready
-  for truthful descriptor exposure.
-- New addon or changed addon status: update `AGENTS.md`, `INDEX.md`,
-  `CODEX.md`, `docs/addons/README.md`, `wiki/addons/README.md`, and relevant
-  wiki navigation.
-- Current work goes in `TODO.md`; future design goes in `PLANS.md`; do not mix
-  them.
+- Make minimal focused edits, preserve unrelated user changes, and use
+  `apply_patch` for manual changes.
+- Commands require registration, permission, help/suggestion, and execution
+  coverage. Player-facing changes update docs and tests together.
+- Ownership/architecture changes: update `INDEX.md`, `AGENTS.md`, `CODEX.md`,
+  and affected system/addon docs.
+- Command changes: update `docs/commands.md`, relevant test-command docs, and
+  `wiki/admin/commands.md`.
+- Config, persistence, API, packet, UI, permission, event, or notification
+  changes: update affected system/addon docs and the relevant wiki page.
+- Addon status changes: update the root source maps, addon indexes, and wiki
+  addon status.
+- `TODO.md` contains unfinished work; `PLAN.md` current direction;
+  `PLANS.md` future ideas. Historical completion logs belong only under
+  `docs/ai/archive/`.
 
-## Change Rules
+## Verification
 
-- Update docs when ownership, commands, configs, APIs, or behavior change.
-- Do not add duplicate managers, registries, services, or screens.
-- Do not expose raw storage paths as the long-term player-facing interface for
-  large history-style systems.
-- Do not use client-trusted mutations for gameplay state.
+- Run the narrowest meaningful module tests first; run the full build for
+  cross-module changes or final handoff.
+- Performance changes need diagnostics or tests proving work is bounded.
+- Architecture changes require explicit justification and synchronized docs.
+- Live-server promotion requires a verified canonical export, an explicit owner
+  confirmation that the server is stopped, a remote backup, and post-start log
+  verification. Deployment tooling must never embed passwords or bridge secrets.

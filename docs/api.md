@@ -89,6 +89,12 @@ All currency movement must call the Economy API. Addons must not modify wallet o
 treasury state directly. Every request supplies an explicit transaction type,
 accounts, amount, actor, reason, and `sourceSystem`.
 
+Cross-addon workflows that may retry after disconnect or restart must use
+`ElarionEconomyApi.transactOnce(EconomyOperationKey, ...)` and retain the same
+operation ID. Identical replay returns the original receipt; different request
+data with the same key is rejected. `operationReceipt(key)` provides O(1)
+lookup. Callers must never scan transaction JSONL to detect duplicates.
+
 Supported transaction types are:
 
 ```text
@@ -112,7 +118,8 @@ and after the attempt. Successful transactions emit Core history events.
 progress, contributor totals, and bounded donation summaries.
 
 - `contributeItems(...)` validates and consumes matching inventory items.
-- `contributeCurrency(...)` consumes deposited Economy balance.
+- `contributeCurrency(...)` consumes carried physical Economy currency; banked
+  currency must be withdrawn first.
 - `contributeEvent(...)` is for registered addon/integration events only.
 
 Player-facing requests contain only instance ID, requirement key, and amount.
@@ -177,9 +184,12 @@ Use `api.publicHistory()` for player-facing memory views. Addons should not read
 Core currently exposes:
 
 - `query(PublicHistoryQuery)`
+- `registerRenderer(ChronicleRenderer)`
+- `project(PublicHistoryEntry, ChronicleRenderContext)`
 - `newspaper(realmId, limit)`
 - `ledger(playerId, limit)`
 - `npcRumors(realmId, limit)`
+- `chronicleLibrary(realmId, limit)`
 - `search(text, limit)`
 - `recentChronicles(weeks)`
 - `generateChronicles()`
@@ -190,6 +200,21 @@ Chronicle/news pages instead of raw history files.
 The public-history layer composes weekly Chronicle archives with live monthly
 history indexes, deduplicates events, applies category/Realm/player/text
 filters, and keeps raw JSONL scans on the OP/audit path.
+
+`PublicHistoryEntry`, `ChronicleEntry`, and `HistoryIndexEntry` preserve
+bounded metadata from the original `HistoryEvent`. Missing or old metadata
+defaults to an empty map. Player-facing consumers may use this metadata for
+readable projections and search matching, but durable ownership stays in Core
+history/public-history APIs.
+
+Chronicle renderers are registered through the public-history API. A renderer
+returns a `ChronicleProjection` containing title, body, category, detail label,
+and selected variant id. Addon renderers own domain wording; Core owns
+registration, fallback projection, and the `chronicle.variant` metadata
+contract. `chronicleLibrary(realmId, limit)` is the bounded in-game library
+query surface; it uses the Chronicle public-history consumer and must be
+extended through owner-maintained indexes/projections rather than direct history
+file scans.
 
 ## Catch Telemetry
 
@@ -265,3 +290,50 @@ internal states.
 Registry handlers may plan work off-thread only when the result is immutable.
 World, player, entity, inventory, networking, and registry mutation must happen
 through server-thread work.
+
+## Economy Tax Quotes
+
+`ElarionEconomyApi.quoteTax(...)` returns a checked server-authored quote with
+policy revision, subtotal, basis points, tax, and total. `taxRate(...)` is
+read-only. `setTaxRate(...)` is restricted to trusted server integrations;
+future Government/Admin editors must authorize the request first.
+
+`ElarionEconomyApi.taxDestination(...)` resolves a tax authority to its treasury
+account. Realm authorities route to that Realm treasury. Worldheart and other
+non-Realm authorities route to `EconomyAccount.WORLDHEART_TREASURY`.
+`worldheartTreasury()` exposes that dedicated treasury balance for server-side
+read paths.
+
+`ElarionEconomyApi.payPhysicalOnlyOnce(...)` settles carried physical Sigils to
+a public treasury through an idempotent Economy operation receipt. It checks for
+an existing receipt before removing inventory items. It is the approved boundary
+for NPC shop purchases and other physical-only public-revenue services.
+
+NPC Sell/buyback and dynamic-price work is specified in
+`docs/reports/ECONOMY_TRADE_PRICE_PAYOUT_API_PROPOSAL.md`.
+`ElarionEconomyApi.quoteTradePrice(...)` is the Economy-owned trade price quote
+boundary. It currently supports fixed fallbacks, known service-price
+`price-key` values, checked arithmetic, BUY total cost, and SELL net payout.
+Dynamic inflation/scarcity remains future work behind this API.
+`ElarionEconomyApi.payPhysicalRewardOnce(...)` is the current idempotent
+physical payout wrapper. It is replay-safe against duplicate Sigil insertion
+and refuses full inventory before recording a payout, but it still needs a
+claimable/deferred delivery path before NPC Sell can use it as a live escrow
+settlement primitive.
+
+`ElarionEconomyApi.payPlayerBalanceRewardOnce(...)` is the approved V1
+recovery-safe seller payout boundary. It credits the player's bank wallet
+through the same idempotent operation receipt model, so restart replay returns
+the original transaction without duplicate credit. Physical-only service
+spending remains separate: NPC shops, Shrines, and Portals should still use
+carried Sigils unless an explicit future policy changes them.
+
+## Worldheart Governance
+
+`ElarionApi.worldheart()` exposes Core's Worldheart governance service. It can
+read current authority, detect system governance, resolve a current player
+ruler, check whether a player is the ruler, switch authority between system and
+player modes, resolve display name, and classify a player as administrator,
+ruler, or none. All future Worldheart control blocks and UI should call this
+service; they must not hard-code `Hollow Emperor`, fake UUIDs, or OP/player UUID
+checks in business logic.

@@ -18,6 +18,7 @@ import panetina.elarion.addons.economy.model.TransactionResult;
 import panetina.elarion.addons.economy.service.EconomyGovernorService;
 import panetina.elarion.addons.economy.service.EconomyInventoryService;
 import panetina.elarion.addons.economy.service.EconomyPricingService;
+import panetina.elarion.addons.economy.service.EconomyReloadCoordinator;
 import panetina.elarion.addons.economy.service.EconomyTransactionService;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.command.CommandOutput;
@@ -291,8 +292,7 @@ public final class EconomyCommands {
             EconomyPricingService pricing
     ) {
         try {
-            transactions.reload(EconomyConfig.load());
-            pricing.reload();
+            EconomyReloadCoordinator.prepare().commit(transactions, pricing);
             source.sendFeedback(() -> Text.literal("Economy configuration reloaded."), true);
             return 1;
         } catch (RuntimeException exception) {

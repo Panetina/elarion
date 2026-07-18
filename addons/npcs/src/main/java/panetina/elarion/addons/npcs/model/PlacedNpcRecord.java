@@ -8,6 +8,8 @@ public record PlacedNpcRecord(
         String definitionId,
         UUID entityId,
         String worldId,
+        NpcTaxJurisdictionKind taxJurisdictionKind,
+        String taxJurisdictionId,
         double x,
         double y,
         double z,
@@ -20,6 +22,41 @@ public record PlacedNpcRecord(
         UUID createdBy,
         long createdAt
 ) {
+    public PlacedNpcRecord {
+        taxJurisdictionId = taxJurisdictionId == null ? "" : taxJurisdictionId.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    public PlacedNpcRecord(
+            UUID id,
+            String handle,
+            String definitionId,
+            UUID entityId,
+            String worldId,
+            double x,
+            double y,
+            double z,
+            float yaw,
+            float pitch,
+            String displayNameOverride,
+            String skinOverride,
+            String portraitOverride,
+            String dialogueOverride,
+            UUID createdBy,
+            long createdAt
+    ) {
+        this(id, handle, definitionId, entityId, worldId, null, "", x, y, z, yaw, pitch,
+                displayNameOverride, skinOverride, portraitOverride, dialogueOverride, createdBy, createdAt);
+    }
+
+    public boolean hasTaxJurisdiction() {
+        return taxJurisdictionKind != null && !taxJurisdictionId.isBlank();
+    }
+
+    public PlacedNpcRecord withTaxJurisdiction(NpcTaxJurisdictionKind kind, String jurisdictionId) {
+        return new PlacedNpcRecord(
+                id, handle, definitionId, entityId, worldId, kind, jurisdictionId, x, y, z, yaw, pitch,
+                displayNameOverride, skinOverride, portraitOverride, dialogueOverride, createdBy, createdAt);
+    }
     public String displayName(NpcDefinition definition) {
         return displayNameOverride == null || displayNameOverride.isBlank()
                 ? definition.displayName()
@@ -44,7 +81,8 @@ public record PlacedNpcRecord(
 
     public PlacedNpcRecord withEntity(UUID entityId) {
         return new PlacedNpcRecord(
-                id, handle, definitionId, entityId, worldId, x, y, z, yaw, pitch, displayNameOverride, skinOverride,
+                id, handle, definitionId, entityId, worldId, taxJurisdictionKind, taxJurisdictionId,
+                x, y, z, yaw, pitch, displayNameOverride, skinOverride,
                 portraitOverride, dialogueOverride, createdBy, createdAt);
     }
 
@@ -56,37 +94,43 @@ public record PlacedNpcRecord(
 
     public PlacedNpcRecord facing(float yaw) {
         return new PlacedNpcRecord(
-                id, handle, definitionId, entityId, worldId, x, y, z, yaw, 0.0F, displayNameOverride, skinOverride,
+                id, handle, definitionId, entityId, worldId, taxJurisdictionKind, taxJurisdictionId,
+                x, y, z, yaw, 0.0F, displayNameOverride, skinOverride,
                 portraitOverride, dialogueOverride, createdBy, createdAt);
     }
 
     public PlacedNpcRecord named(String name) {
         return new PlacedNpcRecord(
-                id, handle, definitionId, entityId, worldId, x, y, z, yaw, pitch, name, skinOverride,
+                id, handle, definitionId, entityId, worldId, taxJurisdictionKind, taxJurisdictionId,
+                x, y, z, yaw, pitch, name, skinOverride,
                 portraitOverride, dialogueOverride, createdBy, createdAt);
     }
 
     public PlacedNpcRecord withSkin(String skin) {
         return new PlacedNpcRecord(
-                id, handle, definitionId, entityId, worldId, x, y, z, yaw, pitch, displayNameOverride, skin,
+                id, handle, definitionId, entityId, worldId, taxJurisdictionKind, taxJurisdictionId,
+                x, y, z, yaw, pitch, displayNameOverride, skin,
                 portraitOverride, dialogueOverride, createdBy, createdAt);
     }
 
     public PlacedNpcRecord withPortrait(String portrait) {
         return new PlacedNpcRecord(
-                id, handle, definitionId, entityId, worldId, x, y, z, yaw, pitch, displayNameOverride, skinOverride,
+                id, handle, definitionId, entityId, worldId, taxJurisdictionKind, taxJurisdictionId,
+                x, y, z, yaw, pitch, displayNameOverride, skinOverride,
                 portrait, dialogueOverride, createdBy, createdAt);
     }
 
     public PlacedNpcRecord withDialogue(String dialogue) {
         return new PlacedNpcRecord(
-                id, handle, definitionId, entityId, worldId, x, y, z, yaw, pitch, displayNameOverride, skinOverride,
+                id, handle, definitionId, entityId, worldId, taxJurisdictionKind, taxJurisdictionId,
+                x, y, z, yaw, pitch, displayNameOverride, skinOverride,
                 portraitOverride, dialogue, createdBy, createdAt);
     }
 
     public PlacedNpcRecord withHandle(String handle) {
         return new PlacedNpcRecord(
-                id, handle, definitionId, entityId, worldId, x, y, z, yaw, pitch, displayNameOverride, skinOverride,
+                id, handle, definitionId, entityId, worldId, taxJurisdictionKind, taxJurisdictionId,
+                x, y, z, yaw, pitch, displayNameOverride, skinOverride,
                 portraitOverride, dialogueOverride, createdBy, createdAt);
     }
 }

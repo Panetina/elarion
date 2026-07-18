@@ -1,6 +1,6 @@
 # Core Contract
 
-Last reviewed: 2026-07-06
+Last reviewed: 2026-07-07
 
 Author: Panyel  
 Team: Panetina Team
@@ -23,15 +23,21 @@ Team: Panetina Team
 - shared UI theme and notification HUD rail
 - modular Collection menu shell, Pets placeholder tab, and Core-owned Titles
   collection tab
+- Character Menu profile aggregation boundary, Core identity/Realm/active-title
+  profile projection, and server-side profile visibility filtering
 - Admin Panel shell, `/e panel`, packets, and provider registry for OP testing
   and repair actions
 - canonical data exported to the web/bridge layer
+- outbound signed website whitelist synchronization, durable sequence cursor,
+  and pending acknowledgement recovery
 - active-citizen recency truth
 - durable claimable reward grants and delivery receipts
 - notification categories and notification snapshot/claim payloads
 - durable notification storage, audience snapshots, and action dispatch
 - canonical account-to-character lifecycle, dead-character archives, reserved
   RP names, and restart-safe True Death reset coordination
+- Worldheart governing authority state and domain permission checks; the
+  Economy addon owns the Worldheart treasury balance, not Core
 
 ## Public API
 
@@ -108,6 +114,67 @@ for server-authored apply-available controls with a matching latest validation
 result. Config edit controls carry separate input editability and Apply
 availability metadata.
 
+`ElarionApi.worldheart()` exposes the Core-owned Worldheart governance service.
+It persists current authority as `SYSTEM` or `PLAYER`, defaults missing state
+to the lore-facing `Hollow Emperor`, emits a Core domain event on authority
+changes, and centralizes checks for server administrator versus current
+Worldheart ruler. Future Worldheart blocks, Admin controls, or political
+systems must mutate authority through this service and must not treat the
+Worldheart treasury as a player wallet.
+
+`ElarionApi.system().profiles()` exposes the Core-owned
+`CitizenProfileService`. It can build bounded, server-filtered profile
+snapshots for one target citizen at a time. Core contributes identity, Realm,
+active-title, and progression summary data; addons may contribute bounded
+sections such as Government office roles through explicit contributors. The
+profile model consists
+of `CitizenProfileRequestContext`, `CitizenProfileSnapshot`,
+`CitizenProfileSection`, `CitizenProfileField`, `CitizenProfileCard`,
+`ProfileVisibility`, and the future addon extension point
+`CitizenProfileContributor`. Addons must not copy profile state into Core or
+scan their runtime storage for profile rows. They may register contributors
+only after their owning addon has a bounded summary API and explicit
+visibility rules.
+
+`CitizenProfileSummaryFields` is the canonical Core contract for stable
+Character Menu summary source and field identifiers. Current reserved summary
+sources include `progression`, `offerings`, `quests`, `npcs`, `groups`,
+`government`, `underworld`, `portals`, and `history`. Future addon
+contributors must use those constants when filling the existing Ledger summary
+slots, and must not invent parallel IDs for completed quests, Offering score,
+NPC reputation, deaths, portal journeys, milestones, office history, or recent
+history.
+
+Core also owns the Character Menu profile request/response packets:
+`CitizenProfileRequestPayload` and `CitizenProfileSnapshotPayload`. The server
+receiver derives the viewer from the connection, builds snapshots through
+`CitizenProfileService`, can narrow the response to one visible section, and
+returns only bounded presentation data. `CitizenProfileClientState` caches the
+latest client snapshot for the Character Menu Profile tab. Profile clients
+remain read-only; no client mutation packet exists.
+
+Character Menu renders the Profile tab from that cached snapshot. The tab
+presents server-visible identity, Realm, active title, citizenship, active
+Government office role when contributed, visible completed advancement count
+from the Progression service, self/admin completed quest count, Offering score,
+Portal journey count, and Underworld lifetime death count when contributed,
+Core-owned title/ability counts, and the bounded Collection mount count as one
+portrait-led civic dossier, not as nested section buttons. The live player-list
+skin supplies the head portrait, with a neutral fallback when no player-list
+entry is available. NPC reputation and Chronicle summaries remain explicit
+empty states until their owners expose bounded summary APIs and visibility
+rules.
+
+Character Menu unlockable tabs use the same Option A civic shell. Core renders
+icon tabs, unlocked/total completion, six-row hidden scrolling, explicit
+active/owned/locked state, provider-owned rank badges, accent-colored
+selected/active frames, large preview frames, bounded record text, action
+controls, and designed empty states. Providers continue to own entries,
+actions, and rank assignment; shared rank colors come from Core
+`ElarionCollectionRank`, and Core transports/renders the presentation metadata
+without owning addon unlock state. Mount model previews remain Mounts-owned
+through the client preview registry.
+
 ## Addon Lifecycle
 
 Core registers its server lifecycle bind/stop/tick callbacks before it
@@ -127,8 +194,15 @@ world/elarion/title-claims.json
 world/elarion/reward-grants.json
 world/elarion/notifications/notifications.json
 world/elarion/core/characters/state.json
+world/elarion/core/minecraft-bridge/state.json
 world/elarion/addon-state/realms/
 ```
+
+`config/elarion/core/minecraft-bridge.yml` controls the disabled-by-default
+website whitelist bridge. Core starts it only when the explicit configuration
+is valid and the server has both online mode and the whitelist enabled. The
+bridge performs bounded outbound HTTPS polling and applies mutations only on
+the server thread. See `docs/systems/MinecraftBridge.md`.
 
 Character Lifecycle requires one preservation confirmation from existing
 citizens and fresh character creation from new accounts. Its mandatory client
@@ -144,6 +218,15 @@ keeps future manual selection disabled. Addons register idempotent cleanup handl
 `config/elarion/core/activity.yml` controls the default active-citizen recency
 window. Citizen records persist `lastSeenAt`; online players are active and
 offline players remain active until the configured window expires.
+
+`config/elarion/core/titles.yml` supports optional `color: "#RRGGBB"` per
+title. Missing built-in title colors are migrated for known Core title IDs
+without overwriting custom colors. Existing configs with the old shipped
+Citizen gold `#D19B42` are migrated to the white-gray Citizen default
+`#C9C9C9`. Title colors are used in identity title text and Character Menu
+title rows/previews. Explicit colors take precedence; missing colors use the
+shared rank palette for known title families, Legendary for otherwise unknown
+globally unique titles, and plain white for other unranked custom titles.
 
 Deferred reward grants snapshot their reward actions and use stable grant IDs.
 They are claimable through the Core notification drawer instead of being pushed
@@ -269,7 +352,7 @@ commands are owned by `addons/quests`, not Core.
 
 ## Collection Menu
 
-Core owns the shared Collection menu shell, `/collection`, the `C` key opener,
+Core owns the shared Collection menu shell, `/charactermenu`, the `C` key opener,
 generic collection networking, the empty Pets placeholder tab, and the Titles
 tab. Addons may contribute additional tabs through
 `ElarionApi.system().collections()`, but the player-facing mutation remains
@@ -352,6 +435,9 @@ Current stable event identifiers include:
 
 - `title-granted`
 - `title-revoked`
+- `title.progression-unlocked` Chronicle projections, rendered by
+  `CoreChronicleText` through the shared template-family contract with 10
+  authored stable variants.
 - `portal-route-unlocked`
 - `portal-route-locked`
 - `portal-window-opened`

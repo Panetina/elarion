@@ -62,7 +62,7 @@ Only the public tag renders next to a player identity:
 
 ```text
 [MERC] PlayerName
-Citizen
+Ember
 ```
 
 Full display names appear in `/group info` and future Civic Forum, Government,

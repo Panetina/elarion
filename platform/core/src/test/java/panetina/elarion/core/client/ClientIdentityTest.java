@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClientIdentityTest {
@@ -20,6 +21,7 @@ class ClientIdentityTest {
                 "",
                 "",
                 "",
+                0xFFD19B42,
                 "",
                 Formatting.GOLD,
                 "Kingdom of Oak",
@@ -43,6 +45,7 @@ class ClientIdentityTest {
                 "",
                 "",
                 "Citizen",
+                0xFFD19B42,
                 "",
                 "gold",
                 "Kingdom of Oak",
@@ -59,5 +62,58 @@ class ClientIdentityTest {
         ClientIdentityCache.clear();
 
         assertFalse(ClientIdentityCache.shouldHideTabEntry(UUID.randomUUID()));
+    }
+
+    @Test
+    void titleTextUsesConfiguredTitleColor() {
+        ClientIdentity identity = new ClientIdentity(
+                UUID.randomUUID(),
+                "Matie",
+                "",
+                "",
+                "",
+                "Monarch",
+                0xFFFFD36A,
+                "",
+                Formatting.GOLD,
+                "Kingdom of Oak",
+                "realm1",
+                true,
+                true);
+
+        assertEquals("Monarch", identity.titleText().getString());
+        assertNotNull(identity.titleText().getStyle().getColor());
+        assertEquals(0xFFD36A, identity.titleText().getStyle().getColor().getRgb());
+    }
+
+    @Test
+    void titlePreviewUsesNicknameInsteadOfAccountUsername() {
+        UUID uuid = UUID.randomUUID();
+        ClientIdentityCache.clear();
+        ClientIdentityCache.update(new IdentitySyncPayload(
+                uuid,
+                "ElarionAdmin",
+                "The First Flame",
+                "",
+                "",
+                "Monarch",
+                0xFFFFD36A,
+                "",
+                "gold",
+                "Kingdom of Oak",
+                "realm1",
+                true,
+                true));
+
+        assertEquals("The First Flame", ElarionCollectionScreen.titlePreviewName(uuid, "ElarionAdmin"));
+        assertEquals(0xFFFFAA00, ElarionCollectionScreen.titlePreviewNameColor(uuid, 0xFFFFFFFF));
+    }
+
+    @Test
+    void titlePreviewNameColorFallsBackWithoutSynchronizedIdentity() {
+        ClientIdentityCache.clear();
+
+        assertEquals(0xFFABCDEF,
+                ElarionCollectionScreen.titlePreviewNameColor(UUID.randomUUID(), 0xFFABCDEF));
     }
 }

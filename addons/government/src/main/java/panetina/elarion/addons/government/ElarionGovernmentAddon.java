@@ -16,6 +16,8 @@ import panetina.elarion.addons.government.network.GovernmentUiOpenPayload;
 import panetina.elarion.addons.government.service.GovernmentDefinitionService;
 import panetina.elarion.addons.government.service.GovernmentAdminPanelProvider;
 import panetina.elarion.addons.government.service.GovernmentStateService;
+import panetina.elarion.addons.government.service.GovernmentWebProjectionPublisher;
+import panetina.elarion.addons.government.service.GovernmentProfileContributor;
 import panetina.elarion.addons.government.storage.GovernmentStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
@@ -33,6 +35,10 @@ public final class ElarionGovernmentAddon implements ElarionAddon {
         GovernmentDefinitionService definitions = new GovernmentDefinitionService(api);
         definitions.load();
         GovernmentStateService states = new GovernmentStateService(api, definitions, new GovernmentStorage(LOGGER));
+        GovernmentWebProjectionPublisher webProjections = new GovernmentWebProjectionPublisher(api, states);
+        api.system().events().onDomainEvent(webProjections::onDomainEvent);
+        api.publicHistory().registerRenderer(GovernmentChronicleText.INSTANCE);
+        api.system().profiles().registerContributor(new GovernmentProfileContributor(definitions, states));
         api.system().adminPanel().registerProvider(new GovernmentAdminPanelProvider(states));
         GovernmentConfigDescriptors.register(api.system().configs(), definitions::settings, definitions::forms);
         api.characters().registerResetHandler("elarion_government",
@@ -53,7 +59,10 @@ public final class ElarionGovernmentAddon implements ElarionAddon {
         api.realms().registerPresentationProvider(states::presentation);
         api.identity().registerAuthorityMarkerProvider((realmId, player) ->
                 states.isAuthority(realmId, player.getUuid()));
-        ServerLifecycleEvents.SERVER_STARTED.register(states::bind);
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            states.bind(server);
+            webProjections.publishAll();
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> states.tick());
         api.system().commands().registerAdminSubcommand(() -> GovernmentCommands.create(api, definitions, states));
         api.system().commands().registerTestSubcommand(() -> GovernmentCommands.testCommands(api, states));

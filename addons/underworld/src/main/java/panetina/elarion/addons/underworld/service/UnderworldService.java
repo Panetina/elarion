@@ -49,8 +49,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,12 +62,16 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class UnderworldService {
+    public static final String LIFETIME_DEATHS_STAT = "underworld_lifetime_deaths";
     private static final String ACCESS_PROTECTED = "protected";
     private static final String ACCESS_LOOTABLE = "lootable";
     private static final String ACCESS_KILLER = "killer";
     private static final String ACCESS_OWNER = "owner";
     private static final String ACCESS_MESSAGE = "message";
     private static final int MAIN_INVENTORY_SIZE = 36;
+    private static final int MAX_TOMB_DISPLAY_UPDATES_PER_SECOND = 64;
+    private static final int MAX_CORPSE_EXPIRATIONS_PER_SECOND = 64;
+    private static final long PROTECTED_EXPIRY_RETRY_MILLIS = 1_000L;
 
     private final Logger logger;
     private final ElarionApi api;
@@ -73,6 +79,9 @@ public final class UnderworldService {
     private UnderworldConfig config;
     private UnderworldState state = new UnderworldState();
     private final Map<UUID, CombatTag> combatTags = new LinkedHashMap<>();
+    private final UnderworldExpiryQueue expiryQueue = new UnderworldExpiryQueue();
+    private final ArrayDeque<String> tombDisplayQueue = new ArrayDeque<>();
+    private final Set<String> queuedTombDisplays = new HashSet<>();
     private final UnderworldTombService tombs;
     private MinecraftServer server;
     private int ticks;
@@ -127,12 +136,13 @@ public final class UnderworldService {
         api.characters().registerResetHandler("elarion_underworld", context -> resetCharacter(context.accountId()));
         migrateCorpseLifecycle();
         reconcileGraves();
+        rebuildRuntimeIndexes();
         dirty = true;
         save();
     }
 
     public void reload() {
-        this.config = UnderworldConfigLoader.load(logger);
+        this.config = UnderworldConfigLoader.reload(logger, config);
     }
 
     public UnderworldConfig config() {
@@ -144,9 +154,9 @@ public final class UnderworldService {
         ticks++;
         if (ticks % 20 == 0) {
             tickSessions();
-            syncTombDisplays();
+            flushTombDisplays();
+            expireDueCorpses();
         }
-        if (ticks % 200 == 0) expireCorpses();
         if (dirty && ticks % 100 == 0) save();
     }
 
@@ -204,11 +214,17 @@ public final class UnderworldService {
     private void markCorpsePublic(String corpseId, long now) {
         if (corpseId == null || corpseId.isBlank()) return;
         CorpseRecord corpse = state.corpses.get(corpseId);
-        if (corpse == null || corpse.publicLootStartedAt > 0L) return;
-        corpse.publicLootStartedAt = now;
-        corpse.decaysAt = now + config.corpseExpiresMinutes() * 60_000L;
-        dirty = true;
-        syncTombDisplay(corpse, now);
+        if (corpse == null) return;
+        if (corpse.publicLootStartedAt <= 0L) {
+            corpse.publicLootStartedAt = now;
+            corpse.decaysAt = now + config.corpseExpiresMinutes() * 60_000L;
+            dirty = true;
+        } else if (corpse.decaysAt <= 0L) {
+            corpse.decaysAt = corpse.publicLootStartedAt + config.corpseExpiresMinutes() * 60_000L;
+            dirty = true;
+        }
+        expiryQueue.schedule(corpse.corpseId, corpse.decaysAt);
+        queueTombDisplay(corpse.corpseId);
     }
 
     private void migrateCorpseLifecycle() {
@@ -287,6 +303,7 @@ public final class UnderworldService {
             archiveTrueDeath(player, soul);
             api.characters().beginTrueDeath(player, "soul-fractures", Map.of(
                     "fractures", Integer.toString(soul.fractures)));
+            recordTrueDeathChronicle(player, soul.fractures);
             emit("true-death", player.getUuid(), "", Map.of("fractures", Integer.toString(soul.fractures)));
             if (server != null) {
                 server.getPlayerManager().broadcast(Text.literal(
@@ -332,6 +349,7 @@ public final class UnderworldService {
         state.corpses.values().removeIf(corpse -> {
             if (!playerId.toString().equals(corpse.victimId)) return false;
             discardTomb(corpse);
+            forgetCorpseRuntimeState(corpse.corpseId);
             return true;
         });
         dirty = true;
@@ -344,6 +362,9 @@ public final class UnderworldService {
         state.souls.clear();
         for (CorpseRecord corpse : state.corpses.values()) discardTomb(corpse);
         state.corpses.clear();
+        expiryQueue.clear();
+        tombDisplayQueue.clear();
+        queuedTombDisplays.clear();
         combatTags.clear();
         dirty = true;
         save();
@@ -415,6 +436,8 @@ public final class UnderworldService {
         session.wasAuthority = false;
         state.sessions.put(session.playerId, session);
         dirty = true;
+        incrementLifetimeDeaths(player);
+        recordDeathChronicle(player, corpse, type);
         clearInventory(player);
         emit("corpse-created", player.getUuid(), corpse.corpseId, Map.of("deathType", type.name()));
         emit("player-sent-to-underworld", player.getUuid(), corpse.corpseId, Map.of("deathType", type.name()));
@@ -429,10 +452,15 @@ public final class UnderworldService {
             session.remainingMillis += config.extraMinutesPerUnderworldDeath() * 60_000L;
             dirty = true;
         }
+        incrementLifetimeDeaths(player);
         addFracture(player);
         emit("underworld-death", player.getUuid(), session == null ? "" : session.corpseId, Map.of());
         player.sendMessage(Text.literal("Your soul fractures. Too many fractures will cause True Death.")
                 .formatted(Formatting.RED), false);
+    }
+
+    private void incrementLifetimeDeaths(ServerPlayerEntity player) {
+        api.playerStats().increment(player.getUuid(), LIFETIME_DEATHS_STAT, 1L);
     }
 
     private CorpseRecord buildCorpse(ServerPlayerEntity player, UUID killer, ElarionDeathType deathType) {
@@ -810,6 +838,7 @@ public final class UnderworldService {
         }
         discardTomb(corpse);
         state.corpses.remove(corpse.corpseId);
+        forgetCorpseRuntimeState(corpse.corpseId);
         dirty = true;
         save();
     }
@@ -846,11 +875,36 @@ public final class UnderworldService {
         world(corpse.worldId).ifPresent(world -> tombs.remove(world, corpse));
     }
 
-    private void syncTombDisplays() {
-        long now = System.currentTimeMillis();
+    private void rebuildRuntimeIndexes() {
+        expiryQueue.clear();
+        tombDisplayQueue.clear();
+        queuedTombDisplays.clear();
         for (CorpseRecord corpse : state.corpses.values()) {
-            syncTombDisplay(corpse, now);
+            queueTombDisplay(corpse.corpseId);
+            if (!protectedByUnderworldSession(corpse) && corpse.decaysAt > 0L) {
+                expiryQueue.schedule(corpse.corpseId, corpse.decaysAt);
+            }
         }
+    }
+
+    private void queueTombDisplay(String corpseId) {
+        if (corpseId == null || corpseId.isBlank() || !queuedTombDisplays.add(corpseId)) return;
+        tombDisplayQueue.addLast(corpseId);
+    }
+
+    private void flushTombDisplays() {
+        long now = System.currentTimeMillis();
+        int processed = 0;
+        while (processed++ < MAX_TOMB_DISPLAY_UPDATES_PER_SECOND && !tombDisplayQueue.isEmpty()) {
+            String corpseId = tombDisplayQueue.removeFirst();
+            queuedTombDisplays.remove(corpseId);
+            syncTombDisplay(state.corpses.get(corpseId), now);
+        }
+    }
+
+    private void forgetCorpseRuntimeState(String corpseId) {
+        expiryQueue.cancel(corpseId);
+        queuedTombDisplays.remove(corpseId);
     }
 
     private void syncTombDisplay(CorpseRecord corpse, long now) {
@@ -906,6 +960,7 @@ public final class UnderworldService {
         long step = 1000L;
         List<UUID> toReturn = new ArrayList<>();
         for (UnderworldSession session : state.sessions.values()) {
+            queueTombDisplay(session.corpseId);
             if (session.paused) continue;
             session.remainingMillis = Math.max(0L, session.remainingMillis - step);
             if (session.remainingMillis <= 0L) toReturn.add(UUID.fromString(session.playerId));
@@ -921,30 +976,36 @@ public final class UnderworldService {
         }
     }
 
-    private void expireCorpses() {
+    private void expireDueCorpses() {
         long now = System.currentTimeMillis();
-        Iterator<CorpseRecord> iterator = state.corpses.values().iterator();
-        while (iterator.hasNext()) {
-            CorpseRecord corpse = iterator.next();
-            if (protectedByUnderworldSession(corpse)) continue;
+        for (String corpseId : expiryQueue.pollDue(now, MAX_CORPSE_EXPIRATIONS_PER_SECOND)) {
+            CorpseRecord corpse = state.corpses.get(corpseId);
+            if (corpse == null) continue;
+            if (protectedByUnderworldSession(corpse)) {
+                expiryQueue.schedule(corpse.corpseId, now + PROTECTED_EXPIRY_RETRY_MILLIS);
+                continue;
+            }
             if (corpse.publicLootStartedAt <= 0L) {
-                corpse.publicLootStartedAt = now;
-                corpse.decaysAt = now + config.corpseExpiresMinutes() * 60_000L;
-                dirty = true;
+                markCorpsePublic(corpse.corpseId, now);
                 continue;
             }
             if (corpse.decaysAt <= 0L) {
                 corpse.decaysAt = corpse.publicLootStartedAt + config.corpseExpiresMinutes() * 60_000L;
                 dirty = true;
+                expiryQueue.schedule(corpse.corpseId, corpse.decaysAt);
                 continue;
             }
-            if (now < corpse.decaysAt) continue;
+            if (now < corpse.decaysAt) {
+                expiryQueue.schedule(corpse.corpseId, corpse.decaysAt);
+                continue;
+            }
             List<StoredItemStack> vault = state.recoveryVaults.computeIfAbsent(
                     corpse.victimId, ignored -> new ArrayList<>());
             vault.addAll(corpse.protectedVictimItems);
             vault.addAll(corpse.pvpLootItems);
             discardTomb(corpse);
-            iterator.remove();
+            state.corpses.remove(corpse.corpseId);
+            forgetCorpseRuntimeState(corpse.corpseId);
             dirty = true;
         }
     }
@@ -969,6 +1030,7 @@ public final class UnderworldService {
         state.corpses.values().removeIf(corpse -> {
             if (!id.equals(corpse.victimId)) return false;
             discardTomb(corpse);
+            forgetCorpseRuntimeState(corpse.corpseId);
             return true;
         });
         combatTags.remove(accountId);
@@ -987,7 +1049,9 @@ public final class UnderworldService {
 
     private Optional<UUID> resolveKiller(ServerPlayerEntity player, DamageSource source) {
         Optional<ServerPlayerEntity> direct = playerAttacker(source);
-        if (direct.isPresent()) return direct.map(ServerPlayerEntity::getUuid);
+        if (direct.isPresent() && !direct.get().getUuid().equals(player.getUuid())) {
+            return direct.map(ServerPlayerEntity::getUuid);
+        }
         CombatTag tag = combatTags.get(player.getUuid());
         if (tag == null) return Optional.empty();
         long age = System.currentTimeMillis() - tag.lastHitAt();
@@ -995,9 +1059,58 @@ public final class UnderworldService {
     }
 
     private ElarionDeathType deathType(ServerPlayerEntity player, DamageSource source, UUID killer) {
+        if (selfInflicted(player, source) && killer == null) return ElarionDeathType.SUICIDE;
         if (killer != null) return ElarionDeathType.PVP;
         if (player.getY() < player.getWorld().getBottomY() - 8) return ElarionDeathType.VOID;
         return ElarionDeathType.PVE;
+    }
+
+    private boolean selfInflicted(ServerPlayerEntity player, DamageSource source) {
+        Entity attacker = source.getAttacker();
+        Entity direct = source.getSource();
+        return attacker != null && attacker.getUuid().equals(player.getUuid())
+                || direct != null && direct.getUuid().equals(player.getUuid());
+    }
+
+    private void recordDeathChronicle(ServerPlayerEntity player, CorpseRecord corpse, ElarionDeathType type) {
+        String eventType = switch (type) {
+            case PVP -> "death-pvp";
+            case SUICIDE -> "death-suicide";
+            case VOID -> "death-void";
+            default -> "death-pve";
+        };
+        Map<String, String> metadata = new java.util.LinkedHashMap<>();
+        metadata.put("deathType", type.name());
+        metadata.put("corpseId", corpse.corpseId);
+        if (corpse.killerId != null && !corpse.killerId.isBlank()) {
+            metadata.put("killer", corpse.killerId);
+        }
+        recordUnderworldChronicle(player, eventType, "corpse", corpse.corpseId, metadata,
+                player.getGameProfile().getName() + " died and was sent to the Underworld.");
+    }
+
+    private void recordTrueDeathChronicle(ServerPlayerEntity player, int fractures) {
+        recordUnderworldChronicle(player, "true-death", "player", player.getUuidAsString(),
+                Map.of("fractures", Integer.toString(fractures)),
+                player.getGameProfile().getName() + " suffered True Death.");
+    }
+
+    private void recordUnderworldChronicle(
+            ServerPlayerEntity player,
+            String type,
+            String subjectType,
+            String subjectId,
+            Map<String, String> metadata,
+            String fallbackText
+    ) {
+        try {
+            api.history().recordChronicle("underworld", type, player.getUuid(), subjectType, subjectId,
+                    api.citizens().find(player.getUuid()).map(citizen -> citizen.realmId()).orElse(""),
+                    metadata, fallbackText);
+        } catch (RuntimeException exception) {
+            logger.warn("Failed to record Underworld Chronicle event {} for {}", type,
+                    player.getGameProfile().getName(), exception);
+        }
     }
 
     private long timerMinutes(ElarionDeathType type) {

@@ -42,8 +42,10 @@ import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public final class ProgressionService {
+    public static final String ADVANCEMENTS_COMPLETED = "advancements_completed";
     private static final long SAVE_INTERVAL_MILLIS = 300_000L;
     private static final int ACTIVE_EFFECT_DURATION_TICKS = 220;
 
@@ -63,6 +65,7 @@ public final class ProgressionService {
     private MinecraftServer server;
     private long lastSaveAt;
     private long ticks;
+    private Consumer<UUID> advancementCountListener = ignored -> {};
 
     public ProgressionService(
             CoreConfigManager config,
@@ -166,6 +169,7 @@ public final class ProgressionService {
 
     public void recordAdvancement(ServerPlayerEntity player, Identifier advancementId) {
         if (player == null || advancementId == null) return;
+        synchronizeAdvancementCount(player);
         recordEvent(ProgressionEvent.builder("advancement", player.getUuid())
                 .world(player.getWorld().getRegistryKey().getValue().toString())
                 .dimension(player.getWorld().getRegistryKey().getValue().toString())
@@ -173,6 +177,20 @@ public final class ProgressionService {
                 .metadata("advancement", advancementId.toString())
                 .metadata("regions", regionsAt(player.getServerWorld(), player.getBlockPos()))
                 .build());
+    }
+
+    public void synchronizeAdvancementCount(ServerPlayerEntity player) {
+        if (player == null || player.getServer() == null) return;
+        long completed = player.getServer().getAdvancementLoader().getAdvancements().stream()
+                .filter(advancement -> advancement.value().display().isPresent())
+                .filter(advancement -> player.getAdvancementTracker().getProgress(advancement).isDone())
+                .count();
+        playerStats.set(player.getUuid(), ADVANCEMENTS_COMPLETED, completed);
+        advancementCountListener.accept(player.getUuid());
+    }
+
+    public void setAdvancementCountListener(Consumer<UUID> listener) {
+        advancementCountListener = listener == null ? ignored -> {} : listener;
     }
 
     public void recordCustom(ServerPlayerEntity player, String eventType, String subject) {
