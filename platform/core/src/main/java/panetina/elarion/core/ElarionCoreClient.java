@@ -34,8 +34,10 @@ import panetina.elarion.core.network.CharacterRealmAssignmentPayload;
 import panetina.elarion.core.network.CharacterCreationStatusRequestPayload;
 import panetina.elarion.core.network.ElarionConfigEditOpenPayload;
 import panetina.elarion.core.network.ElarionConfigEditResultPayload;
+import panetina.elarion.core.network.LauncherPassageTicketPayload;
 import panetina.elarion.core.model.ElarionNotificationSnapshot;
 import panetina.elarion.core.client.ui.ElarionUiThemes;
+import panetina.elarion.core.client.LauncherPassageTicketStore;
 
 public final class ElarionCoreClient implements ClientModInitializer {
     private static KeyBinding collectionKey;
@@ -90,6 +92,8 @@ public final class ElarionCoreClient implements ClientModInitializer {
                 context.client().execute(() -> ElarionConfigEditClientState.update(payload)));
         ClientPlayNetworking.registerGlobalReceiver(ElarionConfigEditOpenPayload.ID, (payload, context) ->
                 context.client().execute(() -> ElarionConfigEditClientState.open(payload.control())));
+        ClientPlayNetworking.registerGlobalReceiver(LauncherPassageTicketPayload.ID, (payload, context) ->
+                context.client().execute(() -> LauncherPassageTicketStore.save(payload.uuid(), payload.ticket())));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!vanillaSaveHotbarBindingChecked && client.options != null) {
                 vanillaSaveHotbarBindingChecked = unbindVanillaSaveHotbarActivator(client);

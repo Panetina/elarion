@@ -32,6 +32,11 @@ Main package:
   player.
 - Does not receive RCON access, database credentials, browser cookies, or
   administrator credentials.
+- On a successful online-mode join, issues the client an opaque, seven-day
+  `launcher-passage` receipt. The website verifies it with the existing bridge
+  HMAC secret and returns only that UUID's website read model. This eliminates
+  a website-to-Minecraft-Services verification call; the receipt contains no
+  game data and Core does not persist it.
 
 Requests and responses use HMAC-SHA256 over five newline-delimited fields:
 

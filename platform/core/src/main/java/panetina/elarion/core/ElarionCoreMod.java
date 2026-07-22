@@ -113,6 +113,8 @@ import panetina.elarion.core.integration.minecraft.MinecraftProjectionProtocol.V
 import panetina.elarion.core.integration.minecraft.MinecraftProjectionPublisher;
 import panetina.elarion.core.integration.minecraft.AdvancementLeaderboardProjection;
 import panetina.elarion.core.integration.minecraft.MinecraftWhitelistBridgeService;
+import panetina.elarion.core.network.LauncherPassageTicketPayload;
+import panetina.elarion.core.integration.minecraft.LauncherPassageTicketService;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -159,11 +161,13 @@ public final class ElarionCoreMod implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(ElarionConfigEditOpenPayload.ID, ElarionConfigEditOpenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ElarionConfigEditResultPayload.ID, ElarionConfigEditResultPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ElarionConfigEditRequestPayload.ID, ElarionConfigEditRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(LauncherPassageTicketPayload.ID, LauncherPassageTicketPayload.CODEC);
 
         CoreConfigManager config = new CoreConfigManager(LOGGER);
         config.load();
-        MinecraftWhitelistBridgeService minecraftBridge = new MinecraftWhitelistBridgeService(
-                LOGGER, MinecraftBridgeConfig.load(LOGGER));
+        MinecraftBridgeConfig minecraftBridgeConfig = MinecraftBridgeConfig.load(LOGGER);
+        MinecraftWhitelistBridgeService minecraftBridge = new MinecraftWhitelistBridgeService(LOGGER, minecraftBridgeConfig);
+        LauncherPassageTicketService launcherPassageTickets = new LauncherPassageTicketService(minecraftBridgeConfig);
         MinecraftProjectionPublisher webProjections = minecraftBridge.projections();
         Map<UUID, String> citizenRealms = new ConcurrentHashMap<>();
         Map<String, Integer> realmMemberCounts = new ConcurrentHashMap<>();
@@ -396,6 +400,11 @@ public final class ElarionCoreMod implements ModInitializer {
             identitySync.syncAllNow(server);
             uiThemes.sync(handler.getPlayer());
         });
+            String launcherPassageTicket = launcherPassageTickets.issue(handler.getPlayer().getUuid());
+            if (!launcherPassageTicket.isBlank()) {
+                ServerPlayNetworking.send(handler.getPlayer(), new LauncherPassageTicketPayload(
+                        handler.getPlayer().getUuid().toString(), launcherPassageTicket));
+            }
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             citizens.markSeen(handler.getPlayer());
             updateOnlineRealm(handler.getPlayer().getUuid(), "", realms, webProjections,
