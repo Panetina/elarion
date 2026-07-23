@@ -1,0 +1,468 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "ground": "sand"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/ground/sand"
+      }
+    },
+
+    {
+      "when": {
+        "ground": "red_sand"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/ground/red_sand"
+      }
+    },
+
+    {
+      "when": {
+        "ground": "stone"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/ground/stone"
+      }
+    },
+
+    {
+      "when": {
+        "ground": "gravel"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/ground/gravel"
+      }
+    },
+
+
+
+
+
+
+    {
+      "when": {
+        "decoration": "river_clam"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/river_clam"
+      }
+    },
+
+    {
+      "when": {
+        "decoration": "weathered_conch"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/weathered_conch"
+      }
+    },
+
+    {
+      "when": {
+        "decoration": "seagrass"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/seagrass"
+      }
+    },
+
+    {
+      "when": {
+        "decoration": "kelp"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/kelp"
+      }
+    },
+
+    {
+      "when": {
+        "decoration": "kelp_top"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/kelp_top"
+      }
+    },
+
+    {
+      "when": {
+        "decoration": "castle_sand"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/castle_sand"
+      }
+    },
+
+    {
+      "when": {
+        "decoration": "castle_red_sand"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/castle_red_sand"
+      }
+    },
+
+    {
+      "when": {
+        "decoration": "cave"
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/decoration/cave"
+      }
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+    {
+      "when": {
+        "north": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/north_center"
+      }
+    },
+
+    {
+      "when": {
+        "north": false,
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/north_bottom"
+      }
+    },
+
+    {
+      "when": {
+        "north": false,
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/north_top"
+      }
+    },
+
+    {
+      "when": {
+        "north": false,
+        "east": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/north_east"
+      }
+    },
+
+    {
+      "when": {
+        "north": false,
+        "west": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/north_west"
+      }
+    },
+
+
+
+
+
+
+
+    {
+      "when": {
+        "south": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/south_center"
+      }
+    },
+
+    {
+      "when": {
+        "south": false,
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/south_bottom"
+      }
+    },
+
+    {
+      "when": {
+        "south": false,
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/south_top"
+      }
+    },
+
+    {
+      "when": {
+        "south": false,
+        "east": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/south_east"
+      }
+    },
+
+    {
+      "when": {
+        "south": false,
+        "west": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/south_west"
+      }
+    },
+
+
+
+
+
+
+
+
+
+
+    {
+      "when": {
+        "east": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/east_center"
+      }
+    },
+
+    {
+      "when": {
+        "east": false,
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/east_bottom"
+      }
+    },
+
+    {
+      "when": {
+        "east": false,
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/east_top"
+      }
+    },
+
+    {
+      "when": {
+        "east": false,
+        "north": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/east_north"
+      }
+    },
+
+    {
+      "when": {
+        "east": false,
+        "south": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/east_south"
+      }
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    {
+      "when": {
+        "west": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/west_center"
+      }
+    },
+
+    {
+      "when": {
+        "west": false,
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/west_bottom"
+      }
+    },
+
+    {
+      "when": {
+        "west": false,
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/west_top"
+      }
+    },
+
+    {
+      "when": {
+        "west": false,
+        "north": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/west_north"
+      }
+    },
+
+    {
+      "when": {
+        "west": false,
+        "south": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/west_south"
+      }
+    },
+
+
+
+
+
+
+
+
+
+
+
+    {
+      "when": {
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/bottom_center"
+      }
+    },
+
+    {
+      "when": {
+        "north": false,
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/bottom_north"
+      }
+    },
+
+    {
+      "when": {
+        "west": false,
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/bottom_west"
+      }
+    },
+
+    {
+      "when": {
+        "east": false,
+        "bottom": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/bottom_east"
+      }
+    },
+
+    {
+      "when": {
+        "bottom": false,
+        "south": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/bottom_south"
+      }
+    },
+
+
+
+
+
+
+
+
+
+
+    {
+      "when": {
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/top_center"
+      }
+    },
+
+    {
+      "when": {
+        "north": false,
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/top_north"
+      }
+    },
+
+    {
+      "when": {
+        "west": false,
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/top_west"
+      }
+    },
+
+    {
+      "when": {
+        "east": false,
+        "top": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/top_east"
+      }
+    },
+
+    {
+      "when": {
+        "top": false,
+        "south": false
+      },
+      "apply": {
+        "model": "elarion_angling:block/aquarium/walls/top_south"
+      }
+    }
+  ]
+}

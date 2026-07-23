@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "elarion_angling:block/trophy_iron"
+    },
+    "facing=east": {
+      "model": "elarion_angling:block/trophy_iron",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "elarion_angling:block/trophy_iron",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "elarion_angling:block/trophy_iron",
+      "y": 270
+    }
+  }
+}

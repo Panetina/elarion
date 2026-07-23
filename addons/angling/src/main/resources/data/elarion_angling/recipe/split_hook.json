@@ -1,0 +1,24 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "C":  {
+                          "item":  "minecraft:chain"
+                      },
+                "H":  {
+                          "item":  "elarion_angling:hook"
+                      },
+                "N":  {
+                          "item":  "minecraft:iron_nugget"
+                      }
+            },
+    "pattern":  [
+                    "N  ",
+                    "CHC",
+                    " C "
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:split_hook"
+               }
+}

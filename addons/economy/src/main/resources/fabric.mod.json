@@ -5,6 +5,17 @@
     "name": "Elarion Economy",
     "icon": "assets/elarion_economy/icon.png",
     "description": "Audited currency, wallets, Realm treasuries, and economy monitoring for Elarion.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors": [
         "Panyel"
     ],

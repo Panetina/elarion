@@ -1,0 +1,44 @@
+_version = 4
+
+[server]
+enableServerGeneration = false
+synchronizeOnLoad = false
+enableRealTimeUpdates = false
+
+[common.multiThreading]
+numberOfThreads = 2
+threadRunTimeRatio = "0.75"
+threadPriority = 4
+
+[common.worldGenerator]
+distantGeneratorMode = "PRE_EXISTING_ONLY"
+enableDistantGeneration = false
+showGenerationProgress = "DISABLED"
+generationMaxChunkRadius = 0
+
+[client.advanced.autoUpdater]
+updateBranch = "AUTO"
+enableAutoUpdater = false
+enableSilentUpdates = false
+
+[client.advanced.graphics]
+enableSsao = false
+overrideVanillaGraphicsSettings = true
+
+[client.advanced.graphics.quality]
+maxHorizontalResolution = "HALF_CHUNK"
+verticalQuality = "MEDIUM"
+horizontalQuality = "MEDIUM"
+lodChunkRenderDistanceRadius = 128
+lodBiomeBlending = 0
+vanillaFadeMode = "NONE"
+transparency = "COMPLETE"
+
+[client.advanced.graphics.culling]
+# Keep LOD geometry outside the vanilla chunk envelope. This avoids first-join
+# Iris/Hysteria compositing through chunks while they are still arriving.
+overdrawPrevention = "1.0"
+blocksToIgnore = "NON_COLLIDING"
+enableCaveCulling = true
+disableFrustumCulling = false
+reduceOverdrawWithFastMovement = true

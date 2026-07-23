@@ -8,8 +8,8 @@
       "id": "external-platform",
       "keywords": ["website", "launcher", "discord", "bridge", "projection", "pebblehost", "deploy", "live server"],
       "owner": "Fabric owns canonical game truth; website/launcher/Discord own only their explicit external domains",
-      "docs": ["docs/systems/MinecraftBridge.md", "docs/systems/LiveDeployment.md", "docs/architecture/DEPENDENCY_GRAPH.md"],
-      "sourceGlobs": ["platform/core/src/main/java/**/integration/minecraft/*.java", "addons/*/src/main/java/**/*WebProjection*.java", "dev/tools/deploy-live-server.ps1", "build.gradle"],
+      "docs": ["docs/systems/MinecraftBridge.md", "docs/systems/LiveDeployment.md", "docs/systems/Distribution.md", "docs/architecture/DEPENDENCY_GRAPH.md"],
+      "sourceGlobs": ["platform/core/src/main/java/**/integration/minecraft/*.java", "addons/*/src/main/java/**/*WebProjection*.java", "dev/tools/deploy-live-server.ps1", "distribution/mods.json", "build.gradle"],
       "testGlobs": ["platform/core/src/test/java/**/integration/minecraft/*.java", "addons/*/src/test/java/**/*WebProjection*.java"],
       "commands": [".\\gradlew.bat prepareLiveServerRelease"],
       "companionChecks": ["canonical ownership", "bounded signed projection", "no external canonical state", "explicit deployment approval", "remote backup", "post-start verification"]
@@ -73,6 +73,16 @@
       "testGlobs": ["platform/core/src/test/java/**/storage/*.java", "addons/*/src/test/java/**/storage/*.java"],
       "commands": [".\\gradlew.bat :platform:core:test"],
       "companionChecks": ["round trip", "reload", "restart", "atomic write", "bounded query path"]
+    },
+    {
+      "id": "atlas",
+      "keywords": ["atlas", "map", "terrain", "discovery", "marker", "heraldry", "npc pin", "worlds map"],
+      "owner": "addons/atlas for rendering/discovery projections; Core and domain addons retain canonical truth",
+      "docs": ["docs/systems/Atlas.md", "docs/addons/atlas.md", "docs/architecture/DEPENDENCY_GRAPH.md"],
+      "sourceGlobs": ["addons/atlas/src/main/java/**/*.java"],
+      "testGlobs": ["addons/atlas/src/test/java/**/*.java"],
+      "commands": [".\\gradlew.bat :addons:atlas:test :addons:atlas:build"],
+      "companionChecks": ["shell versus operational status", "canonical owner", "bounded regions", "server-side visibility masking", "no direct addon storage access", "website read-model boundary"]
     },
     {
       "id": "commands",
@@ -163,6 +173,16 @@
       "testGlobs": ["addons/underworld/src/test/java/**/*.java", "platform/core/src/test/java/**/*CharacterLifecycle*.java"],
       "commands": [".\\gradlew.bat :addons:underworld:test", ".\\gradlew.bat :platform:core:test"],
       "companionChecks": ["component preservation", "authorization", "restart reconciliation", "Core True Death handoff"]
+    },
+    {
+      "id": "angling",
+      "keywords": ["angling", "fishing", "fish", "bobber", "bait", "tournament", "catch", "farmer's delight", "starcatcher"],
+      "owner": "addons/angling for fishing runtime; Core for accepted catches, rewards, titles, metrics, rankings, and events",
+      "docs": ["docs/addons/angling.md", "docs/systems/CatchTelemetry.md", "docs/systems/Metrics.md", "docs/architecture/DEPENDENCY_GRAPH.md"],
+      "sourceGlobs": ["addons/angling/src/main/java/**/*.java", "addons/angling/porting/*.json", "addons/angling-delight/src/main/java/**/*.java", "addons/angling-delight/porting/*.json", "platform/core/src/main/java/**/*Catch*.java", "platform/core/src/main/java/**/metric/*.java"],
+      "testGlobs": ["addons/angling/src/test/java/**/*.java", "addons/angling-delight/src/test/java/**/*.java", "platform/core/src/test/java/**/*Catch*.java", "platform/core/src/test/java/**/metric/*.java"],
+      "commands": [".\\gradlew.bat :addons:angling:check", ".\\gradlew.bat :addons:angling-delight:check"],
+      "companionChecks": ["frozen source revision", "parity disposition", "server authority", "bounded hot paths", "Core catch truth", "release exclusion"]
     },
     {
       "id": "mounts",

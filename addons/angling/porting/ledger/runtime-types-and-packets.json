@@ -1,0 +1,546 @@
+{
+    "schemaVersion":  1,
+    "sourceRevision":  "016161dfc2d556d20fa641cd275e18c539256d4d",
+    "summary":  {
+                    "restrictions":  16,
+                    "modifiers":  52,
+                    "sweetspotBehaviors":  9,
+                    "packets":  11
+                },
+    "restrictions":  [
+                         {
+                             "id":  "elarion_angling:bait",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:biome",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:caught_limit",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:daytime_bias",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:daytime_restriction",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:dimension",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:elevation_bias",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:elevation_restriction",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:empty",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:fluid",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:moon_phase",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:percentage_chance",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:rarity_count",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:season",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:structure_restriction",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         },
+                         {
+                             "id":  "elarion_angling:weather_restriction",
+                             "kind":  "restriction",
+                             "sourcePath":  "SCFishRestrictions.java",
+                             "disposition":  "pending"
+                         }
+                     ],
+    "modifiers":  [
+                      {
+                          "id":  "elarion_angling:add_basic_sweetspot",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:add_leaves_spots",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:add_loot_table_to_fishing_loot",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:add_to_available_pool",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:adjust_decay_rate",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:adjust_handle_speed",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:adjust_lure_time",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:adjust_moving_sweetspots",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:adjust_penalty_rate",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:adjust_vanishing_rate",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:anglers_hat",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:award_treasure_on_perfect_catch",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:base",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:bigger_green_sweetspots",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:bost_thrown_speed",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:bounce_back",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:burn_on_miss",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:cancel_golden",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:deep_dark",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:disable_hit_sounds",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:disable_miss_sounds",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:empty",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:extra_base_catch",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:extra_exp_based_on_performance",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:extra_golden_chance",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:fish_messages",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:flip_every_hit",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:flip_sweetspots_on_miss",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:force_fish_entity",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:freeze_on_miss",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:hide_catch",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:ignore_daytime_restrictions",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:ignore_weather_restrictions",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:luck_attribute_modifier",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:modify_award_fish",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:move_sweetspots_on_miss",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:multi_layer_modifier",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:never_lose",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:new_catch_increase",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:no_gravity",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:override_fish_caught",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:prevent_frozen",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:pull_down",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:remove_base_fished_item",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:skip_minigame",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:skip_minigame_if_trigger_found",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:spawn_sweetspots",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:spawn_treasure_on_hit_x",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:stop_decay_on_hit",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:survives_lava",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:teleport",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      },
+                      {
+                          "id":  "elarion_angling:trigger_skip_minigame",
+                          "kind":  "modifier",
+                          "sourcePath":  "Modifier.java",
+                          "disposition":  "pending"
+                      }
+                  ],
+    "sweetspotBehaviors":  [
+                               {
+                                   "id":  "elarion_angling:aqua",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:cloud",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:deep_ocean",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:freeze",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:glowing",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:leaf",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:normal",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:tnt",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               },
+                               {
+                                   "id":  "elarion_angling:treasure",
+                                   "kind":  "sweetspot-behavior",
+                                   "sourcePath":  "SCSweetSpotsBehaviour.java",
+                                   "disposition":  "pending"
+                               }
+                           ],
+    "packets":  [
+                    {
+                        "sourceClass":  "CBFishCaughtPayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/CBFishCaughtPayload.java",
+                        "direction":  "clientbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "CBFishingStartedPayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/CBFishingStartedPayload.java",
+                        "direction":  "clientbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "SBFishingCompletedPayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/SBFishingCompletedPayload.java",
+                        "direction":  "serverbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "SBFPsSeenPayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/SBFPsSeenPayload.java",
+                        "direction":  "serverbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "SBSetMessagePayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/SBSetMessagePayload.java",
+                        "direction":  "serverbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "SBTrackFishPayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/SBTrackFishPayload.java",
+                        "direction":  "serverbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "SignGuidePayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/SignGuidePayload.java",
+                        "direction":  "serverbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "CBActiveTournamentUpdatePayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/tournament/CBActiveTournamentUpdatePayload.java",
+                        "direction":  "clientbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "CBClearTournamentPayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/tournament/CBClearTournamentPayload.java",
+                        "direction":  "clientbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "CBFinishedTournamentsListPayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/tournament/CBFinishedTournamentsListPayload.java",
+                        "direction":  "clientbound",
+                        "disposition":  "pending"
+                    },
+                    {
+                        "sourceClass":  "SBStandTournamentNameChangePayload",
+                        "sourcePath":  "src/main/java/com/wdiscute/starcatcher/io/network/tournament/SBStandTournamentNameChangePayload.java",
+                        "direction":  "serverbound",
+                        "disposition":  "pending"
+                    }
+                ]
+}

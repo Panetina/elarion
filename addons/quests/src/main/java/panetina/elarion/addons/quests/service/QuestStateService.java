@@ -78,6 +78,15 @@ public final class QuestStateService {
         if (server != null) storage.save(server, state);
     }
 
+    public synchronized int resetAllRuntimeState() {
+        int changed = state.players.size() + state.questlines.size()
+                + state.actorBindings.size() + state.scheduled.size();
+        state = new QuestRuntimeState();
+        ticks = 0;
+        save();
+        return changed;
+    }
+
     public synchronized Optional<QuestlineState> findLine(String questId, String scopeKey) {
         return Optional.ofNullable(state.questlines.get(lineKey(questId, scopeKey))).map(QuestlineState::copy);
     }

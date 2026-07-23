@@ -37,16 +37,4 @@ public final class ElarionGroupsApi {
     public Optional<GroupRecord> groupFor(UUID playerId) {
         return groups.groupFor(playerId);
     }
-
-    public boolean eligibleForConfederationDelegate(String groupId, String realmId) {
-        return groups.eligibleForConfederationDelegate(groupId, realmId);
-    }
-
-    public boolean isConfederationLocked(String groupId) {
-        return groups.isConfederationLocked(groupId);
-    }
-
-    public void setConfederationLocked(String groupId, boolean locked) {
-        groups.setConfederationLocked(groupId, locked);
-    }
 }

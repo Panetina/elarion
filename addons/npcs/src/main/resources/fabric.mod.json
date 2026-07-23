@@ -5,6 +5,17 @@
     "name": "Elarion NPCs",
     "icon": "assets/elarion_npcs/icon.png",
     "description": "Static placeable NPCs, dialogue trees, and registry-driven interaction hooks for Elarion.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors": [
         "Panyel"
     ],

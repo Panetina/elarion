@@ -80,6 +80,15 @@ public final class PlayerStatsService {
         storage.save(server, fresh);
     }
 
+    public int resetAll() throws java.io.IOException {
+        requireServer();
+        int count = cache.size();
+        cache.clear();
+        dirty.clear();
+        storage.deleteAll(server);
+        return count;
+    }
+
     private void requireServer() {
         if (server == null) throw new IllegalStateException("PlayerStatsService is not bound to a server");
     }

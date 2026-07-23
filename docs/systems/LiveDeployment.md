@@ -5,14 +5,17 @@ after the owner accepts QA and confirms the live server is stopped.
 
 ## Ownership And Boundaries
 
-- `build.gradle` owns the canonical `server-mods` and `client-mods` exports.
+- `distribution/mods.json` owns third-party pins and `build.gradle` owns the
+  canonical `build/export/server` and `build/export/client` install roots.
 - `dev/tools/deploy-live-server.ps1` owns SFTP staging, backup, and promotion.
 - `.elarion-deploy.local.psd1` owns this workstation's non-committed SFTP
   destination and key path. Passwords and bridge secrets are never stored in
   the repository.
-- The deployment command changes only the remote `mods` directory and release
-  manifest. It does not mutate worlds, player state, configs, logs, whitelist,
-  website data, or launcher releases.
+- The deployment command changes only the remote `mods` directory, the files
+  in the canonical managed server-config export, and the release
+  manifest. It does not replace the remote `config` directory or mutate worlds,
+  player state, unrelated configs, logs, whitelist, website data, or launcher
+  releases.
 - Starting/restarting PebbleHost and validating its startup log remain separate
   explicit operations.
 
@@ -49,12 +52,14 @@ authentication.
    ```
 
 4. Gradle runs all module builds, tests, `verifyAiContext`, and regenerates the
-   canonical exports.
+  canonical exports. Server promotion reads `build/export/server/mods` and the
+  individual files under `build/export/server/config`.
 5. The script hashes every server jar, uploads into a timestamped staging
    directory, and does not touch live `mods` until staging succeeds.
-6. Promotion renames the prior live `mods` directory into
-   `.elarion-backups/release-<UTC timestamp>/mods`, then moves the staged set
-   into place. A failed commit attempts to restore that backup.
+6. Promotion renames the prior live `mods` directory, managed config files, and
+   checksum manifest into `.elarion-backups/release-<UTC timestamp>/`, then
+   moves the staged set into place. A failed commit attempts to restore every
+   managed artifact.
 7. Start PebbleHost manually and inspect the complete startup log for missing
    dependencies, mixin failures, config failures, and Elarion initialization.
 8. Test one representative join and bridge/projection cycle before treating the

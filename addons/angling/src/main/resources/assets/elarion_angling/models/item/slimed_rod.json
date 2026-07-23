@@ -1,0 +1,12 @@
+{
+  "parent": "item/handheld_rod",
+  "textures": {
+    "layer0": "elarion_angling:item/slimed_rod_uncast"
+  },
+  "overrides": [
+    {
+      "predicate": {"elarion_angling:cast": 1},
+      "model": "elarion_angling:item/slimed_rod_cast"
+    }
+  ]
+}

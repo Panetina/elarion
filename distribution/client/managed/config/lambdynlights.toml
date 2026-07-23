@@ -1,0 +1,24 @@
+# Elarion-managed LambDynamicLights settings.
+# Fancy mode is the smooth path used for Iris/shader compatibility.
+mode = "fancy"
+chunk_rebuild_scheduler = "culling"
+
+[adaptive_ticking]
+	slow = 5
+	slower = 8
+	background_sleep = true
+
+[light_sources]
+	entities = true
+	self = true
+	water_sensitive_check = true
+	creeper = "simple"
+	tnt = "off"
+	beam = true
+	firefly = true
+	guardian_laser = true
+	sonic_boom = true
+	glowing_effect = true
+
+[light_sources.settings.entities.minecraft]
+	glow_item_frame = false

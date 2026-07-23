@@ -83,4 +83,21 @@ final class DeferredRewardGrantServiceTest {
 
         assertEquals(0, snapshot.entries().size());
     }
+
+    @Test
+    void idempotentEnqueueDistinguishesExactRetryFromConflictingGrantId() {
+        DeferredRewardGrantService service = new DeferredRewardGrantService(
+                new DeferredRewardGrantStorage(LoggerFactory.getLogger("test")), null, null);
+        UUID recipient = UUID.randomUUID();
+        List<RewardAction> actions = List.of(
+                new RewardAction("item", Map.of("id", "minecraft:cod", "count", "1")));
+
+        assertEquals(DeferredRewardGrantService.EnqueueResult.ENQUEUED,
+                service.enqueueIdempotent("catch-1", recipient, "elarion_angling", "event", actions));
+        assertEquals(DeferredRewardGrantService.EnqueueResult.EXACT_RETRY,
+                service.enqueueIdempotent("catch-1", recipient, "elarion_angling", "event", actions));
+        assertEquals(DeferredRewardGrantService.EnqueueResult.CONFLICT,
+                service.enqueueIdempotent("catch-1", recipient, "elarion_angling", "different", actions));
+        assertEquals(1, service.pendingCount(recipient));
+    }
 }

@@ -1,0 +1,90 @@
+{
+    "schema_version":  1,
+    "base_chance":  5,
+    "catch_info":  {
+                       "item":  {
+                                    "count":  1,
+                                    "id":  "elarion_angling:voidfang"
+                                }
+                   },
+    "difficulty":  {
+                       "decay":  1.0,
+                       "hp":  500,
+                       "missPenalty":  30,
+                       "modifiers":  [
+                                         {
+                                             "type":  "elarion_angling:teleport",
+                                             "translation_override":  ""
+                                         },
+                                         {
+                                             "type":  "elarion_angling:freeze_on_miss",
+                                             "length":  40,
+                                             "rampTime":  10,
+                                             "translation_override":  ""
+                                         },
+                                         {
+                                             "type":  "elarion_angling:multi_layer_modifier",
+                                             "max_layers":  1,
+                                             "translation_override":  ""
+                                         }
+                                     ],
+                       "speed":  10,
+                       "sweetspots":  [
+                                          {
+                                              "color_as_int":  -3768615,
+                                              "hitbox_size_in_pixels":  15,
+                                              "is_flip":  false,
+                                              "moving_rate":  0.0,
+                                              "reward":  15,
+                                              "sweetspot_type":  "elarion_angling:normal",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/end_crab_leg.png",
+                                              "vanishing_rate":  0.0
+                                          },
+                                          {
+                                              "color_as_int":  -3768615,
+                                              "hitbox_size_in_pixels":  15,
+                                              "is_flip":  false,
+                                              "moving_rate":  0.0,
+                                              "reward":  15,
+                                              "sweetspot_type":  "elarion_angling:normal",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/end_crab_leg.png",
+                                              "vanishing_rate":  0.0
+                                          }
+                                      ]
+                   },
+    "has_guide_entry":  true,
+    "rarity":  "legendary",
+    "restrictions":  [
+                         {
+                             "type":  "elarion_angling:dimension",
+                             "dimensions":  [
+
+                                            ],
+                             "dimensions_tags":  [
+                                                     "elarion_angling:is_end"
+                                                 ],
+                             "translation_override":  "dimension.minecraft.the_end"
+                         },
+                         {
+                             "type":  "elarion_angling:bait",
+                             "baits":  {
+                                           "elarion_angling:legendary_bait":  50
+                                       }
+                         },
+                         {
+                             "type":  "elarion_angling:fluid",
+                             "fluids":  [
+                                            "minecraft:empty"
+                                        ]
+                         }
+                     ],
+    "size_and_weight":  {
+                            "average_size_cm":  50.0,
+                            "average_weight_grams":  2000.0,
+                            "deviation_size_cm":  15.0,
+                            "deviation_weight_grams":  200.0,
+                            "golden_chance":  0.02
+                        },
+    "skips_minigame":  false,
+    "textures":  "elarion_angling:textures/gui/minigame/end_void.png"
+}

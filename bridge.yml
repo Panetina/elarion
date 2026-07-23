@@ -1,0 +1,6 @@
+version: 1
+enabled: false
+base-url: "https://ashesofelarion.com"
+server-id: "production"
+secret: ""
+poll-seconds: 30

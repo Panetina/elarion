@@ -1,0 +1,27 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "equipment",
+    "key":  {
+                "B":  {
+                          "item":  "elarion_angling:bobber"
+                      },
+                "H":  {
+                          "item":  "elarion_angling:hook"
+                      },
+                "S":  {
+                          "item":  "minecraft:stick"
+                      },
+                "T":  {
+                          "item":  "elarion_angling:elarion_angling_twine"
+                      }
+            },
+    "pattern":  [
+                    "  S",
+                    " ST",
+                    "SHB"
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:elarion_angling_rod"
+               }
+}

@@ -18,6 +18,7 @@ system notes.
 - `Networking.md`
 - `Persistence.md`
 - `CatchTelemetry.md`
+- `Metrics.md`
 - `Groups.md`
 - `Government.md`
 - `Underworld.md`
@@ -30,7 +31,8 @@ system notes.
 
 ## Future / Partly Speculative Docs
 
-- `Maps.md`
+- `Atlas.md` (authoritative; only its placeholder shell is implemented)
+- `Maps.md` (compatibility pointer to `Atlas.md`)
 - `Teams.md`
 
 ## Reference Exclusion

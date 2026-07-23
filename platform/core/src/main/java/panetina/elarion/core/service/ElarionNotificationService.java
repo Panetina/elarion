@@ -1,5 +1,6 @@
 package panetina.elarion.core.service;
 
+import com.google.gson.Gson;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -10,6 +11,8 @@ import panetina.elarion.core.model.ElarionNotificationEntry;
 import panetina.elarion.core.model.ElarionNotificationSnapshot;
 import panetina.elarion.core.model.ElarionStoredNotification;
 import panetina.elarion.core.network.NotificationSnapshotPayload;
+import panetina.elarion.core.integration.minecraft.MinecraftProjectionPublisher;
+import panetina.elarion.core.integration.minecraft.MinecraftProjectionProtocol.Visibility;
 import panetina.elarion.core.storage.NotificationStorage;
 
 import java.nio.charset.StandardCharsets;
@@ -31,29 +34,39 @@ public final class ElarionNotificationService {
     public static final String MARK_READ = "elarion_core:mark_read";
     private static final long DEFAULT_EXPIRY_MILLIS = Duration.ofDays(30).toMillis();
     private static final int MAX_PER_CATEGORY = 100;
+    private static final int MAX_LAUNCHER_ENTRIES = 5;
+    private static final int MAX_LAUNCHER_TEXT = 240;
+    private static final Gson GSON = new Gson();
 
     private final NotificationStorage storage;
     private final CitizenService citizens;
+    private final MinecraftProjectionPublisher webProjections;
     private final Map<String, ElarionStoredNotification> notifications = new LinkedHashMap<>();
+    private final Map<UUID, LinkedHashSet<String>> notificationIdsByRecipient = new LinkedHashMap<>();
     private final Map<String, NotificationActionHandler> actionHandlers = new LinkedHashMap<>();
     private final List<Function<UUID, List<ElarionNotificationEntry>>> providers = new CopyOnWriteArrayList<>();
     private final Set<String> worldEligibleRealms = new LinkedHashSet<>();
     private MinecraftServer server;
 
-    public ElarionNotificationService(NotificationStorage storage, CitizenService citizens) {
+    public ElarionNotificationService(NotificationStorage storage, CitizenService citizens,
+                                      MinecraftProjectionPublisher webProjections) {
         this.storage = storage;
         this.citizens = citizens;
+        this.webProjections = webProjections;
     }
 
     public synchronized void bind(MinecraftServer server) {
         this.server = server;
         notifications.clear();
+        notificationIdsByRecipient.clear();
         for (ElarionStoredNotification notification : storage.load(server)) {
             if (notification != null && !notification.id().isBlank()) {
                 notifications.put(notification.id(), notification);
+                index(notification);
             }
         }
         prune(System.currentTimeMillis());
+        publishLauncherSnapshots();
     }
 
     public void registerProvider(Function<UUID, List<ElarionNotificationEntry>> provider) {
@@ -68,6 +81,7 @@ public final class ElarionNotificationService {
                     .map(String::trim)
                     .forEach(worldEligibleRealms::add);
         }
+        publishLauncherSnapshots();
         syncAll();
     }
 
@@ -210,8 +224,9 @@ public final class ElarionNotificationService {
         long now = System.currentTimeMillis();
         prune(now);
         List<ElarionNotificationEntry> entries = new ArrayList<>();
-        notifications.values().stream()
-                .filter(notification -> recipientId.equals(notification.recipientId()))
+        notificationIdsByRecipient.getOrDefault(recipientId, new LinkedHashSet<>()).stream()
+                .map(notifications::get)
+                .filter(java.util.Objects::nonNull)
                 .filter(notification -> !notification.resolved() && !notification.expired(now))
                 .filter(notification -> notification.category() != ElarionNotificationCategory.WORLD
                         || worldEligible(recipientId))
@@ -226,11 +241,24 @@ public final class ElarionNotificationService {
 
     public synchronized void sync(ServerPlayerEntity player) {
         if (server == null || player == null) return;
+        // A join/sync is the bounded recovery point for notifications that
+        // existed before the bridge was enabled or before a server restart.
+        // Keep the website read model recipient-scoped and current without
+        // scanning global notification history.
+        publishLauncherSnapshot(player.getUuid());
         ServerPlayNetworking.send(player, new NotificationSnapshotPayload(snapshot(player.getUuid())));
     }
 
     public synchronized void save() {
         if (server != null) storage.save(server, List.copyOf(notifications.values()));
+    }
+
+    public synchronized int resetAllPlayerState() {
+        int count = notifications.size();
+        notifications.clear();
+        notificationIdsByRecipient.clear();
+        save();
+        return count;
     }
 
     public synchronized void syncRealm(String realmId) {
@@ -299,6 +327,7 @@ public final class ElarionNotificationService {
         notifications.put(id, new ElarionStoredNotification(
                 id, recipientId, category, source, eventType, dedupe, title, body, status, icon,
                 true, false, System.currentTimeMillis(), effectiveExpiry, safeActions, metadata));
+        index(notifications.get(id));
         trim(recipientId, category);
         save();
         return id;
@@ -318,12 +347,16 @@ public final class ElarionNotificationService {
                 .sorted(Comparator.comparingLong(ElarionStoredNotification::createdAt))
                 .toList();
         int remove = matches.size() - MAX_PER_CATEGORY;
-        for (int index = 0; index < remove; index++) notifications.remove(matches.get(index).id());
+        for (int index = 0; index < remove; index++) remove(matches.get(index).id());
     }
 
     private void prune(long now) {
-        boolean changed = notifications.values().removeIf(notification -> notification.resolved()
-                || notification.expired(now));
+        List<String> removed = notifications.values().stream()
+                .filter(notification -> notification.resolved() || notification.expired(now))
+                .map(ElarionStoredNotification::id)
+                .toList();
+        removed.forEach(this::remove);
+        boolean changed = !removed.isEmpty();
         if (changed) save();
     }
 
@@ -331,6 +364,7 @@ public final class ElarionNotificationService {
         if (server == null) return;
         ServerPlayerEntity player = server.getPlayerManager().getPlayer(recipientId);
         if (player != null) sync(player);
+        else publishLauncherSnapshot(recipientId);
     }
 
     private boolean worldEligible(UUID recipientId) {
@@ -341,6 +375,51 @@ public final class ElarionNotificationService {
         return citizen != null
                 && !citizen.realmId().isBlank()
                 && worldEligibleRealms.contains(citizen.realmId());
+    }
+
+    private void publishLauncherSnapshot(UUID recipientId) {
+        if (recipientId == null || webProjections == null) return;
+        List<Map<String, String>> entries = snapshot(recipientId).entries().stream()
+                .filter(ElarionNotificationEntry::unread)
+                .sorted(Comparator.comparingLong(ElarionNotificationEntry::createdAt).reversed()
+                        .thenComparing(ElarionNotificationEntry::id))
+                .limit(MAX_LAUNCHER_ENTRIES)
+                .map(entry -> Map.of(
+                        "id", clean(entry.id()),
+                        "category", entry.category().name(),
+                        "sourceSystem", "game",
+                        "title", truncate(entry.title()),
+                        "body", truncate(entry.body()),
+                        "createdAt", Long.toString(entry.createdAt())))
+                .toList();
+        String realmId = citizens.find(recipientId).map(CitizenRecord::realmId).orElse("");
+        webProjections.publishState("citizen.notifications", recipientId.toString(), realmId,
+                Visibility.WHITELISTED, Map.of("entriesJson", GSON.toJson(entries)));
+    }
+
+    /** Startup/config recovery publishes only each recipient's bounded local inbox. */
+    private void publishLauncherSnapshots() {
+        new ArrayList<>(notificationIdsByRecipient.keySet()).forEach(this::publishLauncherSnapshot);
+    }
+
+    private void index(ElarionStoredNotification notification) {
+        if (notification == null || notification.recipientId() == null) return;
+        notificationIdsByRecipient.computeIfAbsent(notification.recipientId(), ignored -> new LinkedHashSet<>())
+                .add(notification.id());
+    }
+
+    private void remove(String notificationId) {
+        ElarionStoredNotification removed = notifications.remove(notificationId);
+        if (removed == null) return;
+        LinkedHashSet<String> ids = notificationIdsByRecipient.get(removed.recipientId());
+        if (ids == null) return;
+        ids.remove(notificationId);
+        if (ids.isEmpty()) notificationIdsByRecipient.remove(removed.recipientId());
+    }
+
+    private static String truncate(String value) {
+        String clean = clean(value);
+        return clean.substring(0, Math.min(clean.length(), MAX_LAUNCHER_TEXT));
     }
 
     private static String clean(String value) {

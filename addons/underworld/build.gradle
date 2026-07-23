@@ -1,8 +1,19 @@
+repositories {
+    maven {
+        name = 'Gegy'
+        url = 'https://maven.gegy.dev'
+        content { includeGroup 'dev.lambdaurora.lambdynamiclights' }
+    }
+}
+
 dependencies {
     implementation(project(path: ':platform:core', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
     implementation 'org.yaml:snakeyaml:2.2'
+    // 4.0.2 exposes the same v4 registration ABI used here and is compatible
+    // with this repository's Loom 1.8 toolchain. Runtime is pinned to 4.8.10.
+    modCompileOnly 'dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.0.2+1.21.1'
 
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }

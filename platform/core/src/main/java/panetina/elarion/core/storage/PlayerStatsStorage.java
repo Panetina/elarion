@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import panetina.elarion.core.api.reset.PlayerResetFiles;
 
 public final class PlayerStatsStorage {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -42,6 +43,10 @@ public final class PlayerStatsStorage {
                 StoredStats.from(stats),
                 logger,
                 "Elarion player stats " + stats.uuid());
+    }
+
+    public void deleteAll(MinecraftServer server) throws IOException {
+        PlayerResetFiles.deleteTree(statsDir(server));
     }
 
     private static Path statsDir(MinecraftServer server) {

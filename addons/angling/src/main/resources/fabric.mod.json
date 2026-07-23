@@ -1,31 +1,43 @@
 {
-    "schemaVersion": 1,
-    "id": "elarion_angling",
-    "version": "${version}",
-    "name": "Elarion Angling",
-    "icon": "assets/elarion_angling/icon.png",
-    "description": "Fishing addon shell for future Elarion catch definitions, sessions, and Core-owned progression integration.",
-    "authors": [
-        "Panyel"
-    ],
-    "contributors": [
-        "Panetina Team"
-    ],
-    "license": "MIT",
-    "environment": "*",
-    "entrypoints": {
-        "elarion:addon": [
-            "panetina.elarion.addons.angling.ElarionAnglingAddon"
-        ]
-    },
-    "mixins": [
-        "elarion_angling.mixins.json"
-    ],
-    "depends": {
-        "fabricloader": ">=0.16.14",
-        "minecraft": "~1.21.1",
-        "java": ">=21",
-        "fabric-api": "*",
-        "elarion_core": "*"
+  "schemaVersion": 1,
+  "id": "elarion_angling",
+  "version": "${version}",
+  "name": "Elarion Angling",
+  "icon": "assets/elarion_angling/icon.png",
+  "description": "Fabric foundation for Elarion's server-authoritative fishing, tournaments, and bounded Core progression integrations.",
+  "contact": {
+    "homepage": "https://ashesofelarion.com",
+    "discord": "https://discord.gg/bSEHtMhqKa"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+      }
     }
+  },
+  "authors": [
+    "Panyel"
+  ],
+  "contributors": [
+    "Panetina Team"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "panetina.elarion.addons.angling.client.ElarionAnglingClient"
+    ],
+    "elarion:addon": [
+      "panetina.elarion.addons.angling.ElarionAnglingAddon"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "elarion_core": "*",
+    "elarion_economy": "*"
+  }
 }

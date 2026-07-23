@@ -5,6 +5,17 @@
     "name":  "Elarion Government",
     "icon": "assets/elarion_government/icon.png",
     "description":  "Government addon shell backed by Elarion Core realms, abilities, and progression.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

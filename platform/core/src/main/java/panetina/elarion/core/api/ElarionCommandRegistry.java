@@ -11,11 +11,21 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
 public final class ElarionCommandRegistry {
+    private final List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> rootCommands =
+            new CopyOnWriteArrayList<>();
     private final List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> adminCommands =
             new CopyOnWriteArrayList<>();
     private final List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> testCommands =
             new CopyOnWriteArrayList<>();
     private final Map<String, String> helpDescriptions = new ConcurrentHashMap<>();
+
+    public void registerRootCommand(Supplier<LiteralArgumentBuilder<ServerCommandSource>> command) {
+        rootCommands.add(command);
+    }
+
+    public List<Supplier<LiteralArgumentBuilder<ServerCommandSource>>> rootCommands() {
+        return List.copyOf(rootCommands);
+    }
 
     public void registerAdminSubcommand(Supplier<LiteralArgumentBuilder<ServerCommandSource>> command) {
         adminCommands.add(command);

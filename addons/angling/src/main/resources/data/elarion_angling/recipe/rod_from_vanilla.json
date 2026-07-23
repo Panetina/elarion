@@ -1,0 +1,22 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "equipment",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:fishing_rod"
+                        },
+                        {
+                            "item":  "elarion_angling:hook"
+                        },
+                        {
+                            "item":  "elarion_angling:bobber"
+                        },
+                        {
+                            "item":  "elarion_angling:elarion_angling_twine"
+                        }
+                    ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:elarion_angling_rod"
+               }
+}

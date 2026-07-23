@@ -23,6 +23,7 @@ dependencies {
             ':addons:npcs',
             ':addons:mounts',
             ':addons:quests',
+            ':addons:atlas',
             ':addons:angling'
     ].each { addonPath ->
         implementation(project(path: addonPath, configuration: 'namedElements')) {
@@ -52,6 +53,8 @@ loom {
             client()
             name = 'Elarion Generic Client'
             runDir = 'run/client-generic'
+            vmArg '-XX:+UseZGC'
+            vmArg '-XX:+ZGenerational'
             programArg '--username'
             programArg genericPlayerName
             programArg '--uuid'
@@ -64,6 +67,8 @@ loom {
             client()
             name = 'Elarion Client 1'
             runDir = 'run/client-one'
+            vmArg '-XX:+UseZGC'
+            vmArg '-XX:+ZGenerational'
             programArg '--username'
             programArg 'ElarionAdmin'
             programArg '--uuid'
@@ -76,6 +81,8 @@ loom {
             client()
             name = 'Elarion Client 2'
             runDir = 'run/client-two'
+            vmArg '-XX:+UseZGC'
+            vmArg '-XX:+ZGenerational'
             programArg '--username'
             programArg 'ElarionPlayer1'
             programArg '--uuid'

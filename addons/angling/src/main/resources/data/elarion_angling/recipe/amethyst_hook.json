@@ -1,0 +1,24 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "A":  {
+                          "item":  "minecraft:amethyst_shard"
+                      },
+                "D":  {
+                          "item":  "minecraft:diamond"
+                      },
+                "H":  {
+                          "item":  "elarion_angling:hook"
+                      }
+            },
+    "pattern":  [
+                    "D  ",
+                    "AHA",
+                    " A "
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:amethyst_hook"
+               }
+}

@@ -53,17 +53,42 @@ public final class DeferredRewardGrantService {
             String sourceId,
             List<RewardAction> actions
     ) {
+        return enqueueIdempotent(grantId, recipientId, sourceSystem, sourceId, actions) == EnqueueResult.ENQUEUED;
+    }
+
+    /**
+     * Durable idempotency boundary for crash-replayed addon transactions.
+     * An existing ID succeeds only when its immutable recipient/source/actions
+     * are identical; a conflicting reuse fails closed.
+     */
+    public synchronized EnqueueResult enqueueIdempotent(
+            String grantId,
+            UUID recipientId,
+            String sourceSystem,
+            String sourceId,
+            List<RewardAction> actions
+    ) {
         if (grantId == null || grantId.isBlank() || recipientId == null || actions == null || actions.isEmpty()) {
-            return false;
+            return EnqueueResult.INVALID;
         }
-        if (grants.containsKey(grantId)) return false;
+        DeferredRewardGrant existing = grants.get(grantId);
+        if (existing != null) {
+            return sameRequest(existing, recipientId, sourceSystem, sourceId, actions)
+                    ? EnqueueResult.EXACT_RETRY
+                    : EnqueueResult.CONFLICT;
+        }
         grants.put(grantId, new DeferredRewardGrant(
                 grantId, recipientId, sourceSystem, sourceId, actions, java.util.Set.of(),
                 System.currentTimeMillis(), 0L));
         save();
-        ServerPlayerEntity online = server == null ? null : server.getPlayerManager().getPlayer(recipientId);
-        if (online != null) notificationSync.accept(online);
-        return true;
+        MinecraftServer boundServer = server;
+        if (boundServer != null) {
+            boundServer.execute(() -> {
+                ServerPlayerEntity online = boundServer.getPlayerManager().getPlayer(recipientId);
+                if (online != null) notificationSync.accept(online);
+            });
+        }
+        return EnqueueResult.ENQUEUED;
     }
 
     public synchronized void setNotificationSync(Consumer<ServerPlayerEntity> notificationSync) {
@@ -149,8 +174,20 @@ public final class DeferredRewardGrantService {
                 .count();
     }
 
+    public synchronized boolean isClaimable(String grantId, UUID recipientId) {
+        DeferredRewardGrant grant = grants.get(grantId);
+        return grant != null && !grant.delivered() && grant.recipientId().equals(recipientId);
+    }
+
     public synchronized void save() {
         if (server != null) storage.save(server, grants);
+    }
+
+    public synchronized int resetAllPlayerState() {
+        int count = grants.size();
+        grants.clear();
+        save();
+        return count;
     }
 
     private static String rewardBody(DeferredRewardGrant grant) {
@@ -259,5 +296,25 @@ public final class DeferredRewardGrantService {
         CLAIMED,
         FAILED,
         NOT_FOUND
+    }
+
+    public enum EnqueueResult {
+        ENQUEUED,
+        EXACT_RETRY,
+        CONFLICT,
+        INVALID
+    }
+
+    private static boolean sameRequest(
+            DeferredRewardGrant existing,
+            UUID recipientId,
+            String sourceSystem,
+            String sourceId,
+            List<RewardAction> actions
+    ) {
+        return existing.recipientId().equals(recipientId)
+                && existing.sourceSystem().equals(sourceSystem == null ? "" : sourceSystem)
+                && existing.sourceId().equals(sourceId == null ? "" : sourceId)
+                && existing.actions().equals(List.copyOf(actions));
     }
 }

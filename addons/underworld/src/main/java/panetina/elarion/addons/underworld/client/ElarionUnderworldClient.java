@@ -4,6 +4,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
@@ -12,6 +13,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import panetina.elarion.addons.underworld.block.UnderworldBlocks;
 import panetina.elarion.addons.underworld.network.UnderworldStatusSyncPayload;
+import panetina.elarion.addons.underworld.network.BanishmentAppearanceSyncPayload;
 import panetina.elarion.addons.underworld.network.GraveOpenPayload;
 import panetina.elarion.core.client.ClientIdentityDecorations;
 import panetina.elarion.core.network.IdentitySyncRequestPayload;
@@ -26,7 +28,11 @@ public final class ElarionUnderworldClient implements ClientModInitializer {
         BlockEntityRendererRegistry.register(UnderworldBlocks.TOMB_ENTITY, UnderworldTombBlockEntityRenderer::new);
         ElarionHudOverlayRegistry.registerBeforeNotifications(UnderworldStatusHud::render);
         ClientIdentityDecorations.registerTabSuffix(ElarionUnderworldClient::soulTabSuffix);
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> UnderworldClientStatus.clear());
+        ClientTickEvents.END_CLIENT_TICK.register(ElarionUnderworldClient::suppressUnderworldPrecipitation);
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            UnderworldClientStatus.clear();
+            UnderworldBanishmentStatus.clear();
+        });
         ClientPlayNetworking.registerGlobalReceiver(UnderworldStatusSyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> {
                     boolean identityRelevant = UnderworldClientStatus.update(payload);
@@ -34,11 +40,26 @@ public final class ElarionUnderworldClient implements ClientModInitializer {
                         ClientPlayNetworking.send(IdentitySyncRequestPayload.INSTANCE);
                     }
                 }));
+        ClientPlayNetworking.registerGlobalReceiver(BanishmentAppearanceSyncPayload.ID, (payload, context) ->
+                context.client().execute(() ->
+                        UnderworldBanishmentStatus.update(payload.playerId(), payload.banished())));
         ClientPlayNetworking.registerGlobalReceiver(GraveOpenPayload.ID, (payload, context) ->
                 context.client().execute(() -> {
                     if (context.client().currentScreen instanceof GraveRecoveryScreen screen) screen.update(payload);
                     else context.client().setScreen(new GraveRecoveryScreen(payload));
                 }));
+    }
+
+    private static void suppressUnderworldPrecipitation(MinecraftClient client) {
+        if (client.world == null || !isUnderworld(client.world.getRegistryKey().getValue().toString())) {
+            return;
+        }
+        client.world.setRainGradient(0.0F);
+        client.world.setThunderGradient(0.0F);
+    }
+
+    static boolean isUnderworld(String worldId) {
+        return "elarion:underworld".equals(worldId);
     }
 
     private static Text soulTabSuffix(UUID uuid) {

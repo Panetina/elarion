@@ -26,9 +26,10 @@ Tracked addon overview for admins and future wiki expansion.
 | Jail | `Shell` | [Commands](../admin/commands.md) |
 | Newspapers | `Shell` | [Commands](../admin/commands.md) |
 | Tablist | `Shell` | [Commands](../admin/commands.md) |
-| Underworld | `Implemented foundation`, `Manual verification needed` | [Commands](../admin/commands.md) |
+| Underworld | `Implemented foundation`, `Banishment implemented`, `Manual visual verification needed` | [Commands](../admin/commands.md) |
 | Mounts | `Implemented V5 collection foundation`, `Focused tests passing` | [Commands](../admin/commands.md) |
 | Voice Chat Hooks | `Shell` | [Commands](../admin/commands.md) |
+| Atlas | `Shell`, `M-key placeholder only` | [Technical design](../../docs/systems/Atlas.md) |
 
 ## Shell Or Future Addons
 
@@ -37,7 +38,6 @@ Tracked addon overview for admins and future wiki expansion.
 | Trade | `Future` |
 | Adventure Guild | `Future` |
 | Ledger | `Future` |
-| Atlas | `Future` |
 
 ## Reference Material Policy
 

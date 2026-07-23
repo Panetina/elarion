@@ -33,6 +33,13 @@ public final class NpcStoryStateService {
         if (bound) storage.save(server, states);
     }
 
+    public synchronized int resetAllPlayerState() {
+        int changed = states.size();
+        states.clear();
+        if (bound) storage.save(server, states);
+        return changed;
+    }
+
     public synchronized NpcStoryStateRecord state(UUID playerId, UUID npcId) {
         if (playerId == null || npcId == null) return NpcStoryStateRecord.empty(playerId, npcId);
         return states.getOrDefault(NpcStoryStateStorage.key(playerId, npcId),

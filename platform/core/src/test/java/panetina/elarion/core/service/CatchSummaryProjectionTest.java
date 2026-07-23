@@ -6,6 +6,8 @@ import panetina.elarion.core.model.AcceptedCatchRecord;
 import panetina.elarion.core.model.CatchJournalCheckpoint;
 import panetina.elarion.core.model.CatchJournalReplay;
 import panetina.elarion.core.model.CatchSummary;
+import panetina.elarion.core.model.CatchSpeciesSummary;
+import panetina.elarion.core.model.CatchTelemetryDetails;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -52,6 +54,32 @@ final class CatchSummaryProjectionTest {
 
         assertEquals(0, updated.totalQuantity());
         assertEquals(checkpoint, updated.checkpoint());
+    }
+
+    @Test
+    void materializesRichPerSpeciesRecordsWithoutJournalQueries() {
+        UUID actorId = UUID.randomUUID();
+        AcceptedCatchRecord first = richRecord(actorId, 2, "2026-06-10T10:00:00Z",
+                420, 2_100, 300, 100, true, false, true);
+        AcceptedCatchRecord second = richRecord(actorId, 3, "2026-06-11T10:00:00Z",
+                460, 2_000, 225, 80, false, true, false);
+
+        CatchSummary summary = CatchSummaryProjection.apply(
+                CatchSummary.empty(actorId),
+                new CatchJournalReplay(List.of(first, second), new CatchJournalCheckpoint("2026-06", 2), 2, false));
+        CatchSpeciesSummary species = summary.speciesSummary(first.fishDefinitionId());
+
+        assertEquals(5, species.totalCount());
+        assertEquals(first.occurredAt(), species.firstCatchAt());
+        assertEquals(80, species.fastestTimeTicks());
+        assertEquals(180, species.accumulatedTimeTicks());
+        assertEquals(2, species.timedSampleCount());
+        assertEquals(460, species.largestSizeMillimetres());
+        assertEquals(2_100, species.heaviestWeightGrams());
+        assertEquals(225, species.bestPercentileBasisPoints());
+        assertEquals(1, species.goldenCount());
+        assertEquals(1, species.perfectCount());
+        assertEquals(1, species.treasureCount());
     }
 
     @Test
@@ -127,5 +155,31 @@ final class CatchSummaryProjectionTest {
                 null,
                 null,
                 Map.of());
+    }
+
+    private static AcceptedCatchRecord richRecord(
+            UUID actorId,
+            long quantity,
+            String occurredAt,
+            int size,
+            long weight,
+            int percentile,
+            int duration,
+            boolean perfect,
+            boolean golden,
+            boolean treasure
+    ) {
+        return new AcceptedCatchRecord(
+                AcceptedCatchRecord.CURRENT_SCHEMA_VERSION,
+                UUID.randomUUID(), Instant.parse(occurredAt).toEpochMilli(), actorId,
+                Identifier.of("elarion_angling", "fishing"),
+                Identifier.of("elarion_angling", "aloe_bream"),
+                Identifier.of("elarion_angling", "common"), quantity,
+                null, Identifier.ofVanilla("overworld"), Identifier.ofVanilla("plains"), Map.of(),
+                new CatchTelemetryDetails(
+                        Identifier.of("elarion_angling", "aloe_bream"),
+                        Identifier.of("elarion_angling", "fish"),
+                        size, weight, percentile, duration, perfect, golden, treasure, 7,
+                        null, null, null, null, Identifier.ofVanilla("water"), null, null));
     }
 }

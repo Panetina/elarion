@@ -85,6 +85,16 @@ final class CatchSummaryStorageTest {
                 CatchSummaryCodec.decode("bad-recent", badRecent.toString()));
     }
 
+    @Test
+    void schemaOneSummaryMigratesToCountOnlySpeciesProjection() {
+        CatchSummary current = summary(UUID.randomUUID());
+        JsonObject legacy = CatchSummaryCodec.encode(current);
+        legacy.addProperty("schemaVersion", 1);
+        legacy.remove("speciesSummaries");
+
+        assertEquals(current, CatchSummaryCodec.decode("legacy-summary", legacy.toString()));
+    }
+
     private static CatchSummary summary(UUID actorId) {
         AcceptedCatchRecord record = record(actorId);
         return new CatchSummary(

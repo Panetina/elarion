@@ -13,6 +13,9 @@ Elarion is a Fabric 1.21.1 multi-module project. Core owns canonical server trut
   dependencies before invoking them.
 - `dev`: development runtime that loads Core and addons together.
 - `tests/gametest`: Fabric GameTest coverage and command integration support.
+- `distribution`: canonical third-party artifact pins plus managed safety and
+  non-destructive client/server configuration templates. Generated install
+  roots live under `build/export/client` and `build/export/server`.
 - `docs`: architecture, API, config, command, addon, performance, and reference documentation.
 - `external`: local upstream reference repositories. These are research inputs, not Elarion source modules.
 
@@ -31,7 +34,7 @@ Elarion is a Fabric 1.21.1 multi-module project. Core owns canonical server trut
 - `addons/angling`: fishing definitions, bounded condition/candidate selection,
   ephemeral player sessions, and catch-result telemetry foundation.
 - `addons/groups`: public player groups, tags, invites, one-public-group
-  membership, group chat, and Confederation delegate integration.
+  membership, and group chat.
 - `addons/names`: client and identity presentation mixins.
 - `addons/titles`: title rendering client hooks.
 - `addons/tablist`: tablist integration shell.
@@ -46,6 +49,8 @@ Elarion is a Fabric 1.21.1 multi-module project. Core owns canonical server trut
   unlock/active-mount state, deprecated legacy whistle ids/icons, movement
   profiles, GeckoLib geo/animation rendering, rider/camera presentation, and
   active mount session recovery.
+- `addons/atlas`: non-operational client shell that registers `M`, renders a
+  data-free Elarion placeholder, and reserves future bounded map ownership.
 - `addons/jail`, `addons/newspapers`, `addons/voicechat-hooks`: shell or early
   integration points for future systems.
 
@@ -152,8 +157,8 @@ Future GUI work should extend these primitives before introducing a new UI frame
   group chat.
 - Groups consumes Core citizen/identity/history truth and Economy creation-fee
   sinks.
-- Future Confederation logic must consume `ElarionGroupsApi` instead of reading
-  group runtime files directly.
+- Future political-party or faction logic must consume `ElarionGroupsApi`
+  instead of reading group runtime files directly.
 
 ## Contribution / Offering Systems
 

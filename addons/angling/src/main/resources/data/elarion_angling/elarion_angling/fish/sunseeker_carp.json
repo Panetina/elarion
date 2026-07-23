@@ -1,0 +1,137 @@
+{
+    "schema_version":  1,
+    "base_chance":  5,
+    "catch_info":  {
+                       "fish_bucket":  {
+                                           "count":  1,
+                                           "id":  "elarion_angling:starcaught_bucket"
+                                       },
+                       "item":  {
+                                    "count":  1,
+                                    "id":  "elarion_angling:sunseeker_carp"
+                                }
+                   },
+    "difficulty":  {
+                       "decay":  1.0,
+                       "hp":  5000,
+                       "missPenalty":  -10,
+                       "modifiers":  [
+                                         {
+                                             "type":  "elarion_angling:pull_down",
+                                             "translation_override":  ""
+                                         },
+                                         {
+                                             "type":  "elarion_angling:disable_hit_sounds",
+                                             "translation_override":  ""
+                                         },
+                                         {
+                                             "type":  "elarion_angling:disable_miss_sounds",
+                                             "translation_override":  ""
+                                         },
+                                         {
+                                             "type":  "elarion_angling:flip_sweetspots_on_miss",
+                                             "chance":  0.05,
+                                             "translation_override":  ""
+                                         }
+                                     ],
+                       "speed":  10,
+                       "sweetspots":  [
+                                          {
+                                              "color_as_int":  -1,
+                                              "hitbox_size_in_pixels":  40,
+                                              "is_flip":  false,
+                                              "moving_rate":  1.0,
+                                              "reward":  -50,
+                                              "sweetspot_type":  "elarion_angling:cloud",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/cloud_1.png",
+                                              "vanishing_rate":  0.0
+                                          },
+                                          {
+                                              "color_as_int":  -1,
+                                              "hitbox_size_in_pixels":  30,
+                                              "is_flip":  false,
+                                              "moving_rate":  -1.0,
+                                              "reward":  -50,
+                                              "sweetspot_type":  "elarion_angling:cloud",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/cloud_2.png",
+                                              "vanishing_rate":  0.0
+                                          },
+                                          {
+                                              "color_as_int":  -1,
+                                              "hitbox_size_in_pixels":  41,
+                                              "is_flip":  false,
+                                              "moving_rate":  1.0,
+                                              "reward":  -50,
+                                              "sweetspot_type":  "elarion_angling:cloud",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/cloud_3.png",
+                                              "vanishing_rate":  0.0
+                                          },
+                                          {
+                                              "color_as_int":  -1,
+                                              "hitbox_size_in_pixels":  60,
+                                              "is_flip":  false,
+                                              "moving_rate":  -1.0,
+                                              "reward":  -50,
+                                              "sweetspot_type":  "elarion_angling:cloud",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/cloud_4.png",
+                                              "vanishing_rate":  0.0
+                                          }
+                                      ]
+                   },
+    "has_guide_entry":  true,
+    "rarity":  "legendary",
+    "restrictions":  [
+                         {
+                             "type":  "elarion_angling:dimension",
+                             "dimensions":  [
+
+                                            ],
+                             "dimensions_tags":  [
+                                                     "elarion_angling:is_overworld"
+                                                 ],
+                             "translation_override":  "dimension.minecraft.overworld"
+                         },
+                         {
+                             "type":  "elarion_angling:elevation_restriction",
+                             "max_y":  2147483647,
+                             "min_y":  100,
+                             "translation_override":  "gui.guide.elevation.skies"
+                         },
+                         {
+                             "type":  "elarion_angling:season",
+                             "season_extra_chance":  {
+                                                         "early_autumn":  0,
+                                                         "early_summer":  0,
+                                                         "late_spring":  0,
+                                                         "late_summer":  0,
+                                                         "mid_summer":  0
+                                                     },
+                             "translation_override":  "gui.guide.seasons.around_spring"
+                         },
+                         {
+                             "type":  "elarion_angling:daytime_restriction",
+                             "ranges":  [
+                                            {
+                                                "first":  4500,
+                                                "second":  7500
+                                            }
+                                        ],
+                             "translation_override":  "gui.guide.noon"
+                         },
+                         {
+                             "type":  "elarion_angling:fluid",
+                             "fluids":  [
+                                            "minecraft:empty"
+                                        ]
+                         }
+                     ],
+    "size_and_weight":  {
+                            "average_size_cm":  60.0,
+                            "average_weight_grams":  6000.0,
+                            "deviation_size_cm":  20.0,
+                            "deviation_weight_grams":  4000.0,
+                            "golden_chance":  0.02
+                        },
+    "skips_minigame":  false,
+    "textures":  "elarion_angling:textures/gui/minigame/surface.png"
+}

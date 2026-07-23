@@ -110,7 +110,7 @@ final class ElarionConfigRegistryTest {
                 core.entry("realms", "realms.realm3.spawn.y").orElseThrow().currentDisplayValue());
         assertEquals("5122",
                 core.entry("realms", "realms.realm3.spawn.z").orElseThrow().currentDisplayValue());
-        assertEquals("15", core.entry("titles", "titles.count").orElseThrow().currentDisplayValue());
+        assertEquals("11", core.entry("titles", "titles.count").orElseThrow().currentDisplayValue());
         assertEquals("Ember",
                 core.entry("titles", "titles.citizen.display-name").orElseThrow().currentDisplayValue());
         assertEquals("#C9C9C9",

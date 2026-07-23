@@ -5,6 +5,17 @@
     "name":  "Elarion Tablist",
     "icon": "assets/elarion_tablist/icon.png",
     "description":  "Tab list rendering shell backed by Elarion Core identity and visibility.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

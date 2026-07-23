@@ -33,6 +33,9 @@ import panetina.elarion.core.model.TitleProgressRecord;
 import panetina.elarion.core.model.TitleUnlockRule;
 import panetina.elarion.core.storage.DirtyTracker;
 import panetina.elarion.core.storage.TitleProgressStorage;
+import panetina.elarion.core.metric.MetricProjectionWorker;
+import panetina.elarion.core.metric.MetricQuery;
+import panetina.elarion.core.metric.MetricUpdatedEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,11 +64,13 @@ public final class ProgressionService {
     private List<TitleUnlockRule> continuousRules = List.of();
     private Map<Long, List<TitleUnlockRule>> continuousRulesByInterval = Map.of();
     private List<TitleUnlockRule> regionEnterRules = List.of();
+    private Map<Identifier, List<TitleUnlockRule>> metricRulesById = Map.of();
     private Map<String, List<ProgressionRegion>> progressionRegionsByWorld = Map.of();
     private MinecraftServer server;
     private long lastSaveAt;
     private long ticks;
     private Consumer<UUID> advancementCountListener = ignored -> {};
+    private MetricProjectionWorker metrics;
 
     public ProgressionService(
             CoreConfigManager config,
@@ -88,6 +93,79 @@ public final class ProgressionService {
         rebuildRuleIndexes();
         this.lastSaveAt = System.currentTimeMillis();
         this.ticks = 0;
+    }
+
+    public void setMetricProjection(MetricProjectionWorker metrics) {
+        this.metrics = java.util.Objects.requireNonNull(metrics, "metrics");
+    }
+
+    public void reloadRules() {
+        rebuildRuleIndexes();
+    }
+
+    /** Bounded lazy reconciliation for one joining or already-online citizen. */
+    public void reconcileMetricRules(ServerPlayerEntity player) {
+        if (player == null || metrics == null) return;
+        Identifier realmId = metricRealmId(citizens.getOrCreate(player).realmId());
+        for (List<TitleUnlockRule> rules : metricRulesById.values()) {
+            for (TitleUnlockRule rule : rules) {
+                TitleUnlockRule.MetricCondition condition = rule.metric();
+                panetina.elarion.core.metric.MetricScope scope;
+                try {
+                    scope = condition.resolveScope(realmId);
+                } catch (RuntimeException exception) {
+                    continue;
+                }
+                var current = metrics.player(new MetricQuery(
+                        condition.metricId(), scope, condition.dimensions()), player.getUuid());
+                long value = current == null ? 0 : current.fixedPointValue();
+                if (!condition.accepts(value)) continue;
+                titles.unlockFromProgression(player.getUuid(), rule,
+                        ProgressionEvent.builder("metric", player.getUuid())
+                                .amount(value).metadata("metric", condition.metricId().toString()).build(), value);
+            }
+        }
+    }
+
+    /** May be called by the metric worker; title mutation is always rescheduled onto the server thread. */
+    public void recordMetric(MetricUpdatedEvent event) {
+        MinecraftServer bound = server;
+        if (bound == null || event == null) return;
+        bound.execute(() -> evaluateMetric(event));
+    }
+
+    private void evaluateMetric(MetricUpdatedEvent event) {
+        MetricProjectionWorker projection = metrics;
+        if (projection == null) return;
+        var batch = event.batch();
+        java.util.LinkedHashSet<TitleUnlockRule> candidates = new java.util.LinkedHashSet<>();
+        for (var update : batch.updates()) {
+            candidates.addAll(metricRulesById.getOrDefault(update.metricId(), List.of()));
+        }
+        for (TitleUnlockRule rule : candidates) {
+            TitleUnlockRule.MetricCondition condition = rule.metric();
+            if (condition == null || batch.updates().stream().noneMatch(update -> condition.matches(update, batch))) {
+                continue;
+            }
+            panetina.elarion.core.metric.MetricRankEntry current = projection.player(
+                    new MetricQuery(condition.metricId(), condition.resolveScope(batch), condition.dimensions()),
+                    batch.actorId());
+            long value = current == null ? 0 : current.fixedPointValue();
+            if (!condition.accepts(value)) continue;
+            ProgressionEvent progressionEvent = ProgressionEvent.builder("metric", batch.actorId())
+                    .amount(value)
+                    .metadata("metric", condition.metricId().toString())
+                    .build();
+            titles.unlockFromProgression(batch.actorId(), rule, progressionEvent, value);
+        }
+    }
+
+    private static Identifier metricRealmId(String value) {
+        if (value == null || value.isBlank()) return null;
+        Identifier direct = Identifier.tryParse(value);
+        if (direct != null && value.contains(":")) return direct;
+        String path = value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_.-]", "_");
+        return Identifier.of("elarion", "realm/" + path);
     }
 
     public void registerEvents() {
@@ -220,6 +298,14 @@ public final class ProgressionService {
             record.reset(ruleId);
         }
         dirty.mark(uuid);
+    }
+
+    public int resetAllPlayerState() throws java.io.IOException {
+        int count = progress.size();
+        progress.clear();
+        dirty.clear();
+        storage.deleteAll(server);
+        return count;
     }
 
     public boolean testRule(ServerPlayerEntity player, String ruleId) {
@@ -364,8 +450,11 @@ public final class ProgressionService {
         Map<String, List<TitleUnlockRule>> eventRules = new HashMap<>();
         Map<String, List<TitleUnlockRule>> statRules = new HashMap<>();
         List<TitleUnlockRule> continuous = new ArrayList<>();
+        Map<Identifier, List<TitleUnlockRule>> metricRules = new HashMap<>();
         for (TitleUnlockRule rule : config.titleUnlockRules().values()) {
-            if (rule.isContinuousRule()) {
+            if (rule.isMetricRule()) {
+                metricRules.computeIfAbsent(rule.metric().metricId(), ignored -> new ArrayList<>()).add(rule);
+            } else if (rule.isContinuousRule()) {
                 continuous.add(rule);
             } else if (rule.isStatRule()) {
                 statRules.computeIfAbsent(rule.trigger(), ignored -> new ArrayList<>()).add(rule);
@@ -378,6 +467,9 @@ public final class ProgressionService {
         continuousRules = List.copyOf(continuous);
         continuousRulesByInterval = indexContinuousRules(continuousRules);
         regionEnterRules = eventRulesByTrigger.getOrDefault("region-enter", List.of());
+        java.util.LinkedHashMap<Identifier, List<TitleUnlockRule>> immutableMetrics = new java.util.LinkedHashMap<>();
+        metricRules.forEach((id, rules) -> immutableMetrics.put(id, List.copyOf(rules)));
+        metricRulesById = Map.copyOf(immutableMetrics);
         progressionRegionsByWorld = indexRegionsByWorld(config.progressionRegions().values());
     }
 

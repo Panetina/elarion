@@ -1,0 +1,1303 @@
+{
+  "creativetab.elarion_angling.elarion_angling": "Elarion Angling",
+
+  "emi.category.elarion_angling.fishing" : "Elarion Anglingの釣り",
+
+  "tag.elarion_angling.is_beach" : "砂浜",
+  "tag.elarion_angling.is_birch_forest" : "シラカバの森",
+  "tag.elarion_angling.is_cherry_grove" : "サクラの林",
+  "tag.elarion_angling.is_cold_lake" : "凍った湖",
+  "tag.elarion_angling.is_cold_ocean" : "凍った海",
+  "tag.elarion_angling.is_cold_river" : "凍った川",
+  "tag.elarion_angling.is_dark_forest" : "暗い森",
+  "tag.elarion_angling.is_deep_ocean" : "深海",
+  "tag.elarion_angling.is_mushroom_fields" : "キノコ島",
+  "tag.elarion_angling.is_ocean" : "海洋",
+  "tag.elarion_angling.is_river" : "河川",
+  "tag.elarion_angling.is_swamp" : "沼地",
+  "tag.elarion_angling.is_warm" : "暖かい気候",
+  "tag.elarion_angling.is_warm_ocean" : "暖かい海",
+  "tag.elarion_angling.is_warm_river" : "暖かい川",
+
+  "tag.minecraft.is_badlands" : "悪地",
+  "tag.minecraft.is_beach" : "砂浜",
+  "tag.minecraft.is_deep_ocean" : "深海",
+  "tag.minecraft.is_end" : "ジ・エンドのバイオーム",
+  "tag.minecraft.is_forest" : "森林",
+  "tag.minecraft.is_hill" : "丘陵",
+  "tag.minecraft.is_jungle" : "ジャングル",
+  "tag.minecraft.is_mountain" : "山岳",
+  "tag.minecraft.is_nether" : "ネザーのバイオーム",
+  "tag.minecraft.is_ocean" : "海洋",
+  "tag.minecraft.is_overworld" : "オーバーワールドのバイオーム",
+  "tag.minecraft.is_river" : "河川",
+  "tag.minecraft.is_savanna" : "サバンナ",
+  "tag.minecraft.is_taiga" : "タイガ",
+
+  "tag.elarion_angling.hooks" : "Fishing Hooks",
+  "tag.elarion_angling.bobbers" : "ウキ",
+  "tag.elarion_angling.hooks_survive_fire" : "Hooks that survive Fire",
+
+  "tooltip.minecraft.fishing_rod.0": "最も基本的な魚を釣るための",
+  "tooltip.minecraft.fishing_rod.1": "シンプルな釣竿。",
+  "tooltip.minecraft.fishing_rod.2": "これを<gradient-67>Elarion Anglingの釣竿</gradient-90>に",
+  "tooltip.minecraft.fishing_rod.3": "アップグレードすることを夢見るしかない。",
+
+  "item.elarion_angling.elarion_angling_rod": "Elarion Anglingの釣竿",
+  "tooltip.elarion_angling.elarion_angling_rod.0": "ウキ、餌、釣り針を取り付けて使用できる。特別な釣竿です！",
+  "tooltip.elarion_angling.elarion_angling_rod.1": "条件さえ整えば、何が釣れるか全くの未知数！",
+  "tooltip.elarion_angling.elarion_angling_rod.2": "何が釣れるかは、条件次第！",
+  "tooltip.elarion_angling.elarion_angling_rod.3": "",
+  "tooltip.elarion_angling.elarion_angling_rod.4": "",
+  "tooltip.elarion_angling.elarion_angling_rod.5": "スニークしながら使用すると",
+  "tooltip.elarion_angling.elarion_angling_rod.6": "ウキ、餌、釣り針の選択画面が開きます",
+
+  "item.elarion_angling.elarion_angling_guide": "Elarion Anglingのガイド",
+  "tooltip.elarion_angling.elarion_angling_guide.0": "釣り人の最高の相棒。釣果などを記録してくれます。",
+  "tooltip.elarion_angling.elarion_angling_guide.1": "これまでに釣った魚、そして",
+  "tooltip.elarion_angling.elarion_angling_guide.2": "まだ釣り上げていない魚の情報までも！",
+
+  "item.elarion_angling.elarion_angling_twine": "Elarion Anglingの釣り糸",
+  "tooltip.elarion_angling.elarion_angling_twine.0": "エンダーパールの粉に覆われた、細いひも。",
+  "tooltip.elarion_angling.elarion_angling_twine.1": "かつてVansireが弦楽器に用いたという。",
+
+  "item.elarion_angling.hook": "鉄の釣り針",
+  "tooltip.elarion_angling.hook.0": "釣竿に使う、鉄の釣り針。",
+  "tooltip.elarion_angling.hook.1": "誰でも最初は初心者です。",
+
+  "item.elarion_angling.shiny_hook": "輝く釣り針",
+  "tooltip.elarion_angling.shiny_hook.0": "光り輝く釣り針！",
+  "tooltip.elarion_angling.shiny_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.shiny_hook.2": "コモンではない魚に最適なポイントを3回連続で当てると",
+  "tooltip.elarion_angling.shiny_hook.3": "お宝が現れます！",
+
+  "item.elarion_angling.gold_hook": "金の釣り針",
+  "tooltip.elarion_angling.gold_hook.0": "黄金に輝く釣り針！",
+  "tooltip.elarion_angling.gold_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.gold_hook.2": "あなたの腕前に応じて",
+  "tooltip.elarion_angling.gold_hook.3": "獲得経験値が上昇します。",
+
+  "item.elarion_angling.mossy_hook": "苔むした釣り針",
+  "tooltip.elarion_angling.mossy_hook.0": "苔むして錆びた釣り針だ！",
+  "tooltip.elarion_angling.mossy_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.mossy_hook.2": "釣りの難易度が上がりますが",
+  "tooltip.elarion_angling.mossy_hook.3": "完璧に釣ると必ずお宝が獲得できます。",
+
+  "item.elarion_angling.crystal_hook": "水晶の釣り針",
+  "tooltip.elarion_angling.crystal_hook.0": "超頑丈な釣り針。溶岩でも問題なし！",
+  "tooltip.elarion_angling.crystal_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.crystal_hook.2": "溶岩で釣りができるようになる。ｱﾁﾁﾁﾁ!!",
+
+  "item.elarion_angling.stone_hook": "石の釣り針",
+  "tooltip.elarion_angling.stone_hook.0": "超頑丈な釣り針！",
+  "tooltip.elarion_angling.stone_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.stone_hook.2": "最適なポイントに当てると",
+  "tooltip.elarion_angling.stone_hook.3": "魚がしばらく動けなくなり、逃げられなくなります。",
+
+  "item.elarion_angling.split_hook": "二股釣り針",
+  "tooltip.elarion_angling.split_hook.0": "洗練されたデザインの二股釣り針！",
+  "tooltip.elarion_angling.split_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.split_hook.2": "完璧に釣ると魚を2匹獲得できます。",
+
+  "item.elarion_angling.stabilizing_hook": "安定の釣り針",
+  "tooltip.elarion_angling.stabilizing_hook.0": "細い自動平衡型の釣り針！",
+  "tooltip.elarion_angling.stabilizing_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.stabilizing_hook.2": "魚をリールで巻いている間、魚が反転しなくなります。",
+
+  "item.elarion_angling.heavy_hook": "重い釣り針",
+  "tooltip.elarion_angling.heavy_hook.0": "かなり重い釣り針。",
+  "tooltip.elarion_angling.heavy_hook.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.heavy_hook.2": "スイートスポットの動きが遅くなります。",
+
+
+
+
+  "item.elarion_angling.creeper_bobber": "クリーパーなウキ",
+  "tooltip.elarion_angling.creeper_bobber.0": "クリーパー型のウキ。",
+  "tooltip.elarion_angling.creeper_bobber.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に…",
+  "tooltip.elarion_angling.creeper_bobber.2": "どうなるかは、お楽しみに！",
+
+  "item.elarion_angling.glitter_bobber": "キラキラなウキ",
+  "tooltip.elarion_angling.glitter_bobber.0": "かなりきらめくウキ！",
+  "tooltip.elarion_angling.glitter_bobber.1": "きらめきを感じなさい。",
+
+  "item.elarion_angling.colorful_bobber": "カラフルなウキ",
+  "tooltip.elarion_angling.colorful_bobber.0": "やたらカラフルなウキ！",
+  "tooltip.elarion_angling.colorful_bobber.999": "「クリックして！」とでも言うようにピカピカしている",
+
+  "item.elarion_angling.frugal_bobber": "節約上手なウキ",
+  "tooltip.elarion_angling.frugal_bobber.0": "独自の餌節約機能を持つウキ。",
+  "tooltip.elarion_angling.frugal_bobber.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.frugal_bobber.2": "魚に餌を取られないかもしれない。",
+
+  "item.elarion_angling.steady_bobber": "安定大好きなウキ",
+  "tooltip.elarion_angling.steady_bobber.0": "硬くて重いウキ。",
+  "tooltip.elarion_angling.steady_bobber.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.steady_bobber.2": "釣りが簡単になります。",
+
+  "item.elarion_angling.impatient_bobber": "即食いなウキ",
+  "tooltip.elarion_angling.impatient_bobber.0": "魚の食いつきを早めるために、特別に設計されたウキ。",
+  "tooltip.elarion_angling.impatient_bobber.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.impatient_bobber.2": "魚が早く食いつくようになります。",
+
+  "item.elarion_angling.frog_bobber": "カエルなウキ",
+  "tooltip.elarion_angling.frog_bobber.0": "カエルみたいなウキ。",
+  "tooltip.elarion_angling.frog_bobber.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.frog_bobber.2": "たまにカエルみたいに動くよ。たまにだけどね。",
+
+  "item.elarion_angling.kimbe_bobber": "キンベのウキ",
+  "tooltip.elarion_angling.kimbe_bobber.0": "奇妙な見た目のウキ。",
+  "tooltip.elarion_angling.kimbe_bobber.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.kimbe_bobber.2": "スイートスポットを外すたびに、あなたを批判してきます。",
+  "tooltip.elarion_angling.kimbe_bobber.3": "なぜ外したのか、どうすればいいのかは一切教えてくれませんが。",
+
+  "item.elarion_angling.clear_bobber": "透明なウキ",
+  "tooltip.elarion_angling.clear_bobber.0": "水晶のように透明なウキ。",
+  "tooltip.elarion_angling.clear_bobber.1": "<gradient-67>Elarion Anglingの釣竿</gradient-90>を装備中に",
+  "tooltip.elarion_angling.clear_bobber.2": "消えかけるスイートスポットが見やすくなります。",
+
+
+
+  "item.elarion_angling.cherry_bait": "サクラの餌",
+  "tooltip.elarion_angling.cherry_bait.0": "サクラの林によくいる魚が好む、",
+  "tooltip.elarion_angling.cherry_bait.1": "ピンクの花びらで作られた餌。",
+
+  "item.elarion_angling.lush_bait": "繁茂した餌",
+  "tooltip.elarion_angling.lush_bait.0": "繁茂した洞窟に住む魚を惹きつける、",
+  "tooltip.elarion_angling.lush_bait.1": "苔を主成分とした瑞々しい餌。",
+
+  "item.elarion_angling.sculk_bait": "スカルクの餌",
+  "tooltip.elarion_angling.sculk_bait.0": "ディープダークの静かな魚さえも惹きつける、",
+  "tooltip.elarion_angling.sculk_bait.1": "スカルクの残骸で作られた",
+  "tooltip.elarion_angling.sculk_bait.2": "音のしない餌。",
+
+  "item.elarion_angling.dripstone_bait": "鍾乳石の餌",
+  "tooltip.elarion_angling.dripstone_bait.0": "鍾乳石で作られた硬い餌。",
+  "tooltip.elarion_angling.dripstone_bait.1": "最も強張った魚でさえも魅了する。",
+
+  "item.elarion_angling.murkwater_bait": "濁った水の餌",
+  "tooltip.elarion_angling.murkwater_bait.0": "沼地での釣りに適した、濁った餌。",
+
+  "item.elarion_angling.meteorological_bait": "気象の餌",
+  "tooltip.elarion_angling.meteorological_bait.0": "特定の天候の時にしか現れない魚を惹きつける、",
+  "tooltip.elarion_angling.meteorological_bait.1": "少し魔法がかった餌！",
+  "tooltip.elarion_angling.meteorological_bait.2": "とても便利。",
+
+  "item.elarion_angling.legendary_bait": "伝説の餌",
+  "tooltip.elarion_angling.legendary_bait.name": "<rgb>伝説の餌</rgb>",
+  "tooltip.elarion_angling.legendary_bait.0": "<rgb>伝説の</rgb>魚がつい食いついてしまう、",
+  "tooltip.elarion_angling.legendary_bait.1": "輝く金色の餌。",
+
+
+
+
+  "item.elarion_angling.missingno": "???",
+  "item.elarion_angling.unknown_fish": "未知の魚",
+  "tooltips.elarion_angling.unknown_fish.0": "釣られているアイテムを隠すエントリのためにミニゲームで使用されるテンプレート魚",
+
+  "item.elarion_angling.fish_spotter": "魚発見器",
+  "tooltip.elarion_angling.fish_spotter.0": "あらゆる<rgb>釣り人</rgb>に役立つ道具で",
+  "tooltip.elarion_angling.fish_spotter.1": "周辺に生息している魚を表示します。",
+
+  "item.elarion_angling.fish_bones" : "魚の骨",
+  "item.elarion_angling.fish_bones.0" : "かつて幸せだった魚たちの名残。",
+  "item.elarion_angling.fish_bones.1" : "かつて幸せだった魚の成れの果て。",
+
+  "item.elarion_angling.waterlogged_satchel" : "水浸しのカバン",
+  "tooltip.elarion_angling.waterlogged_satchel.0" : "水の底の謎を抱えたカバン",
+  "tooltip.elarion_angling.waterlogged_satchel.1" : "底知れぬ水の秘密が入っている。",
+
+  "item.elarion_angling.treasure" : "お宝",
+  "tooltip.elarion_angling.treasure.0" : "熟練の釣り人に釣り上げられた、ピカピカのお宝。",
+  "tooltip.elarion_angling.treasure.1" : "中には何があるんだろう？",
+
+  "item.elarion_angling.scalding_treasure" : "灼熱のお宝",
+  "tooltip.elarion_angling.scalding_treasure.0" : "焼けるように熱い場所から釣り上げられたお宝。",
+  "tooltip.elarion_angling.scalding_treasure.1" : "さあ、ネザーのお宝の中身は？",
+
+  "block.elarion_angling.trophy_gold" : "金のトロフィー",
+  "block.elarion_angling.trophy_silver" : "銀のトロフィー",
+  "block.elarion_angling.trophy_bronze" : "銅のトロフィー",
+
+  "item.elarion_angling.award_all_fishes" : "全魚種を付与",
+  "item.elarion_angling.award_one_fish" : "魚を1種付与",
+  "item.elarion_angling.revoke_all_fishes" : "全魚種を剥奪",
+
+  "item.elarion_angling.award_all_trophies" : "全トロフィーを付与",
+  "item.elarion_angling.revoke_all_trophies" : "全トロフィーを剥奪",
+
+  "item.elarion_angling.award_all_secrets" : "全シークレットを付与",
+  "item.elarion_angling.revoke_all_secrets" : "全シークレットを剥奪",
+
+  "item.elarion_angling.revoke_all_extras" : "全エクストラを剥奪",
+
+
+  "tooltip.elarion_angling.trophy.0" : "釣り人の腕前を証明するトロフィー。",
+  "tooltip.elarion_angling.trophy.1" : "以下の条件を達成すると、",
+  "tooltip.elarion_angling.trophy.2" : "釣り糸にかかると言われている:",
+  "tooltip.elarion_angling.trophy.once" : "一度 ",
+  "tooltip.elarion_angling.trophy.have_been_caught" : " を釣り上げた。",
+
+  "tooltip.elarion_angling.trophy.unique" : "<rgb>[&]</rgb> 種類の$fishes",
+  "tooltip.elarion_angling.trophy.total" : "<rgb>[&]</rgb> 匹の$fishes",
+
+  "tooltip.elarion_angling.trophy.all" : " ",
+  "tooltip.elarion_angling.trophy.common" : " コモン ",
+  "tooltip.elarion_angling.trophy.uncommon" : " <gradient-37>アンコモン</gradient-43> ",
+  "tooltip.elarion_angling.trophy.rare" : " <gradient-57>レア</gradient-63> ",
+  "tooltip.elarion_angling.trophy.epic" : " <gradient-80>エピック</gradient-90> ",
+  "tooltip.elarion_angling.trophy.legendary" : " <rgb>レジェンダリー</rgb> ",
+
+
+  "tooltip.elarion_angling.trophy.both.0" : "<rgb>[&]</rgb> 種類の魚、",
+  "tooltip.elarion_angling.trophy.both.1" : "そして合計 <rgb>[&]</rgb> 匹の魚を釣り上げた時に！",
+
+
+  "gui.elarion_angling.toast.fish_caught" : "新しい魚を釣り上げました！",
+
+
+  "gui.guide.seasons" : "季節:",
+
+  "gui.guide.seasons.all" : "すべて",
+
+  "gui.guide.seasons.spring" : "春",
+  "gui.guide.seasons.early_spring" : "初春",
+  "gui.guide.seasons.mid_spring" : "仲春",
+  "gui.guide.seasons.late_spring" : "晩春",
+
+  "gui.guide.seasons.summer" : "夏",
+  "gui.guide.seasons.early_summer" : "初夏",
+  "gui.guide.seasons.mid_summer" : "仲夏",
+  "gui.guide.seasons.late_summer" : "晩夏",
+
+  "gui.guide.seasons.autumn" : "秋",
+  "gui.guide.seasons.early_autumn" : "初秋",
+  "gui.guide.seasons.mid_autumn" : "仲秋",
+  "gui.guide.seasons.late_autumn" : "晩秋",
+
+  "gui.guide.seasons.winter" : "冬",
+  "gui.guide.seasons.early_winter" : "初冬",
+  "gui.guide.seasons.mid_winter" : "仲冬",
+  "gui.guide.seasons.late_winter" : "晩冬",
+
+
+  "gui.guide.seasons.in_season" : "シーズン中！",
+  "gui.guide.seasons.not_in_season" : "シーズン外",
+
+  "gui.guide.sort.alphabetical_up" : "⏬ 五十音順",
+  "gui.guide.sort.alphabetical_down" : "⏫ 五十音順",
+  "gui.guide.sort.mod_up" : "⏬ MOD名",
+  "gui.guide.sort.mod_down" : "⏫ MOD名",
+  "gui.guide.sort.rarity_up" : "⏬ レア度",
+  "gui.guide.sort.rarity_down" : "⏫ レア度",
+  "gui.guide.sort.caught_up" : "⏬ 捕獲数",
+  "gui.guide.sort.caught_down" : "⏫ 捕獲数",
+  "gui.guide.sort.fluid_up" : "⏬ 液体",
+  "gui.guide.sort.fluid_down" : "⏫ 液体",
+  "gui.guide.sort.season_up" : "⏬ 季節",
+  "gui.guide.sort.season_down" : "⏫ 季節",
+
+  "gui.guide.units.metric" : "メートル法 (cm & kg)",
+  "gui.guide.units.imperial" : "ヤード・ポンド法 (in & lb)",
+
+  "gui.guide.units.cheeseburger" : "チーズバーガー",
+  "gui.guide.units.cheeseburger.size" : "個分のチーズバーガー",
+  "gui.guide.units.cheeseburger.weight" : "個分のチーズバーガー",
+
+  "gui.guide.units.football" : "サッカーボール",
+  "gui.guide.units.football.size" : "個分のサッカーボール",
+  "gui.guide.units.football.weight" : "個分のサッカーボール",
+
+  "gui.guide.units.developer" : "開発者",
+  "gui.guide.units.developer.size" : "wds",
+  "gui.guide.units.developer.weight" : "wds",
+
+  "gui.guide.units.banana" : "バナナ",
+  "gui.guide.units.banana.size" : "本分のバナナ",
+  "gui.guide.units.banana.weight" : "本分のバナナ",
+
+  "gui.guide.units.duck" : "一般的なアヒル",
+  "gui.guide.units.duck.size" : "羽分のアヒル",
+  "gui.guide.units.duck.weight" : "羽分のアヒル",
+
+  "gui.guide.units.space_whale" : "宇宙クジラ",
+  "gui.guide.units.scientific" : "科学的",
+
+
+
+
+  "gui.guide.not_caught_yet_fish_name" : "-------",
+  "gui.guide.not_caught_fish_name" : "???",
+  "gui.guide.caught" : "捕獲済み:",
+  "gui.guide.not_caught" : "------",
+  "gui.guide.not_caught_yet" : "まだ釣れていません！",
+  "gui.guide.rarity" : "レア度:",
+
+  "gui.guide.fishing" : "釣りについて:",
+  "gui.guide.index.basics" : "基本",
+  "gui.guide.index.treasures" : "お宝",
+  "gui.guide.index.hooks" : "釣り針",
+  "gui.guide.index.bobbers" : "ウキ",
+  "gui.guide.index.baits" : "餌",
+  "gui.guide.index.gadgets" : "ガジェット",
+  "gui.guide.index.trophies" : "トロフィー",
+  "gui.guide.index.secrets" : "シークレット",
+  "gui.guide.index.settings" : "設定",
+
+  "gui.guide.basics" : "      基本",
+  "gui.guide.treasures" : "     お宝",
+  "gui.guide.hooks" : "     釣り針",
+  "gui.guide.bobbers" : "      ウキ",
+  "gui.guide.baits" : "       餌",
+  "gui.guide.gadgets" : "   ガジェット",
+  "gui.guide.trophies" : "   トロフィー",
+  "gui.guide.secrets" : "   シークレット",
+
+
+  "gui.guide.page0.left.0" : "",
+  "gui.guide.page0.left.1" : "",
+  "gui.guide.page0.left.2" : "",
+  "gui.guide.page0.left.3" : "",
+  "gui.guide.page0.left.4" : "",
+  "gui.guide.page0.left.5" : "  ただのサケやタラ以上の",
+  "gui.guide.page0.left.6" : "ものを釣りたいと願うなら、",
+  "gui.guide.page0.left.7" : "まず必要なのは",
+  "gui.guide.page0.left.8" : "<gradient-67>Elarion Anglingの釣竿</gradient-90>だ！",
+  "gui.guide.page0.left.9" : "  それを手に入れたら、",
+  "gui.guide.page0.left.10" : "いざキャスティング！",
+  "gui.guide.page0.left.11" : "  ウキから目を離さず、",
+  "gui.guide.page0.left.12" : "食いつくその瞬間を",
+  "gui.guide.page0.left.13" : "辛抱強く待つのだ。",
+
+
+  "gui.guide.page0.right.0" : "",
+  "gui.guide.page0.right.1" : "",
+  "gui.guide.page0.right.2" : "",
+  "gui.guide.page0.right.3" : "  ここの魚はそう簡単には",
+  "gui.guide.page0.right.4" : "諦めない。巻き上げるまで",
+  "gui.guide.page0.right.5" : "弱点を的確に狙い続けて",
+  "gui.guide.page0.right.6" : "ヒットさせるんだ！",
+  "gui.guide.page0.right.7" : "",
+  "gui.guide.page0.right.8" : "",
+  "gui.guide.page0.right.9" : "",
+  "gui.guide.page0.right.10" : "",
+  "gui.guide.page0.right.11" : "",
+  "gui.guide.page0.right.12" : "",
+  "gui.guide.page0.right.13" : "",
+  "gui.guide.page0.right.14" : "  どの魚も同じように戦う",
+  "gui.guide.page0.right.15" : "わけではない。どんな事態",
+  "gui.guide.page0.right.16" : "にも備えよう！特に噂に聞く",
+  "gui.guide.page0.right.17" : "<rgb>レジェンダリー</rgb>な魚を",
+  "gui.guide.page0.right.18" : "狙うならなおさらだ！",
+
+  "gui.guide.page1.left.0" : "",
+  "gui.guide.page1.left.1" : "",
+  "gui.guide.page1.left.2" : "",
+  "gui.guide.page1.left.3" : "",
+  "gui.guide.page1.left.4" : "",
+  "gui.guide.page1.left.5" : "  難しい魚を狙っていると、",
+  "gui.guide.page1.left.6" : "何か余計なものが釣り針を",
+  "gui.guide.page1.left.7" : "引っ張っている感覚が",
+  "gui.guide.page1.left.8" : "あるかもしれない！",
+  "gui.guide.page1.left.9" : "",
+  "gui.guide.page1.left.10" : "それは<gradient-08>お宝</gradient-15>だ！",
+
+
+  "gui.guide.page1.right.0" : "",
+  "gui.guide.page1.right.1" : "",
+  "gui.guide.page1.right.2" : "",
+  "gui.guide.page1.right.3" : "  しかし、魚に逃げられずに",
+  "gui.guide.page1.right.4" : "お宝を釣り上げる腕前が",
+  "gui.guide.page1.right.5" : "君にはあるかな？",
+  "gui.guide.page1.right.6" : "",
+  "gui.guide.page1.right.7" : "",
+  "gui.guide.page1.right.8" : "  強い魚ほど、いいお宝を",
+  "gui.guide.page1.right.9" : "隠しているかもしれない！",
+  "gui.guide.page1.right.10" : "最高のお宝が欲しいなら、",
+  "gui.guide.page1.right.11" : "激しい戦いを覚悟しよう。",
+  "gui.guide.page1.right.12" : "",
+  "gui.guide.page1.right.13" : "",
+  "gui.guide.page1.right.14" : "  お宝は、<gradient-67>Elarion Anglingの釣竿</gradient-90>用の",
+  "gui.guide.page1.right.15" : "特別な釣り針やウキを",
+  "gui.guide.page1.right.16" : "見つける一番の方法だ。",
+  "gui.guide.page1.right.17" : "チャンスがあれば",
+  "gui.guide.page1.right.18" : "積極的に狙っていこう！",
+
+
+  "gui.guide.page2.left.0" : "",
+  "gui.guide.page2.left.1" : "",
+  "gui.guide.page2.left.2" : "",
+  "gui.guide.page2.left.3" : "",
+  "gui.guide.page2.left.4" : "",
+  "gui.guide.page2.left.5" : "  様々な釣り針は、様々な",
+  "gui.guide.page2.left.6" : "手段で入手できるが、",
+  "gui.guide.page2.left.7" : "基本的にはお宝から",
+  "gui.guide.page2.left.8" : "手に入ることが多い！",
+  "gui.guide.page2.left.9" : "",
+  "gui.guide.page2.left.10" : "  それぞれ異なる特典や",
+  "gui.guide.page2.left.11" : "ボーナスがあるので、",
+  "gui.guide.page2.left.12" : "目的に合わせて最適な",
+  "gui.guide.page2.left.13" : "釣り針を選ぼう。",
+
+  "gui.guide.page2.right.0" : "",
+  "gui.guide.page2.right.1" : "",
+  "gui.guide.page2.right.2" : "",
+  "gui.guide.page2.right.3" : "",
+  "gui.guide.page2.right.4" : "",
+  "gui.guide.page2.right.5" : "  釣り針と同じように、",
+  "gui.guide.page2.right.6" : "ウキも主にお宝から",
+  "gui.guide.page2.right.7" : "発見される。",
+  "gui.guide.page2.right.8" : "",
+  "gui.guide.page2.right.9" : "",
+  "gui.guide.page2.right.10" : "  ウキは釣りの体験に",
+  "gui.guide.page2.right.11" : "様々な変化をもたらして",
+  "gui.guide.page2.right.12" : "くれるだろう。",
+
+  "gui.guide.page3.left.0" : "",
+  "gui.guide.page3.left.1" : "",
+  "gui.guide.page3.left.2" : "",
+  "gui.guide.page3.left.3" : "",
+  "gui.guide.page3.left.4" : "",
+  "gui.guide.page3.left.5" : "熟練の釣り人なら誰もが",
+  "gui.guide.page3.left.6" : "餌の重要性を語るだろう。",
+  "gui.guide.page3.left.7" : "食いつきを早くするわけ",
+  "gui.guide.page3.left.8" : "ではないが、特定の魚は",
+  "gui.guide.page3.left.9" : "特定の餌に引き寄せられる。",
+  "gui.guide.page3.left.10" : "それを使えば目当ての魚を",
+  "gui.guide.page3.left.11" : "探すのがずっと楽になる！",
+  "gui.guide.page3.left.12" : "",
+  "gui.guide.page3.left.13" : "特に<rgb>レジェンダリー</rgb>な魚には。",
+
+  "gui.guide.page3.right.0" : "",
+  "gui.guide.page3.right.1" : "",
+  "gui.guide.page3.right.2" : "",
+  "gui.guide.page3.right.3" : "",
+  "gui.guide.page3.right.4" : "",
+  "gui.guide.page3.right.5" : "  お宝の中身を漁って",
+  "gui.guide.page3.right.6" : "いると、古いガジェットに",
+  "gui.guide.page3.right.7" : "出くわすことがある！",
+  "gui.guide.page3.right.8" : "",
+  "gui.guide.page3.right.9" : "  これらはクラフト可能な",
+  "gui.guide.page3.right.10" : "ものも多く、魚に関する",
+  "gui.guide.page3.right.11" : "様々な活動において",
+  "gui.guide.page3.right.12" : "役立つだろう。",
+  "gui.guide.page3.right.13" : "",
+
+  "gui.guide.page4.left.0" : "",
+  "gui.guide.page4.left.1" : "",
+  "gui.guide.page4.left.2" : "",
+  "gui.guide.page4.left.3" : "",
+  "gui.guide.page4.left.4" : "",
+  "gui.guide.page4.left.5" : "  トロフィーは釣り人の",
+  "gui.guide.page4.left.6" : "腕前の証であり、",
+  "gui.guide.page4.left.7" : "トロフィーを持っていない",
+  "gui.guide.page4.left.8" : "他の人々を恥じ入らせる",
+  "gui.guide.page4.left.9" : "には十分な代物だ。",
+
+  "gui.guide.page4.right.0" : "",
+  "gui.guide.page4.right.1" : "",
+  "gui.guide.page4.right.2" : "",
+  "gui.guide.page4.right.3" : "",
+  "gui.guide.page4.right.4" : "",
+  "gui.guide.page4.right.5" : "  波間を漂うボトルの中に",
+  "gui.guide.page4.right.6" : "どんな忘れ去られた物語が",
+  "gui.guide.page4.right.7" : "封じ込められているか、",
+  "gui.guide.page4.right.8" : "誰にもわからない。",
+
+  "gui.guide.trophy.all.total" : "捕獲総数: ",
+  "gui.guide.trophy.all.unique" : "捕獲種類数: ",
+
+  "gui.guide.trophy.common.total" : "コモンの捕獲総数: ",
+  "gui.guide.trophy.common.unique" : "コモンの捕獲種類数: ",
+
+  "gui.guide.trophy.uncommon.total" : "<gradient-37>アンコモン</gradient-43>の捕獲総数: ",
+  "gui.guide.trophy.uncommon.unique" : "<gradient-37>アンコモン</gradient-43>の捕獲種類数: ",
+
+  "gui.guide.trophy.rare.total" : "<gradient-57>レア</gradient-63>の捕獲総数: ",
+  "gui.guide.trophy.rare.unique" : "<gradient-57>レア</gradient-63>の捕獲種類数: ",
+
+  "gui.guide.trophy.epic.total" : "<gradient-80>エピック</gradient-90>の捕獲総数: ",
+  "gui.guide.trophy.epic.unique" : "<gradient-80>エピック</gradient-90>の捕獲種類数: ",
+
+  "gui.guide.trophy.legendary.total" : "<rgb>レジェンダリー</rgb>の捕獲総数: ",
+  "gui.guide.trophy.legendary.unique" : "<rgb>レジェンダリー</rgb>の捕獲種類数: ",
+
+
+  "gui.guide.available" : "このエリアの魚:",
+  "gui.guide.all" : "すべての魚:",
+
+  "gui.guide.lakes" : "湖",
+  "gui.guide.lakes.hover" : "川と海以外の地表バイオーム",
+
+  "gui.guide.dimension" : "ディメンション: ",
+  "gui.guide.dimensions" : "ディメンション群: ",
+  "gui.guide.biome" : "バイオーム: ",
+  "gui.guide.biome_tags" : "バイオームタグ: ",
+  "gui.guide.biomes" : "バイオーム群: ",
+  "gui.guide.blacklisted_biomes" : "禁止バイオーム: ",
+  "gui.guide.blacklisted_biome_tags" : "禁止バイオームタグ: ",
+  "gui.guide.blacklisted_dimensions" : "禁止ディメンション: ",
+  "gui.guide.bait" : "餌: ",
+  "gui.guide.weather" : "天候: ",
+  "gui.guide.raining" : "雨",
+  "gui.guide.thundering" : "雷雨",
+  "gui.guide.clear" : "晴れ",
+  "gui.guide.daytime" : "時間: ",
+  "gui.guide.day" : "朝",
+  "gui.guide.noon" : "昼",
+  "gui.guide.night" : "夜",
+  "gui.guide.midnight" : "深夜",
+  "gui.guide.elevation" : "高度: ",
+  "gui.guide.below" : "以下 ",
+  "gui.guide.above" : "以上 ",
+  "gui.guide.mountain" : "山",
+  "gui.guide.surface" : "地上",
+  "gui.guide.underground" : "地下",
+  "gui.guide.caves" : "洞窟",
+  "gui.guide.deepslate" : "深層",
+  "gui.guide.fluid" : "液体: ",
+  "gui.guide.no_restriction" : "制限なし",
+  "gui.guide.hover" : "[カーソルを合わせる]",
+
+
+  "gui.guide.rarity.common" : "コモン",
+  "gui.guide.rarity.uncommon" : "<gradient-37>アンコモン</gradient-43>",
+  "gui.guide.rarity.rare" : "<gradient-57>レア</gradient-63>",
+  "gui.guide.rarity.epic" : "<gradient-80>エピック</gradient-90>",
+  "gui.guide.rarity.legendary" : "<rgb>レジェンダリー</rgb>",
+
+
+
+  "gui.elarion_angling.tournament.organizer" : "主催者",
+  "gui.elarion_angling.tournament.prize_pool" : "賞金プール",
+  "gui.elarion_angling.tournament.entry_fee" : "参加費",
+  "gui.elarion_angling.tournament.inventory" : "インベントリ",
+  "gui.elarion_angling.tournament.sign_up" : "[参加登録]",
+  "gui.elarion_angling.tournament.signed_up" : "[登録済み！]",
+  "gui.elarion_angling.tournament.other" : "その他:",
+  "gui.elarion_angling.tournament.status" : "ステータス",
+  "gui.elarion_angling.tournament.duration" : "期間",
+  "gui.elarion_angling.tournament.start" : "[大会を開始]",
+
+  "gui.elarion_angling.tournament.status.setup" : "準備中",
+  "gui.elarion_angling.tournament.status.active" : "開催中",
+  "gui.elarion_angling.tournament.status.finished" : "終了",
+
+
+
+  "gui.secret_note.sample_note.0" : "おい、どうやってこのメモを手に入れた？？",
+  "gui.secret_note.sample_note.1" : "クリエイティブモードでチートしたのか？？",
+  "gui.secret_note.sample_note.2" : "",
+  "gui.secret_note.sample_note.3" : "これらのメモは、ボトルから入手しない限り",
+  "gui.secret_note.sample_note.4" : "正しいデータを持たず、ゲームをクラッシュ",
+  "gui.secret_note.sample_note.5" : "させる可能性がある！気をつけろ。",
+
+  "gui.secret_note.crystal_hook.0" : "34日目",
+  "gui.secret_note.crystal_hook.1" : "",
+  "gui.secret_note.crystal_hook.2" : "昨日のトラブルの後、ついにダイヤモンドの道具を",
+  "gui.secret_note.crystal_hook.3" : "手に入れるのが最善だと決心した。",
+  "gui.secret_note.crystal_hook.4" : "",
+  "gui.secret_note.crystal_hook.5" : "まあ、過去の私はそう思ったのだが、",
+  "gui.secret_note.crystal_hook.6" : "もし深層の地底湖で誤って水晶の釣り針を",
+  "gui.secret_note.crystal_hook.7" : "落とすと知っていれば、",
+  "gui.secret_note.crystal_hook.8" : "あんな場所には行かなかっただろう。",
+  "gui.secret_note.crystal_hook.9" : "",
+  "gui.secret_note.crystal_hook.10" : "もし誰か、海を漂うこの手紙を見つけたなら、",
+  "gui.secret_note.crystal_hook.11" : "私の大切な水晶の釣り針を持って行ってくれて構わない。",
+  "gui.secret_note.crystal_hook.12" : "レジェンダリーな魚を少なくとも一匹釣り上げれば、",
+  "gui.secret_note.crystal_hook.13" : "<gradient-30>古の釣り人たち</gradient-50>が祝福を与え、",
+  "gui.secret_note.crystal_hook.14" : "私の水晶の釣り針があなたの針に食いつくだろう。",
+  "gui.secret_note.crystal_hook.15" : "",
+  "gui.secret_note.crystal_hook.16" : "-ロガイ",
+
+  "gui.secret_note.lava_proof_bottle_1.0" : "『ボトルはいかが！ボトルはいかが！』",
+  "gui.secret_note.lava_proof_bottle_1.1" : "『なんと<gradient-00>耐火性™</gradient-14>ですよ！！』",
+  "gui.secret_note.lava_proof_bottle_1.2" : "",
+  "gui.secret_note.lava_proof_bottle_1.3" : "『本当に<gradient-00>耐火性™</gradient-14>なんです！』",
+  "gui.secret_note.lava_proof_bottle_1.4" : "",
+  "gui.secret_note.lava_proof_bottle_1.5" : "この詐欺師どもにはうんざりだ。<gradient-00>耐火性™</gradient-14>の",
+  "gui.secret_note.lava_proof_bottle_1.6" : "ボトルだと？溶岩に沈めて無事なわけがない！",
+  "gui.secret_note.lava_proof_bottle_1.7" : "お前らの馬鹿げた<gradient-00>耐火性™</gradient-14>ボトルについて、",
+  "gui.secret_note.lava_proof_bottle_1.8" : "俺がどう思ってるか見せてやろうか？？",
+  "gui.secret_note.lava_proof_bottle_1.9" : "",
+  "gui.secret_note.lava_proof_bottle_1.10" : "この手紙をそのいわゆる『<gradient-00>耐火性™</gradient-14>ボトル』",
+  "gui.secret_note.lava_proof_bottle_1.11" : "に入れて、一番近くの溶岩溜まりに放り込んでやる！",
+  "gui.secret_note.lava_proof_bottle_1.12" : "へっ、これで思い知るだろう。",
+  "gui.secret_note.lava_proof_bottle_1.13" : "",
+  "gui.secret_note.lava_proof_bottle_1.14" : "",
+  "gui.secret_note.lava_proof_bottle_1.15" : "",
+  "gui.secret_note.lava_proof_bottle_1.16" : "-疑い深いアーンウルフ",
+
+  "gui.secret_note.lava_proof_bottle_2.0" : "",
+  "gui.secret_note.lava_proof_bottle_2.1" : "もしこの手紙を見つけた人がいたら、",
+  "gui.secret_note.lava_proof_bottle_2.2" : "前の手紙について謝罪したい。",
+  "gui.secret_note.lava_proof_bottle_2.3" : "",
+  "gui.secret_note.lava_proof_bottle_2.4" : "この<gradient-00>耐火性™</gradient-14>ボトルは本物だった。",
+  "gui.secret_note.lava_proof_bottle_2.5" : "",
+  "gui.secret_note.lava_proof_bottle_2.6" : "多くの詐欺や<gradient-00>耐火性™</gradient-14>ボトルの約束に",
+  "gui.secret_note.lava_proof_bottle_2.7" : "騙されてきたから、疑心暗鬼になっていて",
+  "gui.secret_note.lava_proof_bottle_2.8" : "試そうともしなかったんだ。",
+  "gui.secret_note.lava_proof_bottle_2.9" : "",
+  "gui.secret_note.lava_proof_bottle_2.10" : "なんていうか、生きてこそ学べるってやつだね。",
+  "gui.secret_note.lava_proof_bottle_2.11" : "",
+  "gui.secret_note.lava_proof_bottle_2.12" : "もう行かなくちゃ。なんでも新しい",
+  "gui.secret_note.lava_proof_bottle_2.13" : "『耐火』エンチャントがあるとか聞いた。まさかね。",
+  "gui.secret_note.lava_proof_bottle_2.14" : "",
+  "gui.secret_note.lava_proof_bottle_2.15" : "",
+  "gui.secret_note.lava_proof_bottle_2.16" : "-疑い深いアーンウルフ",
+
+  "gui.secret_note.hopeful_note.0" : "",
+  "gui.secret_note.hopeful_note.1" : "",
+  "gui.secret_note.hopeful_note.2" : "",
+  "gui.secret_note.hopeful_note.3" : "201日目",
+  "gui.secret_note.hopeful_note.4" : "",
+  "gui.secret_note.hopeful_note.5" : "<gradient-55>海の心</gradient-65>を探す旅に出てから、",
+  "gui.secret_note.hopeful_note.6" : "もう半年以上が過ぎた。",
+  "gui.secret_note.hopeful_note.7" : "希望は薄れつつあるが、",
+  "gui.secret_note.hopeful_note.8" : "命尽きるまで探し続けるつもりだ。",
+  "gui.secret_note.hopeful_note.9" : "",
+  "gui.secret_note.hopeful_note.10" : "",
+  "gui.secret_note.hopeful_note.11" : "",
+  "gui.secret_note.hopeful_note.12" : "",
+  "gui.secret_note.hopeful_note.13" : "",
+  "gui.secret_note.hopeful_note.14" : "",
+  "gui.secret_note.hopeful_note.15" : "",
+  "gui.secret_note.hopeful_note.16" : "-ガウワード",
+
+  "gui.secret_note.hopeless_note.0" : "",
+  "gui.secret_note.hopeless_note.1" : "",
+  "gui.secret_note.hopeless_note.2" : "",
+  "gui.secret_note.hopeless_note.3" : "202日目",
+  "gui.secret_note.hopeless_note.4" : "",
+  "gui.secret_note.hopeless_note.5" : "もう絶望的だ。<gradient-55>海の心</gradient-65>なんて",
+  "gui.secret_note.hopeless_note.6" : "存在しない。あのクソ野郎どもに騙されたんだ。",
+  "gui.secret_note.hopeless_note.7" : "もう家に帰ることはない。小さなジミーは、",
+  "gui.secret_note.hopeless_note.8" : "父親が空想上の万能アイテムを追いかけたまま",
+  "gui.secret_note.hopeless_note.9" : "消えたと思って生きていくことになる。",
+  "gui.secret_note.hopeless_note.10" : "",
+  "gui.secret_note.hopeless_note.11" : "本当に私の責任だ。水中で呼吸ができるようになる",
+  "gui.secret_note.hopeless_note.12" : "アイテムなんて、どうして信じてしまったんだろう。",
+  "gui.secret_note.hopeless_note.13" : "信じられない。",
+  "gui.secret_note.hopeless_note.14" : "",
+  "gui.secret_note.hopeless_note.15" : "",
+  "gui.secret_note.hopeless_note.16" : "-ガウワード",
+
+  "gui.secret_note.true_blue.0"  : "   何かが挿入され、",
+  "gui.secret_note.true_blue.1"  : "   あるいは取り出され、あるいは調べられる。",
+  "gui.secret_note.true_blue.2"  : "",
+  "gui.secret_note.true_blue.3"  : "               何かが内側で眠り続け、",
+  "gui.secret_note.true_blue.4"  : "               ずっとそこにあった。",
+  "gui.secret_note.true_blue.5"  : "",
+  "gui.secret_note.true_blue.6"  : "   あるいは飲み込み、",
+  "gui.secret_note.true_blue.7"  : "   あるいは吐き出した。",
+  "gui.secret_note.true_blue.8"  : "",
+  "gui.secret_note.true_blue.9"  : "               10年前、あるいは10瞬前、",
+  "gui.secret_note.true_blue.10" : "               私の目に映り、",
+  "gui.secret_note.true_blue.11" : "               あるいはあなたの背後に浮かぶ。",
+  "gui.secret_note.true_blue.12" : "",
+  "gui.secret_note.true_blue.13" : "   あなたの母の母の中に、",
+  "gui.secret_note.true_blue.14" : "   あるいはあなたの子の子の中に、",
+  "gui.secret_note.true_blue.15" : "   夢現（ゆめうつつ）に。",
+
+
+  "item.elarion_angling.secret_note" : "シークレットノート",
+  "tooltip.elarion_angling.secret_note.0" : "時の中に埋もれかけた、古い秘密のメモ。",
+  "tooltip.elarion_angling.secret_note.1" : "今はもういないかもしれない人々の思考が、",
+  "tooltip.elarion_angling.secret_note.2" : "ただそこに記されている。",
+
+  "item.elarion_angling.broken_bottle" : "割れたボトル",
+  "tooltip.elarion_angling.broken_bottle.0" : "かつては無傷だったボトルの残骸。",
+
+  "item.elarion_angling.settings" : "設定",
+
+  "item.elarion_angling.drifting_waterlogged_bottle" : "漂流する水浸しのボトル",
+  "tooltip.elarion_angling.drifting_waterlogged_bottle.0" : "海を漂っていたボトル。",
+
+  "item.elarion_angling.scalding_bottle" : "灼熱のボトル",
+  "tooltip.elarion_angling.scalding_bottle.0" : "焼けるように熱いボトル。特に変わったところはない。",
+  "tooltip.elarion_angling.scalding_bottle.1" : "待てよ...これは本当に<gradient-00>耐火性™</gradient-14>ボトルなのか！？",
+  "tooltip.elarion_angling.scalding_bottle.2" : "実在するなんて思わなかった！",
+  "tooltip.elarion_angling.scalding_bottle.3" : "残念ながら、メッセージを取り出すには",
+  "tooltip.elarion_angling.scalding_bottle.4" : "叩き割るしかないようだ...",
+
+  "item.elarion_angling.burning_bottle" : "燃えるボトル",
+  "tooltip.elarion_angling.burning_bottle.0" : "燃えているボトル。隠すまでもなく、",
+  "tooltip.elarion_angling.burning_bottle.1" : "これは<gradient-00>耐火性™</gradient-14>ボトルに違いない！",
+
+  "item.elarion_angling.hopeless_bottle" : "絶望のボトル",
+  "tooltip.elarion_angling.hopeless_bottle.0" : "絶望的なボトル。いや、中身のメッセージが、か。",
+
+  "item.elarion_angling.hopeful_bottle" : "希望のボトル",
+  "tooltip.elarion_angling.hopeful_bottle.0" : "なぜか、このボトルを見ているだけで",
+  "tooltip.elarion_angling.hopeful_bottle.1" : "未来への希望が湧いてくる。",
+
+  "item.elarion_angling.true_blue_bottle" : "トゥルーブルー・ボトル",
+  "tooltip.elarion_angling.true_blue_bottle.0" : "淡い青色に輝くボトル。",
+  "tooltip.elarion_angling.true_blue_bottle.1" : "最も純粋な自分自身が内側から輝いている。",
+  "tooltip.elarion_angling.true_blue_bottle.2" : "",
+  "tooltip.elarion_angling.true_blue_bottle.3" : "本能的、短気、不可能。",
+  "tooltip.elarion_angling.true_blue_bottle.4" : "記憶、鏡、そして膜の中で。",
+
+
+  "item.elarion_angling.obsidonti" : "オビドンティー",
+  "tooltip.elarion_angling.obsidonti.0" : "小さくずる賢い魚。",
+  "tooltip.elarion_angling.obsidonti.1" : "よく言葉を言い間違えると言われている。",
+
+  "item.elarion_angling.morganite_minnow" : "モルガナイト",
+  "tooltip.elarion_angling.morganite_minnow.0" : "モルガナイトの宝石に似た海の魚。",
+
+  "item.elarion_angling.silvermist_perch" : "シルバーヴェール・パーチ",
+  "tooltip.elarion_angling.silvermist_perch.0" : "銀のような鱗を持つ小さなパーチ。",
+  "tooltip.elarion_angling.silvermist_perch.1" : "雨の日によく見られる。",
+
+  "item.elarion_angling.elderfin" : "エルダースケール",
+  "tooltip.elarion_angling.elderfin.0" : "湖によくいる欺瞞に満ちた魚。",
+  "tooltip.elarion_angling.elderfin.1" : "エルダースケールは数十年生きることもあり、若い頃は一日中",
+  "tooltip.elarion_angling.elderfin.2" : "隠れて過ごすため、若い個体を見るのは噂程度のもの。",
+  "tooltip.elarion_angling.elderfin.3" : "それが名前の由来。",
+
+  "item.elarion_angling.driftwing" : "ドリフトフィン",
+  "tooltip.elarion_angling.driftwing.0" : "晴れた日に水面近くを漂うのが",
+  "tooltip.elarion_angling.driftwing.1" : "大好きな小魚。",
+
+  "item.elarion_angling.dusk_koi" : "トワイライト・コイ",
+  "tooltip.elarion_angling.dusk_koi.0" : "真夜中の湖にしか現れないと言われる、",
+  "tooltip.elarion_angling.dusk_koi.1" : "かなり希少なコイ。",
+
+  "item.elarion_angling.storm_bass" : "サンダー・バス",
+  "tooltip.elarion_angling.storm_bass.0" : "嵐の雷鳴に惹きつけられるらしい、",
+  "tooltip.elarion_angling.storm_bass.1" : "固有種のバス。",
+  "tooltip.elarion_angling.storm_bass.2" : "ライトニング・バスと一緒に泳いでいる姿がよく目撃される。",
+
+  "item.elarion_angling.stormflash_bass" : "ライトニング・バス",
+  "tooltip.elarion_angling.stormflash_bass.0" : "嵐の稲光に惹きつけられるらしい、",
+  "tooltip.elarion_angling.stormflash_bass.1" : "固有種のバス。",
+  "tooltip.elarion_angling.stormflash_bass.2" : "サンダー・バスと一緒に泳いでいる姿がよく目撃される。",
+
+  "item.elarion_angling.sodden_boot" : "ブーツ",
+  "tooltip.elarion_angling.sodden_boot.0" : "湖から釣り上げられた、信じられないほど高品質なブーツ。",
+  "tooltip.elarion_angling.sodden_boot.1" : "すべての釣り人の夢。",
+
+
+
+
+
+  "item.elarion_angling.icejaw_trout" : "フロストジョー・トラウト",
+  "tooltip.elarion_angling.icejaw_trout.0" : "石化した氷の結晶でできた",
+  "tooltip.elarion_angling.icejaw_trout.1" : "鋭い顎で知られるトラウト。",
+
+  "item.elarion_angling.prismback_trout" : "クリスタルバック・トラウト",
+  "tooltip.elarion_angling.prismback_trout.0" : "攻撃された際に身を守るため、",
+  "tooltip.elarion_angling.prismback_trout.1" : "背中を使うタフなトラウト。",
+
+  "item.elarion_angling.aurorafin" : "オーロラ",
+  "tooltip.elarion_angling.aurorafin.0" : "美しい<rgb>レジェンダリー</rgb>フィッシュ。その大きさゆえに",
+  "tooltip.elarion_angling.aurorafin.1" : "非常に捉えにくく回避能力も高い。腕前の証明として",
+  "tooltip.elarion_angling.aurorafin.2" : "持ち帰ろうとする釣り人を休ませてはくれない。",
+
+  "item.elarion_angling.wintry_pike" : "ウィンタリー・パイク",
+  "tooltip.elarion_angling.wintry_pike.0" : "肉食魚。この特定の種は寒冷な気候を好み、",
+  "tooltip.elarion_angling.wintry_pike.1" : "凍った湖の中でよく見られる。",
+
+
+
+
+  "item.elarion_angling.dunetail" : "サンドテイル",
+  "tooltip.elarion_angling.dunetail.0" : "砂にまみれた長い魚。暖かい気候でよく見られるが、",
+  "tooltip.elarion_angling.dunetail.1" : "夜の寒さを好む。",
+
+  "item.elarion_angling.miragefin_carp" : "ミラージュ・コイ",
+  "tooltip.elarion_angling.miragefin_carp.0" : "暖かい気候の、晴れた暖かい日中に見られるコイ。",
+  "tooltip.elarion_angling.miragefin_carp.1" : "砂漠の村人たちによって名付けられたと言われている。",
+  "tooltip.elarion_angling.miragefin_carp.2" : "それを見つけることは、しばしば蜃気楼に過ぎなかったからだ。",
+
+  "item.elarion_angling.scorchfin" : "スコーチフィッシュ",
+  "tooltip.elarion_angling.scorchfin.0" : "雨を嫌う魚。",
+  "tooltip.elarion_angling.scorchfin.1" : "そのため、より暖かい気候の周辺に留まることを好む。",
+
+  "item.elarion_angling.cactusfin" : "カクティフィッシュ",
+  "tooltip.elarion_angling.cactusfin.0" : "その名前からサボテンと何か関係がありそうだが、",
+  "tooltip.elarion_angling.cactusfin.1" : "単に緑色の鱗が似ているだけの",
+  "tooltip.elarion_angling.cactusfin.2" : "偶然の一致に過ぎない。",
+
+  "item.elarion_angling.aloe_bream" : "アガベ・フナ",
+  "tooltip.elarion_angling.aloe_bream.0" : "晴れた日の夜にしか出てこない希少なフナ。",
+  "tooltip.elarion_angling.aloe_bream.1" : "長いヒレは、砂漠の汚れた湖を泳ぐのに",
+  "tooltip.elarion_angling.aloe_bream.2" : "役立っている。",
+
+
+
+
+  "item.elarion_angling.sunlit_sturgeon" : "サニー・スタージョン",
+  "tooltip.elarion_angling.sunlit_sturgeon.0" : "晴れた日に山の上流でよく見られる珍しいチョウザメ。",
+  "tooltip.elarion_angling.sunlit_sturgeon.1" : "その大きさゆえに釣るのは難しく、",
+  "tooltip.elarion_angling.sunlit_sturgeon.2" : "強い握力と緻密な竿さばきが要求される。",
+
+  "item.elarion_angling.summit_dweller" : "ピークドウェラー",
+  "tooltip.elarion_angling.summit_dweller.0" : "山岳地帯によくいる金色の魚。",
+  "tooltip.elarion_angling.summit_dweller.1" : "未熟な釣り人には釣り上げるのは容易ではない。",
+
+  "item.elarion_angling.stonegill" : "ロックギル",
+  "tooltip.elarion_angling.stonegill.0" : "高山によくいる岩のように硬い魚。",
+  "tooltip.elarion_angling.stonegill.1" : "素晴らしいシチューになると言われているが、",
+  "tooltip.elarion_angling.stonegill.2" : "その皮を噛みちぎれる歯を持つ者に限られる。",
+
+  "item.elarion_angling.sunseeker_carp" : "サンシー・キング・コイ",
+  "tooltip.elarion_angling.sunseeker_carp.0" : "太陽が頭上にある時にしか見つからない、",
+  "tooltip.elarion_angling.sunseeker_carp.1" : "珍しい太陽を愛するコイ。",
+
+
+
+
+  "item.elarion_angling.mire_catfish" : "スラッジ・ナマズ",
+  "tooltip.elarion_angling.mire_catfish.0" : "沼地の濁った水によくいる薄汚れたナマズ。",
+  "tooltip.elarion_angling.mire_catfish.1" : "適切に洗えば素晴らしい料理になると言われている。",
+
+  "item.elarion_angling.lilypad_snapper" : "リリィ・スナッパー",
+  "tooltip.elarion_angling.lilypad_snapper.0" : "沼地によくいる、細長く希少なフエダイ。",
+  "tooltip.elarion_angling.lilypad_snapper.1" : "尖った口で他の魚を捕食する。",
+
+  "item.elarion_angling.sagewhisker_catfish" : "セージ・ナマズ",
+  "tooltip.elarion_angling.sagewhisker_catfish.0" : "沼地に生息する美しいセージ色のナマズ。",
+  "tooltip.elarion_angling.sagewhisker_catfish.1" : "晴れた夜にしか姿を見せず、",
+  "tooltip.elarion_angling.sagewhisker_catfish.2" : "夜の沼地の静寂を楽しんでいる。",
+
+  "item.elarion_angling.mossbound_boot" : "苔むしたブーツ",
+  "tooltips.elarion_angling.mossbound_boot.0" : "ブーツ、でもこれは苔むしている！",
+
+
+
+
+  "item.elarion_angling.pallid_pinfish" : "ペイル・ピンフィッシュ",
+  "tooltip.elarion_angling.pallid_pinfish.0" : "暗い森の真夜中頃にしか見つからない、",
+  "tooltip.elarion_angling.pallid_pinfish.1" : "小さな青白いピンフィッシュ。",
+  "tooltip.elarion_angling.pallid_pinfish.2" : "ペイルガーデンが存在するバージョンに存在したいと願っている。",
+
+  "item.elarion_angling.pinfin" : "ピンフィッシュ",
+  "tooltip.elarion_angling.pinfin.0" : "暗い森の真夜中頃にしか見つからない、",
+
+  "item.elarion_angling.pallid_carp" : "ペイル・カープ",
+  "tooltip.elarion_angling.pallid_carp.0" : "[削除済み]によくいるコイの一種。",
+  "tooltip.elarion_angling.pallid_carp.1" : "この宇宙では彼らの生息地はまだ建設中のため、",
+  "tooltip.elarion_angling.pallid_carp.2" : "代わりに暗い森に留まっている。",
+
+
+
+
+  "item.elarion_angling.bloomfish" : "ブロッサムフィッシュ",
+  "tooltip.elarion_angling.bloomfish.0" : "サクラの林のピンクの花びらに似た美しい魚。",
+  "tooltip.elarion_angling.bloomfish.1" : "暖かい日差しの中を泳ぐのを好む。",
+
+  "item.elarion_angling.vesanii" : "ヴェサニ",
+  "tooltip.elarion_angling.vesanii.0" : "この魚は、他の種への擬態が",
+  "tooltip.elarion_angling.vesanii.1" : "とても上手い。",
+  "tooltip.elarion_angling.vesanii.2" : "本来の姿で公然と姿を見せることは",
+  "tooltip.elarion_angling.vesanii.3" : "稀である。",
+
+  "item.elarion_angling.bloomdrift_carp" : "ペタルドリフト・コイ",
+  "tooltip.elarion_angling.bloomdrift_carp.0" : "サクラの林によくいるピンク色のコイ。",
+  "tooltip.elarion_angling.bloomdrift_carp.1" : "雨の日に出てくるのを好む。",
+
+  "item.elarion_angling.rose_koi" : "ピンク・コイ",
+  "tooltip.elarion_angling.rose_koi.0" : "サクラの林で最もよく見られるピンク色のコイ。",
+  "tooltip.elarion_angling.rose_koi.1" : "雨の日に食事のために出てくる。",
+
+  "item.elarion_angling.rose_siamese_fin" : "ローズ・シャム・フィッシュ",
+  "tooltip.elarion_angling.rose_siamese_fin.0" : "雨の日に見られる希少で豪華な魚。",
+  "tooltip.elarion_angling.rose_siamese_fin.1" : "熟練の釣り人にとっても、釣り上げるのは一苦労。",
+
+
+
+
+  "item.elarion_angling.prismback_sturgeon" : "クリスタルバック・スタージョン",
+  "tooltip.elarion_angling.prismback_sturgeon.0" : "高地でよく見られるチョウザメ。",
+  "tooltip.elarion_angling.prismback_sturgeon.1" : "水晶の背中を持っており、狩りをしている間",
+  "tooltip.elarion_angling.prismback_sturgeon.2" : "受動的に身を守るのに役立っている。",
+
+  "item.elarion_angling.frosttooth_sturgeon" : "アイスティース・スタージョン",
+  "tooltip.elarion_angling.frosttooth_sturgeon.0" : "山の上流で見られるこのチョウザメは、",
+  "tooltip.elarion_angling.frosttooth_sturgeon.1" : "石化した氷の鋭い歯で獲物に噛み付く。",
+
+  "item.elarion_angling.borealis_fin" : "ボリアル",
+  "tooltip.elarion_angling.borealis_fin.0" : "氷の山で見られる<rgb>レジェンダリー</rgb>フィッシュ。",
+  "tooltip.elarion_angling.borealis_fin.1" : "熟練の釣り人にとっても真の挑戦であり、",
+  "tooltip.elarion_angling.borealis_fin.2" : "氷の水に溶け込むことで知られ、",
+  "tooltip.elarion_angling.borealis_fin.3" : "その素早い動きを目で追うのは困難。",
+
+  "item.elarion_angling.crystalback_borealis" : "クリスタルバック・ボリアル",
+  "tooltip.elarion_angling.crystalback_borealis.0" : "<rgb>レジェンダリー</rgb>フィッシュである<rgb>ボリアル</rgb>の名を冠しているが、",
+  "tooltip.elarion_angling.crystalback_borealis.1" : "この魚はそこまで釣るのは難しくない。輝く背中は",
+  "tooltip.elarion_angling.crystalback_borealis.2" : "追跡を容易にし、結晶化した背中が泳ぐ速度を遅くしている。",
+
+
+
+
+  "item.elarion_angling.silvercrest_pike" : "シルバーフィン・パイク",
+  "tooltip.elarion_angling.silvercrest_pike.0" : "川によくいる大きなカワカマス。",
+
+  "item.elarion_angling.willowfin_bream" : "ヤナギ・フナ",
+  "tooltip.elarion_angling.willowfin_bream.0" : "夜間にのみ姿を現す、",
+  "tooltip.elarion_angling.willowfin_bream.1" : "釣るのが非常に難しい魚。",
+
+  "item.elarion_angling.driftwater_bream" : "ドリフティング・フナ",
+  "tooltip.elarion_angling.driftwater_bream.0" : "夜間に川面をゆっくり漂うことで知られる",
+  "tooltip.elarion_angling.driftwater_bream.1" : "フナの一種。",
+
+  "item.elarion_angling.rainfell_bream" : "ダウンフォール・フナ",
+  "tooltip.elarion_angling.rainfell_bream.0" : "見つけるのは難しいが釣るのは簡単なフナ。",
+  "tooltip.elarion_angling.rainfell_bream.1" : "雨の日の夜にしか出てこない。",
+
+  "item.elarion_angling.hollowgut_darter" : "ホローベリー・ダーター",
+  "tooltip.elarion_angling.hollowgut_darter.0" : "本当に小さく、簡単に釣れる川魚。",
+
+  "item.elarion_angling.mistfin_chub" : "ミストバック・チャブ",
+  "tooltip.elarion_angling.mistfin_chub.0" : "銀色の鱗で知られる川魚。",
+
+  "item.elarion_angling.brittle_seaweed" : "乾燥した海藻",
+  "tooltip.elarion_angling.brittle_seaweed.0" : "釣り針に引っかかった",
+  "tooltip.elarion_angling.brittle_seaweed.1" : "枯れた海藻の切れ端。",
+
+
+
+
+  "item.elarion_angling.icegill_chub" : "フロストギル・チャブ",
+  "tooltip.elarion_angling.icegill_chub.0" : "川でよく見られる、",
+  "tooltip.elarion_angling.icegill_chub.1" : "釣り人に人気の魚。",
+
+  "item.elarion_angling.prismback_minnow" : "クリスタルバック・ミノー",
+  "tooltip.elarion_angling.prismback_minnow.0" : "よく餌として使われる本当に小さな魚。",
+  "tooltip.elarion_angling.prismback_minnow.1" : "この特定の種は夜間に最もよく見られる。",
+
+  "item.elarion_angling.cerulean_crystalback_minnow" : "アズールクリスタルバック・ミノー",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.0" : "真夜中に柔らかな青色に輝く、",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.1" : "クリスタルバック・ミノーの稀な変異種。",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.2" : "サイズが小さいため釣るのが難しい。",
+
+  "item.elarion_angling.sapphire_crystalfin" : "ブルークリスタル・フィン",
+  "tooltip.elarion_angling.sapphire_crystalfin.0" : "日中に最もよく見られるアンコモンな魚。",
+
+
+
+  "item.elarion_angling.steeljaw_herring" : "アイアンジョー・ヘリング",
+  "tooltip.elarion_angling.steeljaw_herring.0" : "海によくいるこのニシンの一種は、",
+  "tooltip.elarion_angling.steeljaw_herring.1" : "鉄に似た石化した銀色の顎を持つことが多い。",
+
+  "item.elarion_angling.abyssjaw_herring" : "ディープジョー・へリング",
+  "tooltip.elarion_angling.abyssjaw_herring.0" : "海によくいる魚。取引において高く評価される。",
+
+  "item.elarion_angling.duskfin_snapper" : "ダスクテイル・スナッパー",
+  "tooltip.elarion_angling.duskfin_snapper.0" : "その大きさの割に重い魚。よく料理に使われる。",
+
+  "item.elarion_angling.joelian" : "ジョエル",
+  "tooltip.elarion_angling.joelian.0" : "海で見られる希少な<rgb>レジェンダリー</rgb>フィッシュ。",
+  "tooltip.elarion_angling.joelian.1" : "「ナイス」なサイズをしている。",
+
+  "item.elarion_angling.redscale_tuna" : "レッドスケイルド・マグロ",
+  "tooltip.elarion_angling.redscale_tuna.0" : "赤い鱗を持つ大きなマグロ。",
+  "tooltip.elarion_angling.redscale_tuna.1" : "これ一匹で村全員を養えるほど。",
+
+  "item.elarion_angling.ocean_bass" : "シー・バス",
+  "tooltip.elarion_angling.ocean_bass.0" : "海によくいる人気のあるバス。",
+  "tooltip.elarion_angling.ocean_bass.1" : "臆病なため、夜間は隠れてしまう。",
+
+  "item.elarion_angling.waterlogged_bottle" : "水浸しのボトル",
+  "tooltip.elarion_angling.waterlogged_bottle.0" : "遥か昔に海に投げ込まれたボトル。",
+  "tooltip.elarion_angling.waterlogged_bottle.1" : "かつて何が入っていたとしても、今はもう何もない。",
+
+  "item.elarion_angling.moon_eye_tuna" : "メバチ・マグロ",
+  "tooltip.elarion_angling.moon_eye_tuna.0" : "大きな目で知られる大きく重い魚。",
+  "tooltip.elarion_angling.moon_eye_tuna.1" : "この種は深海でのみ見られる。",
+
+  "item.elarion_angling.weathered_conch" : "巻貝",
+  "tooltip.elarion_angling.weathered_conch.0" : "よく装飾品として使われる、螺旋状の貝殻を持つ軟体動物の残骸。",
+
+  "item.elarion_angling.river_clam" : "ハマグリ",
+  "tooltip.elarion_angling.river_clam.0" : "かつて砂浜に住んでいた二枚貝。今はただの殻。",
+
+  "item.elarion_angling.mycelfin" : "シュルームフィッシュ",
+  "tooltip.elarion_angling.mycelfin.0" : "キノコ島の胞子に乗っ取られた、古代の<rgb>レジェンダリー</rgb>魚種。",
+  "tooltip.elarion_angling.mycelfin.1" : "キノコ好きにはたまらない美味しい一皿となる。",
+
+  "item.elarion_angling.sporefin" : "スポアフィッシュ",
+  "tooltip.elarion_angling.sporefin.0" : "キノコ島で見られる珍しい魚。",
+  "tooltip.elarion_angling.sporefin.1" : "未熟な釣り人には手強いかもしれない。",
+
+
+
+
+  "item.elarion_angling.gilded_fanfin" : "ゴールド・ファン",
+  "tooltip.elarion_angling.gilded_fanfin.0" : "扇のような尾を持つ地底の魚。",
+  "tooltip.elarion_angling.gilded_fanfin.1" : "もしそうなら面白いが、移動するために尾を扇のように回すわけではない。",
+
+  "item.elarion_angling.geode_ribbon_eel" : "ジオード・イール",
+  "tooltip.elarion_angling.geode_ribbon_eel.0" : "輝く、重く、長いウナギ。",
+  "tooltip.elarion_angling.geode_ribbon_eel.1" : "アメジストの晶洞内で卵が孵化するため、",
+  "tooltip.elarion_angling.geode_ribbon_eel.2" : "アメジストが染み込み、その色と質感を得ている。",
+
+
+
+  "item.elarion_angling.ivoryveil" : "ホワイトベール",
+  "tooltip.elarion_angling.ivoryveil.0" : "地底によくいる、長いヒレを持つ青白い魚。",
+  "tooltip.elarion_angling.ivoryveil.1" : "幽霊のように見える割に、驚くほど重い。",
+
+  "item.elarion_angling.dusk_eel" : "ブラック・イール",
+  "tooltip.elarion_angling.dusk_eel.0" : "地底によくいる肉食性の黒いウナギ。",
+
+  "item.elarion_angling.violet_crystalback" : "アメジストバック",
+  "tooltip.elarion_angling.violet_crystalback.0" : "アメジストの晶洞の近くによくいる、捕まえるのが難しい珍しい魚。",
+
+  "item.elarion_angling.stonefin" : "ストーンフィッシュ",
+  "tooltip.elarion_angling.stonefin.0" : "石でできた巨大で重い魚。",
+  "tooltip.elarion_angling.stonefin.1" : "採掘者たちの数日分の食料になることも。",
+
+
+
+  "item.elarion_angling.fossil_angelfish" : "フォスライズド・エンゼルフィッシュ",
+  "tooltip.elarion_angling.fossil_angelfish.0" : "化石に似たエンゼルフィッシュ。",
+  "tooltip.elarion_angling.fossil_angelfish.1" : "実際は化石ではない。栄養価が低く、",
+  "tooltip.elarion_angling.fossil_angelfish.2" : "重くて釣るのが難しいため、",
+  "tooltip.elarion_angling.fossil_angelfish.3" : "見向きもされないことが多い。",
+
+  "item.elarion_angling.dripstone_fin" : "ドリップフィン",
+  "tooltip.elarion_angling.dripstone_fin.0" : "鍾乳洞の水たまりに生息する",
+  "tooltip.elarion_angling.dripstone_fin.1" : "基本的な魚。",
+
+  "item.elarion_angling.brimstone_fish" : "イエローストーン・フィッシュ",
+  "tooltip.elarion_angling.brimstone_fish.0" : "鍾乳洞によくいる",
+  "tooltip.elarion_angling.brimstone_fish.1" : "美しい金色の魚。",
+
+
+
+
+
+  "item.elarion_angling.verdant_pike" : "ラッシュ・パイク",
+  "tooltip.elarion_angling.verdant_pike.0" : "繁茂した洞窟で稀に見つかる、苔むした<rgb>レジェンダリー</rgb>パイク。",
+  "tooltip.elarion_angling.verdant_pike.1" : "熟練の釣り人にとっても",
+  "tooltip.elarion_angling.verdant_pike.2" : "本当に手強い相手。",
+
+  "item.elarion_angling.radiant_mossfin" : "ビビッド・モス",
+  "tooltip.elarion_angling.radiant_mossfin.0" : "繁茂した洞窟で見つかる、魚に似た苔の塊。",
+  "tooltip.elarion_angling.radiant_mossfin.1" : "それとも苔に飲み込まれた本物の魚か？",
+  "tooltip.elarion_angling.radiant_mossfin.2" : "いずれにせよ、ぬるぬるして釣るのは難しい。",
+
+  "item.elarion_angling.quarryfish" : "ザ・クァリッシュ",
+  "tooltip.elarion_angling.quarryfish.0" : "草木の生い茂る繁茂した洞窟周辺でよく見られる魚。",
+  "tooltip.elarion_angling.quarryfish.1" : "その重い体は、釣り上げるのを非常に退屈にさせる。",
+
+
+
+  "item.elarion_angling.phantom_pike" : "ゴーストリー・パイク",
+  "tooltip.elarion_angling.phantom_pike.0" : "地下深くで稀に見られる幽霊のようなパイク。",
+
+  "item.elarion_angling.seaglass_pike" : "アクアマリン・パイク",
+  "tooltip.elarion_angling.seaglass_pike.0" : "地下深くで見られる肉食魚。",
+
+  "item.elarion_angling.ruby_mackerel" : "ガーネット・サバ",
+  "tooltip.elarion_angling.ruby_mackerel.0" : "洞窟の深部で見られる、釣るのが難しいサバの一種。",
+
+  "item.elarion_angling.radiant_amethyst_snapper" : "ブライト・アメジスト・スナッパー",
+  "tooltip.elarion_angling.radiant_amethyst_snapper.0" : "深層レベルで見られる豪華なピンク色の魚。",
+  "tooltip.elarion_angling.radiant_amethyst_snapper.1" : "ダーク・アメジスト・スナッパーとペアで泳いでいると言われている。",
+
+  "item.elarion_angling.dusky_amethyst_snapper" : "ダーク・アメジスト・スナッパー",
+  "tooltip.elarion_angling.dusky_amethyst_snapper.0" : "深層レベルで見られる豪華なダークブルーの魚。",
+  "tooltip.elarion_angling.dusky_amethyst_snapper.1" : "ブライト・アメジスト・スナッパーとペアで泳いでいると言われている。",
+
+  "item.elarion_angling.deepslate_fin" : "ディープスレートフィッシュ",
+  "tooltip.elarion_angling.deepslate_fin.0" : "高山で発見される釣るのが難しい魚。",
+  "tooltip.elarion_angling.deepslate_fin.1" : "冗談だよ。深層で見つかる。",
+
+
+
+
+  "item.elarion_angling.sculkfin" : "スカルフィッシュ",
+  "tooltip.elarion_angling.sculkfin.0" : "スカルクに汚染された厄介な魚。",
+
+  "item.elarion_angling.wardfish" : "ウォード",
+  "tooltip.elarion_angling.wardfish.0" : "ウォーデンと親友だと言われている<rgb>レジェンダリー</rgb>フィッシュ。",
+  "tooltip.elarion_angling.wardfish.1" : "スカルクに抗う代わりに、この魚はそれを受け入れ、強くなった。",
+
+  "item.elarion_angling.darkglow" : "グローイング・ダーク",
+  "tooltip.elarion_angling.darkglow.0" : "ディープダークでしか見られない素早い魚。",
+  "tooltip.elarion_angling.darkglow.1" : "ディープダークでしか見られない素早い魚。",
+
+
+
+  "item.elarion_angling.sun_devourer" : "サンイーター",
+  "tooltip.elarion_angling.sun_devourer.0" : "オーバーワールドの溶岩湖で見られる珍しい魚。",
+
+  "item.elarion_angling.flame_trout" : "パイロトラウト",
+  "tooltip.elarion_angling.flame_trout.0" : "オーバーワールドの地表の溶岩に適応したトラウト。",
+
+  "item.elarion_angling.obsidian_ribbon_eel" : "オブシディアン・イール",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.0" : "黒曜石でできたウナギの<rgb>レジェンダリー</rgb>種。",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.1" : "雨の日のオーバーワールドの溶岩湖で発見される。",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.2" : "村に持ち帰るには、数人の釣り人が",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.3" : "協力して運ばなければならないことが多い。",
+
+
+
+
+  "item.elarion_angling.magma_shrimp" : "モルテン・シュリンプ",
+  "tooltip.elarion_angling.magma_shrimp.0" : "地下の溶岩流で見られる小さなエビ。",
+
+  "item.elarion_angling.obsidian_shellcrab" : "オブシディアン・クラブ",
+  "tooltip.elarion_angling.obsidian_shellcrab.0" : "地下の溶岩溜まりの近くで見られる幻のカニ。",
+
+
+
+
+  "item.elarion_angling.charred_bloodsucker" : "スコーチド・ブラッドサッカー",
+  "tooltip.elarion_angling.charred_bloodsucker.0" : "深層の溶岩湖で見られる、捕まえるのが難しい寄生生物。",
+
+  "item.elarion_angling.molten_slate_crab" : "モルテン・ディープスレート・クラブ",
+  "tooltip.elarion_angling.molten_slate_crab.0" : "溶岩流に近い深層レベルで見られる金色のカニ。",
+
+
+
+
+  "item.elarion_angling.cindergill" : "エンバーギル",
+  "tooltip.elarion_angling.cindergill.0" : "ネザーの広大な溶岩の海で見られる魚。",
+
+  "item.elarion_angling.boiling_pike" : "スコールディング・パイク",
+  "tooltip.elarion_angling.boiling_pike.0" : "ネザーでのみ見られる肉食魚。",
+
+  "item.elarion_angling.ember_squid" : "シンダー・イカ",
+  "tooltip.elarion_angling.ember_squid.0" : "ネザーで見られるぬるぬるしたイカ。",
+
+  "item.elarion_angling.magma_crab" : "ラヴァ・クラブ",
+  "tooltip.elarion_angling.magma_crab.0" : "この特定の種のカニは、どういうわけかネザーに入り込み、",
+  "tooltip.elarion_angling.magma_crab.1" : "ネザーラックから保護殻を進化させた。",
+
+  "item.elarion_angling.magmafin" : "マグマ・フィッシュ",
+  "tooltip.elarion_angling.magmafin.0" : "赤く輝くヒレで知られる一般的なネザーの魚。",
+
+  "item.elarion_angling.glowstone_hunter" : "グローストーン・シーカー",
+  "tooltip.elarion_angling.glowstone_hunter.0" : "奇妙なことにグローストーンに惹かれる魚。",
+  "tooltip.elarion_angling.glowstone_hunter.1" : "通常、その下を泳いでいる。",
+
+  "item.elarion_angling.glowstone_puffer" : "グローストーン・フグ",
+  "tooltip.elarion_angling.glowstone_puffer.0" : "グローストーンのようにきらめくフグ。",
+
+  "item.elarion_angling.willowish" : "ウィリッシュ",
+  "tooltip.elarion_angling.willowish.0" : "他の魚から餌を騙し取ることで",
+  "tooltip.elarion_angling.willowish.1" : "一般的に知られている魚。",
+  "tooltip.elarion_angling.willowish.2" : "信じられないほど醜悪で、本来の居場所である",
+  "tooltip.elarion_angling.willowish.3" : "ネザーへ送り返すべきだ。",
+
+  "item.elarion_angling.magma_crab_claw" : "ラヴァ・クラブ・クロウ",
+  "tooltip.elarion_angling.magma_crab_claw.0" : "ラヴァ・クラブから剥ぎ取られたハサミ。",
+  "tooltip.elarion_angling.magma_crab_claw.1" : "ラヴァ・クラブの攻撃的な性質ゆえに、",
+  "tooltip.elarion_angling.magma_crab_claw.2" : "ネザーではかなり一般的な発見物。",
+
+
+
+  "item.elarion_angling.charred_char" : "チャーフィッシュ",
+  "tooltip.elarion_angling.charred_char.0" : "ジ・エンドでのみ見られる紫色の魚。",
+
+  "item.elarion_angling.chorus_shellcrab" : "コーラス・クラブ",
+  "tooltip.elarion_angling.chorus_shellcrab.0" : "このカニの種はコーラスフルーツを主食としている。",
+  "tooltip.elarion_angling.chorus_shellcrab.1" : "食事の後、意のままにテレポートできると言われている。",
+
+  "item.elarion_angling.ender_glowfin" : "エンド・グロウ",
+  "tooltip.elarion_angling.ender_glowfin.0" : "ジ・エンドでのみ見られる厄介な魚。",
+  "tooltip.elarion_angling.ender_glowfin.1" : "エンダーマンは気にしないようだ。",
+
+  "item.elarion_angling.voidfang" : "ヴォイドバイター",
+  "tooltip.elarion_angling.voidfang.0" : "ジ・エンドの外側の島々で見られる<rgb>レジェンダリー</rgb>フィッシュ。",
+  "tooltip.elarion_angling.voidfang.1" : "見たことのある釣り人はごくわずかで、存在は噂に過ぎない。",
+  "tooltip.elarion_angling.voidfang.2" : "<gradient-30>古の釣り人たち</gradient-50>だけが",
+  "tooltip.elarion_angling.voidfang.3" : "釣り上げに成功したと言われている。",
+  "advancements.husbandry.elarion_angling.fisherman.title": "釣り人",
+  "advancements.husbandry.elarion_angling.fisherman.description": "一度もミスをせずに魚を釣り上げる",
+  "commands.elarion_angling.fish_entry_not_found": "Fish Entry %s not found",
+  "commands.elarion_angling.rod_not_found": "You must have a Elarion Angling-compatible rod in your hand",
+  "item.elarion_angling.naturalist_rod": "Naturalist Rod",
+  "item.elarion_angling.iceborn_rod": "Iceborn Rod",
+  "item.elarion_angling.magmaforged_rod": "Magmaforged Rod",
+  "item.elarion_angling.slimed_rod": "Slimed Rod",
+  "item.elarion_angling.sharktooth_rod": "Sharktooth Rod",
+  "item.elarion_angling.azure_crystal_rod": "Azure Crystal Rod",
+  "item.elarion_angling.good_old_rod": "Good Ol' Rod",
+  "item.elarion_angling.bamboo_rod": "Bamboo Rod",
+  "item.elarion_angling.obsidian_rod": "Obsidian Rod",
+  "item.elarion_angling.alpha_rod": "Alpha Rod",
+  "item.elarion_angling.boner_rod": "Boner Rod",
+  "item.elarion_angling.sky_rod": "Sky Rod",
+  "item.elarion_angling.lush_glowberry_rod": "Lush Glowberry Rod",
+  "item.elarion_angling.humble_rod": "Humble Rod",
+  "item.elarion_angling.bobber": "Steady Bobber",
+  "tooltip.elarion_angling.bobber.0": "A basic bobber for your fishing rod",
+  "tooltip.elarion_angling.bobber.1": "The Iron Hook's best companion.",
+  "item.elarion_angling.vanilla_bobber": "Vanilla-flavoured Bobber",
+  "tooltip.elarion_angling.vanilla_bobber.0": "A bobber made of [imaginary] vanilla.",
+  "tooltip.elarion_angling.vanilla_bobber.1": "Whilst equipped in your <gradient-67>Elarion Angling's rod</gradient-90>,",
+  "tooltip.elarion_angling.vanilla_bobber.2": "it will attract vanilla-flavoured fishes and treasures.",
+  "item.elarion_angling.worm": "Worm",
+  "tooltip.elarion_angling.worm.0": "A basic worm bait which every fish likes.",
+  "tooltip.elarion_angling.worm.1": "Used by anglers as an easy way to get quicker bites.",
+  "item.elarion_angling.seeking_worm": "Seeking Worm",
+  "tooltip.elarion_angling.seeking_worm.0": "A very powerful magical worm known for seeking",
+  "tooltip.elarion_angling.seeking_worm.1": "fishes which the angler has yet to catch.",
+  "tooltip.elarion_angling.seeking_worm.2": "Useful for completionists looking for fill up their collection.",
+  "item.elarion_angling.almighty_worm": "Almighty Worm",
+  "tooltip.elarion_angling.almighty_worm.0": "A strong worm which prevents fishes from being killed",
+  "tooltip.elarion_angling.almighty_worm.1": "when being caught! Be careful when using this worm as a",
+  "tooltip.elarion_angling.almighty_worm.2": "bait as you might get slapped by a flying cod.",
+  "item.elarion_angling.gunpowder_bait": "Gunpowder Bait",
+  "tooltip.elarion_angling.gunpowder_bait.0": "An attempt at a bait made from gunpowder.",
+  "tooltip.elarion_angling.gunpowder_bait.1": "No angler has attempted to use it before,",
+  "tooltip.elarion_angling.gunpowder_bait.2": "probably for a good reason.",
+  "item.elarion_angling.kimbe_bobber_smithing_template": "Kimbe Bobber Smithing Template",
+  "tooltip.elarion_angling.kimbe_bobber_smithing_template.0": "A template for your rod which may be applied at a",
+  "tooltip.elarion_angling.kimbe_bobber_smithing_template.1": "Smithing Table to change your bobber's appearance.",
+  "item.elarion_angling.pearl_bobber_smithing_template": "Pearl Bobber Smithing Template",
+  "tooltip.elarion_angling.pearl_bobber_smithing_template.0": "A template for your rod which may be applied at a",
+  "tooltip.elarion_angling.pearl_bobber_smithing_template.1": "Smithing Table to change your bobber's appearance.",
+  "item.elarion_angling.colorful_bobber_smithing_template": "Colorful Bobber Smithing Template",
+  "tooltip.elarion_angling.colorful_bobber_smithing_template.0": "A template for your rod which may be applied at a",
+  "tooltip.elarion_angling.colorful_bobber_smithing_template.1": "Smithing Table to change your bobber's appearance.",
+  "tooltip.elarion_angling.colorful_bobber_smithing_template.shines": "The Smithing Template shines differently...",
+  "tooltip.elarion_angling.colorful_bobber_smithing_template.click_me": "It shines as if saying [click me]",
+  "item.elarion_angling.fish_radar": "Fish Radar",
+  "tooltip.elarion_angling.fish_radar.0": "A handy radar which displays the fishes",
+  "tooltip.elarion_angling.fish_radar.1": "around the area in a total futuristic way.",
+  "gui.elarion_angling.tournament.scoring": "Scoring",
+  "gui.elarion_angling.tournament.cancel": "[Cancel Tournament]",
+  "gui.elarion_angling.tournament.scoring.simple": "Simple",
+  "gui.elarion_angling.tournament.scoring.weight": "Weight",
+  "gui.elarion_angling.tournament.scoring.rarity": "Rarity",
+  "gui.elarion_angling.tournament.scoring.golden": "Golden",
+  "gui.elarion_angling.tournament.scoring.advanced": "Advanced",
+  "gui.secret_note.wither_note.0": "",
+  "gui.secret_note.wither_note.1": "",
+  "gui.secret_note.wither_note.2": "",
+  "gui.secret_note.wither_note.3": "",
+  "gui.secret_note.wither_note.4": "I would be more careful if I were you...",
+  "gui.secret_note.wither_note.5": "",
+  "gui.secret_note.wither_note.6": "",
+  "gui.secret_note.wither_note.7": "You never know what you might catch",
+  "gui.secret_note.wither_note.8": "drifting amid the oceans.",
+  "gui.secret_note.wither_note.9": "",
+  "gui.secret_note.wither_note.10": "",
+  "gui.secret_note.wither_note.11": "",
+  "gui.secret_note.wither_note.12": "",
+  "gui.secret_note.wither_note.13": "",
+  "gui.secret_note.wither_note.14": "",
+  "gui.secret_note.wither_note.15": "",
+  "item.elarion_angling.withered_bottle": "Withered Bottle",
+  "tooltip.elarion_angling.withered_bottle.0": "An ominous dark bottle.",
+  "item.elarion_angling.starcaught_bucket": "Starcaught Bucket",
+  "tooltip.elarion_angling.starcaught_bucket.before": "Bucket of ",
+  "tooltip.elarion_angling.starcaught_bucket.after": "",
+  "tooltip.elarion_angling.starcaught_bucket.creative.0": "[CREATIVE MODE] This bucket will always spawn an Aurora. To get the corresponding [Bucket of X] you must catch it through normal means using a bucket as a bait.",
+  "tooltip.elarion_angling.starcaught_bucket.creative.1": "If you wish to summon the fish entity, you can right click on the ground with the fish item in creative mode.",
+  "tooltip.elarion_angling.aurorafin.name": "<rgb>Aurora</rgb>",
+  "tooltip.elarion_angling.aloe_bream.3": "It is said this fish loves mangosteens",
+  "tooltip.elarion_angling.moon_eye_tuna.name": "<gradient-37>Bigeye Tuna</gradient-43>",
+  "tooltip.elarion_angling.moon_eye_tuna.2": "It's said to hang around other Kaupen fish.",
+  "tooltip.elarion_angling.sun_devourer.1": "It hunts down sunfishes for food.",
+  "fishing.combo": "%1$s COMBO",
+  "key.category.elarion_angling.minigame": "Elarion Angling Minigame",
+  "key.elarion_angling.minigame_hit": "Minigame Hit"
+}

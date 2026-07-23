@@ -83,6 +83,15 @@ public final class CitizenService {
         return citizen;
     }
 
+    /** Records location only at lifecycle/world-transition boundaries, never per tick. */
+    public CitizenRecord markLocation(ServerPlayerEntity player, String reason) {
+        CitizenRecord citizen = getOrCreate(player);
+        citizen.setLastSeenAt(System.currentTimeMillis());
+        citizen.setLastWorldId(player.getWorld().getRegistryKey().getValue().toString());
+        save(citizen, reason == null ? "location" : reason);
+        return citizen;
+    }
+
     public boolean isActiveCitizen(UUID uuid) {
         return find(uuid).map(this::isActiveCitizen).orElse(false);
     }
@@ -107,6 +116,14 @@ public final class CitizenService {
         cache.put(citizen.uuid(), citizen);
         storage.save(server, citizen);
         events.emitCitizenChanged(new ElarionEventBus.CitizenChanged(citizen.uuid(), citizen, reason));
+    }
+
+    public int resetAll() throws java.io.IOException {
+        requireServer();
+        int count = all().size();
+        cache.clear();
+        storage.deleteAll(server);
+        return count;
     }
 
     private void requireServer() {

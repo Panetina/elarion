@@ -5,6 +5,17 @@
     "name":  "Elarion Core",
     "icon": "assets/elarion_core/icon.png",
     "description":  "Canonical platform core for Elarion realms, Embers, identities, abilities, chat, and progression hooks.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

@@ -13,6 +13,8 @@ routing lives in `docs/ai/routes.json`.
 - Remaining revamp roadmap: `docs/architecture/REVAMP_REMAINING_ROADMAP.md`.
 - AI context command: `dev/tools/ai-context.ps1`.
 - Config definitions: `config/elarion`; runtime state: `world/elarion`.
+- Third-party distribution pins: `distribution/mods.json`; export/launcher
+  contract: `docs/systems/Distribution.md`.
 
 ## Context Command
 
@@ -34,6 +36,7 @@ supporting outlines, and refuses unsafe low-context results.
 .\gradlew.bat :addons:offerings:test
 .\gradlew.bat :addons:quests:test
 .\gradlew.bat :addons:government:test
+.\gradlew.bat :addons:atlas:test
 .\gradlew.bat :tests:gametest:runGameTest
 .\gradlew.bat verifyAiContext
 ```
@@ -44,6 +47,7 @@ Full verification and exports:
 .\gradlew.bat build
 .\gradlew.bat exportMods
 .\gradlew.bat rebuildExportMods
+.\gradlew.bat verifyDistributionManifest
 ```
 
 Safe live-release planning without SFTP or remote mutation:
@@ -84,9 +88,16 @@ then `cleanDevRunLocks`.
 - History/Chronicle: `docs/systems/Chronicles.md` and Core public-history APIs.
 - Placeholders: use the `placeholders` route in `docs/ai/routes.json`; audit
   owners and runtime costs before adding registry contracts or migrations.
+- Atlas: `docs/systems/Atlas.md` and `docs/addons/atlas.md`; the current module
+  is a client shell and must not be treated as a map-data service.
 
 ## Reference Rule
 
 `external/**` and `addons/angling/reference/**` are excluded from ordinary
 search, build-quality decisions, and context capsules. Use them only for an
 explicit upstream comparison or Angling port.
+
+During an explicit Angling port, the local reference is owner-authorized for
+code, content, edited resources, models, sounds, and text. Files may be adapted
+and packaged from proper Elarion module paths; the raw checkout, NeoForge build
+metadata, and Git internals must not be packaged.

@@ -1,0 +1,55 @@
+{
+    "schemaVersion":  1,
+    "sourceRevision":  "016161dfc2d556d20fa641cd275e18c539256d4d",
+    "summary":  {
+                    "files":  5,
+                    "values":  89
+                },
+    "entries":  [
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/data_maps/item/aquarium_interaction.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/elarion_angling/aquarium/interactions.json",
+                        "domain":  "aquarium-interactions",
+                        "valueCount":  13,
+                        "sourceSha256":  "6b85e1386ed692fac51a30f65db53a1af5655444ccc173a22be6511c7fef3203",
+                        "targetSha256":  "b61d250b1cc96e8ea100b40fad06144205cbbc865e25aea77d5888fb0b5c41f4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/data_maps/item/modifiers.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/elarion_angling/equipment/item_modifiers.json",
+                        "domain":  "item-modifiers",
+                        "valueCount":  56,
+                        "sourceSha256":  "6460685ae2eda42326bcc77482cc3e71a01f6d03eab9410a6c9d016634d1b031",
+                        "targetSha256":  "9a3b7185da20be14a7d018aaa8d9934eee3a0a4f81446290862b9052e2cd0afc",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/data_maps/item/tackle_skin.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/elarion_angling/equipment/tackle_skins.json",
+                        "domain":  "tackle-skins",
+                        "valueCount":  8,
+                        "sourceSha256":  "6b1de64a65ec41c65527386686beeb6baa1ea4e5d92b95781f3044e693637ff5",
+                        "targetSha256":  "5e308f7d15f55d13896d8010d73c5564090fa9c6f8a48e2a3816da45a672e94f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/data_maps/mob_effect/modifiers.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/elarion_angling/equipment/effect_modifiers.json",
+                        "domain":  "effect-modifiers",
+                        "valueCount":  1,
+                        "sourceSha256":  "732c1ea4bafd44ecb7af7614397577ed94879f96ab00882d1ca3da5309572147",
+                        "targetSha256":  "1f53d825ed93f1e11936cc558b5ae80c07355600be97c7084b6789d73b89a6e1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/data_maps/starcatcher/fish/treasures.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/elarion_angling/treasure/by_catch.json",
+                        "domain":  "catch-treasures",
+                        "valueCount":  11,
+                        "sourceSha256":  "6dae2f49570f5d361f2031f332823ea83fd6e0fc6111f8cbf4fd5b79498b0f62",
+                        "targetSha256":  "7d2bdd3fb16e8c045ed95d9d856a374cfe73e425025063facc463ee54ef9aa04",
+                        "disposition":  "ported"
+                    }
+                ]
+}

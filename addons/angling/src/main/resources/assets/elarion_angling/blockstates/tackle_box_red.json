@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "elarion_angling:block/tackle_box_red"
+    },
+    "facing=east": {
+      "model": "elarion_angling:block/tackle_box_red",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "elarion_angling:block/tackle_box_red",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "elarion_angling:block/tackle_box_red",
+      "y": 270
+    }
+  }
+}

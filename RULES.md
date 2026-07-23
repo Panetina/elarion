@@ -5,7 +5,11 @@ authoritative docs selected through `docs/ai/routes.json`.
 
 ## Platform and Ownership
 
-- Fabric 1.21.1 is the target and source of truth. NeoForge is reference-only.
+- Fabric 1.21.1 is the runtime and implementation target. NeoForge loader code
+  never ships. The owner-authorized local Angling reference is an approved
+  port source: its code, content, and edited resources may be adapted into the
+  Fabric Angling modules, while its raw checkout and build metadata remain
+  excluded from jars.
 - Core owns canonical citizens, Realms, titles, identity, relationships,
   rewards, history, permissions, server identity, shared UI, task queues, and
   infrastructure.
@@ -84,6 +88,12 @@ authoritative docs selected through `docs/ai/routes.json`.
 
 - Run the narrowest meaningful module tests first; run the full build for
   cross-module changes or final handoff.
+- Export only the changed scope: after editing one mod, build that mod and copy
+  only its changed JAR/resources/config into the matching client/server export
+  root. Do not run a whole-pack export for a single-mod change, because it
+  marks unrelated files as changed and obscures the upload set. Record and
+  hash-verify the changed export files. A full export is reserved for explicit
+  release requests, distribution-manifest changes, or cross-module releases.
 - Performance changes need diagnostics or tests proving work is bounded.
 - Architecture changes require explicit justification and synchronized docs.
 - Live-server promotion requires a verified canonical export, an explicit owner

@@ -1,12 +1,20 @@
 # Elarion Config And State
 
-Last reviewed: 2026-07-08
+Last reviewed: 2026-07-18
 
 Author: Panyel  
 Team: Panetina Team
 
 Editable definitions live under `config/elarion/`. Mutable runtime state lives
 under `world/elarion/`.
+
+Third-party client/server pack settings are a separate distribution boundary.
+Safety settings live under `distribution/*/managed` and launcher updates always
+replace them; this includes disabling ModernFix's Paper chunk and biome-cache
+patches because Lithium owns the overlapping implementations. Defaults live under
+`distribution/client/defaults` and YOSBR applies them only when absent. These
+files are not Elarion typed server config descriptors. See
+`docs/systems/Distribution.md`.
 
 Global player-facing server terms live in
 `config/elarion/core/server_identity.yml`. Specific Realm display names, short
@@ -247,6 +255,12 @@ definition summaries, title definitions, title-progression definitions, and
 reward definitions have descriptor coverage. Generated-only Core abilities,
 Jail, and Security YAML need typed runtime loaders before they can truthfully
 expose current-value descriptors.
+
+Title-progression rules may include one optional bounded `metric` condition:
+`id`, `scope` (`global`, `realm`, `realm:<id>`, or `event:<id>`),
+`comparator` (`GTE`, `LTE`, or `EQ`), `threshold`, and up to four exact
+`dimensions`. Core indexes these rules by metric ID and reads only the matching
+current projection; formatting or gameplay never scans metric history.
 Config mutation request/result/error records and a pure validation helper now
 exist. The validator resolves a request against the registry, checks write
 permission metadata, detects stale expected-current values, parses the

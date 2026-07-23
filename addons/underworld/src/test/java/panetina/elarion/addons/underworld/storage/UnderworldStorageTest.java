@@ -3,6 +3,9 @@ package panetina.elarion.addons.underworld.storage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.LoggerFactory;
+import panetina.elarion.addons.underworld.model.BanishmentRecord;
+import panetina.elarion.addons.underworld.model.InventorySnapshot;
+import panetina.elarion.addons.underworld.model.StoredItemStack;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +28,52 @@ final class UnderworldStorageTest {
 
         assertEquals(UnderworldState.CURRENT_SCHEMA_VERSION, loaded.schemaVersion);
         assertTrue(loaded.recoveryVaults.isEmpty());
-        assertTrue(Files.readString(root.resolve("state.json")).contains("\"schemaVersion\": 1"));
+        assertTrue(loaded.banishments.isEmpty());
+        assertTrue(Files.readString(root.resolve("state.json")).contains("\"schemaVersion\": 3"));
+    }
+
+    @Test
+    void banishmentRoundTripsWithReasonAndPermanentExpiry() {
+        UnderworldState state = new UnderworldState();
+        BanishmentRecord record = new BanishmentRecord();
+        record.playerId = "00000000-0000-4000-8000-000000000001";
+        record.playerName = "Rulebreaker";
+        record.issuedBy = "Admin";
+        record.reason = "Cheating";
+        record.issuedAt = 100L;
+        record.expiresAt = 0L;
+        state.banishments.put(record.playerId, record);
+        UnderworldStorage storage = new UnderworldStorage(LoggerFactory.getLogger("test"), root);
+
+        storage.save(root, state);
+        UnderworldState loaded = storage.load(root);
+
+        BanishmentRecord restored = loaded.banishments.get(record.playerId);
+        assertEquals("Rulebreaker", restored.playerName);
+        assertEquals("Cheating", restored.reason);
+        assertTrue(restored.permanent());
+    }
+
+    @Test
+    void afterlifeAndLivingInventoriesRoundTripSeparately() {
+        UnderworldState state = new UnderworldState();
+        InventorySnapshot afterlife = new InventorySnapshot();
+        afterlife.stacks.add(new StoredItemStack("minecraft:emerald", 3));
+        afterlife.selectedHotbarSlot = 2;
+        afterlife.experienceLevel = 4;
+        InventorySnapshot living = new InventorySnapshot();
+        living.stacks.add(new StoredItemStack("minecraft:diamond", 1));
+        String playerId = "00000000-0000-4000-8000-000000000002";
+        state.afterlifeInventories.put(playerId, afterlife);
+        state.livingInventories.put(playerId, living);
+        UnderworldStorage storage = new UnderworldStorage(LoggerFactory.getLogger("test"), root);
+
+        storage.save(root, state);
+        UnderworldState loaded = storage.load(root);
+
+        assertEquals("minecraft:emerald", loaded.afterlifeInventories.get(playerId).stacks.getFirst().itemId);
+        assertEquals(2, loaded.afterlifeInventories.get(playerId).selectedHotbarSlot);
+        assertEquals("minecraft:diamond", loaded.livingInventories.get(playerId).stacks.getFirst().itemId);
     }
 
     @Test

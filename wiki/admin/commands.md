@@ -40,6 +40,7 @@ advertised in slash recommendations or `/help`.
 /random reset ...
 /e reload
 /e panel
+/e reset players
 /e realm ...
 /e realm announce <realm> <message...>
 /e realm mail <realm> "<title>" <message...>
@@ -56,6 +57,17 @@ advertised in slash recommendations or `/help`.
 `/e panel` opens the in-game Admin Panel for OP level 4 players. It groups
 player inspection/move/edit tools, system resets, Realm-scoped actions, and a
 click-confirmed runtime-only Danger Zone reset.
+
+`/e reset players` is the separate complete player-data reset. It previews
+affected counts and requires an executor-bound confirmation within 60 seconds.
+The confirmed reset creates a timestamped backup, disconnects everyone, clears
+all vanilla playerdata/stats/advancements, operators, whitelist entries, and
+cached profiles, then asks every registered Elarion domain to remove its own
+player-owned state. Shared worlds, terrain, buildings, NPCs, Shrines, portals,
+Realm/world definitions, configuration, and map infrastructure remain intact.
+Use the console or a fresh signed website/bridge access operation afterward to
+restore whitelist access; restore OPs from console. Historical bridge commands
+are not replayed by the reset.
 
 ## Economy
 
@@ -135,6 +147,10 @@ Quest scope keys are explicit strings such as `realm:realm1`, `world:overworld`,
 ## Underworld
 
 ```text
+/banish <player> <minutes> <reason...>
+/banish <player> permanent <reason...>
+/banish list
+/unbanish <player>
 /e death reload
 /e death inspect <player>
 /e death corpse list
@@ -162,6 +178,13 @@ Quest scope keys are explicit strings such as `realm:realm1`, `world:overworld`,
 /e test character reset <player>
 /e test character force-active <player>
 ```
+
+`/banish` confines an online player to the Underworld for the supplied number
+of minutes or permanently. A reason is mandatory and is shown to the player in
+chat and on the Underworld HUD. Banished players may walk and look around but
+cannot chat, fight, break/use blocks, use items, interact with NPCs or Shrines,
+travel through portals, or use addon teleport actions. `/unbanish` also works
+for an offline player already present in the persisted banishment list.
 
 ## Mounts
 

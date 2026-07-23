@@ -419,6 +419,16 @@ public final class OfferingService {
         return reset;
     }
 
+    public synchronized int deleteWorld(String worldId) {
+        List<String> ids = state.instances.values().stream()
+                .filter(instance -> worldId.equals(instance.worldId())
+                        || (!instance.anchorId().isBlank() && state.anchors.containsKey(instance.anchorId())
+                        && worldId.equals(state.anchors.get(instance.anchorId()).worldId())))
+                .map(OfferingInstance::id).toList();
+        for (String id : ids) deleteInstance(id, null);
+        return ids.size();
+    }
+
     public synchronized OfferingProgress progress(String instanceId) {
         OfferingInstance instance = requireInstance(instanceId);
         OfferingProjectDefinition project = requireProject(instance.projectId());

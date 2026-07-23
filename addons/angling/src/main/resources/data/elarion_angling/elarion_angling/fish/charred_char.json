@@ -1,0 +1,77 @@
+{
+    "schema_version":  1,
+    "base_chance":  5,
+    "catch_info":  {
+                       "fish_bucket":  {
+                                           "count":  1,
+                                           "id":  "elarion_angling:starcaught_bucket"
+                                       },
+                       "item":  {
+                                    "count":  1,
+                                    "id":  "elarion_angling:charred_char"
+                                }
+                   },
+    "difficulty":  {
+                       "decay":  1.0,
+                       "hp":  250,
+                       "missPenalty":  10,
+                       "modifiers":  [
+                                         {
+                                             "type":  "elarion_angling:teleport",
+                                             "translation_override":  ""
+                                         }
+                                     ],
+                       "speed":  11,
+                       "sweetspots":  [
+                                          {
+                                              "color_as_int":  -16711936,
+                                              "hitbox_size_in_pixels":  15,
+                                              "is_flip":  false,
+                                              "moving_rate":  0.0,
+                                              "reward":  20,
+                                              "sweetspot_type":  "elarion_angling:normal",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/thin.png",
+                                              "vanishing_rate":  0.0
+                                          },
+                                          {
+                                              "color_as_int":  -16711936,
+                                              "hitbox_size_in_pixels":  15,
+                                              "is_flip":  false,
+                                              "moving_rate":  0.0,
+                                              "reward":  20,
+                                              "sweetspot_type":  "elarion_angling:normal",
+                                              "texture_path":  "elarion_angling:textures/gui/minigame/spots/thin.png",
+                                              "vanishing_rate":  0.0
+                                          }
+                                      ]
+                   },
+    "has_guide_entry":  true,
+    "rarity":  "rare",
+    "restrictions":  [
+                         {
+                             "type":  "elarion_angling:dimension",
+                             "dimensions":  [
+
+                                            ],
+                             "dimensions_tags":  [
+                                                     "elarion_angling:is_end"
+                                                 ],
+                             "translation_override":  "dimension.minecraft.the_end"
+                         },
+                         {
+                             "type":  "elarion_angling:fluid",
+                             "fluids":  [
+                                            "minecraft:water"
+                                        ]
+                         }
+                     ],
+    "size_and_weight":  {
+                            "average_size_cm":  135.0,
+                            "average_weight_grams":  4000.0,
+                            "deviation_size_cm":  25.0,
+                            "deviation_weight_grams":  700.0,
+                            "golden_chance":  0.02
+                        },
+    "skips_minigame":  false,
+    "textures":  "elarion_angling:textures/gui/minigame/end.png"
+}

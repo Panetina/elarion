@@ -1,0 +1,1914 @@
+{
+  "block.minecraft.empty": "Пустота",
+
+  "advancements.husbandry.elarion_angling.fisherman.title": "Рыбак",
+  "advancements.husbandry.elarion_angling.fisherman.description": "Поймайте рыбу, не промахнувшись ни разу",
+
+  "key.category.elarion_angling.elarion_angling": "Звездолов",
+  "key.elarion_angling.minigame_hit": "Удар мини-игры",
+  "key.elarion_angling.expand_tournament": "Переключить оверлей турнира",
+
+  "creativetab.elarion_angling.elarion_angling": "Elarion Angling",
+
+  "emi.elarion_angling.open_as_guide_entry" : "Открыть как запись путеводителя",
+  "emi.elarion_angling.entity_entry" : "Эта запись всегда призывает %s",
+
+  "emi.category.elarion_angling.fishing" : "Рыбалка Ловца Звёзд",
+
+  "emi.info.elarion_angling.worms.0" : "Черви имеют разные рыболовные модификаторы при использовании в качестве наживки.",
+  "emi.info.elarion_angling.worms.1" : "Получить можно, удобряя костной мукой грядку.",
+  "emi.info.elarion_angling.worms.2" : "Можно компостировать.",
+
+  "emi.info.elarion_angling.pearls.0" : "Моллюски, размещённые на песке, медленно создают жемчуг.",
+  "emi.info.elarion_angling.pearls.1" : "Когда моллюск откроется, нажмите на него, чтобы собрать жемчуг.",
+
+  "emi.info.elarion_angling.attachments.0" : "Крючки, поплавки и наживки можно присоединить к удочке с помощью ящика для снастей.",
+  "emi.info.elarion_angling.attachments.1" : "Они дают различные «модификаторы», помогающие по-разному: от сокращения времени клёва до бонусов, снижающих сложность.",
+
+  "emi.info.elarion_angling.fish_bones.0" : "Рыбьи кости появляются после того, как съедена пойманная рыба.",
+
+  "emi.info.elarion_angling.pearl_template.0" : "Этот шаблон можно редко найти при сборе жемчуга из моллюсков.",
+
+  "emi.info.elarion_angling.hat.0" : "Рыбацкие шляпы редко встречаются в сундуках кораблекрушений.",
+
+
+  "tag.elarion_angling.is_beach" : "Пляжи",
+  "tag.elarion_angling.is_birch_forest" : "Берёзовые леса",
+  "tag.elarion_angling.is_cherry_grove" : "Вишнёвые рощи",
+  "tag.elarion_angling.is_cold_lake" : "Холодные озёра",
+  "tag.elarion_angling.is_cold_ocean" : "Холодные океаны",
+  "tag.elarion_angling.is_frozen_ocean" : "Замёрзшие океаны",
+  "tag.elarion_angling.is_cold_river" : "Холодные реки",
+  "tag.elarion_angling.is_dark_forest" : "Тёмные леса",
+  "tag.elarion_angling.is_deep_ocean" : "Глубокие океаны",
+  "tag.elarion_angling.is_mushroom_fields" : "Грибные острова",
+  "tag.elarion_angling.is_ocean" : "Океаны",
+  "tag.elarion_angling.is_normal_ocean" : "Океан",
+  "tag.elarion_angling.is_river" : "Реки",
+  "tag.elarion_angling.is_swamp" : "Болота",
+  "tag.elarion_angling.is_warm_lake" : "Тёплый климат",
+  "tag.elarion_angling.is_lukewarm_ocean" : "Тепловатые океаны",
+  "tag.elarion_angling.is_warm_ocean" : "Тёплые океаны",
+  "tag.elarion_angling.is_warm_river" : "Тёплые реки",
+
+  "tag.minecraft.is_badlands" : "Месы",
+  "tag.minecraft.is_beach" : "Пляжи",
+  "tag.minecraft.is_deep_ocean" : "Глубокие океаны",
+  "tag.minecraft.is_end" : "Биомы Края",
+  "tag.minecraft.is_forest" : "Леса",
+  "tag.minecraft.is_hill" : "Холмы",
+  "tag.minecraft.is_jungle" : "Джунгли",
+  "tag.elarion_angling.lush_and_jungle" : "Джунгли и Пышные пещеры",
+  "tag.minecraft.is_mountain" : "Горы",
+  "tag.minecraft.is_nether" : "Биомы Нижнего мира",
+  "tag.minecraft.is_ocean" : "Океаны",
+  "tag.minecraft.is_overworld" : "Биомы Верхнего мира",
+  "tag.minecraft.is_river" : "Реки",
+  "tag.minecraft.is_savanna" : "Саванны",
+  "tag.minecraft.is_taiga" : "Тайги",
+
+  "tag.elarion_angling.baits" : "Рыболовные наживки",
+  "tag.elarion_angling.hooks" : "Рыболовные крючки",
+  "tag.elarion_angling.bobbers" : "Поплавки",
+  "tag.elarion_angling.equipments" : "Рыболовное снаряжение",
+  "tag.elarion_angling.gadgets" : "Рыболовные гаджеты",
+  "tag.elarion_angling.rods" : "Удочки Звездолова",
+  "tag.elarion_angling.templates" : "Шаблоны удочек",
+  "tag.elarion_angling.bucketable_fishes" : "Рыбы Звездолова для вёдер",
+  "tag.elarion_angling.starcaught_fishes" : "Рыбы Ловца Звёзд для вёдер",
+  "tag.elarion_angling.hats" : "Шляпы",
+
+  "tag.elarion_angling.common_fishes" : "Обычные рыбы",
+  "tag.elarion_angling.uncommon_fishes" : "Необычные рыбы",
+  "tag.elarion_angling.rare_fishes" : "Редкие рыбы",
+  "tag.elarion_angling.epic_fishes" : "Эпические рыбы",
+  "tag.elarion_angling.legendary_fishes" : "Легендарные рыбы",
+
+  "tag.elarion_angling.aquarium_guide_display" : "Взаимодействия аквариума для путеводителя",
+  "tag.elarion_angling.placeable_in_display" : "Размещаемое в блоке дисплея",
+  "tag.elarion_angling.placeable_in_tackle_box" : "Размещаемое в ящике для снастей",
+  "tag.elarion_angling.placeable_in_tackle_box_fish_slot" : "Размещаемое в слот рыбы ящика для снастей",
+  "tag.elarion_angling.tackle_boxes" : "Ящики для снастей",
+  "tag.elarion_angling.tackle_skins" : "образы снастей",
+  "tag.elarion_angling.trash" : "Мусор",
+  "tag.elarion_angling.worms" : "Черви",
+
+
+
+
+
+  "sounds.elarion_angling.king_cry" : "Плачущие звуки",
+  "sounds.elarion_angling.king_grr" : "Злые звуки",
+  "sounds.elarion_angling.king_heheha" : "Звуки ХЕХЕХЕХА",
+
+  "commands.elarion_angling.fish_entry_not_found" : "Запись о рыбе %s не найдена",
+  "commands.elarion_angling.modifier_not_found" : "Модификатор %s не найден",
+  "commands.elarion_angling.rod_not_found" : "У вас должна быть Elarion Angling-compatible удочка в руке",
+  "commands.elarion_angling.nothing_there" : "В текущем месте нет доступной рыбы. Убедитесь, что стоите в правильной жидкости.",
+  "commands.elarion_angling.item_empty" : "У вас должен быть предмет в руке для применения модификатора",
+
+
+  "elarion_angling.configuration.minigame_scale" : "Масштаб мини-игры",
+  "elarion_angling.configuration.hit_delay" : "Задержка удара мини-игры",
+  "elarion_angling.configuration.units" : "Единицы измерения",
+  "elarion_angling.configuration.sort" : "Порядок сортировки путеводителя",
+  "elarion_angling.configuration.enable_villager_sound" : "Звук жителя мини-игры",
+  "elarion_angling.configuration.enable_hit_sound" : "Звук попадания мини-игры",
+  "elarion_angling.configuration.enable_miss_sound" : "Звук промаха мини-игры",
+  "elarion_angling.configuration.vanilla_partial_ticks" : "Ванильные частичные тики",
+  "elarion_angling.configuration.remove_notif_on_hover" : "Убрать уведомление о новой рыбе при наведении",
+
+  "elarion_angling.configuration.give_guide" : "Выдать путеводитель",
+  "elarion_angling.configuration.show_exclamation_mark_particle" : "Показывать частицу [!] при поклёвке",
+  "elarion_angling.configuration.enable_worms" : "Черви при удобрении грядки",
+  "elarion_angling.configuration.enable_minigame" : "Включить мини-игру рыбалки",
+  "elarion_angling.configuration.enable_ftb_team_sharing" : "Включить обмен FTBTeams",
+  "elarion_angling.configuration.enable_seasons" : "Включить совместимость с сезонами",
+  "elarion_angling.configuration.vanishing_rate_multiplier" : "Глобальный множитель скорости исчезновения",
+  "elarion_angling.configuration.moving_speed_multiplier" : "Глобальный множитель скорости движения",
+  "elarion_angling.configuration.penalty_multiplier" : "Глобальный множитель штрафа",
+  "elarion_angling.configuration.decay_multiplier" : "Глобальный множитель убывания",
+  "elarion_angling.configuration.hp_multiplier" : "Глобальный множитель ОЗ",
+  "elarion_angling.configuration.pointer_speed_multiplier" : "Глобальный множитель скорости указателя",
+  "elarion_angling.configuration.hide_entries_until_found" : "Скрывать записи путеводителя до нахождения",
+  "elarion_angling.configuration.fish_player_messages_chance" : "Шанс сообщений игрока рыбе",
+  "elarion_angling.configuration.save_data_to_items" : "Сохранение NBT размера, веса, редкости и золота",
+  "elarion_angling.configuration.base_min_ticks" : "Минимальные тики до клёва",
+  "elarion_angling.configuration.base_max_ticks" : "Максимальные тики до клёва",
+  "elarion_angling.configuration.base_chance" : "Базовый шанс клёва за тик",
+  "elarion_angling.configuration.restrict_tackle_box_to_tag" : "Ограничить ящик снасти тегом",
+  "elarion_angling.configuration.fish_percentile_size_max_scale" : "Максимальный масштаб модели рыбы",
+  "elarion_angling.configuration.fish_percentile_size_min_scale" : "Минимальный масштаб модели рыбы",
+  "elarion_angling.configuration.enable_rod_menu" : "Включить меню удочки",
+  "elarion_angling.configuration.max_tackle_box_fish_storage" : "max_tackle_box_fish_storage",
+
+
+
+  "gui.elarion_angling.processor.fishes_processor.percentile" : "- Цена увеличена на +%s%% для топ 50%%",
+  "gui.elarion_angling.processor.fishes_processor.golden" : "- Цена умножается на %sx если золотая.",
+
+  "elarion_angling.configuration.y_offset": "Смещение по Y",
+  "elarion_angling.configuration.x_offset": "Смещение по X",
+  "elarion_angling.configuration.minigame_window": "Настройки окна мини-игры",
+
+
+
+
+
+
+
+
+
+  "entity.elarion_angling.fish" : "Звёздная рыба",
+
+  "gui.elarion_angling.bait_running_low" : "Наживка заканчивается...",
+  "gui.elarion_angling.reel_no_fish" : "Здесь нет рыбы...",
+  "gui.elarion_angling.no_hook_or_bobber" : "Удочка не работает без крючка и поплавка...",
+
+
+  "tooltip.minecraft.fishing_rod.0": "Простая удочка для ловли",
+  "tooltip.minecraft.fishing_rod.1": "самой обычной рыбы.",
+  "tooltip.minecraft.fishing_rod.2": "Можно только мечтать улучшить",
+  "tooltip.minecraft.fishing_rod.3": "её до <sclegendary>Удочки Ловца Звёзд</sclegendary>.",
+
+
+
+  "tooltip.elarion_angling.rod.netherite" : "<sclegendary>Незеритовое улучшение</sclegendary>",
+
+  "item.elarion_angling.elarion_angling_rod": "Удочка Ловца Звёзд",
+
+  "item.elarion_angling.naturalist_rod": "Удочка натуралиста",
+  "tooltip.elarion_angling.naturalist_rod.0": "Потерянная удочка, очень редко встречается в лесах.",
+  "tooltip.elarion_angling.naturalist_rod.1": "Похоже, это просто палка и верёвка.",
+  "tooltip.elarion_angling.naturalist_rod.2": "stick and a twine.",
+
+  "item.elarion_angling.iceborn_rod": "Ледорождённая удочка",
+  "tooltip.elarion_angling.iceborn_rod.0": "Замороженная удочка, сделанная Ледорождённым,",
+  "tooltip.elarion_angling.iceborn_rod.1": "оставлена в холодном океане для вас.",
+
+  "item.elarion_angling.magmaforged_rod": "Магмовая удочка",
+  "tooltip.elarion_angling.magmaforged_rod.0": "Удочка, выкованная из магмы.",
+  "tooltip.elarion_angling.magmaforged_rod.1": "Очень редко находится в глубинах",
+
+  "item.elarion_angling.slimed_rod": "Слизистая удочка",
+  "tooltip.elarion_angling.slimed_rod.0": "Слизистая удочка, редко находится в",
+  "tooltip.elarion_angling.slimed_rod.1": "затопленных сумках.",
+
+  "item.elarion_angling.sharktooth_rod": "Удочка из Акульего Зуба",
+  "tooltip.elarion_angling.sharktooth_rod.0": "Игрушечная удочка в виде акулы.",
+  "tooltip.elarion_angling.sharktooth_rod.1": "Оставлена в сумке бывшим владельцем.",
+
+  "item.elarion_angling.azure_crystal_rod": "Лазуритовая удочка",
+  "tooltip.elarion_angling.azure_crystal_rod.0": "<sclegendary>Легендарная</sclegendary> удочка из чистых лазурных кристаллов.",
+  "tooltip.elarion_angling.azure_crystal_rod.1": "Говорят, <scuncommon>Старшие рыбаки</scuncommon> дарят эту удочку",
+  "tooltip.elarion_angling.azure_crystal_rod.2": "тем, кто жадничает до сокровищ при ловле <sclegendary>Авроры</sclegendary>",
+
+  "item.elarion_angling.good_old_rod": "Старая добрая удочка",
+  "tooltip.elarion_angling.good_old_rod.0": "Простая удочка, теперь поддерживает поплавки, крючки и наживки.",
+  "tooltip.elarion_angling.good_old_rod.1": "Редко находится в сумках.",
+
+  "item.elarion_angling.bamboo_rod": "Бамбуковая удочка",
+  "tooltip.elarion_angling.bamboo_rod.0": "Бамбуковая удочка, редко встречается в бамбуковых джунглях.",
+
+  "item.elarion_angling.obsidian_rod": "Обсидиановая удочка",
+  "tooltip.elarion_angling.obsidian_rod.0": "Прочная удочка из обсидиана.",
+  "tooltip.elarion_angling.obsidian_rod.1": "Редко находится в поверхностных лавовых озёрах,",
+  "tooltip.elarion_angling.obsidian_rod.2": "её специально туда бросили?",
+
+  "item.elarion_angling.alpha_rod": "Альфа-удочка",
+  "tooltip.elarion_angling.alpha_rod.0": "Удочка, напоминающая о старых временах.",
+  "tooltip.elarion_angling.alpha_rod.1": "Находится в сумках.",
+
+  "item.elarion_angling.boner_rod": "Костяная удочка",
+  "tooltip.elarion_angling.boner_rod.0": "Удочка из костей...",
+  "tooltip.elarion_angling.boner_rod.1": "Выловлена в долинах песка душ...",
+
+  "item.elarion_angling.sky_rod": "Небесная удочка",
+  "tooltip.elarion_angling.sky_rod.0": "Удочка, созданная среди облаков.",
+  "tooltip.elarion_angling.sky_rod.1": "Очень редко находится при рыбалке близко к небесам",
+
+  "item.elarion_angling.lush_glowberry_rod": "Светоягодная удочка",
+  "tooltip.elarion_angling.lush_glowberry_rod.0": "Светящаяся удочка из светоягод, которая светится как светоягоды.",
+  "tooltip.elarion_angling.lush_glowberry_rod.1": "Редко вылавливается в пышных пещерах.",
+
+  "item.elarion_angling.humble_rod": "Скромная удочка",
+  "tooltip.elarion_angling.humble_rod.0": "Очень скромная удочка, редко встречается в реках.",
+
+
+  "item.elarion_angling.elarion_angling_guide": "Путеводитель Ловца Звёзд",
+  "tooltip.elarion_angling.elarion_angling_guide.0": "Лучший спутник рыбака, который ведёт учёт",
+  "tooltip.elarion_angling.elarion_angling_guide.1": "всей пойманной рыбы, а также той,",
+  "tooltip.elarion_angling.elarion_angling_guide.2": "что ещё только ждёт на крючке!",
+
+  "tooltip.elarion_angling.elarion_angling_guide.signed": "Эта книга принадлежит: %s",
+  "tooltip.elarion_angling.elarion_angling_guide.signed_shift": "Подписана: %s",
+
+  "item.elarion_angling.elarion_angling_twine": "Нить Ловца Звёзд",
+  "tooltip.elarion_angling.elarion_angling_twine.0": "Тонкая нить, обвивающая палочку.",
+  "tooltip.elarion_angling.elarion_angling_twine.1": "Когда-то Вансиры использовали её для струн музыкальных инструментов.",
+
+  "block.elarion_angling.tournament_stand": "Турнирный стенд",
+  "tooltip.elarion_angling.tournament_stand.0": "Стенд для проведения рыболовных турниров.",
+
+
+  "tooltip.elarion_angling.modifiers": "Рыболовные модификаторы:",
+
+  "tooltip.modifier.elarion_angling.prevent_frozen": "Предотвращает замерзание катушки",
+
+  "tooltip.modifier.elarion_angling.never_lose": "Позволяет никогда не проигрывать мини-игру",
+
+  "tooltip.modifier.elarion_angling.bounce_back": "Один раз предотвращает побег рыбы, отбрасывая её назад",
+
+  "tooltip.modifier.elarion_angling.survives_lava": "Позволяет рыбачить в лаве",
+
+  "tooltip.modifier.elarion_angling.add_creeper": "Может появиться раздражённый друг",
+
+  "tooltip.modifier.elarion_angling.guarantee_golden": "Золотая рыба будет поймана, если возможно",
+  "tooltip.modifier.elarion_angling.add_5_golden_chance": "Немного увеличивает шанс поимки золотой рыбы",
+  "tooltip.modifier.elarion_angling.add_50_golden_chance": "Значительно увеличивает шанс поимки золотой рыбы",
+  "tooltip.modifier.elarion_angling.cancel_golden": "Больше нельзя поймать золотых рыб",
+
+  "tooltip.modifier.elarion_angling.anglers_hat": "",
+
+  "tooltip.modifier.elarion_angling.hide_catch": "Больше нельзя видеть улов во время рыбалки",
+
+  "tooltip.modifier.elarion_angling.freeze_on_miss": "Промах по точке заморозит катушку на короткое время",
+
+  "tooltip.modifier.elarion_angling.spawn_frozen_sweetspots": "Время от времени может появиться замороженная точка, замораживающая катушку",
+
+  "tooltip.modifier.elarion_angling.spawn_tnt_sweetspots": "Могут появляться взрывные точки",
+
+  "tooltip.modifier.elarion_angling.spawn_treasure_on_three_hits": "Три успешных попадания подряд призовут сундук с сокровищами",
+
+  "tooltip.modifier.elarion_angling.slower_moving_sweetspots": "Замедляет движущиеся точки",
+
+  "tooltip.modifier.elarion_angling.stop_decay_on_hit": "Ненадолго не даёт рыбе уплыть после попадания по точке",
+
+  "tooltip.modifier.elarion_angling.harder_with_treasure_on_perfect": "Улов будет сложнее обычного, но идеальная поимка даёт сокровище",
+
+  "tooltip.modifier.elarion_angling.no_flip": "Точки больше не переворачиваются при попадании",
+
+  "tooltip.modifier.elarion_angling.slower_vanishing": "Исчезающие точки исчезают дольше",
+
+  "tooltip.modifier.elarion_angling.bigger_green_sweetspots": "Зелёные точки будут немного больше",
+
+  "tooltip.modifier.elarion_angling.add_leaves_spots": "В случайные моменты появляются листяные точки",
+
+  "tooltip.modifier.elarion_angling.add_aqua_sweetspot": "Добавляется дополнительная водяная точка",
+
+  "tooltip.modifier.elarion_angling.add_three_aqua_sweetspot": "Добавляются три дополнительные водяные точки",
+
+  "tooltip.modifier.elarion_angling.flip_every_hit": "При каждом попадании по точке происходит переворот",
+
+  "tooltip.modifier.elarion_angling.ignore_daytime_and_weather_restrictions": "Игнорирует ограничения рыбы по времени суток и погоде",
+
+  "tooltip.modifier.elarion_angling.decrease_lure_time": "Уменьшает время клёва",
+  "tooltip.modifier.elarion_angling.big_decrease_lure_time": "Значительно уменьшает время клёва",
+  "tooltip.modifier.elarion_angling.increase_lure_time": "Увеличивает время клёва",
+
+  "tooltip.modifier.elarion_angling.faster_handle_speed": "Увеличивает скорость вращения катушки",
+  "tooltip.modifier.elarion_angling.slightly_faster_handle_speed": "Немного увеличивает скорость вращения катушки",
+  "tooltip.modifier.elarion_angling.slightly_slower_handle_speed": "Немного уменьшает скорость вращения катушки",
+  "tooltip.modifier.elarion_angling.slower_handle_speed": "Уменьшает скорость вращения катушки",
+
+  "tooltip.modifier.elarion_angling.vanilla_loot": "Восстанавливает стандартное поведение и лут",
+
+  "tooltip.modifier.elarion_angling.skip_minigame_if_vanilla_loot": "Пропускает мини-игру при использовании вместе с ванильным поплавком",
+
+  "tooltip.modifier.elarion_angling.extra_exp_based_on_performance": "Дополнительный опыт за хорошую игру",
+
+  "tooltip.modifier.elarion_angling.fish_entity": "Если возможно, поймается живая рыба",
+
+  "tooltip.modifier.elarion_angling.guarantee_new_fish_always": "Если возможно, клюнет неоткрытая рыба",
+  "tooltip.modifier.elarion_angling.guarantee_new_fish_half": "Неоткрытая рыба клюёт с большей вероятностью",
+
+  "tooltip.modifier.elarion_angling.extra_item": "Дополнительная рыба попадётся вместе с уловом",
+  "tooltip.modifier.elarion_angling.extra_two_item": "Две дополнительные рыбы попадутся с уловом",
+  "tooltip.modifier.elarion_angling.extra_three_item": "Три дополнительные рыбы попадутся с уловом",
+  "tooltip.modifier.elarion_angling.extra_five_item": "Пять дополнительных рыб попадутся вместе с уловом",
+  "tooltip.modifier.elarion_angling.extra_ten_item": "Куча дополнительной рыбы попадётся с уловом",
+  "tooltip.modifier.elarion_angling.extra_thirty_two_item": "Целая стая попадётся вместе с уловом",
+
+
+  "tooltip.tackle.elarion_angling.kimbe": "Кимбе",
+  "tooltip.tackle.elarion_angling.clear": "Прозрачный",
+  "tooltip.tackle.elarion_angling.colorful": "Красочный",
+  "tooltip.tackle.elarion_angling.pearl": "Жемчужный",
+  "tooltip.tackle.elarion_angling.base": "Простой",
+  "tooltip.tackle.elarion_angling.frog": "Лягушачий",
+  "tooltip.tackle.elarion_angling.king": "Королевский",
+
+
+  "item.elarion_angling.hook": "Железный крючок",
+  "tooltip.elarion_angling.hook.0": "Простой железный крючок для твоей удочки.",
+  "tooltip.elarion_angling.hook.1": "Кто-то ведь должен с чего-то начинать.",
+
+  "item.elarion_angling.shiny_hook": "Блестящий крючок",
+  "item.elarion_angling.gold_hook": "Золотой крючок",
+  "item.elarion_angling.mossy_hook": "Мшистый крючок",
+  "item.elarion_angling.amethyst_hook": "Аметистовый крючок",
+  "item.elarion_angling.stone_hook": "Каменный крючок",
+  "item.elarion_angling.split_hook": "Раздвоенный крючок",
+  "item.elarion_angling.stabilizing_hook": "Стабилизирующий крючок",
+  "item.elarion_angling.heavy_hook": "Тяжёлый крючок",
+  "item.elarion_angling.vanilla_hook": "Крючок ванильного вкуса",
+  "item.elarion_angling.copper_hook": "Медный крючок",
+  "item.elarion_angling.exposed_copper_hook": "Слегка окислённый медный крючок",
+  "item.elarion_angling.weathered_copper_hook": "Выветрившийся медный крючок",
+  "item.elarion_angling.oxidised_copper_hook": "Полностью окислённый медный крючок",
+  "item.elarion_angling.echoing_hook": "Эхо-крючок",
+  "item.elarion_angling.frozen_hook": "Замороженный крючок",
+
+
+
+  "item.elarion_angling.bobber": "Поплавок",
+  "tooltip.elarion_angling.bobber.0": "Базовый поплавок для вашей удочки.",
+  "tooltip.elarion_angling.bobber.1": "Лучший друг крючка.",
+
+  "item.elarion_angling.steady_bobber": "Устойчивый поплавок",
+  "item.elarion_angling.leaf_bobber": "Листяной поплавок",
+  "item.elarion_angling.clear_bobber": "Прозрачный поплавок",
+  "item.elarion_angling.aqua_bobber": "Водяной поплавок",
+  "item.elarion_angling.vanilla_bobber": "Ванильный поплавок",
+  "item.elarion_angling.slimey_bobber": "Слизистый поплавок",
+
+
+
+  "item.elarion_angling.worm": "Червь",
+  "tooltip.elarion_angling.worm.0": "Простая наживка-червяк, всегда привлекающая самую",
+
+  "item.elarion_angling.seeking_worm": "Ищущий червь",
+  "tooltip.elarion_angling.seeking_worm.0": "Очень мощный магический червь, способный находить",
+
+  "item.elarion_angling.almighty_worm": "Всесильный червь",
+  "tooltip.elarion_angling.almighty_worm.0": "Сильный червь, который не даёт рыбе погибнуть",
+
+  "item.elarion_angling.dev_worm": "Червь разработчика",
+  "tooltip.elarion_angling.dev_worm.0": "Червь, игнорирующий все ограничения рыбы. Для разработчиков.",
+
+
+  "item.elarion_angling.gunpowder_bait": "Пороховая наживка",
+  "tooltip.elarion_angling.gunpowder_bait.0": "Попытка сделать наживку из пороха.",
+  "tooltip.elarion_angling.gunpowder_bait.1": "Ни один рыбак не пытался её использовать,",
+  "tooltip.elarion_angling.gunpowder_bait.2": "наверное, не зря.",
+
+  "item.elarion_angling.cherry_bait": "Вишнёвая наживка",
+  "tooltip.elarion_angling.cherry_bait.0": "Наживка из розовых лепестков, которую",
+  "tooltip.elarion_angling.cherry_bait.1": "обожает рыба из вишнёвых рощ.",
+
+  "item.elarion_angling.lush_bait": "Пышная наживка",
+  "tooltip.elarion_angling.lush_bait.0": "Пышная наживка, в основном сделана из мха,",
+  "tooltip.elarion_angling.lush_bait.1": "часто привлекает рыбу из Пышных пещер.",
+
+  "item.elarion_angling.sculk_bait": "Скалковая наживка",
+  "tooltip.elarion_angling.sculk_bait.0": "Тихая наживка, созданная из скалка,",
+  "tooltip.elarion_angling.sculk_bait.1": "привлекает даже самых молчаливых",
+  "tooltip.elarion_angling.sculk_bait.2": "рыб из Глубокой Тьмы.",
+
+  "item.elarion_angling.dripstone_bait": "Капельниковая наживка",
+  "tooltip.elarion_angling.dripstone_bait.0": "Твёрдая наживка из капельника,",
+  "tooltip.elarion_angling.dripstone_bait.1": "способна очаровать даже самую упрямую рыбу.",
+
+  "item.elarion_angling.murkwater_bait": "Болотная наживка",
+  "tooltip.elarion_angling.murkwater_bait.0": "Мутная наживка, идеально подходит для рыбалки в болотах.",
+
+  "item.elarion_angling.meteorological_bait": "Метеорологическая наживка",
+  "tooltip.elarion_angling.meteorological_bait.0": "Слегка магическая наживка, привлекающая рыбу,",
+  "tooltip.elarion_angling.meteorological_bait.1": "которая появляется только при определённой",
+  "tooltip.elarion_angling.meteorological_bait.2": "погоде! Очень удобно.",
+
+  "item.elarion_angling.legendary_bait": "Легендарная наживка",
+  "tooltip.elarion_angling.legendary_bait.name": "<sclegendary>Легендарная наживка</sclegendary>",
+  "tooltip.elarion_angling.legendary_bait.0": "Сияющая золотая наживка, перед которой <sclegendary>легендарная</sclegendary>",
+  "tooltip.elarion_angling.legendary_bait.1": "рыба просто не может проплыть мимо.",
+
+
+  "tooltip.elarion_angling.templates": "Косметический шаблон:",
+  "tooltip.elarion_angling.tackle": "образ снасти:",
+
+  "item.elarion_angling.kimbe_smithing_template": "Кузнечный шаблон снасти Кимбе",
+  "item.elarion_angling.king_smithing_template": "Королевский кузнечный шаблон снасти",
+  "item.elarion_angling.frog_smithing_template": "Лягушачий кузнечный шаблон снасти",
+  "item.elarion_angling.clear_smithing_template": "Прозрачный кузнечный шаблон снасти",
+  "item.elarion_angling.pearl_smithing_template": "Жемчужный кузнечный шаблон снасти",
+  "item.elarion_angling.colorful_smithing_template": "Красочный кузнечный шаблон снасти",
+
+  "item.elarion_angling.naturalist_skin_smithing_template": "Шаблон образа «Натуралиста»",
+  "item.elarion_angling.iceborn_skin_smithing_template": "Шаблон образа «Ледорождённого»",
+  "item.elarion_angling.magmaforged_skin_smithing_template": "Шаблон образа «Магмованного»",
+  "item.elarion_angling.slimed_skin_smithing_template": "Шаблон образа «Слизистого»",
+  "item.elarion_angling.sharktooth_skin_smithing_template": "Шаблон образа «Акульего Зуба»",
+  "item.elarion_angling.azure_crystal_skin_smithing_template": "Шаблон образа «Лазуритового кристалла»",
+  "item.elarion_angling.bamboo_skin_smithing_template": "Шаблон образа «Бамбука»",
+  "item.elarion_angling.obsidian_skin_smithing_template": "Шаблон образа «Обсидиана»",
+  "item.elarion_angling.alpha_skin_smithing_template": "Шаблон образа «Альфы»",
+  "item.elarion_angling.good_old_skin_smithing_template": "Шаблон образа «Старой доброй»",
+  "item.elarion_angling.boner_skin_smithing_template": "Шаблон образа «Кости»",
+  "item.elarion_angling.sky_skin_smithing_template": "Шаблон образа «Небеса»",
+  "item.elarion_angling.lush_glowberry_skin_smithing_template": "Шаблон образа «Светоягода»",
+  "item.elarion_angling.humble_skin_smithing_template": "Шаблон образа «Скромная»",
+
+
+
+  "item.elarion_angling.missingno": "???",
+  "item.elarion_angling.unknown_fish": "Неизвестная рыба",
+  "tooltips.elarion_angling.unknown_fish.0": "Шаблон-рыба для мини-игры, скрывающая добычу.",
+
+
+
+
+
+  "container.elarion_angling.tackle_box.itemCount" : "%s x%s",
+  "container.elarion_angling.tackle_box.unknownContents" : "%s x%s",
+  "container.elarion_angling.tackle_box.more" : "и ещё %s...",
+
+  "block.elarion_angling.tackle_box" : "Ящик для снастей",
+  "block.elarion_angling.tackle_box_white" : "Белый ящик для снастей",
+  "block.elarion_angling.tackle_box_lime" : "Лаймовый ящик для снастей",
+  "block.elarion_angling.tackle_box_orange" : "Оранжевый ящик для снастей",
+  "block.elarion_angling.tackle_box_red" : "Красный ящик для снастей",
+  "block.elarion_angling.tackle_box_gray" : "Серый ящик для снастей",
+  "block.elarion_angling.tackle_box_light_gray" : "Светло-серый ящик для снастей",
+  "block.elarion_angling.tackle_box_black" : "Чёрный ящик для снастей",
+  "block.elarion_angling.tackle_box_brown" : "Коричневый ящик для снастей",
+  "block.elarion_angling.tackle_box_yellow" : "Жёлтый ящик для снастей",
+  "block.elarion_angling.tackle_box_pink" : "Розовый ящик для снастей",
+  "block.elarion_angling.tackle_box_magenta" : "Пурпурный ящик для снастей",
+  "block.elarion_angling.tackle_box_purple" : "Фиолетовый ящик для снастей",
+  "block.elarion_angling.tackle_box_blue" : "Синий ящик для снастей",
+  "block.elarion_angling.tackle_box_light_blue" : "Голубой ящик для снастей",
+  "block.elarion_angling.tackle_box_cyan" : "Бирюзовый ящик для снастей",
+  "block.elarion_angling.tackle_box_green" : "Зелёный ящик для снастей",
+
+  "block.elarion_angling.aquarium" : "Аквариум",
+
+  "block.elarion_angling.fisherman_hat_black": "Чёрная рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_blue": "Синяя рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_brown": "Коричневая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_cyan": "Бирюзовая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_gray": "Серая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_green": "Зелёная рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_light_blue": "Голубая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_light_gray": "Светло-серая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_lime": "Лаймовая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_magenta": "Пурпурная рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_orange": "Оранжевая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_pink": "Розовая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_purple": "Фиолетовая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_red": "Красная рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_white": "Белая рыбацкая шляпа",
+  "block.elarion_angling.fisherman_hat_yellow": "Жёлтая рыбацкая шляпа",
+
+  "item.elarion_angling.fish_radar": "Рыбный радар",
+  "tooltip.elarion_angling.fish_radar.0": "Удобный радар, показывающий рыбу",
+  "tooltip.elarion_angling.fish_radar.1": "в округе абсолютно футуристичным способом.",
+
+  "item.elarion_angling.pearl" : "Жемчуг",
+  "tooltip.elarion_angling.pearl.0" : "Красивая жемчужина, полученная из моллюска.",
+
+  "item.elarion_angling.fish_bones" : "Рыбьи кости",
+  "tooltip.elarion_angling.fish_bones.0" : "Пара рыбьих костей.",
+  "tooltip.elarion_angling.fish_bones.1" : "Всё, что осталось от когда-то счастливой рыбы.",
+
+  "item.elarion_angling.waterlogged_satchel" : "Промокшая сумка",
+  "tooltip.elarion_angling.waterlogged_satchel.0" : "Сумка, хранящая немало тайн",
+  "tooltip.elarion_angling.waterlogged_satchel.1" : "подводных глубин.",
+
+  "item.elarion_angling.treasure" : "Сокровище",
+  "tooltip.elarion_angling.treasure.0" : "Блестящее сокровище, выловленное умелым рыбаком.",
+  "tooltip.elarion_angling.treasure.1" : "Что же скрыто внутри?",
+
+  "item.elarion_angling.scalding_treasure" : "Обжигающее сокровище",
+  "tooltip.elarion_angling.scalding_treasure.0" : "Сокровище, выловленное прямо из",
+  "tooltip.elarion_angling.scalding_treasure.1" : "обжигающих земель Незера. Что внутри?",
+
+  "block.elarion_angling.trophy_copper" : "Медный трофей",
+  "block.elarion_angling.trophy_iron" : "Железный трофей",
+  "block.elarion_angling.trophy_gold" : "Золотой трофей",
+  "block.elarion_angling.trophy_emerald" : "Изумрудный трофей",
+  "block.elarion_angling.trophy_diamond" : "Алмазный трофей",
+  "block.elarion_angling.trophy_of_the_older_angler" : "Трофей Старшего Рыбака",
+
+  "block.elarion_angling.display" : "Дисплей Ловца Звёзд",
+  "tooltip.elarion_angling.display.0" : "[В разработке]",
+
+  "item.elarion_angling.award_all_fishes" : "Выдать всю рыбу",
+  "item.elarion_angling.award_one_fish" : "Выдать одну рыбу",
+  "item.elarion_angling.revoke_all_fishes" : "Забрать всю рыбу",
+
+  "item.elarion_angling.award_all_trophies" : "Выдать все трофеи",
+  "item.elarion_angling.revoke_all_trophies" : "Забрать все трофеи",
+
+  "item.elarion_angling.award_all_secrets" : "Открыть все секреты",
+  "item.elarion_angling.revoke_all_secrets" : "Забрать все секреты",
+
+  "item.elarion_angling.revoke_all_extras" : "Забрать все дополнительные предметы",
+
+  "gui.elarion_angling.toast.fish_caught" : "Поймана новая рыба!",
+
+  "gui.guide.sign" : "Подписать",
+  "gui.guide.sign.locked.0" : "Подпись зафиксирует все текущие поимки",
+  "gui.guide.sign.locked.1" : "Эта книга больше не будет заполняться новыми поимками после подписи.",
+  "gui.guide.season" : "Сезон: ",
+  "gui.guide.seasons" : "Сезоны:",
+
+  "gui.guide.seasons.all" : "Все",
+
+  "gui.guide.seasons.spring" : "Весна",
+  "gui.guide.seasons.summer" : "Лето",
+  "gui.guide.seasons.autumn" : "Осень",
+  "gui.guide.seasons.winter" : "Зима",
+
+  "gui.guide.seasons.not_spring" : "Не весна",
+  "gui.guide.seasons.not_summer" : "Не лето",
+  "gui.guide.seasons.not_autumn" : "Не осень",
+  "gui.guide.seasons.not_winter" : "Не зима",
+
+  "gui.guide.seasons.spring_summer" : "Весна и лето",
+  "gui.guide.seasons.spring_autumn" : "Весна и осень",
+  "gui.guide.seasons.spring_winter" : "Весна и зима",
+  "gui.guide.seasons.summer_autumn" : "Лето и осень",
+  "gui.guide.seasons.summer_winter" : "Лето и зима",
+  "gui.guide.seasons.autumn_winter" : "Осень и зима",
+
+  "gui.guide.seasons.around_spring" : "Около весны",
+  "gui.guide.seasons.around_summer" : "Около лета",
+  "gui.guide.seasons.around_autumn" : "Около осени",
+  "gui.guide.seasons.around_winter" : "Около зимы",
+
+  "gui.guide.seasons.early_spring" : "Ранняя весна",
+  "gui.guide.seasons.mid_spring" : "Середина весны",
+  "gui.guide.seasons.late_spring" : "Поздняя весна",
+
+  "gui.guide.seasons.early_summer" : "Раннее лето",
+  "gui.guide.seasons.mid_summer" : "Середина лета",
+  "gui.guide.seasons.late_summer" : "Позднее лето",
+
+  "gui.guide.seasons.early_autumn" : "Ранняя осень",
+  "gui.guide.seasons.mid_autumn" : "Середина осени",
+  "gui.guide.seasons.late_autumn" : "Поздняя осень",
+
+  "gui.guide.seasons.early_winter" : "Ранняя зима",
+  "gui.guide.seasons.mid_winter" : "Середина зимы",
+  "gui.guide.seasons.late_winter" : "Поздняя зима",
+
+
+  "gui.guide.seasons.in_season" : "Сейчас сезон!",
+  "gui.guide.seasons.not_in_season" : "Не сезон",
+
+  "gui.guide.weather.clear" : "Ясная погода",
+  "gui.guide.weather.rain" : "Дождь",
+  "gui.guide.weather.thunder" : "Гроза",
+  "gui.guide.weather.clear_or_rain" : "Ясно или дождь",
+  "gui.guide.weather.clear_or_thunder" : "Ясно или гроза",
+  "gui.guide.weather.rain_or_thunder" : "Дождь или гроза",
+
+
+  "gui.guide.elevation.between" : "Между %s и %s",
+
+  "gui.guide.elevation.surface" : "Поверхность",
+  "gui.guide.elevation.mountains" : "Горы",
+  "gui.guide.elevation.skies" : "Небеса",
+  "gui.guide.elevation.deepslate" : "Глубинный сланец",
+  "gui.guide.elevation.void" : "Пустота",
+  "gui.guide.elevation.stone_caves" : "Каменные пещеры",
+  "gui.guide.elevation.underground" : "Под землёй",
+
+  "gui.guide.sort" : "  [Сорт.]",
+
+  "gui.guide.sort.alphabetical_up" : "⏬ По алфавиту",
+  "gui.guide.sort.alphabetical_down" : "⏫ По алфавиту",
+  "gui.guide.sort.mod_up" : "⏬ По модам",
+  "gui.guide.sort.mod_down" : "⏫ По модам",
+  "gui.guide.sort.rarity_up" : "⏬ По редкости",
+  "gui.guide.sort.rarity_down" : "⏫ По редкости",
+  "gui.guide.sort.caught_up" : "⏬ По поимке",
+  "gui.guide.sort.caught_down" : "⏫ По поимке",
+  "gui.guide.sort.fluid_up" : "⏬ По жидкости",
+  "gui.guide.sort.fluid_down" : "⏫ По жидкости",
+  "gui.guide.sort.season_up" : "⏬ По сезону",
+  "gui.guide.sort.season_down" : "⏫ По сезону",
+
+  "gui.guide.units.metric" : "Метрическая (см и кг)",
+  "gui.guide.units.imperial" : "Имперская (дюймы и фунты)",
+
+  "gui.guide.units.cheeseburger" : "Чизбургер",
+  "gui.guide.units.cheeseburger.size" : "Чизбургеры",
+  "gui.guide.units.cheeseburger.weight" : "Чизбургеры",
+
+  "gui.guide.units.football" : "Футбольный мяч",
+  "gui.guide.units.football.size" : "Мячи",
+  "gui.guide.units.football.weight" : "Мячи",
+
+  "gui.guide.units.developer" : "Разработчик",
+  "gui.guide.units.developer.size" : "wds",
+  "gui.guide.units.developer.weight" : "wds",
+
+  "gui.guide.units.banana" : "Банан",
+  "gui.guide.units.banana.size" : "Бананы",
+  "gui.guide.units.banana.weight" : "Бананы",
+
+  "gui.guide.units.duck" : "Средняя утка",
+  "gui.guide.units.duck.size" : "Утки",
+  "gui.guide.units.duck.weight" : "Утки",
+
+  "gui.guide.units.space_whale" : "Космический кит",
+  "gui.guide.units.scientific" : "Научная",
+
+
+
+
+  "gui.guide.not_caught_yet_fish_name" : "-------",
+  "gui.guide.not_caught_fish_name" : "???",
+  "gui.guide.caught" : "Поймано:",
+  "gui.guide.not_caught" : "------",
+  "gui.guide.not_caught_yet" : "Ещё не поймана!",
+  "gui.guide.rarity" : "Редкость:",
+
+  "gui.guide.first" : "Первый улов:",
+  "gui.guide.fastest" : "Быстрейший: ",
+  "gui.guide.average" : "Средний: ",
+  "gui.guide.biggest" : "Наибольший: ",
+  "gui.guide.heaviest" : "Наитяжелейший: ",
+  "gui.guide.percentile" : "Лучший: топ ",
+
+  "gui.guide.bucketable" : "Можно поймать в ведро, используя его как наживку!",
+  "gui.guide.entity" : "Можно поймать живой, используя Всесильного червя как наживку!",
+  "gui.guide.always_entity" : "Эта рыба живее, чем обычно!",
+
+  "gui.guide.fishing" : "Всё о рыбалке:",
+  "gui.guide.index.basics" : "Основы",
+  "gui.guide.index.sweetspots" : "Типы идеальных зон",
+  "gui.guide.index.treasures" : "Сокровища",
+  "gui.guide.index.upgrades" : "Улучшения и модификаторы",
+  "gui.guide.index.tackle_box" : "Ящики для снастей и насадки",
+  "gui.guide.index.hooks_bobbers_baits" : "Крючки, поплавки и наживки",
+  "gui.guide.index.settings" : "Настройки",
+
+  "gui.guide.index.cosmetics" : "Косметика, шаблоны и снаряжение",
+  "gui.guide.index.tournaments" : "Fishing Tournaments",
+  "gui.guide.index.messages" : "Письма и послания в бутылке",
+  "gui.guide.index.selling_bin" : "Продажа рыбы!",
+  "gui.guide.index.aquarium" : "Аквариумы",
+  "gui.guide.index.display" : "Дисплей",
+  "gui.guide.index.trophies_and_secrets" : "Трофеи и секреты",
+
+
+
+  "gui.guide.page.0.left.title" : "Основы",
+  "gui.guide.page.0.left.0" : "",
+  "gui.guide.page.0.left.1" : "",
+  "gui.guide.page.0.left.2" : "",
+  "gui.guide.page.0.left.3" : "",
+  "gui.guide.page.0.left.4" : "",
+  "gui.guide.page.0.left.5" : "  Если вы хотите выловить",
+  "gui.guide.page.0.left.6" : "больше, чем лосось или",
+  "gui.guide.page.0.left.7" : "треска, вам понадобится",
+  "gui.guide.page.0.left.8" : "<sclegendary>Удочка звездолова</sclegendary>!",
+  "gui.guide.page.0.left.9" : "  Как только она окажется ",
+  "gui.guide.page.0.left.10" : "у вас, пора рыбачить!",
+  "gui.guide.page.0.left.11" : "  Следите за поплавком",
+  "gui.guide.page.0.left.12" : "и терпеливо ждите",
+
+  "gui.guide.page.0.right.0" : "",
+  "gui.guide.page.0.right.1" : "",
+  "gui.guide.page.0.right.2" : "",
+  "gui.guide.page.0.right.3" : "  Эти рыбы не сдадутся",
+  "gui.guide.page.0.right.4" : "так просто, обязательно",
+  "gui.guide.page.0.right.5" : "попадайте по всем их",
+  "gui.guide.page.0.right.6" : "идеальным точкам!",
+  "gui.guide.page.0.right.7" : "",
+  "gui.guide.page.0.right.8" : "",
+  "gui.guide.page.0.right.9" : "",
+  "gui.guide.page.0.right.10" : "",
+  "gui.guide.page.0.right.11" : "",
+  "gui.guide.page.0.right.12" : "",
+  "gui.guide.page.0.right.13" : "",
+  "gui.guide.page.0.right.14" : "  Возможно, набравшись",
+  "gui.guide.page.0.right.15" : "достаточно опыта, вы",
+  "gui.guide.page.0.right.16" : "будете готовы ко всему!",
+  "gui.guide.page.0.right.17" : "Даже к ловле",
+
+
+  "gui.guide.page.1.left.title" : "Идеальные точки",
+  "gui.guide.page.1.left.0" : "",
+  "gui.guide.page.1.left.1" : "",
+  "gui.guide.page.1.left.2" : "",
+  "gui.guide.page.1.left.3" : "",
+  "gui.guide.page.1.left.4" : "",
+  "gui.guide.page.1.left.5" : "  Разные рыбы будут",
+  "gui.guide.page.1.left.6" : "сопротивляться по-разному",
+  "gui.guide.page.1.left.7" : "при вываживании!",
+  "gui.guide.page.1.left.8" : "",
+  "gui.guide.page.1.left.9" : "  Знание всех повадок",
+  "gui.guide.page.1.left.10" : "рыбы - это половина успеха!",
+  "gui.guide.page.1.left.11" : "",
+  "gui.guide.page.1.left.12" : "",
+  "gui.guide.page.1.left.13" : "",
+
+  "gui.guide.page.1.right.0" : "",
+  "gui.guide.page.1.right.1" : "",
+  "gui.guide.page.1.right.2" : "",
+  "gui.guide.page.1.right.3" : "    Базовая идеальная точка.",
+  "gui.guide.page.1.right.4" : "    Ничего особенного.",
+  "gui.guide.page.1.right.5" : "",
+  "gui.guide.page.1.right.6" : "    Замороженная точка.",
+  "gui.guide.page.1.right.7" : "    Лучше её избегать.",
+  "gui.guide.page.1.right.8" : "",
+  "gui.guide.page.1.right.9" : "    Водяные точки одноразовые",
+  "gui.guide.page.1.right.10" : "    и исчезают навсегда.",
+  "gui.guide.page.1.right.11" : "",
+  "gui.guide.page.1.right.12" : "    Каменные точки почти",
+  "gui.guide.page.1.right.13" : "    не дают прогресса.",
+  "gui.guide.page.1.right.14" : "",
+  "gui.guide.page.1.right.15" : "    Золотые точки дают",
+  "gui.guide.page.1.right.16" : "    прогресс сокровищ.",
+
+
+  "gui.guide.page.2.left.title" : "Сокровища",
+  "gui.guide.page.2.left.0" : "",
+  "gui.guide.page.2.left.1" : "",
+  "gui.guide.page.2.left.2" : "",
+  "gui.guide.page.2.left.3" : "",
+  "gui.guide.page.2.left.4" : "",
+  "gui.guide.page.2.left.5" : "  При ловле одной из",
+  "gui.guide.page.2.left.6" : "сложных рыб вы можете",
+  "gui.guide.page.2.left.7" : "почувствовать, что что-то",
+  "gui.guide.page.2.left.8" : "тянет крючок вниз!",
+  "gui.guide.page.2.left.9" : "",
+
+  "gui.guide.page.2.right.0" : "",
+  "gui.guide.page.2.right.1" : "",
+  "gui.guide.page.2.right.2" : "",
+  "gui.guide.page.2.right.3" : "",
+  "gui.guide.page.2.right.4" : "  Но хватит ли у вас умения",
+  "gui.guide.page.2.right.5" : "поймать его, не дав рыбе",
+  "gui.guide.page.2.right.6" : "уплыть?",
+  "gui.guide.page.2.right.7" : "",
+  "gui.guide.page.2.right.8" : "  Сильные рыбы могут",
+  "gui.guide.page.2.right.9" : "скрывать хорошую добычу!",
+  "gui.guide.page.2.right.10" : " Готовьтесь к трудной",
+  "gui.guide.page.2.right.11" : "борьбе, если хотите",
+  "gui.guide.page.2.right.12" : "поймать лучшие сокровища",
+  "gui.guide.page.2.right.13" : "и иногда даже уникальную",
+  "gui.guide.page.2.right.14" : "косметику!",
+  "gui.guide.page.2.right.15" : "",
+  "gui.guide.page.2.right.16" : "",
+
+
+
+  "gui.guide.page.3.left.title" : "Улучшения",
+  "gui.guide.page.3.left.0" : "",
+  "gui.guide.page.3.left.1" : "",
+  "gui.guide.page.3.left.2" : "",
+  "gui.guide.page.3.left.3" : "",
+  "gui.guide.page.3.left.4" : "",
+  "gui.guide.page.3.left.5" : "  Улучшение удочки станет",
+  "gui.guide.page.3.left.6" : "неотъемлемой частью",
+  "gui.guide.page.3.left.7" : "вашего рыболовного пути.",
+  "gui.guide.page.3.left.8" : "   Предел мечтаний",
+  "gui.guide.page.3.left.9" : "любого рыболова,",
+  "gui.guide.page.3.left.10" : "это <sclegendary>Незеритовая Удочка<sclegendary>",
+  "gui.guide.page.3.left.11" : "Она повышает ваши хар-ки,",
+  "gui.guide.page.3.left.12" : "и открывает возможность",
+  "gui.guide.page.3.left.13" : "рыбалки в лаве, но до ее получения",
+  "gui.guide.page.3.left.14" : "получения пройдёт немало",
+  "gui.guide.page.3.left.15" : "времени.",
+  "gui.guide.page.3.left.16" : "До тех пор, для ловли в лаве",
+  "gui.guide.page.3.left.17" : "хватит <scrare>Аметистового Крючка</scrare>.",
+
+  "gui.guide.page.3.right.0" : "",
+  "gui.guide.page.3.right.1" : "",
+  "gui.guide.page.3.right.2" : "",
+  "gui.guide.page.3.right.3" : "",
+  "gui.guide.page.3.right.4" : "  Лучший способ сделать",
+  "gui.guide.page.3.right.5" : "рыбалку эффективнее, это",
+  "gui.guide.page.3.right.6" : "использовать различные",
+  "gui.guide.page.3.right.7" : "Крючки, Поплавки, и Наживки.",
+  "gui.guide.page.3.right.8" : "",
+  "gui.guide.page.3.right.9" : "  Они дают разные",
+  "gui.guide.page.3.right.10" : "модификаторы, начиная от",
+  "gui.guide.page.3.right.11" : "сокращения времени клёва,",
+  "gui.guide.page.3.right.12" : "до полного изменения",
+  "gui.guide.page.3.right.13" : "поведения рыбы!",
+  "gui.guide.page.3.right.14" : "",
+  "gui.guide.page.3.right.15" : "  Косметические предметы,",
+  "gui.guide.page.3.right.16" : "такие как рыболовные шляпы",
+  "gui.guide.page.3.right.17" : "также имеют модификаторы!",
+
+
+
+  "gui.guide.page.4.left.title" : "Ящики для снастей",
+  "gui.guide.page.4.left.0" : "",
+  "gui.guide.page.4.left.1" : "",
+  "gui.guide.page.4.left.2" : "",
+  "gui.guide.page.4.left.3" : "",
+  "gui.guide.page.4.left.4" : "",
+  "gui.guide.page.4.left.5" : "  Ящик для снастей станет",
+  "gui.guide.page.4.left.6" : "вашим лучшим другом!",
+  "gui.guide.page.4.left.7" : "",
+  "gui.guide.page.4.left.8" : "  Он служит хранилищем",
+  "gui.guide.page.4.left.9" : "для рыбы и других рыбо-",
+  "gui.guide.page.4.left.10" : "ловных принадлежностей,",
+  "gui.guide.page.4.left.11" : "таких как крючки,",
+  "gui.guide.page.4.left.12" : "поплавки и наживки.",
+  "gui.guide.page.4.left.13" : "",
+  "gui.guide.page.4.left.14" : "",
+
+  "gui.guide.page.4.right.0" : "",
+  "gui.guide.page.4.right.1" : "",
+  "gui.guide.page.4.right.2" : "",
+  "gui.guide.page.4.right.3" : "",
+  "gui.guide.page.4.right.4" : "  Помимо хранения вещей,",
+  "gui.guide.page.4.right.5" : "ящик также позволяет",
+  "gui.guide.page.4.right.6" : "менять оснастку вашей",
+  "gui.guide.page.4.right.7" : "удочки!",
+  "gui.guide.page.4.right.8" : "",
+  "gui.guide.page.4.right.9" : "  Незаменимая вещь, если",
+  "gui.guide.page.4.right.10" : "вы решили порыбачить в самых",
+  "gui.guide.page.4.right.11" : "разных уголках верхнего мира.",
+
+
+
+  "gui.guide.page.5.left.title" : "Крючки и поплавки",
+  "gui.guide.page.5.left.0" : "",
+  "gui.guide.page.5.left.1" : "",
+  "gui.guide.page.5.left.2" : "",
+  "gui.guide.page.5.left.3" : "",
+  "gui.guide.page.5.left.4" : "",
+  "gui.guide.page.5.left.5" : "  Крючки и поплавки дают",
+  "gui.guide.page.5.left.6" : "вам широкий выбор разных",
+  "gui.guide.page.5.left.7" : "модификаторов.",
+  "gui.guide.page.5.left.8" : "",
+  "gui.guide.page.5.left.9" : "  Важно подобрать верную",
+  "gui.guide.page.5.left.10" : "комбинацию для текущей",
+  "gui.guide.page.5.left.11" : "задачи!",
+  "gui.guide.page.5.left.12" : "",
+  "gui.guide.page.5.left.13" : "Меняйте их в ящике снастей.",
+
+  "gui.guide.page.5.right.title" : "Наживки",
+  "gui.guide.page.5.right.0" : "",
+  "gui.guide.page.5.right.1" : "",
+  "gui.guide.page.5.right.2" : "",
+  "gui.guide.page.5.right.3" : "",
+  "gui.guide.page.5.right.4" : "",
+  "gui.guide.page.5.right.5" : "  Почти любая наживка",
+  "gui.guide.page.5.right.6" : "ускоряет клёв, но бывают",
+  "gui.guide.page.5.right.7" : "и редкие модификаторы!",
+  "gui.guide.page.5.right.8" : "",
+  "gui.guide.page.5.right.9" : "  Некоторых рыб манят",
+  "gui.guide.page.5.right.10" : "особые наживки, а",
+  "gui.guide.page.5.right.11" : "использование вёдер",
+  "gui.guide.page.5.right.12" : "позволит выловить рыбу",
+  "gui.guide.page.5.right.13" : "сразу в ведре!",
+
+
+  "gui.guide.page.6.left.title" : "Косметика",
+  "gui.guide.page.6.left.0" : "",
+  "gui.guide.page.6.left.1" : "",
+  "gui.guide.page.6.left.2" : "",
+  "gui.guide.page.6.left.3" : "",
+  "gui.guide.page.6.left.4" : "",
+  "gui.guide.page.6.left.5" : "  В игре есть множество",
+  "gui.guide.page.6.left.6" : "косметических вещей:",
+  "gui.guide.page.6.left.7" : "от брони до стильных",
+  "gui.guide.page.6.left.8" : "обликов для вашей",
+  "gui.guide.page.6.left.9" : "удочки.",
+  "gui.guide.page.6.left.10" : "",
+  "gui.guide.page.6.left.11" : "  Собрать их все — это",
+  "gui.guide.page.6.left.12" : "вызов, на который решатся",
+  "gui.guide.page.6.left.13" : "лишь самые заядлые",
+  "gui.guide.page.6.left.14" : "рыболовы-модники!",
+
+  "gui.guide.page.6.right.title" : "Облики снастей",
+  "gui.guide.page.6.right.0" : "",
+  "gui.guide.page.6.right.1" : "",
+  "gui.guide.page.6.right.2" : "",
+  "gui.guide.page.6.right.3" : "",
+  "gui.guide.page.6.right.4" : "",
+  "gui.guide.page.6.right.5" : "  Надоел скучный вид",
+  "gui.guide.page.6.right.6" : "снаряжения? Если вам",
+  "gui.guide.page.6.right.7" : "повезёт, вы можете найти",
+  "gui.guide.page.6.right.8" : "кузнечный шаблон для",
+  "gui.guide.page.6.right.9" : "облика снастей!",
+  "gui.guide.page.6.right.10" : "",
+  "gui.guide.page.6.right.11" : "  Как и с другими шаблонами,",
+  "gui.guide.page.6.right.12" : "просто совместите его на",
+  "gui.guide.page.6.right.13" : "кузнечном столе и новый",
+  "gui.guide.page.6.right.14" : "образ готов.",
+
+
+  "gui.guide.page.7.left.title" : "Турниры",
+  "gui.guide.page.7.left.0" : "",
+  "gui.guide.page.7.left.1" : "",
+  "gui.guide.page.7.left.2" : "",
+  "gui.guide.page.7.left.3" : "",
+  "gui.guide.page.7.left.4" : "",
+  "gui.guide.page.7.left.5" : "  Рыболовные турниры — это",
+  "gui.guide.page.7.left.6" : "шанс испытать свои навыки",
+  "gui.guide.page.7.left.7" : "в состязании с другими",
+  "gui.guide.page.7.left.8" : "рыболовами!",
+  "gui.guide.page.7.left.9" : "",
+  "gui.guide.page.7.left.10" : "",
+  "gui.guide.page.7.left.11" : "  Настройте турнир по",
+  "gui.guide.page.7.left.12" : "своему вкусу и позовите",
+  "gui.guide.page.7.left.13" : "друзей для дружеского",
+  "gui.guide.page.7.left.14" : "соревнования по рыбной",
+  "gui.guide.page.7.left.15" : "ловле.",
+
+  "gui.guide.page.7.right.0" : "",
+  "gui.guide.page.7.right.1" : "",
+  "gui.guide.page.7.right.2" : "",
+  "gui.guide.page.7.right.3" : "",
+  "gui.guide.page.7.right.4" : "  За победу в турнире",
+  "gui.guide.page.7.right.5" : "можно даже получить",
+  "gui.guide.page.7.right.6" : "особые награды!",
+  "gui.guide.page.7.right.7" : "",
+  "gui.guide.page.7.right.8" : "  Для начала вам всего",
+  "gui.guide.page.7.right.9" : "лишь понадобится",
+
+
+
+  "gui.guide.page.8.left.title" : "Послания",
+  "gui.guide.page.8.left.0" : "",
+  "gui.guide.page.8.left.1" : "",
+  "gui.guide.page.8.left.2" : "",
+  "gui.guide.page.8.left.3" : "",
+  "gui.guide.page.8.left.4" : "",
+  "gui.guide.page.8.left.5" : "  Время от времени вам",
+  "gui.guide.page.8.left.6" : "могут попадаться давно",
+  "gui.guide.page.8.left.7" : "забытые истории,",
+  "gui.guide.page.8.left.8" : "заключённые в бутылки,",
+  "gui.guide.page.8.left.9" : "дрейфующие среди волн.",
+
+  "gui.guide.page.8.right.0" : "",
+  "gui.guide.page.8.right.1" : "",
+  "gui.guide.page.8.right.2" : "",
+  "gui.guide.page.8.right.3" : "",
+  "gui.guide.page.8.right.4" : "",
+  "gui.guide.page.8.right.5" : "  Тех, кто их оставил,",
+  "gui.guide.page.8.right.6" : "уже давно нет в живых.",
+  "gui.guide.page.8.right.7" : "Однако и вы можете",
+  "gui.guide.page.8.right.8" : "записать свою историю",
+  "gui.guide.page.8.right.9" : "в <sclegendary>письмо</sclegendary>, положить его",
+  "gui.guide.page.8.right.10" : "в бутылку и бросить",
+  "gui.guide.page.8.right.11" : "её в океан!",
+  "gui.guide.page.8.right.12" : "",
+  "gui.guide.page.8.right.13" : "",
+  "gui.guide.page.8.right.14" : "",
+  "gui.guide.page.8.right.15" : "  Какой-нибудь одинокий",
+  "gui.guide.page.8.right.16" : "рыбак обязательно найдёт её...",
+
+  "gui.guide.page.9.left.title" : "Ящик для продажи",
+  "gui.guide.page.9.left.0" : "",
+  "gui.guide.page.9.left.1" : "",
+  "gui.guide.page.9.left.2" : "",
+  "gui.guide.page.9.left.3" : "",
+  "gui.guide.page.9.left.4" : "",
+  "gui.guide.page.9.left.5" : "  Бывало ли так, что вы",
+  "gui.guide.page.9.left.6" : "рыбачили до тех пор, пока",
+  "gui.guide.page.9.left.7" : "сундуки не забились",
+  "gui.guide.page.9.left.8" : "уловом до отказа?",
+  "gui.guide.page.9.left.9" : "",
+  "gui.guide.page.9.left.10" : "  Пора отправить всю",
+  "gui.guide.page.9.left.11" : "рыбу в ящик для продажи!",
+
+
+  "gui.guide.page.9.right.0" : "",
+  "gui.guide.page.9.right.1" : "",
+  "gui.guide.page.9.right.2" : "",
+  "gui.guide.page.9.right.3" : "",
+  "gui.guide.page.9.right.4" : "  Продавая рыбу, вы",
+  "gui.guide.page.9.right.5" : "можете получить ценные",
+  "gui.guide.page.9.right.6" : "награды взамен.",
+  "gui.guide.page.9.right.7" : "",
+  "gui.guide.page.9.right.8" : "  Цена зависит от ред-",
+  "gui.guide.page.9.right.9" : "кости и размера рыбы.",
+  "gui.guide.page.9.right.10" : "За суперредкие золотые",
+  "gui.guide.page.9.right.11" : "варианты полагается",
+  "gui.guide.page.9.right.12" : "дополнительный бонус!",
+  "gui.guide.page.9.right.13" : "",
+  "gui.guide.page.9.right.14" : "  Создайте рыбную моно-",
+  "gui.guide.page.9.right.15" : "полию и захватите рынок",
+  "gui.guide.page.9.right.16" : "силой рыбы!",
+
+  "gui.guide.page.10.left.title" : "Аквариумы",
+  "gui.guide.page.10.left.0" : "",
+  "gui.guide.page.10.left.1" : "",
+  "gui.guide.page.10.left.2" : "",
+  "gui.guide.page.10.left.3" : "",
+  "gui.guide.page.10.left.4" : "",
+  "gui.guide.page.10.left.5" : "  Аквариум станет отличным",
+  "gui.guide.page.10.left.6" : "дополнением для любого",
+  "gui.guide.page.10.left.7" : "дома и оживит ваше",
+  "gui.guide.page.10.left.8" : "жилое пространство!",
+  "gui.guide.page.10.left.9" : "",
+  "gui.guide.page.10.left.10" : "  Их можно украсить",
+  "gui.guide.page.10.left.11" : "самыми разными",
+  "gui.guide.page.10.left.12" : "декорациями под любой",
+  "gui.guide.page.10.left.13" : "интерьер и стиль.",
+
+  "gui.guide.page.10.right.0" : "",
+  "gui.guide.page.10.right.1" : "",
+  "gui.guide.page.10.right.2" : "",
+  "gui.guide.page.10.right.3" : "",
+  "gui.guide.page.10.right.4" : "  Используйте ведро во",
+  "gui.guide.page.10.right.5" : "время рыбалки, чтобы",
+  "gui.guide.page.10.right.6" : "сразу поймать рыбу в",
+  "gui.guide.page.10.right.7" : "него. Ей наверняка",
+  "gui.guide.page.10.right.8" : "понравится новый дом!",
+
+  "gui.guide.page.11.left.title" : "Витрины",
+  "gui.guide.page.11.left.0" : "",
+  "gui.guide.page.11.left.1" : "",
+  "gui.guide.page.11.left.2" : "",
+  "gui.guide.page.11.left.3" : "",
+  "gui.guide.page.11.left.4" : "",
+  "gui.guide.page.11.left.5" : "  Если вы хотите, чтобы",
+  "gui.guide.page.11.left.6" : "друзья завидовали вашим",
+  "gui.guide.page.11.left.7" : "навыкам рыбалки, нет",
+  "gui.guide.page.11.left.8" : "лучшего способа, чем",
+  "gui.guide.page.11.left.9" : "показать коллекцию с",
+  "gui.guide.page.11.left.10" : "помощью витрины!",
+  "gui.guide.page.11.left.11" : "",
+  "gui.guide.page.11.left.12" : "  Витрины могут выставлять",
+  "gui.guide.page.11.left.13" : "эту книгу, а также",
+  "gui.guide.page.11.left.14" : "звёздную рыбу!",
+
+
+  "gui.guide.page.11.right.title" : "Подпись книги",
+  "gui.guide.page.11.right.0" : "",
+  "gui.guide.page.11.right.1" : "",
+  "gui.guide.page.11.right.2" : "",
+  "gui.guide.page.11.right.3" : "",
+  "gui.guide.page.11.right.4" : "",
+  "gui.guide.page.11.right.5" : "  Прежде чем выставить",
+  "gui.guide.page.11.right.6" : "книгу, обязательно под-",
+  "gui.guide.page.11.right.7" : "пишите её, чтобы привя-",
+  "gui.guide.page.11.right.8" : "зать к ней коллекцию!",
+  "gui.guide.page.11.right.9" : "Иначе другие игроки",
+  "gui.guide.page.11.right.10" : "увидят свои достижения",
+  "gui.guide.page.11.right.11" : "вместо ваших.",
+  "gui.guide.page.11.right.12" : "",
+  "gui.guide.page.11.right.13" : "  Просто перейдите в начало",
+  "gui.guide.page.11.right.14" : "книги, чтобы подписаться,",
+  "gui.guide.page.11.right.15" : "и вы сможете делиться",
+  "gui.guide.page.11.right.16" : "успехами с друзьями!",
+
+
+
+
+
+  "gui.guide.page.12.left.title" : "Трофеи",
+  "gui.guide.page.12.left.0" : "",
+  "gui.guide.page.12.left.1" : "",
+  "gui.guide.page.12.left.2" : "",
+  "gui.guide.page.12.left.3" : "",
+  "gui.guide.page.12.left.4" : "",
+  "gui.guide.page.12.left.5" : "  Трофеи — это символ",
+  "gui.guide.page.12.left.6" : "вашего мастерства.",
+  "gui.guide.page.12.left.7" : "Пусть другие кусают",
+  "gui.guide.page.12.left.8" : "локти от своей полной",
+  "gui.guide.page.12.left.9" : "безтрофейности!",
+  "gui.guide.page.12.left.10" : "",
+  "gui.guide.page.12.left.11" : "  Трофейная рыба клюнет",
+  "gui.guide.page.12.left.12" : "незамедлительно, как",
+  "gui.guide.page.12.left.13" : "только будут соблюдены",
+
+  "gui.guide.page.12.right.title" : "Секреты",
+  "gui.guide.page.12.right.0" : "",
+  "gui.guide.page.12.right.1" : "",
+  "gui.guide.page.12.right.2" : "",
+  "gui.guide.page.12.right.3" : "",
+  "gui.guide.page.12.right.4" : "",
+  "gui.guide.page.12.right.5" : "  Кто знает, какие ещё",
+  "gui.guide.page.12.right.6" : "забытые истории вы",
+  "gui.guide.page.12.right.7" : "найдёте в бутылках,",
+  "gui.guide.page.12.right.8" : "плывущих по волнам.",
+  "gui.guide.page.12.right.9" : "",
+  "gui.guide.page.12.right.10" : "  Ищите подсказки о",
+  "gui.guide.page.12.right.11" : "сокровищах, оставленных",
+  "gui.guide.page.12.right.12" : "другими рыболовами!",
+
+
+  "gui.guide.lakes" : "Озёра",
+  "gui.guide.lakes.hover" : "Поверхностные биомы, кроме рек и океанов",
+
+  "gui.guide.hover.dimension.correct" : "✅ Измерение",
+  "gui.guide.hover.dimension.incorrect" : "❌ Измерение",
+  "gui.guide.hover.biome.correct" : "✅ Биом",
+  "gui.guide.hover.biome.incorrect" : "❌ Биом",
+  "gui.guide.hover.daytime.correct" : "✅ Время суток",
+  "gui.guide.hover.daytime.incorrect" : "❌ Время суток",
+  "gui.guide.hover.weather.correct" : "✅ Погода",
+  "gui.guide.hover.weather.incorrect" : "❌ Погода",
+  "gui.guide.hover.elevation.correct" : "✅ Высота",
+  "gui.guide.hover.elevation.incorrect" : "❌ Высота",
+  "gui.guide.hover.caught_limit" : "Лимит улова: %s",
+
+  "gui.guide.dimension" : "Измерение: ",
+  "gui.guide.dimensions" : "Измерения: ",
+  "gui.guide.biome" : "Биом: ",
+  "gui.guide.biome_tags" : "Теги биома: ",
+  "gui.guide.biomes" : "Биомы: ",
+  "gui.guide.biomes.empty" : "[Нет биомов]",
+  "gui.guide.blacklisted_biomes" : "Запрещённые биомы: ",
+  "gui.guide.blacklisted_biome_tags" : "Запрещённые теги биомов: ",
+  "gui.guide.blacklisted_dimensions" : "Запрещённые измерения: ",
+  "gui.guide.bait" : "Приманка: ",
+  "gui.guide.weather" : "Погода: ",
+  "gui.guide.raining" : "Дождь",
+  "gui.guide.thundering" : "Гроза",
+  "gui.guide.clear_chance" : "Добавленный шанс ясной погоды: %s",
+  "gui.guide.rain_chance" : "Добавленный шанс дождя: %s",
+  "gui.guide.thunder_chance" : "Добавленный шанс грозы: %s",
+  "gui.guide.daytime" : "Время суток: ",
+  "gui.guide.day" : "День",
+  "gui.guide.noon" : "Полдень",
+  "gui.guide.night" : "Ночь",
+  "gui.guide.midnight" : "Полночь",
+  "gui.guide.elevation" : "Высота: ",
+  "gui.guide.below" : "Ниже %s",
+  "gui.guide.above" : "Выше %s",
+  "gui.guide.around" : "Около %s",
+  "gui.guide.extra_chance" : "Дополнительный шанс в %s: %s",
+  "gui.guide.range" : "Диапазон дополнительного шанса: %s",
+  "gui.guide.fluid" : "Жидкость: ",
+  "gui.guide.no_restriction" : "-------",
+  "gui.guide.bait_required" : "Для этого улова требуется правильная наживка!",
+  "gui.guide.bait_chance_added" : "Шанс, добавленный наживкой:",
+  "gui.guide.caught_limit" : "Лимит улова: ",
+  "gui.guide.rarity_count.caught" : "Поймано: ",
+  "gui.guide.rarity_count.single" : "%s рыб",
+  "gui.guide.rarity_count.all" : "Все %s рыб",
+  "gui.guide.chance" : "%s шанс",
+
+  "gui.guide.hover" : "[навести]",
+
+
+  "gui.guide.rarity.golden" : "Золотая",
+
+  "gui.guide.rarity.trash" : "Мусор",
+  "gui.guide.rarity.common" : "Обычная",
+  "gui.guide.rarity.uncommon" : "<scuncommon>Необычная</scuncommon>",
+  "gui.guide.rarity.rare" : "<scrare>Редкая</scrare>",
+  "gui.guide.rarity.epic" : "<scepic>Эпическая</scepic>",
+  "gui.guide.rarity.legendary" : "<sclegendary>Легендарная</sclegendary>",
+
+
+
+  "gui.elarion_angling.tournament.organizer" : "Организатор",
+  "gui.elarion_angling.tournament.prize_pool" : "Призовой фонд",
+  "gui.elarion_angling.tournament.entry_fee" : "Вступительный взнос",
+  "gui.elarion_angling.tournament.inventory" : "Инвентарь",
+  "gui.elarion_angling.tournament.sign_up" : "[Записаться]",
+  "gui.elarion_angling.tournament.signed_up" : "[Вы записаны!]",
+  "gui.elarion_angling.tournament.other" : "Другие:",
+  "gui.elarion_angling.tournament.status" : "Статус",
+  "gui.elarion_angling.tournament.scoring" : "Система очков",
+  "gui.elarion_angling.tournament.scoring.later" : "Больше систем подсчёта появится позже!",
+  "gui.elarion_angling.tournament.duration" : "Длительность",
+  "gui.elarion_angling.tournament.start" : "[Начать турнир]",
+  "gui.elarion_angling.tournament.cancel" : "[Отменить турнир]",
+  "gui.elarion_angling.tournament.new" : "[Новый турнир]",
+  "gui.elarion_angling.tournament.undone" : "Это действие нельзя отменить!",
+  "gui.elarion_angling.tournament.waiting" : "Ожидание",
+
+  "gui.elarion_angling.tournament.started" : " начался!",
+  "gui.elarion_angling.tournament.press_tab" : "Нажмите [Tab] для переключения таблицы турнира.",
+
+  "gui.elarion_angling.tournament.duration.days" : "Майнкрафт-дней",
+
+
+  "gui.elarion_angling.tournament.status.setup" : "Подготовка",
+  "gui.elarion_angling.tournament.status.active" : "В процессе",
+  "gui.elarion_angling.tournament.status.cancelled" : "Отменён",
+  "gui.elarion_angling.tournament.status.finished" : "Завершён",
+
+  "gui.elarion_angling.tournament.scoring.simple" : "Простая",
+  "gui.elarion_angling.tournament.scoring.weight" : "По весу",
+  "gui.elarion_angling.tournament.scoring.rarity" : "По редкости",
+  "gui.elarion_angling.tournament.scoring.golden" : "Золотая",
+  "gui.elarion_angling.tournament.scoring.advanced" : "Продвинутая",
+
+
+  "gui.secret_note.sample_note.0" : "Эй, как ты получил эту записку??",
+  "gui.secret_note.sample_note.1" : "Ты что, читеришь в творческом режиме??",
+  "gui.secret_note.sample_note.2" : "",
+  "gui.secret_note.sample_note.3" : "Эти записки должны находиться только",
+  "gui.secret_note.sample_note.4" : "в бутылках, иначе данные будут неверными",
+  "gui.secret_note.sample_note.5" : "и игра может вылететь! Будь осторожен.",
+
+  "gui.secret_note.amethyst_hook.0" : "День 34",
+  "gui.secret_note.amethyst_hook.1" : "",
+  "gui.secret_note.amethyst_hook.2" : "После вчерашних неприятностей я решил,",
+  "gui.secret_note.amethyst_hook.3" : "что мне пора добыть алмазные инструменты.",
+  "gui.secret_note.amethyst_hook.4" : "",
+  "gui.secret_note.amethyst_hook.5" : "По крайней мере, я так думал раньше,",
+  "gui.secret_note.amethyst_hook.6" : "если бы я знал, что случайно уроню свой",
+  "gui.secret_note.amethyst_hook.7" : "кристальный крючок в глубинные озёра",
+  "gui.secret_note.amethyst_hook.8" : "у сланцевых пород,",
+  "gui.secret_note.amethyst_hook.9" : "",
+  "gui.secret_note.amethyst_hook.10" : "Если кто-то найдёт это письмо,",
+  "gui.secret_note.amethyst_hook.11" : "дрейфующее среди океанов — можешь забрать",
+  "gui.secret_note.amethyst_hook.12" : "мой драгоценный Кристальный Крючок.",
+  "gui.secret_note.amethyst_hook.13" : "Когда ты поймаешь хотя бы одну",
+  "gui.secret_note.amethyst_hook.14" : "<sclegendary>Легендарную рыбу</sclegendary>,",
+  "gui.secret_note.amethyst_hook.15" : "Старые Рыбаки благословят тебя, и",
+  "gui.secret_note.amethyst_hook.16" : "мой крючок зацепится за твой.",
+
+  "gui.secret_note.lava_proof_bottle_1.0" : "'Покупайте мои бутылки! Покупайте мои бутылки!'",
+  "gui.secret_note.lava_proof_bottle_1.1" : "'Они <sclava>лаваустойчивые</sclava>!'",
+  "gui.secret_note.lava_proof_bottle_1.2" : "",
+  "gui.secret_note.lava_proof_bottle_1.3" : "'Я обещаю, они и правда <sclava>лаваустойчивые</sclava>™!'",
+  "gui.secret_note.lava_proof_bottle_1.4" : "",
+  "gui.secret_note.lava_proof_bottle_1.5" : "Я так устал от этих МОШЕННИКОВ, обещающих",
+  "gui.secret_note.lava_proof_bottle_1.6" : "<sclava>лаваустойчивые</sclava> бутылки, будто что-то может",
+  "gui.secret_note.lava_proof_bottle_1.7" : "выдержать, будучи погружённым в лаву! Хочешь",
+  "gui.secret_note.lava_proof_bottle_1.8" : "увидеть, что я думаю о ваших тупых",
+  "gui.secret_note.lava_proof_bottle_1.9" : "<sclava>лаваустойчивых</sclava> бутылках???",
+  "gui.secret_note.lava_proof_bottle_1.10" : "",
+  "gui.secret_note.lava_proof_bottle_1.11" : "Это письмо прямо сейчас отправится в эту, так называемую,",
+  "gui.secret_note.lava_proof_bottle_1.12" : "'<sclava>лаваустойчивую</sclava> бутылку' и прямиком",
+  "gui.secret_note.lava_proof_bottle_1.13" : "в ближайший бассейн с лавой! Хех, вот это им покажет.",
+  "gui.secret_note.lava_proof_bottle_1.14" : "",
+  "gui.secret_note.lava_proof_bottle_1.15" : "",
+  "gui.secret_note.lava_proof_bottle_1.16" : "-Арнвульф Скептик",
+
+  "gui.secret_note.lava_proof_bottle_2.0" : "",
+  "gui.secret_note.lava_proof_bottle_2.1" : "Если кто-нибудь найдёт это письмо, я хотел",
+  "gui.secret_note.lava_proof_bottle_2.2" : "бы извиниться за своё прошлое письмо.",
+  "gui.secret_note.lava_proof_bottle_2.3" : "",
+  "gui.secret_note.lava_proof_bottle_2.4" : "Эти <sclava>лаваустойчивые</sclava> бутылки",
+  "gui.secret_note.lava_proof_bottle_2.5" : "действительно работают.",
+  "gui.secret_note.lava_proof_bottle_2.6" : "Должен признаться: после стольких мошенников",
+  "gui.secret_note.lava_proof_bottle_2.7" : "и их обещаний об <sclava>лаваустойчивые</sclava> бутылках я",
+  "gui.secret_note.lava_proof_bottle_2.8" : "сомневался и даже не дал им шанса.",
+  "gui.secret_note.lava_proof_bottle_2.9" : "",
+  "gui.secret_note.lava_proof_bottle_2.10" : "Что сказать — живёшь и учишься.",
+  "gui.secret_note.lava_proof_bottle_2.11" : "",
+  "gui.secret_note.lava_proof_bottle_2.12" : "Мне нужно идти — я слышал, что теперь есть",
+  "gui.secret_note.lava_proof_bottle_2.13" : "какое-то новое <sclava>«лавоустойчивое»</sclava> зачарование.",
+  "gui.secret_note.lava_proof_bottle_2.14" : "Ага, конечно.",
+  "gui.secret_note.lava_proof_bottle_2.15" : "",
+  "gui.secret_note.lava_proof_bottle_2.16" : "-Арнвульф Скептик",
+
+  "gui.secret_note.hopeful_note.0" : "",
+  "gui.secret_note.hopeful_note.1" : "",
+  "gui.secret_note.hopeful_note.2" : "",
+  "gui.secret_note.hopeful_note.3" : "День 201",
+  "gui.secret_note.hopeful_note.4" : "",
+  "gui.secret_note.hopeful_note.5" : "Прошло уже больше полугода с тех пор,",
+  "gui.secret_note.hopeful_note.6" : "как я отправился на поиски",
+  "gui.secret_note.hopeful_note.7" : "<scrare>Сердца Моря</scrare>. Надежда меркнет, но",
+  "gui.secret_note.hopeful_note.8" : "я буду искать его до конца своих дней.",
+  "gui.secret_note.hopeful_note.9" : "",
+  "gui.secret_note.hopeful_note.10" : "",
+  "gui.secret_note.hopeful_note.11" : "",
+  "gui.secret_note.hopeful_note.12" : "",
+  "gui.secret_note.hopeful_note.13" : "",
+  "gui.secret_note.hopeful_note.14" : "",
+  "gui.secret_note.hopeful_note.15" : "",
+  "gui.secret_note.hopeful_note.16" : "-Гауорд",
+
+  "gui.secret_note.hopeless_note.0" : "",
+  "gui.secret_note.hopeless_note.1" : "",
+  "gui.secret_note.hopeless_note.2" : "",
+  "gui.secret_note.hopeless_note.3" : "День 202",
+  "gui.secret_note.hopeless_note.4" : "",
+  "gui.secret_note.hopeless_note.5" : "Это бесполезно. Нет никакого <scrare>Сердца</scrare>",
+  "gui.secret_note.hopeless_note.6" : "<scrare>Моря</scrare>. Эти УБЛЮДКИ солгали мне.",
+  "gui.secret_note.hopeless_note.7" : "Я никогда не вернусь домой. Маленький Джимми",
+  "gui.secret_note.hopeless_note.8" : "навсегда будет жить с мыслью, что его отец",
+  "gui.secret_note.hopeless_note.9" : "погнался за вымышленным всесильным предметом.",
+  "gui.secret_note.hopeless_note.10" : "",
+  "gui.secret_note.hopeless_note.11" : "Это полностью моя вина. Как я мог быть таким",
+  "gui.secret_note.hopeless_note.12" : "глупцом, чтобы поверить, что предмет может",
+  "gui.secret_note.hopeless_note.13" : "позволить дышать под водой. Невероятно.",
+  "gui.secret_note.hopeless_note.14" : "",
+  "gui.secret_note.hopeless_note.15" : "",
+  "gui.secret_note.hopeless_note.16" : "-Гауорд",
+
+  "gui.secret_note.true_blue.0"  : "   Что-то вставлено,",
+  "gui.secret_note.true_blue.1"  : "   или вынуто, или изучено.",
+  "gui.secret_note.true_blue.2"  : "",
+  "gui.secret_note.true_blue.3"  : "               Что-то скрыто глубоко внутри,",
+  "gui.secret_note.true_blue.4"  : "               и всегда там было.",
+  "gui.secret_note.true_blue.5"  : "",
+  "gui.secret_note.true_blue.6"  : "   Или ты проглотил это,",
+  "gui.secret_note.true_blue.7"  : "   или выплюнул наружу.",
+  "gui.secret_note.true_blue.8"  : "",
+  "gui.secret_note.true_blue.9"  : "               Десять лет или десять мгновений",
+  "gui.secret_note.true_blue.10" : "               назад, отражённое в моих глазах,",
+  "gui.secret_note.true_blue.11" : "               или плавающее за твоими.",
+  "gui.secret_note.true_blue.12" : "",
+  "gui.secret_note.true_blue.13" : "   В матери твоей матери,",
+  "gui.secret_note.true_blue.14" : "   или ребёнке твоего ребёнка,",
+  "gui.secret_note.true_blue.15" : "   во сне или наяву.",
+
+  "gui.secret_note.wither_note.0"  : "",
+  "gui.secret_note.wither_note.1"  : "",
+  "gui.secret_note.wither_note.2"  : "",
+  "gui.secret_note.wither_note.3"  : "",
+  "gui.secret_note.wither_note.4"  : "На твоём месте я был бы осторожнее...",
+  "gui.secret_note.wither_note.5"  : "",
+  "gui.secret_note.wither_note.6"  : "",
+  "gui.secret_note.wither_note.7"  : "Никогда не знаешь, что можешь выловить,",
+  "gui.secret_note.wither_note.8"  : "дрейфующее посреди океана.",
+  "gui.secret_note.wither_note.9"  : "",
+  "gui.secret_note.wither_note.10" : "",
+  "gui.secret_note.wither_note.11" : "",
+  "gui.secret_note.wither_note.12" : "",
+  "gui.secret_note.wither_note.13" : "",
+  "gui.secret_note.wither_note.14" : "",
+  "gui.secret_note.wither_note.15" : "",
+
+
+  "item.elarion_angling.letter" : "Письмо",
+  "tooltip.elarion_angling.letter.0" : "Письмо, ожидающее, когда его напишут и отправят.",
+
+  "item.elarion_angling.bottled_letter" : "Запечатанное письмо",
+  "tooltip.elarion_angling.bottled_letter.0" : "Письмо, заключённое в бутылку.",
+  "tooltip.elarion_angling.bottled_letter.1" : "Осталось только бросить его в океан",
+  "tooltip.elarion_angling.bottled_letter.2" : "и дать ему начать своё путешествие.",
+
+  "item.elarion_angling.bottled_letter.thrown" : "Ваше запечатанное письмо отправляется в путь...",
+
+  "item.elarion_angling.message_in_a_bottle" : "Послание в бутылке",
+  "tooltip.elarion_angling.message_in_a_bottle.0" : "Бутылка с посланием, написанным много лун назад.",
+  "tooltip.elarion_angling.message_in_a_bottle.1" : "Похоже, единственный способ достать его — разбить бутылку.",
+
+  "item.elarion_angling.message" : "Послание",
+  "tooltip.elarion_angling.message.0" : "Послание из бутылки.",
+  "tooltip.elarion_angling.message.1" : "Кто знает, сколько оно плыло, чтобы добраться до вас.",
+
+  "item.elarion_angling.broken_bottle" : "Разбитая бутылка",
+  "tooltip.elarion_angling.broken_bottle.0" : "Остатки когда-то целой бутылки.",
+
+  "item.elarion_angling.secret_note" : "Секретная записка",
+  "tooltip.elarion_angling.secret_note.0" : "Старая секретная записка, почти утерянная временем.",
+  "tooltip.elarion_angling.secret_note.1" : "Хранящая лишь мысли тех, кого",
+  "tooltip.elarion_angling.secret_note.2" : "скорее всего уже нет среди нас.",
+
+  "item.elarion_angling.settings" : "Настройки",
+
+  "item.elarion_angling.drifting_waterlogged_bottle" : "Дрейфующая бутылка с водой",
+  "tooltip.elarion_angling.drifting_waterlogged_bottle.0" : "Бутылка, найденная дрейфующем в океане.",
+
+  "item.elarion_angling.scalding_bottle" : "Обжигающая бутылка",
+  "tooltip.elarion_angling.scalding_bottle.0" : "Обжигающе горячая бутылка. Ничего примечательного.",
+  "tooltip.elarion_angling.scalding_bottle.1" : "Стой... Неужели это действительно <sclava>лавоустойчивая</sclava> бутылка!?",
+  "tooltip.elarion_angling.scalding_bottle.2" : "Я никогда не думал, что они настоящие!",
+  "tooltip.elarion_angling.scalding_bottle.3" : "К сожалению, похоже, что разбить её —",
+  "tooltip.elarion_angling.scalding_bottle.4" : "единственный способ достать сообщение...",
+
+  "item.elarion_angling.burning_bottle" : "Пылающая бутылка",
+  "tooltip.elarion_angling.burning_bottle.0" : "Пылающая бутылка. Не скрыть —",
+  "tooltip.elarion_angling.burning_bottle.1" : "это точно <sclava>лавоустойчивая</sclava>! бутылка!",
+
+  "item.elarion_angling.hopeless_bottle" : "Безнадёжная бутылка",
+  "tooltip.elarion_angling.hopeless_bottle.0" : "Безнадёжная бутылка. Или скорее, послание внутри такое.",
+
+  "item.elarion_angling.hopeful_bottle" : "Бутылка надежды",
+  "tooltip.elarion_angling.hopeful_bottle.0" : "Просто глядя на неё,",
+  "tooltip.elarion_angling.hopeful_bottle.1" : "ты ощущаешь надежду на лучшее будущее.",
+
+  "item.elarion_angling.true_blue_bottle" : "Истинно-голубая бутылка",
+  "tooltip.elarion_angling.true_blue_bottle.0" : "Бутылка, мерцающая бледно-голубым светом.",
+  "tooltip.elarion_angling.true_blue_bottle.1" : "Чистейшая версия тебя сияет внутри неё.",
+
+  "item.elarion_angling.withered_bottle" : "Иссушённая бутылка",
+  "tooltip.elarion_angling.withered_bottle.0" : "Зловещая тёмная бутылка.",
+
+  "item.elarion_angling.cooked_starcaught_fish" : "Приготовленная рыба",
+  "item.elarion_angling.starcaught_bucket" : "Ведро Ловца Звёзд",
+  "tooltip.elarion_angling.starcaught_bucket.name" : "Bucket of %s",
+  "tooltip.elarion_angling.starcaught_bucket.creative.0" : "[ТВОРЧЕСКИЙ РЕЖИМ] Это ведро всегда вызывает Аврору. Чтобы получить соответствующее [Ведро с Х], необходимо поймать её обычным способом, используя ведро как наживку.",
+  "tooltip.elarion_angling.starcaught_bucket.creative.1" : "Если вы хотите призвать сущность рыбы, вы можете нажать ПКМ по земле предметом рыбы в творческом режиме.",
+
+  "item.elarion_angling.obsidonti" : "Кривоговорка",
+  "tooltip.elarion_angling.obsidonti.0" : "Маленькая хитрая рыбка.",
+  "tooltip.elarion_angling.obsidonti.1" : "Говорят, она часто коверкала слова.",
+
+  "item.elarion_angling.morganite_minnow" : "Морганит",
+  "tooltip.elarion_angling.morganite_minnow.0" : "Морская рыба, напоминающая камень морганит.",
+
+  "item.elarion_angling.silvermist_perch" : "Серебряный окунь",
+  "tooltip.elarion_angling.silvermist_perch.0" : "Небольшой окунь с чешуёй, напоминающей серебро.",
+
+  "item.elarion_angling.elderfin" : "Древнечешуй",
+  "tooltip.elarion_angling.elderfin.0" : "Обманчивая рыба, которую можно встретить в озёрах.",
+  "tooltip.elarion_angling.elderfin.1" : "Старочешуи могут жить несколько десятилетий и часто",
+  "tooltip.elarion_angling.elderfin.2" : "проводят всю молодость в укрытии, заставляя считать",
+  "tooltip.elarion_angling.elderfin.3" : "молодых особей лишь слухами — отсюда и название.",
+
+  "item.elarion_angling.driftwing" : "Плавник-скиталец",
+  "tooltip.elarion_angling.driftwing.0" : "Маленькая рыбка, которая любит дрейфовать рядом",
+  "tooltip.elarion_angling.driftwing.1" : "с поверхностью в ясную погоду.",
+
+  "item.elarion_angling.dusk_koi" : "Сумеречный Кои",
+  "tooltip.elarion_angling.dusk_koi.0" : "Довольно редкий вид карпов, который, как говорят,",
+  "tooltip.elarion_angling.dusk_koi.1" : "появляется в озёрах только в полночные часы.",
+
+  "item.elarion_angling.storm_bass" : "Грозовой Окунь",
+  "tooltip.elarion_angling.storm_bass.0" : "Уникальный вид окуня, которого, похоже,",
+  "tooltip.elarion_angling.storm_bass.1" : "привлекают звуки грома во время бурь.",
+  "tooltip.elarion_angling.storm_bass.2" : "Часто плавает возле Молниевого Окуня.",
+
+  "item.elarion_angling.stormflash_bass" : "Молниевый Окунь",
+  "tooltip.elarion_angling.stormflash_bass.0" : "Уникальный вид окуня, который, похоже,",
+  "tooltip.elarion_angling.stormflash_bass.1" : "привлекают вспышки молний во время бурь.",
+  "tooltip.elarion_angling.stormflash_bass.2" : "Часто плавает возле Грозового Окуня.",
+
+  "item.elarion_angling.sodden_boot" : "Ботинок",
+  "tooltip.elarion_angling.sodden_boot.0" : "Невероятно качественный ботинок, выловленный в озере.",
+  "tooltip.elarion_angling.sodden_boot.1" : "Мечта каждого рыбака.",
+
+
+
+
+
+  "item.elarion_angling.icejaw_trout" : "Ледяная форель",
+  "tooltip.elarion_angling.icejaw_trout.0" : "Вид форели, известный своими острыми",
+  "tooltip.elarion_angling.icejaw_trout.1" : "челюстями из окаменевших ледяных кристаллов.",
+
+  "item.elarion_angling.prismback_trout" : "Форель с кристальной спиной",
+  "tooltip.elarion_angling.prismback_trout.0" : "Выносливый вид форели, который использует",
+  "tooltip.elarion_angling.prismback_trout.1" : "свою спину для защиты во время нападения.",
+
+  "item.elarion_angling.aurorafin" : "Аврора",
+  "tooltip.elarion_angling.aurorafin.0" : "Красивая <sclegendary>легендарная</sclegendary> рыба. Из-за своих размеров",
+  "tooltip.elarion_angling.aurorafin.1" : "её чрезвычайно сложно поймать — она не даёт рыболову",
+  "tooltip.elarion_angling.aurorafin.2" : "ни секунды отдыха, если он хочет принести её домой",
+
+  "item.elarion_angling.wintry_pike" : "Зимняя Щука",
+  "tooltip.elarion_angling.wintry_pike.0" : "Хищная рыба. Этот вид обожает холодный климат",
+  "tooltip.elarion_angling.wintry_pike.1" : "и часто встречается в промёрзших озёрах.",
+
+
+
+
+  "item.elarion_angling.dunetail" : "Песчанохвостка",
+  "tooltip.elarion_angling.dunetail.0" : "Длинная рыбка, покрытая песком. Хотя её чаще",
+  "tooltip.elarion_angling.dunetail.1" : "встречают в тёплом климате, она любит холод ночи.",
+
+  "item.elarion_angling.miragefin_carp" : "Миражный карп",
+  "tooltip.elarion_angling.miragefin_carp.0" : "Вид карпа, встречающийся тёплыми солнечными днями",
+  "tooltip.elarion_angling.miragefin_carp.1" : "в жарком климате. Говорят, он получил своё название",
+  "tooltip.elarion_angling.miragefin_carp.2" : "от жителей пустыни — увидеть его часто было лишь миражом.",
+
+  "item.elarion_angling.scorchfin" : "Жарорыба",
+  "tooltip.elarion_angling.scorchfin.0" : "Рыба, которая ненавидит дождь",
+  "tooltip.elarion_angling.scorchfin.1" : "и предпочитает оставаться в более жарких местах.",
+
+  "item.elarion_angling.cactusfin" : "Какторыба",
+  "tooltip.elarion_angling.cactusfin.0" : "Хотя название может намекать на связь",
+  "tooltip.elarion_angling.cactusfin.1" : "с кактусами, это лишь совпадение —",
+  "tooltip.elarion_angling.cactusfin.2" : "у неё просто зелёная чешуя.",
+
+  "item.elarion_angling.aloe_bream" : "Агавовый лещ",
+  "tooltip.elarion_angling.aloe_bream.0" : "Редкий лещ, который выходит только ночью",
+  "tooltip.elarion_angling.aloe_bream.1" : "в ясную погоду. Длинные плавники помогают ему",
+  "tooltip.elarion_angling.aloe_bream.2" : "пробиваться через мутные пустынные озёра.",
+  "tooltip.elarion_angling.aloe_bream.3" : "Говорят, эта рыба обожает мангостины",
+
+
+
+
+  "item.elarion_angling.sunlit_sturgeon" : "Солнечный осётр",
+  "tooltip.elarion_angling.sunlit_sturgeon.0" : "Редкий осётр, которого часто можно встретить высоко",
+  "tooltip.elarion_angling.sunlit_sturgeon.1" : "в горах в солнечные дни. Из-за своих размеров",
+  "tooltip.elarion_angling.sunlit_sturgeon.2" : "его нелегко выловить — нужна крепкая хватка.",
+
+  "item.elarion_angling.summit_dweller" : "Горник",
+  "tooltip.elarion_angling.summit_dweller.0" : "Золотистая рыба, обитающая в горах.",
+  "tooltip.elarion_angling.summit_dweller.1" : "Не самый простой улов для неопытных рыбаков.",
+
+  "item.elarion_angling.stonegill" : "Камножабр",
+  "tooltip.elarion_angling.stonegill.0" : "Каменно-твёрдая рыба, обитающая высоко в горах.",
+  "tooltip.elarion_angling.stonegill.1" : "Говорят, из неё получается отличный рагу…",
+  "tooltip.elarion_angling.stonegill.2" : "если у вас хватит зубов прокусить её кожу.",
+
+  "item.elarion_angling.sunseeker_carp" : "Солнцелюбивый карп",
+  "tooltip.elarion_angling.sunseeker_carp.0" : "Редкий карп, обожающий солнце. Его можно поймать",
+  "tooltip.elarion_angling.sunseeker_carp.1" : "только когда солнце находится прямо над головой.",
+
+
+
+
+  "item.elarion_angling.mire_catfish" : "Болотный сом",
+  "tooltip.elarion_angling.mire_catfish.0" : "Грязноватый вид сома, обитающий в мутных водах",
+  "tooltip.elarion_angling.mire_catfish.1" : "болот. Говорят, если его хорошо промыть — выйдет отличное блюдо.",
+
+  "item.elarion_angling.lilypad_snapper" : "Лилийный щелкун",
+  "tooltip.elarion_angling.lilypad_snapper.0" : "Редкий вытянутый вид щуки/щелкуна, живущий в болотах.",
+  "tooltip.elarion_angling.lilypad_snapper.1" : "Охотится на других рыб своим острым ртом.",
+
+  "item.elarion_angling.sagewhisker_catfish" : "Травяной сом",
+  "tooltip.elarion_angling.sagewhisker_catfish.0" : "Красивый сом травяного цвета, встречается в болотах.",
+  "tooltip.elarion_angling.sagewhisker_catfish.1" : "Покидает укрытие только в ясные ночи, чтобы любоваться",
+  "tooltip.elarion_angling.sagewhisker_catfish.2" : "спокойствием ночных болот.",
+
+  "item.elarion_angling.mossbound_boot" : "Мшистый ботинок",
+  "tooltips.elarion_angling.mossbound_boot.0" : "Ботинок… но на этот раз мшистый!",
+
+
+
+
+  "item.elarion_angling.pallid_pinfish" : "Бледнопёрка",
+  "tooltip.elarion_angling.pallid_pinfish.0" : "Крошечная бледная рыбка, встречается только в полночь",
+  "tooltip.elarion_angling.pallid_pinfish.1" : "в тёмных лесах. Мечтает о мире,",
+  "tooltip.elarion_angling.pallid_pinfish.2" : "где есть бледные сады.",
+
+  "item.elarion_angling.pinfin" : "Пёрка",
+  "tooltip.elarion_angling.pinfin.0" : "Крошечная бледная рыбка, встречается только в полночь.",
+
+  "item.elarion_angling.pallid_carp" : "Бледный карп",
+  "tooltip.elarion_angling.pallid_carp.0" : "Вид карпа, распространённый в [удалено].",
+  "tooltip.elarion_angling.pallid_carp.1" : "Их среда обитания всё ещё строится",
+  "tooltip.elarion_angling.pallid_carp.2" : "в этой вселенной, так что пока они живут в тёмном лесу.",
+
+
+
+
+  "item.elarion_angling.bloomfish" : "Цветочная рыба",
+  "tooltip.elarion_angling.bloomfish.0" : "Красивая рыба, напоминающая розовые лепестки вишнёвых рощ.",
+  "tooltip.elarion_angling.bloomfish.1" : "Она предпочитает плавать в тёплом солнечном свете.",
+
+  "item.elarion_angling.vesanii" : "Весани",
+  "tooltip.elarion_angling.vesanii.0" : "Этот вид рыбы хорошо",
+  "tooltip.elarion_angling.vesanii.1" : "маскируется под другие виды.",
+  "tooltip.elarion_angling.vesanii.2" : "Её редко можно увидеть",
+  "tooltip.elarion_angling.vesanii.3" : "в обычном виде.",
+
+  "item.elarion_angling.bloomdrift_carp" : "Лепестковый карп",
+  "tooltip.elarion_angling.bloomdrift_carp.0" : "Розовый карп, распространённый в вишнёвых рощах, который",
+  "tooltip.elarion_angling.bloomdrift_carp.1" : "предпочитает появляться во время дождя.",
+
+  "item.elarion_angling.rose_koi" : "Розовый Кои",
+  "tooltip.elarion_angling.rose_koi.0" : "Розовый кои, чаще всего встречающийся в вишнёвых рощах.",
+  "tooltip.elarion_angling.rose_koi.1" : "Выходит в дождливые дни, чтобы кормиться.",
+
+  "item.elarion_angling.rose_siamese_fin" : "Розовая сиамская рыба",
+  "tooltip.elarion_angling.rose_siamese_fin.0" : "Редкая великолепная рыба, встречающаяся в дождливые дни.",
+  "tooltip.elarion_angling.rose_siamese_fin.1" : "Достаточно сложный улов даже для опытных рыболовов.",
+
+
+
+
+  "item.elarion_angling.prismback_sturgeon" : "Кристалоспинный осётр",
+  "tooltip.elarion_angling.prismback_sturgeon.0" : "Осётр, которого часто можно встретить на больших высотах,",
+  "tooltip.elarion_angling.prismback_sturgeon.1" : "известный своим кристальным панцирем, который позволяет ему пассивно",
+  "tooltip.elarion_angling.prismback_sturgeon.2" : "защищаться от атакующих во время охоты.",
+
+  "item.elarion_angling.frosttooth_sturgeon" : "Ледозубый осётр",
+  "tooltip.elarion_angling.frosttooth_sturgeon.0" : "Обитающий высоко в горах, этот осётр",
+  "tooltip.elarion_angling.frosttooth_sturgeon.1" : "использует свои острые окаменевшие ледяные зубы, чтобы хватать добычу.",
+
+  "item.elarion_angling.borealis_fin" : "Бореаль",
+  "tooltip.elarion_angling.borealis_fin.0" : "<sclegendary>Легендарная</sclegendary> рыба, обитающая в ледяных горах.",
+  "tooltip.elarion_angling.borealis_fin.1" : "Настоящее испытание даже для опытных рыболовов. Она",
+  "tooltip.elarion_angling.borealis_fin.2" : "известна тем, что почти сливается с ледяной водой, затрудняя",
+  "tooltip.elarion_angling.borealis_fin.3" : "отслеживание её быстрых движений.",
+
+  "item.elarion_angling.crystalback_borealis" : "Кристалоспинный Бореаль",
+  "tooltip.elarion_angling.crystalback_borealis.0" : "Хотя эта рыба названа в честь <sclegendary>легендарной</sclegendary> рыбы <sclegendary>Бореаль</sclegendary>,",
+  "tooltip.elarion_angling.crystalback_borealis.1" : "поймать её значительно проще. Её блестящая спина делает её",
+  "tooltip.elarion_angling.crystalback_borealis.2" : "легко заметной, а кристаллизованный панцирь замедляет её скорость плавания.",
+
+
+
+
+  "item.elarion_angling.silvercrest_pike" : "Серебропёрая щука",
+  "tooltip.elarion_angling.silvercrest_pike.0" : "Крупная щука, обычная для речных вод.",
+
+  "item.elarion_angling.carpenjo" : "Карпенджо",
+  "tooltip.elarion_angling.carpenjo.0" : "Величественный карп, светящийся знаниями о моддинге.",
+  "tooltip.elarion_angling.carpenjo.1" : "Говорят, рыбаки едят его на удачу перед отладкой.",
+
+  "item.elarion_angling.willowfin_bream" : "Ивовый лещ",
+  "tooltip.elarion_angling.willowfin_bream.0" : "Очень хитрая рыба, которую трудно поймать,",
+  "tooltip.elarion_angling.willowfin_bream.1" : "она появляется только ночью.",
+
+  "item.elarion_angling.driftwater_bream" : "Дрейфующий лещ",
+  "tooltip.elarion_angling.driftwater_bream.0" : "Вид леща, известный тем, что медленно",
+  "tooltip.elarion_angling.driftwater_bream.1" : "дрейфует по поверхности рек ночью.",
+
+  "item.elarion_angling.rainfell_bream" : "Дождевой лещ",
+  "tooltip.elarion_angling.rainfell_bream.0" : "Трудно заметный, но легко ловящийся лещ,",
+  "tooltip.elarion_angling.rainfell_bream.1" : "выходит только в дождливые ночи.",
+
+  "item.elarion_angling.hollowgut_darter" : "Пустобрюхий дартер",
+  "tooltip.elarion_angling.hollowgut_darter.0" : "Очень маленькая и лёгкая для поимки речная рыбка.",
+
+  "item.elarion_angling.mistfin_chub" : "Туманный голавль",
+  "tooltip.elarion_angling.mistfin_chub.0" : "Речная рыба, известная своими серебристыми чешуями.",
+
+  "item.elarion_angling.bluejiji" : "Синежабрик",
+  "tooltip.elarion_angling.bluejiji.0" : "Не путать с обычным синежабриком,",
+  "tooltip.elarion_angling.bluejiji.1" : "эта маленькая рыбка часто встречается в реках.",
+
+  "item.elarion_angling.brittle_seaweed" : "Сушёная морская водоросль",
+  "tooltip.elarion_angling.brittle_seaweed.0" : "Кусочек мёртвой водоросли, который",
+  "tooltip.elarion_angling.brittle_seaweed.1" : "случайно зацепился за ваш крючок.",
+
+
+
+
+  "item.elarion_angling.icegill_chub" : "Морозожабрый голавль",
+  "tooltip.elarion_angling.icegill_chub.0" : "Популярная среди рыболовов рыба,",
+  "tooltip.elarion_angling.icegill_chub.1" : "обычно встречающаяся в реках.",
+
+  "item.elarion_angling.prismback_minnow" : "Кристалоспинная мелочь",
+  "tooltip.elarion_angling.prismback_minnow.0" : "Очень маленькая рыбка, часто используемая как наживка.",
+  "tooltip.elarion_angling.prismback_minnow.1" : "Этот вид чаще всего встречается ночью.",
+
+  "item.elarion_angling.cerulean_crystalback_minnow" : "Лазурная кристалоспинная мелочь",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.0" : "Редкая мутация кристалоспинной мелочи,",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.1" : "которая мягко светится голубым оттенком в полночь.",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.2" : "Сложная добыча из-за крайне маленького размера.",
+
+  "item.elarion_angling.sapphire_crystalfin" : "Сине-кристаловый плавник",
+  "tooltip.elarion_angling.sapphire_crystalfin.0" : "Необычная рыба, чаще всего встречаемая днём.",
+
+
+
+  "item.elarion_angling.steeljaw_herring" : "Железночелюстная сельдь",
+  "tooltip.elarion_angling.steeljaw_herring.0" : "Этот вид океанической сельди часто",
+  "tooltip.elarion_angling.steeljaw_herring.1" : "имеет окаменелую серебристую челюсть, похожую на железо.",
+
+  "item.elarion_angling.cobalt_herring" : "Голубая сельдь",
+  "tooltip.elarion_angling.cobalt_herring.0" : "Крайне неуловимая рыба, вечно ищущая 46-й океан.",
+  "tooltip.elarion_angling.cobalt_herring.1" : "Рыбаки используют его для ориентации, так как он всегда возвращается туда, откуда начал свой путь.",
+
+  "item.elarion_angling.abyssjaw_herring" : "Глубинночелюстная сельдь",
+  "tooltip.elarion_angling.abyssjaw_herring.0" : "Океаническая рыба, высоко ценящаяся в торговле.",
+
+  "item.elarion_angling.duskfin_snapper" : "Сумеречный луциан",
+  "tooltip.elarion_angling.duskfin_snapper.0" : "Тяжёлая для своего размера рыба, часто используемая в блюдах.",
+
+  "item.elarion_angling.joelian" : "Джоэл",
+  "tooltip.elarion_angling.joelian.0" : "Редкая <sclegendary>легендарная</sclegendary> рыба, найденная в океанах.",
+  "tooltip.elarion_angling.joelian.1" : "Обладает <sclegendary>приятным</sclegendary> крупным размером.",
+
+  "item.elarion_angling.redscale_tuna" : "Красночешуйный тунец",
+  "tooltip.elarion_angling.redscale_tuna.0" : "Крупный тунец с красными чешуями.",
+  "tooltip.elarion_angling.redscale_tuna.1" : "Одного такого достаточно, чтобы накормить целую деревню.",
+
+  "item.elarion_angling.ocean_bass" : "Морской окунь",
+  "tooltip.elarion_angling.ocean_bass.0" : "Популярный вид окуня, обитающий в океанах.",
+  "tooltip.elarion_angling.ocean_bass.1" : "Прячется ночью из-за отсутствия храбрости.",
+
+  "item.elarion_angling.waterlogged_bottle" : "Затонувшая бутылка",
+  "tooltip.elarion_angling.waterlogged_bottle.0" : "Бутылка, брошенная в океан много лет назад.",
+  "tooltip.elarion_angling.waterlogged_bottle.1" : "Что бы ни было внутри — давно пропало.",
+
+  "item.elarion_angling.moon_eye_tuna" : "Большеглазый тунец",
+  "tooltip.elarion_angling.moon_eye_tuna.0" : "Большая, тяжёлая рыба, известная своим огромным глазом.",
+  "tooltip.elarion_angling.moon_eye_tuna.1" : "Этот вид встречается только в глубоких океанских водах.",
+  "tooltip.elarion_angling.moon_eye_tuna.2" : "Говорят, она держится рядом с другими рыбами Каупена.",
+
+  "block.elarion_angling.weathered_conch" : "Раковина",
+  "tooltip.elarion_angling.weathered_conch.0" : "Остатки моллюска со спиральной раковиной, часто используемой как украшение.",
+
+  "block.elarion_angling.river_clam" : "Ракушка моллюска",
+  "tooltip.elarion_angling.river_clam.0" : "Когда-то двустворчатый моллюск на песчаных берегах, теперь лишь пустая раковина.",
+
+  "item.elarion_angling.mycelfin" : "Грибная рыба",
+  "tooltip.elarion_angling.mycelfin.0" : "Древний <sclegendary>легендарный</sclegendary> вид рыбы, захваченный спорами",
+  "tooltip.elarion_angling.mycelfin.1" : "Грибных островов. Отличное блюдо для любителей грибов.",
+
+  "item.elarion_angling.sporefin" : "Споровая рыба",
+  "tooltip.elarion_angling.sporefin.0" : "Редкая рыба, встречающаяся на Грибных островах, может",
+  "tooltip.elarion_angling.sporefin.1" : "оказаться трудным уловом для неопытных рыболовов.",
+
+
+
+
+  "item.elarion_angling.gilded_fanfin" : "Золотистый веерохвост",
+  "tooltip.elarion_angling.gilded_fanfin.0" : "Подземная рыба с хвостом в форме веера.",
+  "tooltip.elarion_angling.gilded_fanfin.1" : "И хотя выглядит забавно, хвост у неё не вращается как веер.",
+
+  "item.elarion_angling.geode_ribbon_eel" : "Геодовый угорь",
+  "tooltip.elarion_angling.geode_ribbon_eel.0" : "Блестящий, тяжёлый и длинный угорь.",
+  "tooltip.elarion_angling.geode_ribbon_eel.1" : "Свою окраску получает благодаря аметисту,",
+  "tooltip.elarion_angling.geode_ribbon_eel.2" : "поскольку его яйца вынашиваются внутри аметистовых геод.",
+
+
+
+  "item.elarion_angling.ivoryveil" : "Белая вуаль",
+  "tooltip.elarion_angling.ivoryveil.0" : "Бледная длинноплавниковая рыба, обычная для подземелий.",
+  "tooltip.elarion_angling.ivoryveil.1" : "Удивительно тяжёлая для рыбы, похожей на призрак.",
+
+  "item.elarion_angling.dusk_eel" : "Чёрный угорь",
+  "tooltip.elarion_angling.dusk_eel.0" : "Плотоядный чёрный угорь, распространённый под землёй.",
+
+  "item.elarion_angling.violet_crystalback" : "Аметистоспин",
+  "tooltip.elarion_angling.violet_crystalback.0" : "Редкая, трудная в поимке рыба, встречается рядом с аметистовыми геодами.",
+
+  "item.elarion_angling.stonefin" : "Каменная рыба",
+  "tooltip.elarion_angling.stonefin.0" : "Огромная тяжёлая рыба, словно сделанная из камня.",
+  "tooltip.elarion_angling.stonefin.1" : "Часто обеспечивает шахтёров пищей на несколько дней.",
+
+
+
+  "item.elarion_angling.fossil_angelfish" : "Окаменевшая скалярия",
+  "tooltip.elarion_angling.fossil_angelfish.0" : "Скалярия, напоминающая окаменелость.",
+  "tooltip.elarion_angling.fossil_angelfish.1" : "На самом деле не окаменевшая и часто игнорируется",
+  "tooltip.elarion_angling.fossil_angelfish.2" : "из-за низкой пищевой ценности,",
+  "tooltip.elarion_angling.fossil_angelfish.3" : "большого веса и сложности поимки.",
+
+  "item.elarion_angling.dripstone_fin" : "Капельник",
+  "tooltip.elarion_angling.dripstone_fin.0" : "Простая рыба, обитающая в",
+  "tooltip.elarion_angling.dripstone_fin.1" : "лужах сталактитовых пещер.",
+
+  "item.elarion_angling.brimstone_fish" : "Жёлтокаменная рыба",
+  "tooltip.elarion_angling.brimstone_fish.0" : "Красивая рыба золотистого цвета,",
+  "tooltip.elarion_angling.brimstone_fish.1" : "обычная для сталактитовых пещер.",
+
+
+
+
+
+  "item.elarion_angling.verdant_pike" : "Мшистая щука",
+  "tooltip.elarion_angling.verdant_pike.0" : "Мшистая <sclegendary>легендарная</sclegendary> щука, редко",
+  "tooltip.elarion_angling.verdant_pike.1" : "встречающаяся в Пышных пещерах.",
+  "tooltip.elarion_angling.verdant_pike.2" : "Очень сложная добыча даже для опытных рыболовов.",
+
+  "item.elarion_angling.radiant_mossfin" : "Живой мох",
+  "tooltip.elarion_angling.radiant_mossfin.0" : "Кусок мха, напоминающий рыбу, найденный в Пышных пещерах.",
+  "tooltip.elarion_angling.radiant_mossfin.1" : "А может, это рыба, покрытая мхом?",
+  "tooltip.elarion_angling.radiant_mossfin.2" : "В любом случае поймать трудно — слишком скользкий.",
+
+  "item.elarion_angling.quarryfish" : "Карриш",
+  "tooltip.elarion_angling.quarryfish.0" : "Рыба, встречающаяся возле заросших Пышных пещер.",
+  "tooltip.elarion_angling.quarryfish.1" : "Её большой вес делает поимку утомительной.",
+
+
+
+  "item.elarion_angling.phantom_pike" : "Призрачная щука",
+  "tooltip.elarion_angling.phantom_pike.0" : "Щука, напоминающая призрак; редко встречается глубоко под землёй.",
+
+  "item.elarion_angling.seaglass_pike" : "Аквамариновая щука",
+  "tooltip.elarion_angling.seaglass_pike.0" : "Хищная щука, обитающая глубоко под землёй.",
+
+  "item.elarion_angling.ruby_mackerel" : "Гранатовая макрель",
+  "tooltip.elarion_angling.ruby_mackerel.0" : "Сложная в поимке макрель, встречающаяся в глубоких пещерах.",
+
+  "item.elarion_angling.radiant_amethyst_snapper" : "Яркий аметистовый луциан",
+  "tooltip.elarion_angling.radiant_amethyst_snapper.0" : "Красивая розовая рыба, найденная на уровне глубокого сланца.",
+  "tooltip.elarion_angling.radiant_amethyst_snapper.1" : "Плавает парами с Тёмным аметистовым луцианом.",
+
+  "item.elarion_angling.dusky_amethyst_snapper" : "Тёмный аметистовый луциан",
+  "tooltip.elarion_angling.dusky_amethyst_snapper.0" : "Красивая тёмно-синяя рыба, найденная на уровне глубокого сланца.",
+  "tooltip.elarion_angling.dusky_amethyst_snapper.1" : "Плавает рядом с Ярким аметистовым луцианом.",
+
+  "item.elarion_angling.deepslate_fin" : "Глубокосланцевик",
+  "tooltip.elarion_angling.deepslate_fin.0" : "Сложная в поимке рыба, встречаемая высоко в горах.",
+  "tooltip.elarion_angling.deepslate_fin.1" : "Шутка. На самом деле она живёт в глубоком сланце.",
+
+
+
+
+  "item.elarion_angling.sculkfin" : "Скалк-рыба",
+  "tooltip.elarion_angling.sculkfin.0" : "Коварная рыба, искажённая скалком.",
+
+  "item.elarion_angling.wardfish" : "Вард",
+  "tooltip.elarion_angling.wardfish.0" : "<sclegendary>Легендарная</sclegendary> рыба — говорят, лучший друг вардена.",
+  "tooltip.elarion_angling.wardfish.1" : "Она приняла силу скалка и стала лишь сильнее.",
+
+  "item.elarion_angling.darkglow" : "Светотень",
+  "tooltip.elarion_angling.darkglow.0" : "Быстрая рыба, встречающаяся только в глубокой тьме.",
+
+
+
+  "item.elarion_angling.sun_devourer" : "Солнцеед",
+  "tooltip.elarion_angling.sun_devourer.0" : "Редкая рыба, встречающаяся в лавовых озёрах Верхнего мира.",
+  "tooltip.elarion_angling.sun_devourer.1" : "Она охотится на рыб-лун ради пищи.",
+
+  "item.elarion_angling.flame_trout" : "Пирокумжа",
+  "tooltip.elarion_angling.flame_trout.0" : "Кумжа, адаптированная к жизни в поверхностной лаве.",
+
+  "item.elarion_angling.obsidian_ribbon_eel" : "Обсидиановый угорь",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.0" : "<sclegendary>Легендарный</sclegendary> угорь, состоящий из обсидиана,",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.1" : "встречается в лавовых озёрах Верхнего мира во время дождя.",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.2" : "Иногда требуется несколько рыболовов, чтобы",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.3" : "перетащить его обратно в деревню.",
+
+
+
+
+  "item.elarion_angling.magma_shrimp" : "Плавневая креветка",
+  "tooltip.elarion_angling.magma_shrimp.0" : "Маленькая креветка, живущая в подземных лавовых реках.",
+
+  "item.elarion_angling.obsidian_shellcrab" : "Обсидиановый краб",
+  "tooltip.elarion_angling.obsidian_shellcrab.0" : "Неуловимый краб, встречающийся у лавовых озёр под землёй.",
+
+
+
+
+  "item.elarion_angling.charred_bloodsucker" : "Обожжённый кровосос",
+  "tooltip.elarion_angling.charred_bloodsucker.0" : "Трудноуловимый паразит из лавовых озёр глубокого сланца.",
+
+  "item.elarion_angling.molten_slate_crab" : "Плавневый сланцевый краб",
+  "tooltip.elarion_angling.molten_slate_crab.0" : "Золотистый краб, встречающийся рядом с лавовыми реками в глубоком сланце.",
+
+
+
+  "item.elarion_angling.hellhound_ray" : "Церберай",
+  "tooltip.elarion_angling.hellhound_ray.0" : "Жалящая рыба с 3 головами.",
+  "tooltip.elarion_angling.hellhound_ray.1" : "2 меньшие головы делят один мозг на двоих",
+
+  "item.elarion_angling.cindergill" : "Пеплоплавник",
+  "tooltip.elarion_angling.cindergill.0" : "Рыба, обитающая в огромных лавовых океанах Нижнего мира.",
+
+  "item.elarion_angling.boiling_pike" : "Обжигающая щука",
+  "tooltip.elarion_angling.boiling_pike.0" : "Хищная щука, встречающаяся только в Нижнем мире.",
+
+  "item.elarion_angling.ember_squid" : "Угольный кальмар",
+  "tooltip.elarion_angling.ember_squid.0" : "Скользкий кальмар из Нижнего мира.",
+
+  "item.elarion_angling.magma_crab" : "Лавовый краб",
+  "tooltip.elarion_angling.magma_crab.0" : "Как-то попал в Нижний мир и развил панцирь из адского камня.",
+  "tooltip.elarion_angling.magma_crab.1" : "Теперь чувствует себя как дома.",
+
+  "item.elarion_angling.magmafin" : "Магмовая рыба",
+  "tooltip.elarion_angling.magmafin.0" : "Рыба Нижнего мира с красными светящимися плавниками.",
+
+  "item.elarion_angling.glowstone_hunter" : "Светокаменный искатель",
+  "tooltip.elarion_angling.glowstone_hunter.0" : "Рыба, странно притягиваемая к светокамню.",
+  "tooltip.elarion_angling.glowstone_hunter.1" : "Обычно плавает прямо под ним.",
+
+  "item.elarion_angling.glowstone_puffer" : "Светокаменный иглобрюх",
+  "tooltip.elarion_angling.glowstone_puffer.0" : "Иглобрюх, сверкающий как светокамень.",
+
+  "item.elarion_angling.willowish" : "Уиллишь",
+  "tooltip.elarion_angling.willowish.0" : "Рыба, известная тем, что ворует еду у других.",
+  "tooltip.elarion_angling.willowish.1" : "Крайне уродлива.",
+  "tooltip.elarion_angling.willowish.2" : "Лучше выбросить назад в Нижний мир,",
+  "tooltip.elarion_angling.willowish.3" : "где ей самое место.",
+
+  "item.elarion_angling.magma_crab_claw" : "Клешня лавового краба",
+  "tooltip.elarion_angling.magma_crab_claw.0" : "Клешня, оторванная у лавового краба.",
+  "tooltip.elarion_angling.magma_crab_claw.1" : "Из-за агрессивности крабов находится довольно часто.",
+  "tooltip.elarion_angling.magma_crab_claw.2" : "Особенно в Нижнем мире.",
+
+
+
+  "item.elarion_angling.charred_char" : "Угольная рыба",
+  "tooltip.elarion_angling.charred_char.0" : "Фиолетовая рыба, встречающаяся только в Краю.",
+
+  "item.elarion_angling.chorus_shellcrab" : "Хорусовый краб",
+  "tooltip.elarion_angling.chorus_shellcrab.0" : "Питается хорус-фруктами.",
+  "tooltip.elarion_angling.chorus_shellcrab.1" : "Говорят, способен телепортироваться после еды.",
+
+  "item.elarion_angling.ender_glowfin" : "Край-свет",
+  "tooltip.elarion_angling.ender_glowfin.0" : "Хитрая рыба, живущая только в Краю.",
+  "tooltip.elarion_angling.ender_glowfin.1" : "Эндерменов абсолютно не беспокоит.",
+
+  "item.elarion_angling.voidfang" : "Пустотыкус",
+  "tooltip.elarion_angling.voidfang.0" : "<sclegendary>Легендарная</sclegendary> рыба с внешних островов Края.",
+  "tooltip.elarion_angling.voidfang.1" : "Настолько редкая, что многие считают её мифом.",
+  "tooltip.elarion_angling.voidfang.2" : "Говорят, только <scuncommon>старшие рыболовы</scuncommon>",
+  "tooltip.elarion_angling.voidfang.3" : "смогли поймать её хотя бы раз."
+}

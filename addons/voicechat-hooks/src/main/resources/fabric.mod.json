@@ -5,6 +5,17 @@
     "name":  "Elarion Voice Chat Hooks",
     "icon": "assets/elarion_voicechat_hooks/icon.png",
     "description":  "Voice chat integration shell backed by Elarion Core status and visibility.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

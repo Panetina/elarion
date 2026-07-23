@@ -113,6 +113,19 @@ public final class EconomyTransactionService {
         }
     }
 
+    public int resetAllPlayerState() {
+        pendingSnapshot.join();
+        synchronized (this) {
+            int changed = state.wallets().size();
+            state.wallets().clear();
+            state.operationReceipts().clear();
+            interestQueue = List.of();
+            interestIndex = 0;
+            if (bound) storage.save(server, state.copy());
+            return changed;
+        }
+    }
+
     public synchronized long balance(EconomyAccount account) {
         if (account == null || account.type() == EconomyAccountType.SYSTEM) return 0L;
         if (account.type() == EconomyAccountType.WORLDHEART) return state.worldheartTreasury();

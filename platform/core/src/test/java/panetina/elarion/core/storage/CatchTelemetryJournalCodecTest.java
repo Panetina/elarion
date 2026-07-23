@@ -4,6 +4,7 @@ import net.minecraft.util.Identifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import panetina.elarion.core.model.AcceptedCatchRecord;
+import panetina.elarion.core.model.CatchTelemetryDetails;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -35,6 +36,26 @@ final class CatchTelemetryJournalCodecTest {
     }
 
     @Test
+    void richServerOutcomeRoundTrips() {
+        AcceptedCatchRecord base = record(null, Identifier.ofVanilla("overworld"), Identifier.ofVanilla("plains"));
+        CatchTelemetryDetails details = new CatchTelemetryDetails(
+                Identifier.of("elarion_angling", "aloe_bream"),
+                Identifier.of("elarion_angling", "fish"),
+                420, 2_100, 275, 84, true, true, false, 7,
+                Identifier.of("elarion_angling", "worm"),
+                Identifier.of("elarion_angling", "fishing_rod"),
+                Identifier.of("elarion_angling", "valley_bobber"),
+                Identifier.of("elarion_angling", "copper_hook"),
+                Identifier.ofVanilla("water"), null, null);
+        AcceptedCatchRecord rich = new AcceptedCatchRecord(
+                base.schemaVersion(), base.eventId(), base.occurredAt(), base.actorId(), base.sourceId(),
+                base.fishDefinitionId(), base.rarityId(), base.quantity(), base.worldId(), base.dimensionId(),
+                base.biomeId(), base.metadata(), details);
+
+        assertEquals(rich, CatchTelemetryJournalCodec.decode("rich", CatchTelemetryJournalCodec.encode(rich)));
+    }
+
+    @Test
     void absentLocationsRoundTripAsNull() {
         AcceptedCatchRecord decoded = CatchTelemetryJournalCodec.decode(
                 "line-2",
@@ -43,6 +64,15 @@ final class CatchTelemetryJournalCodecTest {
         assertNull(decoded.worldId());
         assertNull(decoded.dimensionId());
         assertNull(decoded.biomeId());
+    }
+
+    @Test
+    void schemaOneJournalRecordMigratesToCurrentSchema() {
+        AcceptedCatchRecord current = record(null, null, null);
+        String legacy = CatchTelemetryJournalCodec.encode(current)
+                .replace("\"schemaVersion\":" + AcceptedCatchRecord.CURRENT_SCHEMA_VERSION, "\"schemaVersion\":1");
+
+        assertEquals(current, CatchTelemetryJournalCodec.decode("legacy", legacy));
     }
 
     @Test
@@ -82,7 +112,8 @@ final class CatchTelemetryJournalCodecTest {
                         valid.replace("elarion_angling:fishing", "invalid id")));
         assertThrows(CatchTelemetryFormatException.class, () ->
                 CatchTelemetryJournalCodec.decode("unsupported-schema",
-                        valid.replace("\"schemaVersion\":1", "\"schemaVersion\":2")));
+                        valid.replace("\"schemaVersion\":" + AcceptedCatchRecord.CURRENT_SCHEMA_VERSION,
+                                "\"schemaVersion\":" + (AcceptedCatchRecord.CURRENT_SCHEMA_VERSION + 1))));
         assertThrows(CatchTelemetryFormatException.class, () ->
                 CatchTelemetryJournalCodec.decode("fractional-quantity",
                         valid.replace("\"quantity\":2", "\"quantity\":2.5")));

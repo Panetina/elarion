@@ -10,7 +10,8 @@
     "CraftingResultSlotMixin",
     "PlayerAdvancementTrackerMixin",
     "ServerCommandSourceMixin",
-    "SuggestionsBuilderAccessor"
+    "SuggestionsBuilderAccessor",
+    "UserCacheAccessor"
   ],
   "client": [
     "client.ChatScreenNotificationMixin",

@@ -1,17 +1,384 @@
+import groovy.json.JsonSlurper
+
 dependencies {
     implementation(project(path: ':platform:core', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    implementation(project(path: ':addons:economy', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
 
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
-processResources {
-    from('LICENSE') {
-        into 'META-INF'
+def foundationContract = layout.projectDirectory.file('porting/foundation.json')
+def portInventory = layout.projectDirectory.file('porting/inventory/source-inventory.json')
+def fishIdentityContract = layout.projectDirectory.file('porting/fish-identity.json')
+def nativeCatchLedger = layout.projectDirectory.file('porting/ledger/native-catches.json')
+def catchSchemaLedger = layout.projectDirectory.file('porting/ledger/catch-schema.json')
+def runtimeTypeLedger = layout.projectDirectory.file('porting/ledger/runtime-types-and-packets.json')
+def assetLedger = layout.projectDirectory.file('porting/ledger/assets.json')
+def nativeServerDataLedger = layout.projectDirectory.file('porting/ledger/native-server-data.json')
+
+tasks.register('verifyAnglingFoundation') {
+    group = 'verification'
+    description = 'Verifies the frozen Angling source, ownership, authority, and release-boundary contract.'
+    inputs.file(foundationContract)
+
+    doLast {
+        def contract = new JsonSlurper().parse(foundationContract.asFile)
+        if (contract.schemaVersion != 1) {
+            throw new GradleException('Angling foundation schemaVersion must be 1.')
+        }
+        if (contract.source.revision != '016161dfc2d556d20fa641cd275e18c539256d4d') {
+            throw new GradleException('Angling must remain pinned to the approved local reference revision.')
+        }
+        if (contract.identity.modId != 'elarion_angling') {
+            throw new GradleException('Angling mod ID must remain elarion_angling.')
+        }
+        if (contract.release.releaseReady != false) {
+            throw new GradleException('The Angling foundation must not be marked release-ready.')
+        }
+        if (contract.source.ownerAuthorizedForPort != true
+                || contract.source.ownerAuthorizedCodeContentAndResources != true) {
+            throw new GradleException('The Angling port source must retain explicit owner authorization.')
+        }
+        if (contract.release.authorizedFilesMayBePortedIntoModules != true
+                || contract.release.assetReplacementRequired != false
+                || contract.release.additionalAssetLicenseGateRequired != false) {
+            throw new GradleException('The approved Angling port-source and asset policy is inconsistent.')
+        }
+        ['coreOwnsCanonicalCatchTruth', 'serverAuthoritativeOutcomes',
+         'boundedHotPaths', 'atomicReloadSnapshots'].each { rule ->
+            if (contract.rules[rule] != true) {
+                throw new GradleException("Required Angling foundation rule is disabled: ${rule}")
+            }
+        }
+
+        def forbidden = fileTree('src') {
+            include '**/*.java', '**/*.json', '**/*.properties'
+        }.files.findAll { file ->
+            def text = file.getText('UTF-8')
+            text.contains('com.wdiscute') || text.contains('net.neoforged')
+        }
+        if (!forbidden.isEmpty()) {
+            throw new GradleException('NeoForge implementation references entered Angling production source: '
+                    + forbidden.collect { relativePath(it) }.join(', '))
+        }
     }
 }
+
+tasks.register('verifyAnglingPortInventory') {
+    group = 'verification'
+    description = 'Validates the tracked, itemized inventory of the authorized Angling port source.'
+    inputs.file(portInventory)
+
+    doLast {
+        def inventory = new JsonSlurper().parse(portInventory.asFile)
+        def allowed = ['pending', 'ported', 'superseded-by-core-contract',
+                       'dependency-unavailable-on-fabric'] as Set
+        if (inventory.schemaVersion != 1
+                || inventory.sourceRevision != '016161dfc2d556d20fa641cd275e18c539256d4d') {
+            throw new GradleException('Angling source inventory identity is invalid.')
+        }
+        if (!(inventory.entries instanceof List) || inventory.entries.isEmpty()) {
+            throw new GradleException('Angling source inventory must contain itemized entries.')
+        }
+        def paths = inventory.entries.collect { it.path }
+        if (paths.toSet().size() != paths.size()) {
+            throw new GradleException('Angling source inventory contains duplicate paths.')
+        }
+        if (paths != new ArrayList(paths).sort()) {
+            throw new GradleException('Angling source inventory entries must remain deterministically sorted.')
+        }
+        def invalid = inventory.entries.findAll { entry ->
+            !(entry.path instanceof String) || entry.path.isBlank()
+                    || !(entry.sha256 ==~ /[0-9a-f]{64}/)
+                    || !(entry.sizeBytes instanceof Number) || entry.sizeBytes < 0
+                    || !allowed.contains(entry.disposition)
+                    || !['elarion_angling', 'elarion_angling_delight'].contains(entry.module)
+        }
+        if (!invalid.isEmpty()) {
+            throw new GradleException('Angling source inventory contains invalid entries: '
+                    + invalid.take(5).collect { it.path }.join(', '))
+        }
+        if (inventory.summary.totalFiles != inventory.entries.size()) {
+            throw new GradleException('Angling source inventory summary count is stale.')
+        }
+    }
+}
+
+tasks.register('compareAnglingPortInventory') {
+    group = 'verification'
+    description = 'Compares the tracked port inventory with the local authorized reference checkout.'
+    dependsOn tasks.named('verifyAnglingPortInventory')
+    doLast {
+        exec {
+            commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                    '-File', layout.projectDirectory.file('scripts/generate-port-inventory.ps1').asFile,
+                    '-Mode', 'Compare'
+        }
+    }
+}
+
+tasks.register('verifyAnglingTransformedData') {
+    group = 'verification'
+    description = 'Validates the fish identity contract, semantic ledgers, and transformed native catch resources.'
+    inputs.files(fishIdentityContract, nativeCatchLedger, catchSchemaLedger, runtimeTypeLedger)
+    inputs.dir(layout.projectDirectory.dir('src/main/resources/data/elarion_angling/elarion_angling/fish'))
+
+    doLast {
+        def identity = new JsonSlurper().parse(fishIdentityContract.asFile)
+        if (identity.schemaVersion != 1
+                || identity.sourceRevision != '016161dfc2d556d20fa641cd275e18c539256d4d'
+                || identity.sourceNamespace != 'starcatcher'
+                || identity.targetNamespace != 'elarion_angling') {
+            throw new GradleException('Angling fish identity contract is invalid.')
+        }
+        if (identity.renames.size() != 124
+                || identity.renames.values().toSet().size() != 124) {
+            throw new GradleException('Angling must retain 124 unique approved native fish renames.')
+        }
+        def invalidIds = identity.renames.findAll { source, target ->
+            !(source ==~ /[a-z0-9_]+/) || !(target ==~ /[a-z0-9_]+/)
+        }
+        if (!invalidIds.isEmpty()) {
+            throw new GradleException('Angling fish identity contract contains invalid IDs.')
+        }
+
+        def nativeLedger = new JsonSlurper().parse(nativeCatchLedger.asFile)
+        def schemaLedger = new JsonSlurper().parse(catchSchemaLedger.asFile)
+        def runtimeLedger = new JsonSlurper().parse(runtimeTypeLedger.asFile)
+        if (nativeLedger.count != 148 || nativeLedger.identityMappingCount != 124
+                || nativeLedger.entries.collect { it.targetId }.toSet().size() != 148) {
+            throw new GradleException('Angling native catch ledger is incomplete or ambiguous.')
+        }
+        if (schemaLedger.summary.totalDefinitions != 463
+                || schemaLedger.summary.nativeDefinitions != 148
+                || schemaLedger.summary.compatibilityDefinitions != 315) {
+            throw new GradleException('Angling semantic catch ledger counts are invalid.')
+        }
+        if (runtimeLedger.summary.restrictions != 16
+                || runtimeLedger.summary.modifiers != 52
+                || runtimeLedger.summary.sweetspotBehaviors != 9
+                || runtimeLedger.summary.packets != 11) {
+            throw new GradleException('Angling runtime type/packet ledger counts are invalid.')
+        }
+
+        def catches = fileTree('src/main/resources/data/elarion_angling/elarion_angling/fish') {
+            include '*.json'
+        }.files
+        if (catches.size() != 148) {
+            throw new GradleException("Angling transformed native catch count must be 148, found ${catches.size()}.")
+        }
+        def forbidden = catches.findAll { file ->
+            def text = file.getText('UTF-8').toLowerCase(java.util.Locale.ROOT)
+            text.contains('starcatcher') || text.contains('neoforge')
+        }
+        if (!forbidden.isEmpty()) {
+            throw new GradleException('Transformed native catches retain forbidden source namespaces: '
+                    + forbidden.collect { it.name }.join(', '))
+        }
+    }
+}
+
+tasks.register('compareAnglingTransformedData') {
+    group = 'verification'
+    description = 'Recomputes transformed catches and semantic ledgers from the authorized local reference.'
+    dependsOn tasks.named('verifyAnglingTransformedData')
+    doLast {
+        exec {
+            commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                    '-File', layout.projectDirectory.file('scripts/transform-port-data.ps1').asFile,
+                    '-Mode', 'Verify'
+        }
+    }
+}
+
+tasks.register('verifyAnglingPortAssets') {
+    group = 'verification'
+    description = 'Validates transformed runtime assets and unchanged authorized binary hashes.'
+    inputs.file(assetLedger)
+    inputs.dir(layout.projectDirectory.dir('src/main/resources/assets/elarion_angling'))
+
+    doLast {
+        def ledger = new JsonSlurper().parse(assetLedger.asFile)
+        if (ledger.schemaVersion != 1 || ledger.summary.files != 1010
+                || ledger.summary.kinds.png != 550 || ledger.summary.kinds.ogg != 11
+                || ledger.summary.kinds.json != 444 || ledger.summary.binaryFilesUnchanged != 561
+                || ledger.summary.transformedTextFiles != 449) {
+            throw new GradleException('Angling transformed asset ledger counts are invalid.')
+        }
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        def invalid = []
+        ledger.entries.each { entry ->
+            def relative = entry.targetPath - 'src/main/resources/'
+            def target = layout.projectDirectory.file("src/main/resources/${relative}").asFile
+            if (!target.isFile()) {
+                invalid.add("missing:${entry.targetPath}")
+            } else {
+                digest.reset()
+                def hash = digest.digest(target.bytes).encodeHex().toString()
+                if (hash != entry.targetSha256
+                        || (entry.binaryUnchanged && entry.sourceSha256 != entry.targetSha256)) {
+                    invalid.add("hash:${entry.targetPath}")
+                }
+            }
+        }
+        if (!invalid.isEmpty()) {
+            throw new GradleException('Angling transformed assets failed verification: '
+                    + invalid.take(10).join(', '))
+        }
+        def forbidden = fileTree('src/main/resources/assets/elarion_angling') {
+            include '**/*.json', '**/*.mcmeta', '**/*.fsh', '**/*.vsh'
+        }.files.findAll { file ->
+            def text = file.getText('UTF-8').toLowerCase(java.util.Locale.ROOT)
+            text.contains('starcatcher') || text.contains('neoforge')
+        }
+        if (!forbidden.isEmpty()) {
+            throw new GradleException('Angling transformed text assets retain source namespaces.')
+        }
+        def identity = new JsonSlurper().parse(fishIdentityContract.asFile)
+        def english = new JsonSlurper().parse(
+                layout.projectDirectory.file('src/main/resources/assets/elarion_angling/lang/en_us.json').asFile)
+        def missingFishNames = identity.renames.values().findAll { target ->
+            !english.containsKey("item.elarion_angling.${target}".toString())
+                    && !english.containsKey("block.elarion_angling.${target}".toString())
+        }
+        if (!missingFishNames.isEmpty()) {
+            throw new GradleException('Angling English translations omit approved fish IDs: '
+                    + missingFishNames.take(10).join(', '))
+        }
+        def bucketHelp = english['tooltip.elarion_angling.starcaught_bucket.creative.0']
+        if (!(bucketHelp instanceof String) || !bucketHelp.contains('Aurorafin')
+                || bucketHelp ==~ /.*\bAurora\b.*/) {
+            throw new GradleException('Angling bucket help retains the pre-port Aurora display name.')
+        }
+        def textAssets = fileTree('src/main/resources/assets/elarion_angling') {
+            include '**/*.json', '**/*.mcmeta', '**/*.fsh', '**/*.vsh'
+        }.files
+        def staleTechnicalIds = []
+        identity.renames.keySet().each { source ->
+            def escaped = java.util.regex.Pattern.quote(source)
+            def pattern = java.util.regex.Pattern.compile(
+                    "(?:elarion_angling:|(?:item|block|tooltip)\\.elarion_angling\\.)${escaped}(?![a-z0-9_])")
+            textAssets.each { file ->
+                if (pattern.matcher(file.getText('UTF-8')).find()) {
+                    staleTechnicalIds.add("${source}:${file.name}")
+                }
+            }
+        }
+        if (!staleTechnicalIds.isEmpty()) {
+            throw new GradleException('Angling transformed assets retain approved-source technical fish IDs: '
+                    + staleTechnicalIds.take(10).join(', '))
+        }
+        if (!fileTree('src/main/resources').matching { include '**/*.ase' }.files.isEmpty()) {
+            throw new GradleException('Aseprite authoring sources must not be packaged as runtime assets.')
+        }
+    }
+}
+
+tasks.register('compareAnglingPortAssets') {
+    group = 'verification'
+    description = 'Recomputes all runtime assets from the authorized local reference.'
+    dependsOn tasks.named('verifyAnglingPortAssets')
+    doLast {
+        exec {
+            commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                    '-File', layout.projectDirectory.file('scripts/transform-port-assets.ps1').asFile,
+                    '-Mode', 'Verify'
+        }
+    }
+}
+
+tasks.register('verifyAnglingNativeServerData') {
+    group = 'verification'
+    description = 'Validates transformed native recipes, advancements, loot tables, and tags.'
+    inputs.file(nativeServerDataLedger)
+    inputs.dir(layout.projectDirectory.dir('src/main/resources/data/elarion_angling'))
+
+    doLast {
+        def ledger = new JsonSlurper().parse(nativeServerDataLedger.asFile)
+        if (ledger.schemaVersion != 1 || ledger.summary.files != 347
+                || ledger.summary.areas.advancement != 121
+                || ledger.summary.areas.loot_table != 47
+                || ledger.summary.areas.recipe != 122
+                || ledger.summary.areas.tags != 57) {
+            throw new GradleException('Angling native server-data ledger counts are invalid.')
+        }
+        def excluded = ledger.excluded.collectEntries { [(it.area): it] }
+        if (excluded.curios.count != 2 || excluded.curios.disposition != 'dependency-unavailable-on-fabric'
+                || excluded.data_maps.count != 5 || excluded.data_maps.disposition != 'ported'
+                || excluded.loot_modifiers.count != 1 || excluded.loot_modifiers.disposition != 'pending') {
+            throw new GradleException('Angling excluded server-data dispositions are invalid.')
+        }
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        def invalid = []
+        ledger.entries.each { entry ->
+            def relative = entry.targetPath - 'src/main/resources/'
+            def target = layout.projectDirectory.file("src/main/resources/${relative}").asFile
+            if (!target.isFile()) {
+                invalid.add("missing:${entry.targetPath}")
+            } else {
+                digest.reset()
+                if (digest.digest(target.bytes).encodeHex().toString() != entry.targetSha256) {
+                    invalid.add("hash:${entry.targetPath}")
+                }
+            }
+        }
+        if (!invalid.isEmpty()) {
+            throw new GradleException('Angling native server data failed verification: '
+                    + invalid.take(10).join(', '))
+        }
+        def forbidden = fileTree('src/main/resources/data/elarion_angling') {
+            include '**/*.json'
+        }.files.findAll { file ->
+            def text = file.getText('UTF-8').toLowerCase(java.util.Locale.ROOT)
+            text.contains('starcatcher') || text.contains('neoforge')
+        }
+        if (!forbidden.isEmpty()) {
+            throw new GradleException('Angling native server data retains source namespaces.')
+        }
+    }
+}
+
+tasks.register('compareAnglingNativeServerData') {
+    group = 'verification'
+    description = 'Recomputes native server data from the authorized local reference.'
+    dependsOn tasks.named('verifyAnglingNativeServerData')
+    doLast {
+        exec {
+            commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                    '-File', layout.projectDirectory.file('scripts/transform-port-server-data.ps1').asFile,
+                    '-Mode', 'Verify'
+        }
+    }
+}
+
+tasks.register('verifyAnglingDomainMaps') {
+    group = 'verification'
+    description = 'Validates five transformed domain-specific replacements for NeoForge data maps.'
+    doLast {
+        exec {
+            commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                    '-File', layout.projectDirectory.file('scripts/transform-port-domain-maps.ps1').asFile,
+                    '-Mode', 'Verify'
+        }
+    }
+}
+
+tasks.register('compareAnglingDomainMaps') {
+    group = 'verification'
+    description = 'Recomputes domain-specific map resources from the authorized local reference.'
+    dependsOn tasks.named('verifyAnglingDomainMaps')
+}
+
+check.dependsOn tasks.named('verifyAnglingDomainMaps')
 
 test {
     useJUnitPlatform()
 }
+
+check.dependsOn tasks.named('verifyAnglingFoundation'), tasks.named('verifyAnglingPortInventory'),
+        tasks.named('verifyAnglingTransformedData'), tasks.named('verifyAnglingPortAssets')
+check.dependsOn tasks.named('verifyAnglingNativeServerData')

@@ -1,0 +1,67 @@
+import groovy.json.JsonSlurper
+
+dependencies {
+    implementation(project(path: ':platform:core', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+    implementation(project(path: ':addons:angling', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+
+    // Foundation identity tests do not launch Minecraft. Keeping them on plain
+    // JUnit avoids requiring Farmer's Delight before this module is runnable.
+    testImplementation platform('org.junit:junit-bom:5.10.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+def foundationContract = layout.projectDirectory.file('porting/foundation.json')
+
+tasks.register('verifyAnglingDelightFoundation') {
+    group = 'verification'
+    description = 'Verifies the Angling Delight ownership and release-boundary contract.'
+    inputs.file(foundationContract)
+
+    doLast {
+        def contract = new JsonSlurper().parse(foundationContract.asFile)
+        if (contract.schemaVersion != 1) {
+            throw new GradleException('Angling Delight foundation schemaVersion must be 1.')
+        }
+        if (contract.identity.modId != 'elarion_angling_delight') {
+            throw new GradleException('Angling Delight mod ID must remain elarion_angling_delight.')
+        }
+        if (contract.release.releaseReady != false) {
+            throw new GradleException('The Angling Delight foundation must not be marked release-ready.')
+        }
+        if (contract.source.ownerAuthorizedForPort != true
+                || contract.source.ownerAuthorizedCodeContentAndResources != true) {
+            throw new GradleException('The Angling Delight port source must retain explicit owner authorization.')
+        }
+        if (contract.release.authorizedFilesMayBePortedIntoModules != true
+                || contract.release.assetReplacementRequired != false
+                || contract.release.additionalAssetLicenseGateRequired != false) {
+            throw new GradleException('The approved Angling Delight port-source and asset policy is inconsistent.')
+        }
+        if (contract.rules.ownsCatchState != false
+                || contract.rules.ownsQualityState != false
+                || contract.rules.ownsLeaderboardState != false) {
+            throw new GradleException('Angling Delight may not own catch, quality, or leaderboard state.')
+        }
+
+        def forbidden = fileTree('src') {
+            include '**/*.java', '**/*.json', '**/*.properties'
+        }.files.findAll { file ->
+            def text = file.getText('UTF-8')
+            text.contains('com.wdiscute') || text.contains('net.neoforged')
+        }
+        if (!forbidden.isEmpty()) {
+            throw new GradleException('NeoForge implementation references entered Delight production source: '
+                    + forbidden.collect { relativePath(it) }.join(', '))
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+check.dependsOn tasks.named('verifyAnglingDelightFoundation')

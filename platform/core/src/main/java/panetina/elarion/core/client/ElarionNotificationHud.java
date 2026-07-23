@@ -33,14 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ElarionNotificationHud {
-    private static final Identifier MAIL_NONEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/mail_nonew.png");
-    private static final Identifier MAIL_NEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/mail_new.png");
-    private static final Identifier REALM_NONEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/realm_nonew.png");
-    private static final Identifier REALM_NEW_TEXTURE =
-            Identifier.of("elarion_core", "textures/gui/notifications/realm_new.png");
     private static final int SCREEN_MARGIN = ElarionNotificationHudLayout.SCREEN_MARGIN;
     private static final int RAIL_WIDTH = ElarionNotificationHudLayout.RAIL_WIDTH;
     private static final int PANEL_X = ElarionNotificationHudLayout.PANEL_X;
@@ -58,12 +50,9 @@ public final class ElarionNotificationHud {
     private static final int REALM_Y = 31;
     private static final int QUEST_Y = 58;
     private static final int WORLD_Y = 85;
-    private static final int SOURCE_SIZE = 16;
     private static final int DISPLAY_SIZE = 24;
     private static final int ACCESSORY_Y = WORLD_Y + DISPLAY_SIZE + 9;
     private static final int ICON_DRAW_SIZE = 16;
-    private static final int RAIL_TEXTURE_X_OFFSET = 2;
-    private static final int RAIL_TEXTURE_Y_OFFSET = -1;
     private static final int CARD_GAP = 4;
     private static final int REWARD_SLOT_SIZE = 18;
     private static final int REWARD_SLOT_GAP = 3;
@@ -276,8 +265,8 @@ public final class ElarionNotificationHud {
         drawRailSlot(context, y, selected, pointerVisible);
         int iconX = (RAIL_WIDTH - ICON_DRAW_SIZE) / 2;
         int iconY = y + (DISPLAY_SIZE - ICON_DRAW_SIZE) / 2;
-        drawRailGlyph(context, icon, unread, iconX, iconY, true);
-        if (unread && (icon == RailIcon.QUEST || icon == RailIcon.WORLD)) {
+        drawRailGlyph(context, icon, iconX, iconY);
+        if (unread) {
             drawUnreadMarker(context, RAIL_WIDTH - 11, y + 3);
         }
     }
@@ -300,16 +289,10 @@ public final class ElarionNotificationHud {
         ElarionCivicUi.railShell(context, 0, 0, RAIL_WIDTH, height);
     }
 
-    private static void drawRailGlyph(
-            DrawContext context, RailIcon icon, boolean unread, int x, int y, boolean compensateTexturePadding
-    ) {
-        int textureX = compensateTexturePadding ? x + RAIL_TEXTURE_X_OFFSET : x;
-        int textureY = compensateTexturePadding ? y + RAIL_TEXTURE_Y_OFFSET : y;
+    private static void drawRailGlyph(DrawContext context, RailIcon icon, int x, int y) {
         switch (icon) {
-            case MAIL -> drawScaledTexture(context, unread ? MAIL_NEW_TEXTURE : MAIL_NONEW_TEXTURE,
-                    textureX, textureY, ICON_DRAW_SIZE);
-            case REALM -> drawScaledTexture(context, unread ? REALM_NEW_TEXTURE : REALM_NONEW_TEXTURE,
-                    textureX, textureY, ICON_DRAW_SIZE);
+            case MAIL -> ElarionUiIcons.drawOrDefault(context, "mail", x, y, ICON_DRAW_SIZE);
+            case REALM -> ElarionUiIcons.drawOrDefault(context, "realm", x, y, ICON_DRAW_SIZE);
             case QUEST -> ElarionUiIcons.drawOrDefault(context, "quest", x - 1, y - 1, ICON_DRAW_SIZE + 2);
             case WORLD -> ElarionUiIcons.drawOrDefault(context, "world", x - 1, y - 1, ICON_DRAW_SIZE + 2);
         }
@@ -794,31 +777,10 @@ public final class ElarionNotificationHud {
         WORLD
     }
 
-    private static void drawScaledTexture(DrawContext context, Identifier texture, int x, int y, int size) {
-        drawScaledTexture(context, texture, x, y, size, SOURCE_SIZE);
-    }
-
-    private static void drawScaledTexture(
-            DrawContext context, Identifier texture, int x, int y, int size, int sourceSize
-    ) {
-        context.getMatrices().push();
-        context.getMatrices().translate(x, y, 0.0F);
-        context.getMatrices().scale(size / (float) sourceSize, size / (float) sourceSize, 1.0F);
-        context.drawTexture(texture, 0, 0, 0.0F, 0.0F, sourceSize, sourceSize, sourceSize, sourceSize);
-        context.getMatrices().pop();
-    }
-
     private static void drawCardIcon(
             DrawContext context, TextRenderer renderer, ElarionNotificationEntry entry,
             int x, int y, int size, ElarionUiStyle style
     ) {
-        if ("personal".equals(activeFilter)
-                && (entry.category() == ElarionNotificationCategory.PERSONAL
-                || entry.category() == ElarionNotificationCategory.MAIL)) {
-            drawScaledTexture(context, entry.unread() ? MAIL_NEW_TEXTURE : MAIL_NONEW_TEXTURE,
-                    x + 3, y, Math.max(1, size - 4));
-            return;
-        }
         if (entry.category() == ElarionNotificationCategory.REWARD) {
             ElarionUiIcons.drawOrDefault(context, "reward", x, y, size);
             return;

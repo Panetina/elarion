@@ -1,0 +1,7 @@
+{
+	"parent" : "elarion_angling:block/tackle_box",
+	"textures": {
+		"0": "elarion_angling:block/tackle_box/tackle_box_light_blue",
+		"particle": "minecraft:block/light_blue_concrete"
+	}
+}

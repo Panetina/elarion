@@ -233,54 +233,6 @@ final class CoreConfigDefaultFiles {
                         ownership-mode: "UNLIMITED"
                         hidden-from-discovery: true
                         abilities: []
-                      government_councilor:
-                        description: "Active authority title for a Realm councilor."
-                        display-name: "Councilor"
-                        prefix: ""
-                        suffix: ""
-                        color: "#58D1A5"
-                        priority: 60
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
-                      government_high_cleric:
-                        description: "Active authority title for a Realm theocratic leader."
-                        display-name: "Holy Priest"
-                        prefix: ""
-                        suffix: ""
-                        color: "#C084FF"
-                        priority: 70
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
-                      government_synod_member:
-                        description: "Active authority title for a Realm synod member."
-                        display-name: "Synod Member"
-                        prefix: ""
-                        suffix: ""
-                        color: "#C084FF"
-                        priority: 60
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
-                      government_delegate:
-                        description: "Active authority title for a confederation delegate."
-                        display-name: "Delegate"
-                        prefix: ""
-                        suffix: ""
-                        color: "#E6B45A"
-                        priority: 70
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
                       government_officer:
                         description: "Active authority title for an appointed Realm officer."
                         display-name: "Officer"

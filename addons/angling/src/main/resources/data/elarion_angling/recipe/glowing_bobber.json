@@ -1,0 +1,27 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "B":  {
+                          "item":  "elarion_angling:bobber"
+                      },
+                "G":  {
+                          "item":  "minecraft:glow_berries"
+                      },
+                "S":  {
+                          "item":  "minecraft:stick"
+                      },
+                "W":  {
+                          "item":  "minecraft:glow_ink_sac"
+                      }
+            },
+    "pattern":  [
+                    " WS",
+                    "GBG",
+                    "SG "
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:glowing_bobber"
+               }
+}

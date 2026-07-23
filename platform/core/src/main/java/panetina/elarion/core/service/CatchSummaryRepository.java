@@ -31,6 +31,11 @@ public final class CatchSummaryRepository {
         return loaded;
     }
 
+    /** Memory-only normal gameplay view. Activation/replay owns all storage reads. */
+    public synchronized CatchSummary peek(UUID actorId) {
+        return summaries.getOrDefault(actorId, CatchSummary.empty(actorId));
+    }
+
     public synchronized CatchSummary apply(UUID actorId, CatchJournalReplay replay) throws IOException {
         CatchSummary current = get(actorId);
         CatchSummary updated = CatchSummaryProjection.apply(current, replay);

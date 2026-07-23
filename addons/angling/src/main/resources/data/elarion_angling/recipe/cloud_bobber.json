@@ -1,0 +1,27 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "B":  {
+                          "item":  "elarion_angling:bobber"
+                      },
+                "F":  {
+                          "item":  "minecraft:phantom_membrane"
+                      },
+                "O":  {
+                          "tag":  "minecraft:wool"
+                      },
+                "S":  {
+                          "item":  "minecraft:stick"
+                      }
+            },
+    "pattern":  [
+                    " FS",
+                    "OBO",
+                    "SO "
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:cloud_bobber"
+               }
+}

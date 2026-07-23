@@ -1,0 +1,748 @@
+{
+    "schema_version":  1,
+    "values":  {
+                   "artifacts:anglers_hat":  [
+                                                 {
+                                                     "type":  "elarion_angling:anglers_hat",
+                                                     "translation_override":  ""
+                                                 }
+                                             ],
+                   "minecraft:netherite_upgrade_smithing_template":  [
+                                                                         {
+                                                                             "type":  "elarion_angling:survives_lava",
+                                                                             "translation_override":  ""
+                                                                         },
+                                                                         {
+                                                                             "type":  "elarion_angling:extra_golden_chance",
+                                                                             "only_for_perfect_catch":  true,
+                                                                             "translation_override":  "",
+                                                                             "weight":  0.1
+                                                                         }
+                                                                     ],
+                   "elarion_angling:almighty_worm":  [
+                                                         {
+                                                             "type":  "elarion_angling:adjust_lure_time",
+                                                             "chance_every_tick_multiplier":  1.3,
+                                                             "max_ticks_multiplier":  0.8,
+                                                             "min_ticks_multiplier":  0.7,
+                                                             "translation_override":  ""
+                                                         },
+                                                         {
+                                                             "type":  "elarion_angling:force_fish_entity",
+                                                             "translation_override":  "",
+                                                             "weight":  1.0
+                                                         }
+                                                     ],
+                   "elarion_angling:amethyst_hook":  [
+                                                         {
+                                                             "type":  "elarion_angling:survives_lava",
+                                                             "translation_override":  ""
+                                                         }
+                                                     ],
+                   "elarion_angling:cherry_bait":  [
+                                                       {
+                                                           "type":  "elarion_angling:adjust_lure_time",
+                                                           "chance_every_tick_multiplier":  1.3,
+                                                           "max_ticks_multiplier":  0.8,
+                                                           "min_ticks_multiplier":  0.7,
+                                                           "translation_override":  ""
+                                                       }
+                                                   ],
+                   "elarion_angling:clear_bobber":  [
+                                                        {
+                                                            "type":  "elarion_angling:adjust_vanishing_rate",
+                                                            "multiplier":  0.3,
+                                                            "translation_override":  ""
+                                                        }
+                                                    ],
+                   "elarion_angling:cloud_bobber":  [
+                                                        {
+                                                            "type":  "elarion_angling:no_gravity",
+                                                            "translation_override":  ""
+                                                        }
+                                                    ],
+                   "elarion_angling:copper_hook":  [
+                                                       {
+                                                           "type":  "elarion_angling:adjust_handle_speed",
+                                                           "multiplier":  1.5,
+                                                           "translation_override":  ""
+                                                       }
+                                                   ],
+                   "elarion_angling:deep_ocean_bobber":  [
+                                                             {
+                                                                 "type":  "elarion_angling:add_basic_sweetspot",
+                                                                 "sweetspot_to_add":  {
+                                                                                          "color_as_int":  -11569811,
+                                                                                          "hitbox_size_in_pixels":  22,
+                                                                                          "is_flip":  false,
+                                                                                          "moving_rate":  0.0,
+                                                                                          "reward":  10,
+                                                                                          "sweetspot_type":  "elarion_angling:deep_ocean",
+                                                                                          "texture_path":  "elarion_angling:textures/gui/minigame/spots/deep_ocean.png",
+                                                                                          "vanishing_rate":  0.0
+                                                                                      },
+                                                                 "translation_override":  "tooltip.modifier.elarion_angling.deep_ocean_bobber"
+                                                             }
+                                                         ],
+                   "elarion_angling:default_catch":  [
+                                                         {
+                                                             "type":  "elarion_angling:fish_messages",
+                                                             "translation_override":  ""
+                                                         },
+                                                         {
+                                                             "type":  "elarion_angling:luck_attribute_modifier",
+                                                             "rarity_count_increase_times_luck":  {
+                                                                                                      "common":  0,
+                                                                                                      "epic":  3,
+                                                                                                      "legendary":  5,
+                                                                                                      "rare":  2,
+                                                                                                      "uncommon":  1
+                                                                                                  },
+                                                             "translation_override":  "tooltip.modifier.elarion_angling.luck_attribute"
+                                                         }
+                                                     ],
+                   "elarion_angling:default_minigame":  [
+                                                            {
+                                                                "type":  "elarion_angling:base",
+                                                                "translation_override":  ""
+                                                            }
+                                                        ],
+                   "elarion_angling:dev_worm":  [
+                                                    {
+                                                        "type":  "elarion_angling:adjust_lure_time",
+                                                        "chance_every_tick_multiplier":  0.2,
+                                                        "max_ticks_multiplier":  0.2,
+                                                        "min_ticks_multiplier":  0.2,
+                                                        "translation_override":  ""
+                                                    }
+                                                ],
+                   "elarion_angling:dripstone_bait":  [
+                                                          {
+                                                              "type":  "elarion_angling:adjust_lure_time",
+                                                              "chance_every_tick_multiplier":  1.3,
+                                                              "max_ticks_multiplier":  0.8,
+                                                              "min_ticks_multiplier":  0.7,
+                                                              "translation_override":  ""
+                                                          }
+                                                      ],
+                   "elarion_angling:echoing_hook":  [
+                                                        {
+                                                            "type":  "elarion_angling:new_catch_increase",
+                                                            "increase":  15,
+                                                            "translation_override":  ""
+                                                        },
+                                                        {
+                                                            "type":  "elarion_angling:deep_dark",
+                                                            "translation_override":  ""
+                                                        }
+                                                    ],
+                   "elarion_angling:exposed_copper_hook":  [
+                                                               {
+                                                                   "type":  "elarion_angling:adjust_handle_speed",
+                                                                   "multiplier":  1.25,
+                                                                   "translation_override":  ""
+                                                               }
+                                                           ],
+                   "elarion_angling:fisherman_hat_black":  [
+                                                               {
+                                                                   "type":  "elarion_angling:extra_base_catch",
+                                                                   "count":  5,
+                                                                   "only_for_perfect_catch":  false,
+                                                                   "translation_override":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:cancel_golden",
+                                                                   "translation_override":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:hide_catch",
+                                                                   "translation_override":  "",
+                                                                   "weight":  1.0
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:adjust_penalty_rate",
+                                                                   "multiplier":  5.0,
+                                                                   "translation_override":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:adjust_decay_rate",
+                                                                   "multiplier":  2.0,
+                                                                   "translation_override":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:adjust_vanishing_rate",
+                                                                   "multiplier":  1.5,
+                                                                   "translation_override":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:adjust_moving_sweetspots",
+                                                                   "multiplier":  1.5,
+                                                                   "translation_override":  ""
+                                                               }
+                                                           ],
+                   "elarion_angling:fisherman_hat_blue":  [
+                                                              {
+                                                                  "type":  "elarion_angling:ignore_weather_restrictions",
+                                                                  "translation_override":  "",
+                                                                  "weight":  0.5
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:flip_every_hit",
+                                                                  "translation_override":  ""
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:adjust_handle_speed",
+                                                                  "multiplier":  0.75,
+                                                                  "translation_override":  ""
+                                                              }
+                                                          ],
+                   "elarion_angling:fisherman_hat_brown":  [
+                                                               {
+                                                                   "type":  "elarion_angling:bost_thrown_speed",
+                                                                   "multiplier":  3.0,
+                                                                   "translation_override":  ""
+                                                               }
+                                                           ],
+                   "elarion_angling:fisherman_hat_cyan":  [
+                                                              {
+                                                                  "type":  "elarion_angling:adjust_decay_rate",
+                                                                  "multiplier":  0.7,
+                                                                  "translation_override":  ""
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:adjust_penalty_rate",
+                                                                  "multiplier":  0.7,
+                                                                  "translation_override":  ""
+                                                              }
+                                                          ],
+                   "elarion_angling:fisherman_hat_gray":  [
+                                                              {
+                                                                  "type":  "elarion_angling:extra_base_catch",
+                                                                  "count":  3,
+                                                                  "only_for_perfect_catch":  true,
+                                                                  "translation_override":  ""
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:cancel_golden",
+                                                                  "translation_override":  ""
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:hide_catch",
+                                                                  "translation_override":  "",
+                                                                  "weight":  1.0
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:adjust_penalty_rate",
+                                                                  "multiplier":  5.0,
+                                                                  "translation_override":  ""
+                                                              }
+                                                          ],
+                   "elarion_angling:fisherman_hat_green":  [
+                                                               {
+                                                                   "type":  "elarion_angling:extra_exp_based_on_performance",
+                                                                   "translation_override":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:adjust_decay_rate",
+                                                                   "multiplier":  1.5,
+                                                                   "translation_override":  ""
+                                                               }
+                                                           ],
+                   "elarion_angling:fisherman_hat_light_blue":  [
+                                                                    {
+                                                                        "type":  "elarion_angling:adjust_lure_time",
+                                                                        "chance_every_tick_multiplier":  1.4,
+                                                                        "max_ticks_multiplier":  1.4,
+                                                                        "min_ticks_multiplier":  1.4,
+                                                                        "translation_override":  ""
+                                                                    },
+                                                                    {
+                                                                        "type":  "elarion_angling:add_basic_sweetspot",
+                                                                        "sweetspot_to_add":  {
+                                                                                                 "color_as_int":  -11569811,
+                                                                                                 "hitbox_size_in_pixels":  22,
+                                                                                                 "is_flip":  false,
+                                                                                                 "moving_rate":  0.0,
+                                                                                                 "reward":  10,
+                                                                                                 "sweetspot_type":  "elarion_angling:deep_ocean",
+                                                                                                 "texture_path":  "elarion_angling:textures/gui/minigame/spots/deep_ocean.png",
+                                                                                                 "vanishing_rate":  0.0
+                                                                                             },
+                                                                        "translation_override":  "tooltip.modifier.elarion_angling.deep_ocean_bobber"
+                                                                    },
+                                                                    {
+                                                                        "type":  "elarion_angling:freeze_on_miss",
+                                                                        "length":  40,
+                                                                        "rampTime":  10,
+                                                                        "translation_override":  ""
+                                                                    }
+                                                                ],
+                   "elarion_angling:fisherman_hat_light_gray":  [
+                                                                    {
+                                                                        "type":  "elarion_angling:extra_base_catch",
+                                                                        "count":  1,
+                                                                        "only_for_perfect_catch":  false,
+                                                                        "translation_override":  ""
+                                                                    },
+                                                                    {
+                                                                        "type":  "elarion_angling:cancel_golden",
+                                                                        "translation_override":  ""
+                                                                    },
+                                                                    {
+                                                                        "type":  "elarion_angling:hide_catch",
+                                                                        "translation_override":  "",
+                                                                        "weight":  1.0
+                                                                    }
+                                                                ],
+                   "elarion_angling:fisherman_hat_lime":  [
+                                                              {
+                                                                  "type":  "elarion_angling:add_to_available_pool",
+                                                                  "fish_properties":  {
+                                                                                          "base_chance":  5,
+                                                                                          "catch_info":  {
+                                                                                                             "always_spawn_entity":  true,
+                                                                                                             "entity":  "minecraft:creeper",
+                                                                                                             "item":  "minecraft:air"
+                                                                                                         },
+                                                                                          "difficulty":  {
+                                                                                                             "decay":  1.0,
+                                                                                                             "hp":  100,
+                                                                                                             "missPenalty":  20,
+                                                                                                             "modifiers":  [
+                                                                                                                               {
+                                                                                                                                   "type":  "elarion_angling:spawn_sweetspots",
+                                                                                                                                   "chance":  0.25,
+                                                                                                                                   "cooldown":  5,
+                                                                                                                                   "sudoku_vanish":  true,
+                                                                                                                                   "sweetspot":  {
+                                                                                                                                                     "color_as_int":  -65536,
+                                                                                                                                                     "hitbox_size_in_pixels":  33,
+                                                                                                                                                     "is_flip":  false,
+                                                                                                                                                     "moving_rate":  0.0,
+                                                                                                                                                     "reward":  30,
+                                                                                                                                                     "sweetspot_type":  "elarion_angling:tnt",
+                                                                                                                                                     "texture_path":  "elarion_angling:textures/gui/minigame/spots/tnt.png",
+                                                                                                                                                     "vanishing_rate":  0.0
+                                                                                                                                                 },
+                                                                                                                                   "translation_override":  ""
+                                                                                                                               }
+                                                                                                                           ],
+                                                                                                             "speed":  10,
+                                                                                                             "sweetspots":  [
+                                                                                                                                {
+                                                                                                                                    "color_as_int":  -11447469,
+                                                                                                                                    "hitbox_size_in_pixels":  22,
+                                                                                                                                    "is_flip":  false,
+                                                                                                                                    "moving_rate":  0.0,
+                                                                                                                                    "reward":  15,
+                                                                                                                                    "sweetspot_type":  "elarion_angling:normal",
+                                                                                                                                    "texture_path":  "elarion_angling:textures/gui/minigame/spots/creeper.png",
+                                                                                                                                    "vanishing_rate":  0.0
+                                                                                                                                },
+                                                                                                                                {
+                                                                                                                                    "color_as_int":  -11447469,
+                                                                                                                                    "hitbox_size_in_pixels":  22,
+                                                                                                                                    "is_flip":  false,
+                                                                                                                                    "moving_rate":  0.0,
+                                                                                                                                    "reward":  15,
+                                                                                                                                    "sweetspot_type":  "elarion_angling:normal",
+                                                                                                                                    "texture_path":  "elarion_angling:textures/gui/minigame/spots/creeper.png",
+                                                                                                                                    "vanishing_rate":  0.0
+                                                                                                                                }
+                                                                                                                            ]
+                                                                                                         },
+                                                                                          "has_guide_entry":  true,
+                                                                                          "rarity":  "common",
+                                                                                          "restrictions":  [
+
+                                                                                                           ],
+                                                                                          "size_and_weight":  {
+                                                                                                                  "average_size_cm":  41.0,
+                                                                                                                  "average_weight_grams":  2001.0,
+                                                                                                                  "deviation_size_cm":  21.0,
+                                                                                                                  "deviation_weight_grams":  701.0,
+                                                                                                                  "golden_chance":  0.02
+                                                                                                              },
+                                                                                          "skips_minigame":  true,
+                                                                                          "textures":  "elarion_angling:textures/gui/minigame/surface.png"
+                                                                                      },
+                                                                  "quantity_to_add":  5,
+                                                                  "translation_override":  "tooltip.modifier.elarion_angling.add_creeper"
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:adjust_lure_time",
+                                                                  "chance_every_tick_multiplier":  1.0,
+                                                                  "max_ticks_multiplier":  0.5,
+                                                                  "min_ticks_multiplier":  0.5,
+                                                                  "translation_override":  ""
+                                                              }
+                                                          ],
+                   "elarion_angling:fisherman_hat_magenta":  [
+                                                                 {
+                                                                     "type":  "elarion_angling:adjust_handle_speed",
+                                                                     "multiplier":  1.25,
+                                                                     "translation_override":  ""
+                                                                 }
+                                                             ],
+                   "elarion_angling:fisherman_hat_orange":  [
+                                                                {
+                                                                    "type":  "elarion_angling:adjust_handle_speed",
+                                                                    "multiplier":  1.25,
+                                                                    "translation_override":  ""
+                                                                }
+                                                            ],
+                   "elarion_angling:fisherman_hat_pink":  [
+                                                              {
+                                                                  "type":  "elarion_angling:adjust_handle_speed",
+                                                                  "multiplier":  5.0,
+                                                                  "translation_override":  ""
+                                                              },
+                                                              {
+                                                                  "type":  "elarion_angling:burn_on_miss",
+                                                                  "extra_speed":  30,
+                                                                  "length":  20,
+                                                                  "ramp_time":  4,
+                                                                  "translation_override":  ""
+                                                              }
+                                                          ],
+                   "elarion_angling:fisherman_hat_purple":  [
+                                                                {
+                                                                    "type":  "elarion_angling:adjust_handle_speed",
+                                                                    "multiplier":  0.75,
+                                                                    "translation_override":  ""
+                                                                }
+                                                            ],
+                   "elarion_angling:fisherman_hat_red":  [
+                                                             {
+                                                                 "type":  "elarion_angling:ignore_daytime_restrictions",
+                                                                 "translation_override":  "",
+                                                                 "weight":  0.5
+                                                             },
+                                                             {
+                                                                 "type":  "elarion_angling:flip_every_hit",
+                                                                 "translation_override":  ""
+                                                             }
+                                                         ],
+                   "elarion_angling:fisherman_hat_white":  [
+                                                               {
+                                                                   "type":  "elarion_angling:no_gravity",
+                                                                   "translation_override":  ""
+                                                               }
+                                                           ],
+                   "elarion_angling:fisherman_hat_yellow":  [
+                                                                {
+                                                                    "type":  "elarion_angling:extra_golden_chance",
+                                                                    "only_for_perfect_catch":  true,
+                                                                    "translation_override":  "",
+                                                                    "weight":  0.05
+                                                                },
+                                                                {
+                                                                    "type":  "elarion_angling:adjust_lure_time",
+                                                                    "chance_every_tick_multiplier":  1.4,
+                                                                    "max_ticks_multiplier":  1.2,
+                                                                    "min_ticks_multiplier":  1.2,
+                                                                    "translation_override":  ""
+                                                                },
+                                                                {
+                                                                    "type":  "elarion_angling:adjust_penalty_rate",
+                                                                    "multiplier":  1.5,
+                                                                    "translation_override":  ""
+                                                                }
+                                                            ],
+                   "elarion_angling:frozen_hook":  [
+                                                       {
+                                                           "type":  "elarion_angling:prevent_frozen",
+                                                           "translation_override":  ""
+                                                       }
+                                                   ],
+                   "elarion_angling:glowing_bobber":  [
+                                                          {
+                                                              "type":  "elarion_angling:add_basic_sweetspot",
+                                                              "sweetspot_to_add":  {
+                                                                                       "color_as_int":  -133793,
+                                                                                       "hitbox_size_in_pixels":  20,
+                                                                                       "is_flip":  false,
+                                                                                       "moving_rate":  0.0,
+                                                                                       "reward":  0,
+                                                                                       "sweetspot_type":  "elarion_angling:glowing",
+                                                                                       "texture_path":  "elarion_angling:textures/gui/minigame/spots/glowing.png",
+                                                                                       "vanishing_rate":  0.0
+                                                                                   },
+                                                              "translation_override":  "tooltip.modifier.elarion_angling.glowing_bobber"
+                                                          }
+                                                      ],
+                   "elarion_angling:gold_hook":  [
+                                                     {
+                                                         "type":  "elarion_angling:extra_golden_chance",
+                                                         "only_for_perfect_catch":  false,
+                                                         "translation_override":  "",
+                                                         "weight":  0.05
+                                                     }
+                                                 ],
+                   "elarion_angling:golden_bobber":  [
+                                                         {
+                                                             "type":  "elarion_angling:extra_golden_chance",
+                                                             "only_for_perfect_catch":  false,
+                                                             "translation_override":  "",
+                                                             "weight":  0.05
+                                                         }
+                                                     ],
+                   "elarion_angling:gunpowder_bait":  [
+                                                          {
+                                                              "type":  "elarion_angling:adjust_lure_time",
+                                                              "chance_every_tick_multiplier":  1.3,
+                                                              "max_ticks_multiplier":  0.8,
+                                                              "min_ticks_multiplier":  0.7,
+                                                              "translation_override":  ""
+                                                          }
+                                                      ],
+                   "elarion_angling:heavy_hook":  [
+                                                      {
+                                                          "type":  "elarion_angling:adjust_moving_sweetspots",
+                                                          "multiplier":  0.75,
+                                                          "translation_override":  ""
+                                                      }
+                                                  ],
+                   "elarion_angling:leaf_bobber":  [
+                                                       {
+                                                           "type":  "elarion_angling:add_leaves_spots",
+                                                           "translation_override":  ""
+                                                       }
+                                                   ],
+                   "elarion_angling:legendary_bait":  [
+                                                          {
+                                                              "type":  "elarion_angling:adjust_lure_time",
+                                                              "chance_every_tick_multiplier":  1.5,
+                                                              "max_ticks_multiplier":  0.6,
+                                                              "min_ticks_multiplier":  0.5,
+                                                              "translation_override":  ""
+                                                          }
+                                                      ],
+                   "elarion_angling:lush_bait":  [
+                                                     {
+                                                         "type":  "elarion_angling:adjust_lure_time",
+                                                         "chance_every_tick_multiplier":  1.3,
+                                                         "max_ticks_multiplier":  0.8,
+                                                         "min_ticks_multiplier":  0.7,
+                                                         "translation_override":  ""
+                                                     }
+                                                 ],
+                   "elarion_angling:meteorological_bait":  [
+                                                               {
+                                                                   "type":  "elarion_angling:adjust_lure_time",
+                                                                   "chance_every_tick_multiplier":  1.3,
+                                                                   "max_ticks_multiplier":  0.8,
+                                                                   "min_ticks_multiplier":  0.7,
+                                                                   "translation_override":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:ignore_daytime_restrictions",
+                                                                   "translation_override":  "",
+                                                                   "weight":  1.0
+                                                               },
+                                                               {
+                                                                   "type":  "elarion_angling:ignore_weather_restrictions",
+                                                                   "translation_override":  "",
+                                                                   "weight":  1.0
+                                                               }
+                                                           ],
+                   "elarion_angling:mossy_hook":  [
+                                                      {
+                                                          "type":  "elarion_angling:award_treasure_on_perfect_catch",
+                                                          "translation_override":  "",
+                                                          "weight":  0.2
+                                                      }
+                                                  ],
+                   "elarion_angling:murkwater_bait":  [
+                                                          {
+                                                              "type":  "elarion_angling:adjust_lure_time",
+                                                              "chance_every_tick_multiplier":  1.3,
+                                                              "max_ticks_multiplier":  0.8,
+                                                              "min_ticks_multiplier":  0.7,
+                                                              "translation_override":  ""
+                                                          }
+                                                      ],
+                   "elarion_angling:oxidised_copper_hook":  [
+                                                                {
+                                                                    "type":  "elarion_angling:adjust_handle_speed",
+                                                                    "multiplier":  0.5,
+                                                                    "translation_override":  ""
+                                                                }
+                                                            ],
+                   "elarion_angling:sculk_bait":  [
+                                                      {
+                                                          "type":  "elarion_angling:adjust_lure_time",
+                                                          "chance_every_tick_multiplier":  1.3,
+                                                          "max_ticks_multiplier":  0.8,
+                                                          "min_ticks_multiplier":  0.7,
+                                                          "translation_override":  ""
+                                                      }
+                                                  ],
+                   "elarion_angling:seeking_worm":  [
+                                                        {
+                                                            "type":  "elarion_angling:adjust_lure_time",
+                                                            "chance_every_tick_multiplier":  1.3,
+                                                            "max_ticks_multiplier":  0.8,
+                                                            "min_ticks_multiplier":  0.7,
+                                                            "translation_override":  ""
+                                                        },
+                                                        {
+                                                            "type":  "elarion_angling:new_catch_increase",
+                                                            "increase":  5,
+                                                            "translation_override":  ""
+                                                        }
+                                                    ],
+                   "elarion_angling:shiny_hook":  [
+                                                      {
+                                                          "type":  "elarion_angling:hide_catch",
+                                                          "translation_override":  "",
+                                                          "weight":  1.0
+                                                      },
+                                                      {
+                                                          "type":  "elarion_angling:spawn_treasure_on_hit_x",
+                                                          "hits_to_spawn_treasure":  3,
+                                                          "translation_override":  ""
+                                                      }
+                                                  ],
+                   "elarion_angling:sky_rod":  [
+                                                   {
+                                                       "type":  "elarion_angling:pull_down",
+                                                       "translation_override":  ""
+                                                   }
+                                               ],
+                   "elarion_angling:slimey_bobber":  [
+                                                         {
+                                                             "type":  "elarion_angling:bounce_back",
+                                                             "translation_override":  ""
+                                                         }
+                                                     ],
+                   "elarion_angling:split_hook":  [
+                                                      {
+                                                          "type":  "elarion_angling:extra_base_catch",
+                                                          "count":  1,
+                                                          "only_for_perfect_catch":  true,
+                                                          "translation_override":  ""
+                                                      }
+                                                  ],
+                   "elarion_angling:steady_bobber":  [
+                                                         {
+                                                             "type":  "elarion_angling:bigger_green_sweetspots",
+                                                             "translation_override":  ""
+                                                         }
+                                                     ],
+                   "elarion_angling:stone_hook":  [
+                                                      {
+                                                          "type":  "elarion_angling:adjust_lure_time",
+                                                          "chance_every_tick_multiplier":  1.0,
+                                                          "max_ticks_multiplier":  1.6,
+                                                          "min_ticks_multiplier":  1.2,
+                                                          "translation_override":  ""
+                                                      },
+                                                      {
+                                                          "type":  "elarion_angling:stop_decay_on_hit",
+                                                          "translation_override":  ""
+                                                      }
+                                                  ],
+                   "elarion_angling:vanilla_bobber":  [
+                                                          {
+                                                              "type":  "elarion_angling:add_loot_table_to_fishing_loot",
+                                                              "loot_table_to_add":  "minecraft:gameplay/fishing",
+                                                              "translation_override":  "tooltip.modifier.elarion_angling.vanilla_bobber"
+                                                          },
+                                                          {
+                                                              "type":  "elarion_angling:remove_base_fished_item",
+                                                              "translation_override":  "hide"
+                                                          },
+                                                          {
+                                                              "type":  "elarion_angling:modify_award_fish",
+                                                              "resource_location_to_award":  "elarion_angling:missingno",
+                                                              "translation_override":  "hide"
+                                                          },
+                                                          {
+                                                              "type":  "elarion_angling:override_fish_caught",
+                                                              "fish_properties":  {
+                                                                                      "base_chance":  5,
+                                                                                      "catch_info":  {
+                                                                                                         "item":  "minecraft:air",
+                                                                                                         "override_minigame_item":  {
+                                                                                                                                        "count":  1,
+                                                                                                                                        "id":  "elarion_angling:unknown_fish"
+                                                                                                                                    }
+                                                                                                     },
+                                                                                      "difficulty":  {
+                                                                                                         "decay":  1.0,
+                                                                                                         "hp":  100,
+                                                                                                         "missPenalty":  5,
+                                                                                                         "modifiers":  [
+
+                                                                                                                       ],
+                                                                                                         "speed":  9,
+                                                                                                         "sweetspots":  [
+                                                                                                                            {
+                                                                                                                                "color_as_int":  -16711936,
+                                                                                                                                "hitbox_size_in_pixels":  22,
+                                                                                                                                "is_flip":  false,
+                                                                                                                                "moving_rate":  0.0,
+                                                                                                                                "reward":  15,
+                                                                                                                                "sweetspot_type":  "elarion_angling:normal",
+                                                                                                                                "texture_path":  "elarion_angling:textures/gui/minigame/spots/normal.png",
+                                                                                                                                "vanishing_rate":  0.0
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                                "color_as_int":  -16711936,
+                                                                                                                                "hitbox_size_in_pixels":  22,
+                                                                                                                                "is_flip":  false,
+                                                                                                                                "moving_rate":  0.0,
+                                                                                                                                "reward":  15,
+                                                                                                                                "sweetspot_type":  "elarion_angling:normal",
+                                                                                                                                "texture_path":  "elarion_angling:textures/gui/minigame/spots/normal.png",
+                                                                                                                                "vanishing_rate":  0.0
+                                                                                                                            }
+                                                                                                                        ]
+                                                                                                     },
+                                                                                      "has_guide_entry":  true,
+                                                                                      "rarity":  "common",
+                                                                                      "restrictions":  [
+
+                                                                                                       ],
+                                                                                      "size_and_weight":  {
+                                                                                                              "average_size_cm":  41.0,
+                                                                                                              "average_weight_grams":  2001.0,
+                                                                                                              "deviation_size_cm":  21.0,
+                                                                                                              "deviation_weight_grams":  701.0,
+                                                                                                              "golden_chance":  0.02
+                                                                                                          },
+                                                                                      "skips_minigame":  false,
+                                                                                      "textures":  "elarion_angling:textures/gui/minigame/surface.png"
+                                                                                  },
+                                                              "translation_override":  "hide"
+                                                          },
+                                                          {
+                                                              "type":  "elarion_angling:trigger_skip_minigame",
+                                                              "translation_override":  "hide"
+                                                          }
+                                                      ],
+                   "elarion_angling:vanilla_hook":  [
+                                                        {
+                                                            "type":  "elarion_angling:skip_minigame_if_trigger_found",
+                                                            "translation_override":  "tooltip.modifier.elarion_angling.skip_minigame_if_vanilla_bobber"
+                                                        }
+                                                    ],
+                   "elarion_angling:weathered_copper_hook":  [
+                                                                 {
+                                                                     "type":  "elarion_angling:adjust_handle_speed",
+                                                                     "multiplier":  0.75,
+                                                                     "translation_override":  ""
+                                                                 }
+                                                             ],
+                   "elarion_angling:worm":  [
+                                                {
+                                                    "type":  "elarion_angling:adjust_lure_time",
+                                                    "chance_every_tick_multiplier":  1.3,
+                                                    "max_ticks_multiplier":  0.8,
+                                                    "min_ticks_multiplier":  0.7,
+                                                    "translation_override":  ""
+                                                }
+                                            ]
+               }
+}

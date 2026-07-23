@@ -8,7 +8,8 @@ Team: Panetina Team
 ## Owns
 
 - Elarion task queue diagnostics
-- rolling server-queue apply timing
+- rolling server-queue apply timing for task-owned work; empty callbacks exclude
+  unrelated server-thread scheduling latency
 - slow apply tick counts
 - rejected, completed, and failed queue counters by task family
 - IO and compute submitted, queued, active, completed, and failed counters
@@ -69,6 +70,12 @@ single-line strings; these commands are an operator-facing triage surface.
 
 This addon reports and controls Elarion cost. It is not a replacement for
 general server performance mods.
+
+The external mod/config performance baseline is distribution-owned, not addon
+state. Its canonical manifest and update policies are documented in
+`docs/systems/Distribution.md`; the FO audit and Fabric 1.21.1 candidate/release
+gates are in `docs/reports/FABULOUSLY_OPTIMIZED_ADAPTATION.md` and
+`docs/reports/FABRIC_1_21_1_PERFORMANCE_CATALOG.md`.
 
 Do not add persistent performance snapshots until live diagnostics show they
 are worth the IO and storage cost.

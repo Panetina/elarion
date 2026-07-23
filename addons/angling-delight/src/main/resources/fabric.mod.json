@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "elarion_angling_delight",
+  "version": "${version}",
+  "name": "Elarion Angling Delight",
+  "icon": "assets/elarion_angling_delight/icon.png",
+  "description": "Separate Farmer's Delight Refabricated integration for Elarion Angling.",
+  "contact": {
+    "homepage": "https://ashesofelarion.com",
+    "discord": "https://discord.gg/bSEHtMhqKa"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+      }
+    }
+  },
+  "authors": [
+    "Panyel"
+  ],
+  "contributors": [
+    "Panetina Team"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "elarion:addon": [
+      "panetina.elarion.addons.angling.delight.ElarionAnglingDelightAddon"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "elarion_core": "*",
+    "elarion_angling": "*",
+    "farmersdelight": ">=3.3.3"
+  }
+}

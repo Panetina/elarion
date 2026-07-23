@@ -8,6 +8,7 @@ import net.minecraft.util.Identifier;
 import panetina.elarion.core.model.AcceptedCatchRecord;
 import panetina.elarion.core.model.CatchJournalCheckpoint;
 import panetina.elarion.core.model.CatchSummary;
+import panetina.elarion.core.model.CatchSpeciesSummary;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,6 +29,7 @@ public final class CatchSummaryCodec {
         root.add("quantitiesBySource", encodeCounts(summary.quantitiesBySource()));
         root.add("quantitiesByFishDefinition", encodeCounts(summary.quantitiesByFishDefinition()));
         root.add("quantitiesByRarity", encodeCounts(summary.quantitiesByRarity()));
+        root.add("speciesSummaries", encodeSpeciesSummaries(summary.speciesSummaries()));
         root.addProperty("firstCatchAt", summary.firstCatchAt());
         root.addProperty("latestCatchAt", summary.latestCatchAt());
         JsonObject checkpoint = new JsonObject();
@@ -48,14 +50,23 @@ public final class CatchSummaryCodec {
             if (!parsed.isJsonObject()) throw format(source, "root must be a JSON object");
             JsonObject root = parsed.getAsJsonObject();
             UUID actorId = uuid(source, root, "actorId");
+            int schemaVersion = integer(source, root, "schemaVersion");
+            if (schemaVersion != 1 && schemaVersion != CatchSummary.CURRENT_SCHEMA_VERSION) {
+                throw format(source, "unsupported schemaVersion " + schemaVersion);
+            }
+            Map<Identifier, Long> fishCounts = counts(source, root, "quantitiesByFishDefinition");
+            long firstCatchAt = number(source, root, "firstCatchAt");
             return new CatchSummary(
-                    integer(source, root, "schemaVersion"),
+                    CatchSummary.CURRENT_SCHEMA_VERSION,
                     actorId,
                     number(source, root, "totalQuantity"),
                     counts(source, root, "quantitiesBySource"),
-                    counts(source, root, "quantitiesByFishDefinition"),
+                    fishCounts,
                     counts(source, root, "quantitiesByRarity"),
-                    number(source, root, "firstCatchAt"),
+                    schemaVersion == 1
+                            ? countOnlySpecies(fishCounts, firstCatchAt)
+                            : speciesSummaries(source, root),
+                    firstCatchAt,
                     number(source, root, "latestCatchAt"),
                     checkpoint(source, root),
                     recent(source, root, actorId));
@@ -72,6 +83,69 @@ public final class CatchSummaryCodec {
                 .sorted(Map.Entry.comparingByKey(Comparator.comparing(Identifier::toString)))
                 .forEach(entry -> object.addProperty(entry.getKey().toString(), entry.getValue()));
         return object;
+    }
+
+    private static JsonObject encodeSpeciesSummaries(Map<Identifier, CatchSpeciesSummary> summaries) {
+        JsonObject object = new JsonObject();
+        summaries.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(Identifier::toString)))
+                .forEach(entry -> {
+                    CatchSpeciesSummary summary = entry.getValue();
+                    JsonObject value = new JsonObject();
+                    value.addProperty("totalCount", summary.totalCount());
+                    value.addProperty("firstCatchAt", summary.firstCatchAt());
+                    value.addProperty("fastestTimeTicks", summary.fastestTimeTicks());
+                    value.addProperty("accumulatedTimeTicks", summary.accumulatedTimeTicks());
+                    value.addProperty("timedSampleCount", summary.timedSampleCount());
+                    value.addProperty("largestSizeMillimetres", summary.largestSizeMillimetres());
+                    value.addProperty("heaviestWeightGrams", summary.heaviestWeightGrams());
+                    value.addProperty("bestPercentileBasisPoints", summary.bestPercentileBasisPoints());
+                    value.addProperty("goldenCount", summary.goldenCount());
+                    value.addProperty("perfectCount", summary.perfectCount());
+                    value.addProperty("treasureCount", summary.treasureCount());
+                    object.add(entry.getKey().toString(), value);
+                });
+        return object;
+    }
+
+    private static Map<Identifier, CatchSpeciesSummary> speciesSummaries(
+            String source,
+            JsonObject root
+    ) {
+        JsonElement element = required(source, root, "speciesSummaries");
+        if (!element.isJsonObject()) throw format(source, "speciesSummaries must be a JSON object");
+        Map<Identifier, CatchSpeciesSummary> summaries = new LinkedHashMap<>();
+        for (Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+            Identifier id = Identifier.tryParse(entry.getKey());
+            if (id == null) throw format(source, "speciesSummaries contains an invalid identifier");
+            if (!entry.getValue().isJsonObject()) {
+                throw format(source, "speciesSummaries." + entry.getKey() + " must be a JSON object");
+            }
+            JsonObject value = entry.getValue().getAsJsonObject();
+            String nested = source + ".speciesSummaries." + entry.getKey();
+            summaries.put(id, new CatchSpeciesSummary(
+                    number(nested, value, "totalCount"),
+                    number(nested, value, "firstCatchAt"),
+                    integer(nested, value, "fastestTimeTicks"),
+                    number(nested, value, "accumulatedTimeTicks"),
+                    number(nested, value, "timedSampleCount"),
+                    integer(nested, value, "largestSizeMillimetres"),
+                    number(nested, value, "heaviestWeightGrams"),
+                    integer(nested, value, "bestPercentileBasisPoints"),
+                    number(nested, value, "goldenCount"),
+                    number(nested, value, "perfectCount"),
+                    number(nested, value, "treasureCount")));
+        }
+        return summaries;
+    }
+
+    private static Map<Identifier, CatchSpeciesSummary> countOnlySpecies(
+            Map<Identifier, Long> counts,
+            long firstCatchAt
+    ) {
+        Map<Identifier, CatchSpeciesSummary> summaries = new LinkedHashMap<>();
+        counts.forEach((id, count) -> summaries.put(id, CatchSpeciesSummary.countOnly(count, firstCatchAt)));
+        return summaries;
     }
 
     private static Map<Identifier, Long> counts(String source, JsonObject root, String field) {

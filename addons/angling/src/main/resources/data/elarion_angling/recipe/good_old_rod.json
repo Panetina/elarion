@@ -1,0 +1,19 @@
+{
+    "type":  "elarion_angling:elarion_angling_rod_smithing_recipe",
+    "add_netherite_text":  false,
+    "apply_tackle_skin":  true,
+    "keep_stack":  false,
+    "material":  {
+                     "item":  "minecraft:fishing_rod"
+                 },
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:good_old_rod"
+               },
+    "rod":  {
+                "tag":  "elarion_angling:rods"
+            },
+    "template":  {
+                     "item":  "elarion_angling:good_old_skin_smithing_template"
+                 }
+}

@@ -13,6 +13,8 @@ import panetina.elarion.addons.groups.service.GroupProfileContributor;
 import panetina.elarion.addons.groups.storage.GroupStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
 
 public final class ElarionGroupsAddon implements ElarionAddon {
     private static final Logger LOGGER = LoggerFactory.getLogger("elarion_groups");
@@ -23,6 +25,19 @@ public final class ElarionGroupsAddon implements ElarionAddon {
         api.system().profiles().registerContributor(new GroupProfileContributor(groups));
         GroupConfigDescriptors.register(api.system().configs(), groups::config);
         api.characters().registerResetHandler("elarion_groups", context -> groups.resetCharacter(context.accountId()));
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_groups"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return java.util.Map.of();
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                return java.util.List.of(panetina.elarion.core.storage.JsonStateStorage
+                        .addonStateRoot(server, "groups").resolve("groups.json"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                return PlayerResetResult.of("groupMemberships", groups.resetAllPlayerState());
+            }
+        });
         new ElarionGroupsApi(groups);
         api.notifications().registerAction("elarion_groups:accept_invite", context -> {
             String groupId = context.notification().metadata().getOrDefault("groupId", "");

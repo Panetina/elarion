@@ -17,9 +17,10 @@ public record AcceptedCatchRecord(
         Identifier worldId,
         Identifier dimensionId,
         Identifier biomeId,
-        Map<String, String> metadata
+        Map<String, String> metadata,
+        CatchTelemetryDetails details
 ) {
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
 
     public AcceptedCatchRecord {
         if (schemaVersion != CURRENT_SCHEMA_VERSION) {
@@ -36,8 +37,28 @@ public record AcceptedCatchRecord(
                 worldId,
                 dimensionId,
                 biomeId,
-                metadata);
+                metadata,
+                details);
         metadata = validated.metadata();
+    }
+
+    /** Backward-compatible source constructor. New records are always persisted as schema 2. */
+    public AcceptedCatchRecord(
+            int schemaVersion,
+            UUID eventId,
+            long occurredAt,
+            UUID actorId,
+            Identifier sourceId,
+            Identifier fishDefinitionId,
+            Identifier rarityId,
+            long quantity,
+            Identifier worldId,
+            Identifier dimensionId,
+            Identifier biomeId,
+            Map<String, String> metadata
+    ) {
+        this(schemaVersion, eventId, occurredAt, actorId, sourceId, fishDefinitionId, rarityId, quantity,
+                worldId, dimensionId, biomeId, metadata, null);
     }
 
     public static AcceptedCatchRecord from(CatchTelemetryEvent event) {
@@ -53,6 +74,7 @@ public record AcceptedCatchRecord(
                 event.worldId(),
                 event.dimensionId(),
                 event.biomeId(),
-                event.metadata());
+                event.metadata(),
+                event.details());
     }
 }

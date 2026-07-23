@@ -11,6 +11,15 @@ repositories {
         url = 'https://api.modrinth.com/maven'
         content { includeGroup 'maven.modrinth' }
     }
+    ivy {
+        name = 'modrinthCdn'
+        url = 'https://cdn.modrinth.com/data'
+        patternLayout {
+            artifact '[module]/versions/[revision]/[classifier]'
+        }
+        metadataSources { artifact() }
+        content { includeGroup 'modrinth.cdn' }
+    }
 }
 
 allprojects {
@@ -23,34 +32,43 @@ def modProjects = subprojects.findAll { !structuralProjects.contains(it.path) }
 def optionalAddonQa = providers.gradleProperty('optionalAddonQa')
         .map { it.toBoolean() }
         .orElse(false)
+// Foundation-only ports build and test normally, but cannot enter canonical
+// exports or live deployment until their release gates are implemented.
+def foundationOnlyModPaths = [':addons:angling', ':addons:angling-delight'] as Set
 def exportableModProjects = modProjects.findAll {
-    it.path == ':platform:core' || it.path.startsWith(':addons:')
+    (it.path == ':platform:core' || it.path.startsWith(':addons:'))
+            && !foundationOnlyModPaths.contains(it.path)
 }
-def modpackSourceDir = file("${System.properties['user.home']}/AppData/Roaming/ModrinthApp/profiles/Ashes of Elarion/mods")
-def modpackBothJarNames = [
-        'BiomesOPlenty-fabric-1.21.1-21.1.0.14.jar',
-        'ClimateRivers-v21.1.3-1.21.1-Fabric.jar',
-        'Continents_26.2_v1.1.14.jar',
-        'fabric-api-0.116.13+1.21.1.jar',
-        'ForgeConfigAPIPort-v21.1.6-1.21.1-Fabric.jar',
-        'Geophilic v3.6.mod.jar',
-        'GeophilicBackported-v1.3.3 1.21.1.jar',
-        'GlitchCore-fabric-1.21.1-2.1.0.2.jar',
-        'Platform-fabric-1.21.1-1.3.3.jar',
-        'PuzzlesLib-v21.1.52-1.21.1-Fabric.jar',
-        'roadweaver-fabric-2.2.2-1.21.1.jar',
-        'TerraBlender-fabric-1.21.1-4.1.0.8.jar',
-        'VanillaBackport-fabric-1.21.1-1.1.7.10.jar'
-]
-def modpackBothJarFiles = modpackBothJarNames.collect { new File(modpackSourceDir, it) }
-def pinnedModrinthJarNames = [
-        'B0g2vT6l-v3CzX4a3.jar': 'rechiseled-1.2.5-fabric-mc1.21.jar',
-        'rOUBggPv-blDCgrqh.jar': 'supermartijn642corelib-1.1.21-fabric-mc1.21.jar',
-        'LN9BxssP-euSlaAtA.jar': 'supermartijn642configlib-1.1.8-fabric-mc1.21.jar',
-        'p19vrgc2-rN3N2Oxi.jar': 'fusion-1.3.6-fabric-mc1.21.jar',
-        'N6n5dqoA-BzK22yyR.jar': 'Axiom-5.4.2-for-MC1.21.1.jar',
-        '1u6JkXh5-WTAFvuRx.jar': 'worldedit-mod-7.3.8.jar'
-]
+def distributionManifestFile = layout.projectDirectory.file('distribution/mods.json').asFile
+def distributionManifest = new groovy.json.JsonSlurper().parse(distributionManifestFile)
+def distributionArtifacts = distributionManifest.artifacts as List<Map<String, Object>>
+def distributionArtifactsByFilename = distributionArtifacts.collectEntries { [(it.filename): it] }
+def artifactsForSide = { String side ->
+    distributionArtifacts.findAll { it.side == side }
+}
+def resolvedThirdPartyJarNames = distributionArtifacts.findAll { it.projectId }.collectEntries {
+    [("${it.projectId}-${it.versionId}.jar".toString()): it.filename]
+}
+def canonicalThirdPartyJarName = { String inputName ->
+    def artifact = distributionArtifacts.find {
+        inputName == it.filename || (it.projectId
+                && inputName.contains(it.projectId.toString())
+                && inputName.contains(it.versionId.toString()))
+    }
+    artifact?.filename ?: resolvedThirdPartyJarNames.getOrDefault(inputName, inputName)
+}
+
+def sha512 = { File source ->
+    def digest = java.security.MessageDigest.getInstance('SHA-512')
+    source.withInputStream { input ->
+        byte[] buffer = new byte[64 * 1024]
+        int read
+        while ((read = input.read(buffer)) >= 0) {
+            if (read > 0) digest.update(buffer, 0, read)
+        }
+    }
+    digest.digest().collect { String.format('%02x', it & 0xff) }.join()
+}
 
 def enableSharedResourcePacks = { File optionsFile, List<String> packNames ->
     if (packNames.isEmpty()) return
@@ -90,44 +108,23 @@ def enableSharedResourcePacks = { File optionsFile, List<String> packNames ->
 }
 
 configurations {
-    exportModpackBoth
-    exportModpackClient
-    exportAdminTools
+    distributionBoth
+    distributionServer
+    distributionClient
+    distributionAdmin
 }
 
 dependencies {
-    exportModpackBoth('software.bernie.geckolib:geckolib-fabric-1.21.1:4.8.4') {
-        transitive = false
-    }
-    exportModpackBoth('xyz.nucleoid:fantasy:0.6.3+1.21') {
-        transitive = false
-    }
-    exportModpackClient('com.terraformersmc:modmenu:11.0.3') {
-        transitive = false
-    }
-
-    // Rechiseled gameplay content and its pinned Fabric 1.21.1 dependencies.
-    exportModpackBoth('maven.modrinth:B0g2vT6l:v3CzX4a3') {
-        transitive = false
-    }
-    exportModpackBoth('maven.modrinth:rOUBggPv:blDCgrqh') {
-        transitive = false
-    }
-    exportModpackBoth('maven.modrinth:LN9BxssP:euSlaAtA') {
-        transitive = false
-    }
-    // Fusion is rendering-only at runtime, but Rechiseled declares it as a
-    // hard loader dependency, so its jar must be present on both sides.
-    exportModpackBoth('maven.modrinth:p19vrgc2:rN3N2Oxi') {
-        transitive = false
-    }
-
-    // Builder/admin tooling is server-side plus client-one only in development.
-    exportAdminTools('maven.modrinth:N6n5dqoA:BzK22yyR') {
-        transitive = false
-    }
-    exportAdminTools('maven.modrinth:1u6JkXh5:WTAFvuRx') {
-        transitive = false
+    [both: 'distributionBoth', server: 'distributionServer',
+     client: 'distributionClient', admin: 'distributionAdmin'].each { side, configurationName ->
+        artifactsForSide(side).each { artifact ->
+            def buildCoordinate = artifact.projectId
+                    ? "modrinth.cdn:${artifact.projectId}:${artifact.versionId}:${artifact.filename}@jar"
+                    : artifact.coordinate
+            add(configurationName, buildCoordinate) {
+                transitive = false
+            }
+        }
     }
 }
 
@@ -193,6 +190,21 @@ configure(modProjects) {
     }
 }
 
+gradle.projectsEvaluated {
+    modProjects.findAll { it.path != ':dev' }.each { modProject ->
+        modProject.tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
+            if (!enabled) {
+                // Gradle's unqualified runServer/runClient task selectors also
+                // select same-named Loom tasks in subprojects. Disabled tasks
+                // still execute dependencies unless Loom's late-added edges
+                // are removed after every project has been evaluated.
+                setDependsOn([])
+                classpath = modProject.files()
+            }
+        }
+    }
+}
+
 configure(modProjects.findAll { it.path.startsWith(':addons:') }) {
     dependencies {
         runtimeOnly 'org.yaml:snakeyaml:2.2'
@@ -237,15 +249,107 @@ tasks.register('verifyAiContext', Exec) {
             '-File', file('dev/tools/verify-ai-context.ps1')
 }
 
+def verifyNoRemovedGovernmentFormsTask = tasks.register('verifyNoRemovedGovernmentForms') {
+    group = 'verification'
+    description = 'Fails if removed Government form configs are present in dev or GameTest config roots.'
+    doLast {
+        def removedFormIds = ['confederation', 'council', 'theocracy'] as Set
+        def scanRoots = [
+                layout.projectDirectory.dir('dev/run').asFile,
+                layout.projectDirectory.dir('tests/gametest/run').asFile
+        ].findAll { it.exists() }
+        def stale = []
+        scanRoots.each { root ->
+            fileTree(root) {
+                include '**/config/elarion/addons/government/forms/*/form.yml'
+            }.files.each { file ->
+                def formId = file.parentFile.name
+                if (removedFormIds.contains(formId)) {
+                    stale << rootProject.projectDir.toPath().relativize(file.toPath()).toString()
+                }
+            }
+        }
+        if (!stale.isEmpty()) {
+            throw new GradleException('Removed Government form config files must not be packaged or uploaded:\n'
+                    + stale.sort().collect { " - ${it}" }.join('\n'))
+        }
+    }
+}
+
+subprojects {
+    tasks.matching { it.name == 'build' }.configureEach {
+        dependsOn verifyNoRemovedGovernmentFormsTask
+    }
+}
+
 def cleanExportModsTask = tasks.register('cleanExportMods', Delete) {
     group = 'distribution'
-    description = 'Deletes the generated server-mods and client-mods export folders.'
+    description = 'Deletes the generated client and server install-root exports.'
     delete layout.buildDirectory.dir('export')
 }
 
-def exportModsTask = tasks.register('exportMods', Copy) {
+def verifyExcaliburedCitTask = tasks.register('verifyExcaliburedCit', Exec) {
+    group = 'verification'
+    description = 'Validates active Excalibured CIT definitions for Minecraft 1.21.1.'
+    inputs.file(layout.projectDirectory.file('dev/resourcepacks/Elarion Excalibured v1.zip'))
+    inputs.file(layout.projectDirectory.file('dev/tools/verify-excalibured-cit.ps1'))
+    commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', layout.projectDirectory.file('dev/tools/verify-excalibured-cit.ps1').asFile,
+            '-PackPath', layout.projectDirectory.file('dev/resourcepacks/Elarion Excalibured v1.zip').asFile
+}
+
+def verifyDistributionManifestTask = tasks.register('verifyDistributionManifest') {
+    group = 'verification'
+    description = 'Validates the canonical pinned third-party distribution manifest.'
+    dependsOn verifyExcaliburedCitTask
+    inputs.file(distributionManifestFile)
+    inputs.files(fileTree('distribution/client') { include '**/*' })
+    inputs.files(fileTree('distribution/server') { include '**/*' })
+    doLast {
+        if (distributionManifest.schemaVersion != 1
+                || distributionManifest.minecraft != minecraft_version
+                || distributionManifest.fabricLoader != loader_version) {
+            throw new GradleException('distribution/mods.json does not match the configured Minecraft/Fabric release.')
+        }
+        def duplicateIds = distributionArtifacts.groupBy { it.id }.findAll { it.value.size() > 1 }.keySet()
+        def duplicateFiles = distributionArtifacts.groupBy { it.filename }.findAll { it.value.size() > 1 }.keySet()
+        if (!duplicateIds.isEmpty() || !duplicateFiles.isEmpty()) {
+            throw new GradleException("Duplicate distribution ids=${duplicateIds} files=${duplicateFiles}")
+        }
+        distributionArtifacts.each { artifact ->
+            if (!(artifact.side in ['both', 'server', 'client', 'admin'])) {
+                throw new GradleException("Unsupported side '${artifact.side}' for ${artifact.id}")
+            }
+            if (!artifact.coordinate || !artifact.filename || !artifact.url || !artifact.source || !artifact.license) {
+                throw new GradleException("Incomplete distribution metadata for ${artifact.id}")
+            }
+            if (!(artifact.sha512 ==~ /[0-9a-f]{128}/)) {
+                throw new GradleException("Invalid SHA-512 for ${artifact.id}")
+            }
+        }
+        def managedClient = fileTree('distribution/client/managed') { include '**/*' }.files
+        def defaultClient = fileTree('distribution/client/defaults') { include '**/*' }.files
+        if (managedClient.isEmpty() || defaultClient.isEmpty()) {
+            throw new GradleException('Client managed safety settings and non-destructive defaults are both required.')
+        }
+        def requiredServerConfigs = [
+                'config/fabric_loader_dependencies.json',
+                'config/lithium.properties',
+                'config/modernfix-mixins.properties'
+        ]
+        def missingServerConfigs = requiredServerConfigs.findAll {
+            !file("distribution/server/managed/${it}").isFile()
+        }
+        if (!missingServerConfigs.isEmpty()) {
+            throw new GradleException('Missing managed server safety configs: ' + missingServerConfigs)
+        }
+    }
+}
+
+def exportModsTask = tasks.register('exportMods', Sync) {
     group = 'distribution'
-    description = 'Builds exactly two install-ready mod folders: server-mods and client-mods.'
+    description = 'Builds install-ready client and server roots with mods, configs, resources, and launcher manifests.'
+    dependsOn verifyDistributionManifestTask
     into layout.buildDirectory.dir('export')
     duplicatesStrategy = DuplicatesStrategy.FAIL
 
@@ -253,44 +357,109 @@ def exportModsTask = tasks.register('exportMods', Copy) {
         def remapJar = modProject.tasks.named('remapJar')
         dependsOn remapJar
         from(remapJar.flatMap { it.archiveFile }) {
-            into 'server-mods'
+            into 'server/mods'
         }
         from(remapJar.flatMap { it.archiveFile }) {
-            into 'client-mods'
+            into 'client/mods'
         }
     }
 
-    from(modpackBothJarFiles) {
-        into 'server-mods'
+    from(configurations.distributionBoth) {
+        into 'server/mods'
+        rename { canonicalThirdPartyJarName(it) }
     }
-    from(modpackBothJarFiles) {
-        into 'client-mods'
+    from(configurations.distributionBoth) {
+        into 'client/mods'
+        rename { canonicalThirdPartyJarName(it) }
     }
-    from(configurations.exportModpackBoth) {
-        into 'server-mods'
-        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    from(configurations.distributionServer) {
+        into 'server/mods'
+        rename { canonicalThirdPartyJarName(it) }
     }
-    from(configurations.exportModpackBoth) {
-        into 'client-mods'
-        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    from(configurations.distributionClient) {
+        into 'client/mods'
+        rename { canonicalThirdPartyJarName(it) }
     }
-    from(configurations.exportModpackClient) {
-        into 'client-mods'
-        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    from(configurations.distributionAdmin) {
+        into 'server/mods'
+        rename { canonicalThirdPartyJarName(it) }
     }
-    from(configurations.exportAdminTools) {
-        into 'server-mods'
-        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
-    }
-    from(configurations.exportAdminTools) {
-        into 'client-mods'
-        rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+    from('distribution/server/managed') { into 'server' }
+    from('distribution/client/defaults') { into 'client' }
+    from('distribution/client/managed') { into 'client' }
+    from('dev/resourcepacks') {
+        include '*.zip'
+        into 'client/resourcepacks'
     }
 
-    doFirst {
-        def missing = modpackBothJarFiles.findAll { !it.isFile() }
-        if (!missing.isEmpty()) {
-            throw new GradleException("Missing modpack dependency jars for export:\n" + missing.collect { " - ${it}" }.join('\n'))
+    doLast {
+        def exportRoot = layout.buildDirectory.dir('export').get().asFile
+        def managedPaths = [
+                server: fileTree('distribution/server/managed').files.collect {
+                    file('distribution/server/managed').toPath().relativize(it.toPath()).toString().replace('\\', '/')
+                } as Set,
+                client: fileTree('distribution/client/managed').files.collect {
+                    file('distribution/client/managed').toPath().relativize(it.toPath()).toString().replace('\\', '/')
+                } as Set
+        ]
+        ['server', 'client'].each { side ->
+            def sideRoot = new File(exportRoot, side)
+            def expectedArtifacts = distributionArtifacts.findAll {
+                it.side == 'both' || it.side == side || (side == 'server' && it.side == 'admin')
+            }
+            expectedArtifacts.each { artifact ->
+                def jar = new File(sideRoot, "mods/${artifact.filename}")
+                if (!jar.isFile()) throw new GradleException("Missing exported artifact ${side}/${artifact.filename}")
+                def actualHash = sha512(jar)
+                if (actualHash != artifact.sha512) {
+                    throw new GradleException("SHA-512 mismatch for ${side}/${artifact.filename}")
+                }
+            }
+
+            def files = fileTree(sideRoot).files.findAll { it.isFile() && it.name != 'manifest.json' }.collect { exportedFile ->
+                def relative = sideRoot.toPath().relativize(exportedFile.toPath()).toString().replace('\\', '/')
+                def artifact = relative.startsWith('mods/')
+                        ? distributionArtifactsByFilename[exportedFile.name]
+                        : null
+                def internalJar = relative.startsWith('mods/') && artifact == null
+                [
+                        path: relative,
+                        side: side,
+                        role: artifact?.role ?: (internalJar ? 'elarion-mod' :
+                                (relative.startsWith('resourcepacks/') ? 'resource-pack' :
+                                        ((relative.startsWith('config/') || managedPaths[side].contains(relative))
+                                                ? 'config' : 'content'))),
+                        size: exportedFile.length(),
+                        sha512: sha512(exportedFile),
+                        source: artifact?.source ?: 'elarion-release-bundle',
+                        license: artifact?.license ?: (internalJar ? 'Elarion project license' : 'Elarion configuration/content'),
+                        url: artifact?.url,
+                        projectId: artifact?.projectId,
+                        versionId: artifact?.versionId,
+                        updateMode: managedPaths[side].contains(relative)
+                                ? 'always-replace'
+                                : (relative.startsWith('config/') ? 'if-absent' : 'required-exact'),
+                        delivery: artifact ? 'official-download' : 'release-bundle'
+                ]
+            }.sort { it.path }
+            def launcherManifest = [
+                    schemaVersion: 1,
+                    release: project.version.toString(),
+                    minecraft: minecraft_version,
+                    fabricLoader: loader_version,
+                    side: side,
+                    generatedAt: java.time.Instant.now().toString(),
+                    java: [
+                            requiredMajorVersion: 21,
+                            recommendedMaxHeapMiB: side == 'client' ? 6144 : 4096,
+                            jvmArgs: side == 'client'
+                                    ? ['-XX:+UseZGC', '-XX:+ZGenerational']
+                                    : []
+                    ],
+                    files: files
+            ]
+            new File(sideRoot, 'manifest.json').setText(
+                    groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(launcherManifest)) + '\n', 'UTF-8')
         }
     }
 }
@@ -301,12 +470,15 @@ exportModsTask.configure {
 
 tasks.register('syncDevRuntimeMods') {
     group = 'fabric'
-    description = 'Copies required modpack jars into the dev server and client run folders.'
-    inputs.files(modpackBothJarFiles)
-    inputs.files(configurations.exportModpackBoth)
-    inputs.files(configurations.exportModpackClient)
-    inputs.files(configurations.exportAdminTools)
+    description = 'Synchronizes canonical third-party mods, managed safety configs, defaults, and resource packs into IntelliJ/Loom runs.'
+    dependsOn verifyDistributionManifestTask
+    inputs.files(configurations.distributionBoth)
+    inputs.files(configurations.distributionServer)
+    inputs.files(configurations.distributionClient)
+    inputs.files(configurations.distributionAdmin)
     inputs.files(fileTree('dev/resourcepacks') { include '*.zip' })
+    inputs.files(fileTree('distribution/client') { include '**/*' })
+    inputs.files(fileTree('distribution/server') { include '**/*' })
     outputs.dirs(
             layout.projectDirectory.dir('dev/run/mods'),
             layout.projectDirectory.dir('dev/run/client-generic/mods'),
@@ -316,14 +488,14 @@ tasks.register('syncDevRuntimeMods') {
             layout.projectDirectory.dir('dev/run/client-one/resourcepacks'),
             layout.projectDirectory.dir('dev/run/client-two/resourcepacks')
     )
-    doFirst {
-        def missing = modpackBothJarFiles.findAll { !it.isFile() }
-        if (!missing.isEmpty()) {
-            throw new GradleException("Missing dev modpack dependency jars:\n" + missing.collect { " - ${it}" }.join('\n'))
-        }
-    }
+    outputs.file(layout.projectDirectory.file('dev/run/config/fabric_loader_dependencies.json'))
+    outputs.file(layout.projectDirectory.file('dev/run/config/lithium.properties'))
+    outputs.file(layout.projectDirectory.file('dev/run/config/modernfix-mixins.properties'))
+    outputs.upToDateWhen { false }
     doLast {
-        def serverMods = layout.projectDirectory.dir('dev/run/mods').asFile
+        def serverRoot = layout.projectDirectory.dir('dev/run').asFile
+        def serverMods = new File(serverRoot, 'mods')
+        def serverConfig = new File(serverRoot, 'config')
         def clientModDirs = [
                 layout.projectDirectory.dir('dev/run/client-generic/mods').asFile,
                 layout.projectDirectory.dir('dev/run/client-one/mods').asFile,
@@ -336,26 +508,91 @@ tasks.register('syncDevRuntimeMods') {
                 layout.projectDirectory.dir('dev/run/client-one/resourcepacks').asFile,
                 layout.projectDirectory.dir('dev/run/client-two/resourcepacks').asFile
         ]
+        def legacyManaged = (distributionArtifacts*.filename + [
+                'modmenu-11.0.3.jar',
+                'iris-fabric-1.8.8+mc1.21.1.jar'
+        ]) as Set
+        def serverArtifactNames = distributionArtifacts.findAll {
+            it.side in ['both', 'server', 'admin']
+        }*.filename as Set
+        serverMods.mkdirs()
+        def serverMarker = new File(serverMods, '.elarion-managed-mods.json')
+        def previousServer = serverMarker.isFile()
+                ? (new groovy.json.JsonSlurper().parse(serverMarker) as List<String>) as Set
+                : [] as Set
+        (previousServer + legacyManaged).each { name ->
+            def candidate = new File(serverMods, name)
+            if (candidate.isFile()) candidate.delete()
+        }
         copy {
-            from modpackBothJarFiles
-            from configurations.exportModpackBoth
-            from configurations.exportAdminTools
-            rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+            from configurations.distributionBoth
+            from configurations.distributionServer
+            from configurations.distributionAdmin
+            rename { canonicalThirdPartyJarName(it) }
             into serverMods
         }
+        serverMarker.setText(groovy.json.JsonOutput.prettyPrint(
+                groovy.json.JsonOutput.toJson(serverArtifactNames.sort())) + '\n', 'UTF-8')
+        def legacyNestedServerConfig = new File(serverConfig, 'config')
+        ['fabric_loader_dependencies.json', 'lithium.properties', 'modernfix-mixins.properties'].each { name ->
+            def staleManagedFile = new File(legacyNestedServerConfig, name)
+            if (staleManagedFile.isFile()) staleManagedFile.delete()
+        }
+        if (legacyNestedServerConfig.isDirectory()
+                && (legacyNestedServerConfig.listFiles() ?: []).length == 0) {
+            legacyNestedServerConfig.delete()
+        }
+        copy { from 'distribution/server/managed'; into serverRoot }
         clientModDirs.each { clientModDir ->
+            def expected = distributionArtifacts.findAll { it.side in ['both', 'client'] }*.filename as Set
+            def marker = new File(clientModDir, '.elarion-managed-mods.json')
+            def previous = marker.isFile()
+                    ? (new groovy.json.JsonSlurper().parse(marker) as List<String>) as Set
+                    : [] as Set
+            (previous + legacyManaged).each { name ->
+                def candidate = new File(clientModDir, name)
+                if (candidate.isFile()) candidate.delete()
+            }
             copy {
-                from modpackBothJarFiles
-                from configurations.exportModpackBoth
-                from configurations.exportModpackClient
-                rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+                from configurations.distributionBoth
+                from configurations.distributionClient
+                rename { canonicalThirdPartyJarName(it) }
                 into clientModDir
             }
+            marker.setText(groovy.json.JsonOutput.prettyPrint(
+                    groovy.json.JsonOutput.toJson(expected.sort())) + '\n', 'UTF-8')
         }
         copy {
-            from configurations.exportAdminTools
-            rename { pinnedModrinthJarNames.getOrDefault(it, it) }
+            from configurations.distributionAdmin
+            rename { canonicalThirdPartyJarName(it) }
             into adminClientModDir
+        }
+        def adminMarker = new File(adminClientModDir, '.elarion-managed-mods.json')
+        def adminNames = distributionArtifacts.findAll { it.side in ['both', 'client', 'admin'] }*.filename.sort()
+        adminMarker.setText(groovy.json.JsonOutput.prettyPrint(
+                groovy.json.JsonOutput.toJson(adminNames)) + '\n', 'UTF-8')
+        clientModDirs.each { clientModDir ->
+            def clientRoot = clientModDir.parentFile
+            copy { from 'distribution/client/managed'; into clientRoot }
+            copy { from 'distribution/client/defaults'; into clientRoot }
+            def yosbrRoot = new File(clientRoot, 'config/yosbr')
+            def defaultOptions = new File(yosbrRoot, 'options.txt')
+            def liveOptions = new File(clientRoot, 'options.txt')
+            if (!liveOptions.isFile() && defaultOptions.isFile()) {
+                liveOptions.parentFile.mkdirs()
+                java.nio.file.Files.copy(defaultOptions.toPath(), liveOptions.toPath())
+            }
+            def yosbrConfig = new File(yosbrRoot, 'config')
+            if (yosbrConfig.isDirectory()) {
+                fileTree(yosbrConfig).files.each { defaultFile ->
+                    def relative = yosbrConfig.toPath().relativize(defaultFile.toPath())
+                    def liveFile = new File(new File(clientRoot, 'config'), relative.toString())
+                    if (!liveFile.isFile()) {
+                        liveFile.parentFile.mkdirs()
+                        java.nio.file.Files.copy(defaultFile.toPath(), liveFile.toPath())
+                    }
+                }
+            }
         }
         if (sharedResourcePacks.isDirectory()) {
             def sharedPackNames = sharedResourcePacks.listFiles()
@@ -391,7 +628,7 @@ tasks.register('cleanDevRunLocks', Delete) {
 
 tasks.register('rebuildExportMods') {
     group = 'distribution'
-    description = 'Cleans, rebuilds, and regenerates the install-ready server-mods and client-mods folders.'
+    description = 'Cleans, builds, and regenerates the install-ready client and server roots.'
     dependsOn cleanExportModsTask, exportModsTask
 }
 
@@ -399,7 +636,7 @@ tasks.register('prepareLiveServerRelease') {
     group = 'distribution'
     description = 'Runs release verification and rebuilds the exact install-ready server/client exports.'
     dependsOn modProjects.collect { it.tasks.named('build') }
-    dependsOn 'verifyAiContext', 'rebuildExportMods'
+    dependsOn 'verifyAiContext', verifyNoRemovedGovernmentFormsTask, 'rebuildExportMods'
 }
 
 tasks.register('deployLiveServerMods', Exec) {

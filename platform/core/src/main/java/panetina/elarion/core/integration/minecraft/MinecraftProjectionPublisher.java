@@ -16,6 +16,11 @@ public final class MinecraftProjectionPublisher {
     private final MinecraftProjectionOutboxStorage storage;
     private Path root;
     private MinecraftProjectionOutboxStorage.State state = MinecraftProjectionOutboxStorage.State.empty();
+    /**
+     * Publication can run from gameplay callbacks.  Persistence belongs to the
+     * bridge worker, never the caller's server tick.
+     */
+    private boolean dirty;
 
     public MinecraftProjectionPublisher(Logger logger, boolean enabled) {
         this.logger = logger;
@@ -26,10 +31,17 @@ public final class MinecraftProjectionPublisher {
     public synchronized void bind(Path elarionRoot) {
         root = elarionRoot;
         state = storage.load(elarionRoot);
+        dirty = false;
     }
 
     public synchronized void unbind() {
         root = null;
+        dirty = false;
+    }
+
+    /** Controlled shutdown is the only synchronous persistence fallback. */
+    public synchronized void persistForShutdown() {
+        persistDirty();
     }
 
     public boolean publishState(String kind, String entityId, String realmId, Visibility visibility,
@@ -55,7 +67,7 @@ public final class MinecraftProjectionPublisher {
             Projection value = new Projection(1, mode, kind, entityId, realmId, visibility,
                     1, System.currentTimeMillis(), payload);
             state = state.enqueue(value);
-            storage.save(root, state);
+            dirty = true;
             return true;
         } catch (RuntimeException exception) {
             logger.warn("Minecraft projection was not queued: {}", safeMessage(exception));
@@ -64,16 +76,25 @@ public final class MinecraftProjectionPublisher {
     }
 
     synchronized void flush(MinecraftBridgeClient client) throws IOException, InterruptedException {
+        persistDirty();
         List<Projection> batch = state.batch(100);
         if (batch.isEmpty()) return;
         long acceptedThrough = client.publishProjections(batch);
         if (acceptedThrough < batch.getFirst().sequence()) return;
         state = state.acknowledged(acceptedThrough);
         storage.save(root, state);
+        dirty = false;
     }
 
     public synchronized int pendingCount() {
         return state.pending().size();
+    }
+
+    /** Called by the dedicated bridge worker before network delivery. */
+    private void persistDirty() {
+        if (!dirty || root == null) return;
+        storage.save(root, state);
+        dirty = false;
     }
 
     private static String safeMessage(Throwable throwable) {

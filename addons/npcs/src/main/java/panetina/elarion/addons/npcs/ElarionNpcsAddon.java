@@ -54,6 +54,10 @@ import panetina.elarion.addons.npcs.storage.NpcTradeSaleStorage;
 import panetina.elarion.addons.npcs.storage.NpcTradeStockStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
+import panetina.elarion.core.api.reset.WorldResetHandler;
+import panetina.elarion.core.api.reset.WorldResetResult;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -101,6 +105,36 @@ public final class ElarionNpcsAddon implements ElarionAddon {
         NpcInteractionService interactions = new NpcInteractionService(
                 api, definitions, placements, bankQuoteProvider, tradeSnapshots, tradePurchases,
                 stories, relationships, new NpcHistoryService(LOGGER, api));
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_npcs"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return java.util.Map.of();
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                java.nio.file.Path root = panetina.elarion.core.storage.JsonStateStorage.addonStateRoot(server, "npcs");
+                return java.util.List.of(root.resolve("relationships.json"), root.resolve("story-state.json"),
+                        root.resolve("trade-purchases.json"), root.resolve("trade-sales.json"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                java.util.Map<String, Long> changed = new java.util.LinkedHashMap<>();
+                changed.put("npcRelationships", (long) relationships.resetAllPlayerState());
+                changed.put("npcStoryState", (long) stories.resetAllPlayerState());
+                changed.put("npcTradeJournal", (long) tradePurchases.resetAllPlayerState());
+                return new PlayerResetResult(changed);
+            }
+        });
+        api.system().worldResets().register(new WorldResetHandler() {
+            @Override public String id() { return "elarion_npcs"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server, String worldId) {
+                return java.util.Map.of("placedNpcs", placements.all().stream().filter(npc -> worldId.equals(npc.worldId())).count());
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server, String worldId) {
+                return java.util.List.of(panetina.elarion.core.storage.JsonStateStorage.addonStateRoot(server, "npcs").resolve("placed-npcs.json"));
+            }
+            @Override public WorldResetResult reset(panetina.elarion.core.api.reset.WorldResetContext context) {
+                return WorldResetResult.of("placedNpcs", placements.removeWorld(context.worldId()));
+            }
+        });
         placements.onRemoved(interactions::closeNpcSessions);
         new ElarionNpcApi(api, definitions, placements, interactions, relationships);
         NpcRelationshipRegistryHandlers.register(api, relationships);

@@ -16,6 +16,11 @@ Status: Implemented foundation.
   in the Underworld
 - returns the player after a persisted timer
 - tracks Soul Fractures and hands True Death to Core Character Lifecycle
+- persists timed or permanent moderation banishments without creating a corpse
+- limits banished players to movement while rendering them as solid emissive-red
+  spectral silhouettes to other clients
+- keeps Living and Afterlife inventories (including experience) in separate
+  persisted boundaries; normal death inventory remains in the corpse
 
 ## Main Source
 
@@ -51,6 +56,10 @@ world with a deepslate-tile platform. `underworld.yml` points at that world with
 `underworld.world-id: "elarion:underworld"` and controls where souls spawn
 inside it.
 
+The client suppresses rain and thunder gradients only while rendering
+`elarion:underworld`. Fantasy runtime worlds can otherwise retain Overworld
+precipitation visuals after their authoritative weather has been cleared.
+
 ## Runtime State
 
 - `world/elarion/addon-state/underworld/state.json`
@@ -58,6 +67,15 @@ inside it.
 
 The archive folder retains minimal Underworld-side backup metadata. Canonical
 character archives and reset progress live in Core Character Lifecycle state.
+
+Runtime state schema v3 adds separate bounded `afterlifeInventories` and
+`livingInventories` maps keyed by account UUID. Schema v2's bounded
+`banishments` map remains keyed by account UUID.
+Each record stores the last known player name, issuing administrator, required
+reason, issue time, and absolute expiry; expiry zero means permanent. Earlier
+schemas migrate with empty inventory-boundary maps. Timed expiry uses a bounded deadline queue,
+not a per-tick scan, and punishment state deliberately survives Core character
+resets.
 
 Corpse and recovery-vault stacks preserve the complete 1.21.1 `ItemStack`
 component payload through compressed NBT, with legacy item-ID/count fallback.
@@ -111,6 +129,10 @@ contributes a dedicated restore path.
 Admin:
 
 ```text
+/banish <player> <minutes> <reason...>
+/banish <player> permanent <reason...>
+/banish list
+/unbanish <player>
 /e death reload
 /e death inspect <player>
 /e death corpse list
@@ -142,12 +164,40 @@ Fracture state exists. The HUD renders only while the player is bound to the
 Underworld and shows the remaining return timer. Soul Fracture marks belong in
 identity/tablist presentation, not in the death timer overlay.
 
+That authoritative bound-state payload also gates Soul Sight. Other players
+render to a bound viewer in `elarion:underworld` through a texture-independent
+solid white full-bright opaque pass with no nameplate, skin pixels, or wearable feature
+layers. Living viewers and every other dimension keep normal rendering. There
+is no Underworld framebuffer effect, fog override, screen overlay, model aura,
+or shader-pack hook.
+
+Banishment reuses Soul Sight for the punished viewer and adds one UUID delta
+payload for other online clients. A banished player takes precedence over the
+ordinary dead appearance and renders from an opaque flat-red source texture as
+a solid full-bright red silhouette. Their HUD shows whether the sentence is
+permanent or timed plus the bounded reason.
+
+The required client-only LambDynamicLights 4.8.10 integration registers only
+the already-rendered player entity type and returns luminance 6/15 for local or
+visible dead/banished states. Lamb owns adaptive ticking, camera/background
+sleep, chunk-rebuild culling, and Iris-compatible dynamic-light composition.
+Underworld performs no scan or lighting work for ordinary players. The server
+does not install or require LambDynamicLights.
+
 ## Ownership
 
 Underworld owns death capture, corpse state, recovery vaults, Underworld
 sessions, Soul Fractures, and the trigger into Core Character Lifecycle.
 
 Core owns the shared player restriction API used to block chat and travel.
+Core also owns the root-command extension list and the global interaction gates
+that run before addon callbacks. Underworld contributes the banishment policy
+for chat, travel, block/entity attacks and use, item use, and the UUID-only
+`queued_admission` restriction. A future Core admission queue must consult that
+UUID restriction whenever a queue exists; it must reject or disconnect the
+banished account until capacity is free and the queue is empty. No queue exists
+yet, so this slice provides the enforceable integration contract without
+inventing queue state in Underworld.
 Portals still own route state and teleport validation. Economy still owns bank
 balances; Underworld only reads physical currency items/tags when selecting PvP
 loot.
@@ -172,6 +222,9 @@ Underworld emits Core domain events:
 - `true-death`
 - `pvp-loot-claimed`
 - `corpse-recovered`
+- `player-banished`
+- `player-unbanished`
+- `banishment-expired`
 
 Current notifications are intentionally minimal. True Death broadcasts in chat;
 ordinary death, recovery, and loot actions use direct player feedback to avoid

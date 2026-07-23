@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.util.Identifier;
 import panetina.elarion.core.model.AcceptedCatchRecord;
+import panetina.elarion.core.model.CatchTelemetryDetails;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -35,6 +36,7 @@ public final class CatchTelemetryJournalCodec {
         addOptionalIdentifier(root, "worldId", record.worldId());
         addOptionalIdentifier(root, "dimensionId", record.dimensionId());
         addOptionalIdentifier(root, "biomeId", record.biomeId());
+        if (record.details() != null) root.add("details", encodeDetails(record.details()));
         JsonObject metadata = new JsonObject();
         new TreeMap<>(record.metadata()).forEach(metadata::addProperty);
         root.add("metadata", metadata);
@@ -49,8 +51,12 @@ public final class CatchTelemetryJournalCodec {
                 throw format(source, "root must be a JSON object");
             }
             JsonObject root = parsed.getAsJsonObject();
+            int schemaVersion = requiredInt(source, root, "schemaVersion");
+            if (schemaVersion != 1 && schemaVersion != AcceptedCatchRecord.CURRENT_SCHEMA_VERSION) {
+                throw format(source, "unsupported schemaVersion " + schemaVersion);
+            }
             return new AcceptedCatchRecord(
-                    requiredInt(source, root, "schemaVersion"),
+                    AcceptedCatchRecord.CURRENT_SCHEMA_VERSION,
                     requiredUuid(source, root, "eventId"),
                     requiredLong(source, root, "occurredAt"),
                     requiredUuid(source, root, "actorId"),
@@ -61,7 +67,8 @@ public final class CatchTelemetryJournalCodec {
                     optionalIdentifier(source, root, "worldId"),
                     optionalIdentifier(source, root, "dimensionId"),
                     optionalIdentifier(source, root, "biomeId"),
-                    metadata(source, root));
+                    metadata(source, root),
+                    schemaVersion == 1 ? null : details(source, root));
         } catch (CatchTelemetryFormatException exception) {
             throw exception;
         } catch (RuntimeException exception) {
@@ -82,6 +89,53 @@ public final class CatchTelemetryJournalCodec {
 
     private static void addOptionalIdentifier(JsonObject root, String field, Identifier value) {
         if (value != null) root.addProperty(field, value.toString());
+    }
+
+    private static JsonObject encodeDetails(CatchTelemetryDetails details) {
+        JsonObject root = new JsonObject();
+        root.addProperty("outputItemId", details.outputItemId().toString());
+        root.addProperty("catchTypeId", details.catchTypeId().toString());
+        root.addProperty("sizeMillimetres", details.sizeMillimetres());
+        root.addProperty("weightGrams", details.weightGrams());
+        root.addProperty("percentileBasisPoints", details.percentileBasisPoints());
+        root.addProperty("minigameDurationTicks", details.minigameDurationTicks());
+        root.addProperty("perfectCatch", details.perfectCatch());
+        root.addProperty("goldenCatch", details.goldenCatch());
+        root.addProperty("treasureCompleted", details.treasureCompleted());
+        root.addProperty("minigameHits", details.minigameHits());
+        addOptionalIdentifier(root, "baitId", details.baitId());
+        addOptionalIdentifier(root, "rodId", details.rodId());
+        addOptionalIdentifier(root, "bobberId", details.bobberId());
+        addOptionalIdentifier(root, "hookId", details.hookId());
+        addOptionalIdentifier(root, "fluidId", details.fluidId());
+        addOptionalIdentifier(root, "realmId", details.realmId());
+        addOptionalIdentifier(root, "tournamentId", details.tournamentId());
+        return root;
+    }
+
+    private static CatchTelemetryDetails details(String source, JsonObject root) {
+        if (!root.has("details") || root.get("details").isJsonNull()) return null;
+        JsonElement element = root.get("details");
+        if (!element.isJsonObject()) throw format(source, "details must be a JSON object");
+        JsonObject details = element.getAsJsonObject();
+        return new CatchTelemetryDetails(
+                requiredIdentifier(source + ".details", details, "outputItemId"),
+                requiredIdentifier(source + ".details", details, "catchTypeId"),
+                requiredInt(source + ".details", details, "sizeMillimetres"),
+                requiredLong(source + ".details", details, "weightGrams"),
+                requiredInt(source + ".details", details, "percentileBasisPoints"),
+                requiredInt(source + ".details", details, "minigameDurationTicks"),
+                requiredBoolean(source + ".details", details, "perfectCatch"),
+                requiredBoolean(source + ".details", details, "goldenCatch"),
+                requiredBoolean(source + ".details", details, "treasureCompleted"),
+                requiredInt(source + ".details", details, "minigameHits"),
+                optionalIdentifier(source + ".details", details, "baitId"),
+                optionalIdentifier(source + ".details", details, "rodId"),
+                optionalIdentifier(source + ".details", details, "bobberId"),
+                optionalIdentifier(source + ".details", details, "hookId"),
+                optionalIdentifier(source + ".details", details, "fluidId"),
+                optionalIdentifier(source + ".details", details, "realmId"),
+                optionalIdentifier(source + ".details", details, "tournamentId"));
     }
 
     private static int requiredInt(String source, JsonObject root, String field) {
@@ -111,6 +165,14 @@ public final class CatchTelemetryJournalCodec {
         } catch (IllegalArgumentException exception) {
             throw format(source, field + " must be a UUID", exception);
         }
+    }
+
+    private static boolean requiredBoolean(String source, JsonObject root, String field) {
+        JsonElement value = required(source, root, field);
+        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isBoolean()) {
+            throw format(source, field + " must be a boolean");
+        }
+        return value.getAsBoolean();
     }
 
     private static Identifier requiredIdentifier(String source, JsonObject root, String field) {

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "elarion_angling:block/fisherman_hat_pink"
+    },
+    "facing=east": {
+      "model": "elarion_angling:block/fisherman_hat_pink",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "elarion_angling:block/fisherman_hat_pink",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "elarion_angling:block/fisherman_hat_pink",
+      "y": 270
+    }
+  }
+}

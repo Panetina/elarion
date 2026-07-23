@@ -1,0 +1,14 @@
+{
+    "values":  [
+                   "elarion_angling:bobber",
+                   "elarion_angling:steady_bobber",
+                   "elarion_angling:clear_bobber",
+                   "elarion_angling:deep_ocean_bobber",
+                   "elarion_angling:vanilla_bobber",
+                   "elarion_angling:leaf_bobber",
+                   "elarion_angling:slimey_bobber",
+                   "elarion_angling:glowing_bobber",
+                   "elarion_angling:golden_bobber",
+                   "elarion_angling:cloud_bobber"
+               ]
+}

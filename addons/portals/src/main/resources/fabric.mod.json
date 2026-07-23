@@ -5,6 +5,17 @@
     "name":  "Elarion Portals",
     "icon": "assets/elarion_portals/icon.png",
     "description":  "Linked, scheduled Elarion portal routes with tickets and return entitlements.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

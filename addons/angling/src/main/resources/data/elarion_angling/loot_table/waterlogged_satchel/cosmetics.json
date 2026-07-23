@@ -1,0 +1,48 @@
+{
+    "type":  "minecraft:archaeology",
+    "pools":  [
+                  {
+                      "bonus_rolls":  0,
+                      "entries":  [
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:pearl_smithing_template"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:kimbe_smithing_template"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:colorful_smithing_template"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:clear_smithing_template"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:frog_smithing_template"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:slimed_rod"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:sharktooth_rod"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:alpha_rod"
+                                      },
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "elarion_angling:good_old_rod"
+                                      }
+                                  ],
+                      "rolls":  1
+                  }
+              ],
+    "random_sequence":  "elarion_angling:templates"
+}

@@ -9,6 +9,7 @@ import panetina.elarion.core.model.ElarionDomainEvent;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 /** Publishes public Government read models without exposing ballots or voter identities. */
 public final class GovernmentWebProjectionPublisher {
@@ -27,6 +28,7 @@ public final class GovernmentWebProjectionPublisher {
     public void onDomainEvent(ElarionDomainEvent event) {
         if (event == null || !"elarion_government".equals(event.sourceSystem()) || event.realmId().isBlank()) return;
         publishRealm(event.realmId());
+        if (event.actorId() != null) publishOffice(event.actorId());
     }
 
     private void publishRealm(String realmId) {
@@ -39,10 +41,22 @@ public final class GovernmentWebProjectionPublisher {
             identity.put("colorName", api.realms().color(realm));
             api.system().webProjections().publishState("realm.identity", realm.id(), realm.id(),
                     Visibility.PUBLIC, identity);
+            if (realm.spawn() != null && !realm.spawn().worldId().isBlank()) {
+                api.system().webProjections().publishState("world.presentation", realm.spawn().worldId(), realm.id(),
+                        Visibility.PUBLIC, Map.of("displayName", api.realms().officialName(realm)));
+            }
         });
+        states.realm(realmId).officeHolders().values().forEach(holders -> holders.forEach(this::publishOffice));
         for (GovernmentVoteType type : GovernmentVoteType.values()) {
             publishVote(realmId, type, states.existingVote(realmId, type).orElse(null));
         }
+    }
+
+    private void publishOffice(UUID citizenId) {
+        if (citizenId == null) return;
+        String realmId = api.citizens().find(citizenId).map(citizen -> citizen.realmId()).orElse("");
+        api.system().webProjections().publishState("government.office", citizenId.toString(), realmId,
+                Visibility.WHITELISTED, Map.of("officeDisplayName", states.officeDisplayName(citizenId)));
     }
 
     private void publishVote(String realmId, GovernmentVoteType type, GovernmentVoteState vote) {

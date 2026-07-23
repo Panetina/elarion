@@ -1,0 +1,92 @@
+{
+    "values":  [
+                   {
+                       "id":  "elarion_angling:aurorafin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sunseeker_carp",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:vesanii",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:borealis_fin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:cerulean_crystalback_minnow",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:joelian",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:mycelfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:stonefin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:verdant_pike",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:wardfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:obsidian_ribbon_eel",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:hellhound_ray",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:voidfang",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:coelacanth",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:midas_fish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:devils_hole_pupfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:voidseeker",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:alpha_fish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:dragon_fish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "aquaculture:piranha",
+                       "required":  false
+                   },
+                   {
+                       "id":  "netherdepthsupgrade:blazefish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "unusualfishmod:raw_spindlefish",
+                       "required":  false
+                   }
+               ]
+}

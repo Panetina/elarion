@@ -62,6 +62,13 @@ public final class TitleService {
         return config.titles().values();
     }
 
+    public int resetAllClaims() {
+        int count = claimState.claims().size() + claimState.retiredTitles().size();
+        claimState = new TitleClaimState();
+        if (server != null) claimStorage.save(server, claimState);
+        return count;
+    }
+
     public Optional<TitleDefinition> find(String id) {
         if (id == null) return Optional.empty();
         return Optional.ofNullable(config.titles().get(id.toLowerCase(Locale.ROOT)));

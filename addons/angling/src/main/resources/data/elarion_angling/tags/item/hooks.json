@@ -1,0 +1,23 @@
+{
+    "values":  [
+                   "elarion_angling:hook",
+                   "elarion_angling:amethyst_hook",
+                   "elarion_angling:shiny_hook",
+                   "elarion_angling:gold_hook",
+                   "elarion_angling:mossy_hook",
+                   "elarion_angling:stone_hook",
+                   "elarion_angling:split_hook",
+                   "elarion_angling:heavy_hook",
+                   "elarion_angling:vanilla_hook",
+                   "elarion_angling:copper_hook",
+                   "elarion_angling:exposed_copper_hook",
+                   "elarion_angling:weathered_copper_hook",
+                   "elarion_angling:oxidised_copper_hook",
+                   "elarion_angling:echoing_hook",
+                   "elarion_angling:frozen_hook",
+                   {
+                       "id":  "tide:void_fishing_hook",
+                       "required":  false
+                   }
+               ]
+}

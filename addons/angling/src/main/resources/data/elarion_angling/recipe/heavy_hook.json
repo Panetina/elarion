@@ -1,0 +1,24 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "H":  {
+                          "item":  "elarion_angling:hook"
+                      },
+                "I":  {
+                          "item":  "minecraft:iron_block"
+                      },
+                "N":  {
+                          "item":  "minecraft:iron_nugget"
+                      }
+            },
+    "pattern":  [
+                    "N  ",
+                    "IHI",
+                    " I "
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:heavy_hook"
+               }
+}

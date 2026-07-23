@@ -21,7 +21,8 @@ Network packets: `UiThemeSyncPayload`, `NotificationSnapshotPayload`,
 addon-specific screen snapshots.
 
 GUI/screens: NPC dialogue, Shrine UI, Government UI, notification drawer,
-Collection menu, future shops/market/quests/Atlas.
+Collection menu, Atlas placeholder shell, and future shops/market/quests/full
+Atlas.
 
 Storage/persistence: `config/elarion/core/ui_theme.yml`.
 
@@ -31,6 +32,10 @@ Related systems: NPCs, Offerings, Economy, Government, future Quest/Market scree
 
 Extension points: `ElarionScreen`, primitives, typography helpers, cards,
 virtual lists, numeric prompt, theme variants, collection tab providers.
+
+The Atlas shell registers `M` in the Elarion key category and opens a static
+`AtlasPlaceholderScreen` built from shared civic primitives. It sends no
+packet, loads no map data, and exposes only disabled future feature labels.
 
 Risks: one-off buttons/panels per screen; duplicated colors; unbounded list rendering; client-owned mutation.
 
@@ -280,7 +285,7 @@ hard-coded HUD categories. They render from
 and compute countdowns locally.
 
 Government owns two separate themed screens: `CivicForumScreen` for citizen
-founding/proposals and `SeatOfRuleScreen` for authority review/records. They
+founding/audience requests and `SeatOfRuleScreen` for authority review/records. They
 share low-level Core UI primitives and the `GovernmentUiOpenPayload` packet,
 but they do not share one generic dashboard screen. Government UI rows carry
 explicit row intent in their network snapshot: static, navigation, choice,
@@ -291,8 +296,8 @@ Close, while module switches remain server-authoritative. Do not infer row
 behavior from labels such as "Rules" or "Monarch"; the payload row kind and
 semantic metadata are the contract.
 
-Government proposal and civic-record overlays use a compact title field plus a
-wider multiline body area for proposal text, official law text, rules, notices,
+Government audience/vote and civic-record overlays use a compact title field plus a
+wider multiline body area for audience text, official law text, rules, notices,
 and project records. Long body text should be authored in that body area, not
 compressed into titles or single-line inputs.
 
@@ -385,7 +390,7 @@ and is forbidden.
 The Titles tab uses Core title definition colors for row/detail accenting,
 identity title rendering, and the unlocked title preview above the live player
 model and username. Built-in titles also provide rank badges through
-`ElarionCollectionRank`: Sovereign, Heir, Council, Synod, Officer, Trusted,
+`ElarionCollectionRank`: Sovereign, Heir, Council, Officer, Trusted,
 Common, Rare, and Legendary. Mounts provides Common/Uncommon/Legendary badges
 through the same Core rank palette. The Core Pets placeholder remains empty
 until a Pets addon owns real entries and can provide equivalent metadata.

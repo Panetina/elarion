@@ -120,6 +120,15 @@ public final class MountSessionService {
         }
     }
 
+    public int resetAll() {
+        int changed = sessions.size();
+        sessions.clear();
+        pendingRestores.clear();
+        dirty = true;
+        save();
+        return changed;
+    }
+
     public void clearForMount(ElarionMountEntity mount) {
         mount.ownerUuid().ifPresent(this::clear);
     }

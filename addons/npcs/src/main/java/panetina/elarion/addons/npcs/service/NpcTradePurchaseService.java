@@ -73,6 +73,17 @@ public final class NpcTradePurchaseService {
         if (bound) saleStorage.save(server, saleJournal);
     }
 
+    public synchronized int resetAllPlayerState() {
+        int changed = journal.size() + saleJournal.size();
+        journal.clear();
+        saleJournal.clear();
+        if (bound) {
+            storage.save(server, journal);
+            saleStorage.save(server, saleJournal);
+        }
+        return changed;
+    }
+
     public synchronized void reconcilePlayer(ServerPlayerEntity player) {
         if (!bound || player == null) return;
         for (NpcTradePurchaseRecord record : journal.values().stream()

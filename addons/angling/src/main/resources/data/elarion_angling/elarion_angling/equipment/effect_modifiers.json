@@ -1,0 +1,12 @@
+{
+    "schema_version":  1,
+    "values":  {
+                   "minecraft:luck":  [
+                                          {
+                                              "type":  "elarion_angling:adjust_handle_speed",
+                                              "multiplier":  1.25,
+                                              "translation_override":  ""
+                                          }
+                                      ]
+               }
+}

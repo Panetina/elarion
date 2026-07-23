@@ -48,6 +48,14 @@ public final class NpcRelationshipService implements NpcReputationApi {
         if (bound) storage.save(server, relationships);
     }
 
+    public synchronized int resetAllPlayerState() {
+        int changed = relationships.size();
+        relationships.clear();
+        factionSummaries.clear();
+        if (bound) storage.save(server, relationships);
+        return changed;
+    }
+
     public synchronized int score(UUID playerId, UUID npcId) {
         return record(playerId, npcId).map(NpcRelationshipRecord::score).orElse(0);
     }

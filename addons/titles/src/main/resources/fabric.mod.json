@@ -5,6 +5,17 @@
     "name":  "Elarion Titles",
     "icon": "assets/elarion_titles/icon.png",
     "description":  "Title rendering addon backed by Elarion Core identity and abilities.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

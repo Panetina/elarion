@@ -1,0 +1,2630 @@
+{
+    "schemaVersion":  1,
+    "sourceRevision":  "016161dfc2d556d20fa641cd275e18c539256d4d",
+    "summary":  {
+                    "files":  347,
+                    "areas":  {
+                                  "advancement":  121,
+                                  "loot_table":  47,
+                                  "recipe":  122,
+                                  "tags":  57
+                              }
+                },
+    "excluded":  [
+                     {
+                         "area":  "curios",
+                         "count":  2,
+                         "disposition":  "dependency-unavailable-on-fabric",
+                         "sourcePaths":  [
+                                             "src/main/resources/data/starcatcher/curios/entities/modifier.json",
+                                             "src/main/resources/data/starcatcher/curios/slots/head.json"
+                                         ]
+                     },
+                     {
+                         "area":  "data_maps",
+                         "count":  5,
+                         "disposition":  "ported",
+                         "sourcePaths":  [
+                                             "src/generated/resources/data/starcatcher/data_maps/item/aquarium_interaction.json",
+                                             "src/generated/resources/data/starcatcher/data_maps/item/modifiers.json",
+                                             "src/generated/resources/data/starcatcher/data_maps/item/tackle_skin.json",
+                                             "src/generated/resources/data/starcatcher/data_maps/mob_effect/modifiers.json",
+                                             "src/generated/resources/data/starcatcher/data_maps/starcatcher/fish/treasures.json"
+                                         ]
+                     },
+                     {
+                         "area":  "loot_modifiers",
+                         "count":  1,
+                         "disposition":  "pending",
+                         "sourcePaths":  [
+                                             "src/generated/resources/data/starcatcher/loot_modifiers/fishing_hat_from_shipwrecks.json"
+                                         ]
+                     },
+                     {
+                         "area":  "starcatcher",
+                         "count":  148,
+                         "disposition":  "ported-separately-as-catch-definitions",
+                         "sourcePaths":  [
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/agave_bream.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/amethystback.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/aquamarine_pike.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/aurora.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/azure_crystalback_minnow.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/bigeye_tuna.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/black_eel.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/blossomfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/blue_crystal_fin.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/blue_herring.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/bluegigi.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/boot.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/boreal.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/brassgill.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/bright_amethyst_snapper.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/cactifish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/carpenjoe.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/cerberay.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/charfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/chorus_crab.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/chorus_minnow.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/cinder_squid.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/clam.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/coggill.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/cogtopus.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/conch.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/crystalback_boreal.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/crystalback_minnow.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/crystalback_sturgeon.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/crystalback_trout.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/dark_amethyst_snapper.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/deepjaw_herring.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/deepslatefish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/downfall_bream.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/dried_seaweed.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/driftfin.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/drifting_bream.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/dripfin.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/drive_pike.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/dusktail_snapper.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/eel_dynamo.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/elderscale.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/embergill.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/end_glow.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_amethyst_hook.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_bamboo_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_boner_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_frog_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_humble_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_lush_glowberry_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_magmaforged_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_naturalist_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_obsidian_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_sharktooth_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_sky_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/extra_slimed_skin_smithing_template.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/fossilized_angelfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/frostgill_chub.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/frostjaw_trout.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/garnet_mackerel.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/geode_eel.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/ghostly_pike.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/glowing_dark.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/glowstone_pufferfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/glowstone_seeker.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/gold_fan.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/hollowbelly_darter.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/icetooth_sturgeon.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/ironjaw_herring.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/joel.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/lava_crab.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/lava_crab_claw.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/lightning_bass.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/lily_snapper.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/livid_bamboo.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/lush_pike.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/magma_fish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/mechanical_brass_snail.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/mechanical_snail.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/meka_agave_bream.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/mirage_carp.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/mistback_chub.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/molten_deepslate_crab.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/molten_shrimp.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/morganite.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/mossy_boot.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/nebula_squid.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/obidontiee.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/obsidian_crab.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/obsidian_eel.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/pale_carp.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/pale_pinfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/peakdweller.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/petal_bass.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/petaldrift_carp.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/phillipsfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/pinfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/pink_koi.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/pipehead.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/purple_carp.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/pyrotrout.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/redscaled_tuna.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/rockgill.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/rose_siamese_fish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sage_catfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sandtail.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/scalding_pike.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/scorched_bloodsucker.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/scorchfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sculkfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sea_bass.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/secret_burning_bottle.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/secret_drifting_waterlogged_bottle.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/secret_hopeful_bottle.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/secret_hopeless_bottle.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/secret_scalding_bottle.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/secret_true_blue_bottle.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/secret_withered_bottle.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/shroomfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/silverfin_pike.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/silverveil_perch.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sludge_catfish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/spacejelly.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sporefish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/stonefish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sun_seeking_carp.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/suneater.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sunflower_carp.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/sunny_sturgeon.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/the_quarrish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/thunder_bass.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/trophy_trophy_copper.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/trophy_trophy_diamond.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/trophy_trophy_gold.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/trophy_trophy_iron.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/trophy_trophy_of_the_older_angler.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/twilight_koi.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/valve.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/vesani.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/vivid_moss.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/voidbiter.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/voidfin.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/ward.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/whiteveil.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/willish.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/willow_bream.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/wintery_pike.json",
+                                             "src/generated/resources/data/starcatcher/starcatcher/fish/yellowstone_fish.json"
+                                         ]
+                     }
+                 ],
+    "entries":  [
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/food/starcaught_fish_from_campfire.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/food/starcaught_fish_from_campfire.json",
+                        "area":  "advancement",
+                        "targetSha256":  "17062016484b92b65816063befc68545e51b042566ca279656633bc88e37263a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/food/starcaught_fish_from_campfire_from_starcaught_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/food/starcaught_fish_from_campfire_from_starcaught_fish.json",
+                        "area":  "advancement",
+                        "targetSha256":  "b53152bcc1b02e9b9f83636f892f730e37cede0f31e8b624face8437fdd8e29e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/food/starcaught_fish_from_smelting.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/food/starcaught_fish_from_smelting.json",
+                        "area":  "advancement",
+                        "targetSha256":  "bfd34a29825b5ca9995fadfad97046af99bcddac146bbd983cb6eed1994870d5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/food/starcaught_fish_from_smelting_from_starcaught_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/food/starcaught_fish_from_smelting_from_starcaught_fish.json",
+                        "area":  "advancement",
+                        "targetSha256":  "cb419d023f3056ad4cc5ff82f564e37643a2a2dbc0eac9e87540e235aa6fa57e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/food/starcaught_fish_from_smoking.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/food/starcaught_fish_from_smoking.json",
+                        "area":  "advancement",
+                        "targetSha256":  "062b4ae67985c479b22151f9cff095b531c7c34a64db3f662c5d61db48c6caa5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/food/starcaught_fish_from_smoking_from_starcaught_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/food/starcaught_fish_from_smoking_from_starcaught_fish.json",
+                        "area":  "advancement",
+                        "targetSha256":  "a4c20d52c5a5ad550ee59b3d9f55bad371db0a758c1a51f3b6f726e4ccc4aff5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/alpha_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/alpha_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "503bb542bc6bd4bf2ff12818d298128d5ea25b0b1a237b2e048d59860b438f01",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/amethyst_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/amethyst_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "91d9e6133ecfb5e7e7ae962030e8b7678dcdc3f249bf15965c7611f42a35ec0f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/aquarium.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/aquarium.json",
+                        "area":  "advancement",
+                        "targetSha256":  "8dc62d26d1124e9e8e4e5f644945cf90eb8a594c1589b28e4c2d18c70e8bbe0e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/azure_crystal_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/azure_crystal_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c4324dd508c74de08c7e51233d8233a2d84a21b0759cdda98e547fc8461b8ffb",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/bamboo_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/bamboo_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c37193a441eeed8e40342c36012b214316eaa35d63f16ddf1d9d56747added04",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "89399df0b5be436db991039e932c9a1f6a487b6be903e321f20db64a3fa0cb60",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/bone_meal_from_clam.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/bone_meal_from_clam.json",
+                        "area":  "advancement",
+                        "targetSha256":  "13b2289cfe0552d831b816143d5cd2b2838a337678aba5310e9fe5982b7c0165",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/bone_meal_from_conch.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/bone_meal_from_conch.json",
+                        "area":  "advancement",
+                        "targetSha256":  "8b6922e72b0f4489e07a0cac263525e56a85138125de80ccda81b418adca3a2a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/bone_meal_from_fish_bones.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/bone_meal_from_fish_bones.json",
+                        "area":  "advancement",
+                        "targetSha256":  "37791b731ebd3528867339b63e90039d12183ccb083efda0bf2650d542bf8aaf",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/boner_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/boner_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "d8b83f901517e3855e2bc2889f6a31928afa38476918ec175ffbc1cdd1cc73a6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/cherry_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/cherry_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "3cf392a8a2ca8b235733e6a49cb8015c2a5b61a978ea594f98300f2981f24204",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/clear_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/clear_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "dcdd7fbf5a578c168fb092d10308a2b3c2f98ce7d8d40e3a40e1213184de042f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/clear_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/clear_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "9230143ceee5dc616b73fe56a1edea6aa671b9757858540c130102e27839b018",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/cloud_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/cloud_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "b8c4cef8f2af8b7b6d941886bbd36e7dc06f8a3297cf2ccfe464de7a712cfe15",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/colorful_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/colorful_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "1d3581af7a00809a2b192cb67d224dc9cd8d2b494039f303dd68d531d82840bc",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/copper_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "28f227be5b0aa48476158ff655ebf57270500a16036ea4a83aabd440e0477ab3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/deep_ocean_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/deep_ocean_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "1dda2e15e2c424d7415bb6cdabca2e0e2675770c78b4add647da2c134e9eb3d7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/display.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/display.json",
+                        "area":  "advancement",
+                        "targetSha256":  "7c8a92f799a4f52746467b9992f66f5c47ff2eb01229b5200b50e3f88a40941c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/dripstone_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/dripstone_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "66f3bfd05ad989dc075d17574a4f337310cae0c8be7989c9f98b9da5de60b861",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/dripstone_bait_from_pointed_dripstone.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/dripstone_bait_from_pointed_dripstone.json",
+                        "area":  "advancement",
+                        "targetSha256":  "690f1743cb7022ccb6f9a8f8c584959eee391f8eb5b2cd0a08cc7cb024e0e5ee",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/echoing_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/echoing_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "e82bca647959b12f98265e802d9039645bcb77dc9293d5bc70de2fd023cdf1cc",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/exposed_copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/exposed_copper_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "4c69af89bccc706fe7e825b31d81a3de63a75d9ebee80cee21396b8fc576e8ca",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/fish_radar.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/fish_radar.json",
+                        "area":  "advancement",
+                        "targetSha256":  "836336282fd762a55ef30dd38f529c79f9e434c8cb12cb7f281ba8778332503c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/frog_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/frog_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "baa14d380c4a8819877250e0129eb49c684ed272a71758ede1a472c132d29f72",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/frozen_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/frozen_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "0078c968e879f92106d15c868cad0f7cd7ad55d46fa21350e22e1da576fa72be",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/glowing_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/glowing_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "7c3b218372e99fd251bdc9562e602b266c1cbef9a2bc27c20c1ba54ed091dd35",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/gold_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/gold_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "7c2b1ea7d4f1922e80c869bbf41d6b183a147df596c0282654ad0f2a3600b60c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/golden_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/golden_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "9727ef708fc70733718c44805bb94b1e7123c1734f00c95a5b37ef84045cb99d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/good_old_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/good_old_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "de4c14383003fa6727ffc64d1a479b056ab7f8442c87f043a663c1db99f9fb67",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/gunpowder_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/gunpowder_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "1f44a6ded9f031a25e1806311406c991c02baccc94fae3073f6e57952a757b48",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/heavy_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/heavy_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "cbd640abb039571183ef46529b756882b249a246cf32dc3be30626e7509cb7a1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "50c57b8a0c2f148f52ce19c546f5876e3adda42e1c335c4b7fe43431d225327c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/humble_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/humble_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "81880df2596275536e64079fd78e8e68ad749d19a40c7c193daa3b21682be9a5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/iceborn_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/iceborn_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "a98a0cd25dc340ad90dee32f0f35386b3646dc1c141799dd5d75f76a294a87f3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/kimbe_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/kimbe_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "f02cbf9598311205f42bca9ccb699d45abc2396c61b22ca97ce967341af700f5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/king_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/king_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "37029e0074786e32d3fa9b9bed0a7cb741295a9f7f086900e6fdd4cfe1a4223b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/leaf_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/leaf_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "db01d66425b0b0c1d36512b8e6f0c055debee635f67e21f39ad39e842d5fe85b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/legendary_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/legendary_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "0a5ac83034e003c96fe17bae71b207261e10de506c41c7876715f711a7ed70ea",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/legendary_bait_from_enchanted_golden_apple.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/legendary_bait_from_enchanted_golden_apple.json",
+                        "area":  "advancement",
+                        "targetSha256":  "90e94cf862fffaea461dbaa0b9fbef4b8af4f687f9b948de48544b0966fb1153",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/legendary_bait_from_legendary_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/legendary_bait_from_legendary_fish.json",
+                        "area":  "advancement",
+                        "targetSha256":  "a254ce6984fdf3a93082a4950ace318ef269ebfe2d0c72e50d42f4d88f2d1a9b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/letter.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/letter.json",
+                        "area":  "advancement",
+                        "targetSha256":  "8b8871c18209cad85c3a9c1fd7a3985aa626e5387f6d1887ea39725fa880ce38",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/lush_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/lush_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "7dd0f6a921b74e437ef2f7a7edafd74a97e9ce38044eff303a3a11bb4f502465",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/lush_glowberry_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/lush_glowberry_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "3a33cd42c68a90b97d7823c8b189719b2b48528bd18107711afe57414f4a64e2",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/lust_bait_from_moss_carpet.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/lust_bait_from_moss_carpet.json",
+                        "area":  "advancement",
+                        "targetSha256":  "dd333b4ef2946751904dd7462f1933cd4e32c4e39fed2ba6b3e9f1eee7635c8d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/lust_bait_from_mossy_boot.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/lust_bait_from_mossy_boot.json",
+                        "area":  "advancement",
+                        "targetSha256":  "da4c1b655c40375b14b8d4c51b65dc9f6ce961e6a1fe9d1b48567f9f2b6823a5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/magmaforged_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/magmaforged_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "332b224f4e5e74dc92bba96348153ff6864b20e515f1f05428aa7715b6e850c8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/meteorological_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/meteorological_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "3043973b0ac32d1658dbd5aea17d6bb809ea022062c6f66676b7d7b08ad6b53f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/meteorological_bait_from_epic_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/meteorological_bait_from_epic_fishes.json",
+                        "area":  "advancement",
+                        "targetSha256":  "b6440b27d3d82bb2a3745e4c4e6232809993d897d05f42a2f93913c4830b2b65",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/mossy_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/mossy_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "2ffe8c77c21168fe866749ca0eebd1a7a861d97cb4e6f050747fb416075cdb03",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/murkwater_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/murkwater_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "e3f2b2c3b3484a82e767db3a04a17cf401304cd564d32a13269eeb2f8259ac91",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/murkwater_bait_from_lilypad.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/murkwater_bait_from_lilypad.json",
+                        "area":  "advancement",
+                        "targetSha256":  "ae1437dd8effb9c69c8723ad9edc7311744b6b71bd2c59646e90789889ead18a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/murkwater_bait_from_mangrove_roots.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/murkwater_bait_from_mangrove_roots.json",
+                        "area":  "advancement",
+                        "targetSha256":  "011523f73a4bf7f82578b4992c19761eb3c5ab95d5aad4f3521561486f6eab81",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/naturalist_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/naturalist_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "8f61678eb30ab342a53e9e1a3bd7606cd99e63f6f25853067fcc9c01382533d3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/obsidian_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/obsidian_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "d761c3b4a4d00c771b513baf697284c0d5bbf032525c58b0befd0df2787bebe2",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/oxidised_copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/oxidised_copper_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "cef3ebc547b3315af43c3ca175e52f5c93a152556b5b90619f36f7d2b33b483b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/pearl_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/pearl_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "01ba75df0089ae8aedcb983038c8a9d348124f033c8611c639575b23fd3606d4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/sculk_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/sculk_bait.json",
+                        "area":  "advancement",
+                        "targetSha256":  "2f9d7b630ee5baf9942997b53f2602f835ad56ed1200cfb500ff490d31e55b1d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/sculk_bait_from_sculk_catalyst.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/sculk_bait_from_sculk_catalyst.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c146d56430e31cc2a06c93ae869bd5f6cd2df50f22af547a0f6d65d29cb1959b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/sculk_bait_from_sculkfish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/sculk_bait_from_sculkfish.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6ee348b46b6e794ee0acc7017c63500ab08b987fea63e723416a1008645349be",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/sharktooth_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/sharktooth_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "4131d508ecabc353ff7df4deb37c7b7add440a1e8b5ce6a9887d5d0d9dbf3457",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/shiny_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/shiny_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "5c9d8da333d8e805a71738f39251d49e8cebe4bcfcfae3bee37d359fc16ca52f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/sky_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/sky_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "862ac86a8dbc66e873c27edb27c2bbb102f82ae2bbc5ae2a74d5bd149ac212de",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/slimed_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/slimed_skin_smithing_template.json",
+                        "area":  "advancement",
+                        "targetSha256":  "1cf12d305e72de44c21b9e2829bce57ec0b9fa4ede0ad2937b537d8fb6c62a4c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/slimey_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/slimey_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "81e41c928cd7c7edea95f366cbda8ae9290ec53889a5e3d5a72d9855a0db24fc",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/split_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/split_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "2e4f4559b805a230ce765f7f1dd29bcd54812959fcfb42ee4249ee13d1f89c07",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/starcatcher_twine.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/elarion_angling_twine.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6bc974f1a622833d740f3800c9fb2e69700cdcb06e5e1f43fdbdb34a6fc989a6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/starcaught_fish_from_common.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/starcaught_fish_from_common.json",
+                        "area":  "advancement",
+                        "targetSha256":  "0f5aeafb3d0f8ef11571b26a2abb847cb84f5375d6883a7ab32026450b013036",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/steady_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/steady_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6d6a969d24118da414273d140477645b1a53d19d74256741fdc8ae192527b950",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/stone_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/stone_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "f7879c4fb8b6430b62cfd0f564062ae0b017af91f6f10b83a983360544d2d9ec",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box.json",
+                        "area":  "advancement",
+                        "targetSha256":  "39236f98230c3672fa0d89047638189da19c7c232f2ddd2e03668f9954562eab",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_black.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_black.json",
+                        "area":  "advancement",
+                        "targetSha256":  "8b585c6d3594454943aa41348bd62a9803f85a5b55c06252ad0357f01a9a8d81",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_blue.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c012e3087ba253d4042bfa08365cd034b2efc8541000f7786b61575ff6d90b83",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_brown.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_brown.json",
+                        "area":  "advancement",
+                        "targetSha256":  "ad5867383181a2bc0fd03b3fb3b43907327569051d10fffc46acf6016862c494",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_cyan.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_cyan.json",
+                        "area":  "advancement",
+                        "targetSha256":  "19bf587c914776a10728c3ce1255443e63caff847552facda28d6ed672cc0d7c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_gray.json",
+                        "area":  "advancement",
+                        "targetSha256":  "8b5a36a24dcfe4777ed97b62fb6ee89737e79411bb60f45af1221efaf83d5dfc",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_green.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_green.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6704b5a1972846871b0f0ab529f9c4c9861cc0ca99a4c2e76faf0088e88dd225",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_light_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_light_blue.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6d057b204c74920678c83f867eda115ed6afba5c189927ae557b35dcfef2c90d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_light_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_light_gray.json",
+                        "area":  "advancement",
+                        "targetSha256":  "4a15a94c75ed027da4ed1f6b5ef82d1e2c3e0996a24d4f2c942174cc21a1de5f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_lime.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_lime.json",
+                        "area":  "advancement",
+                        "targetSha256":  "a6fd33fa64aa58c8b5a437320d0b47c798ad97b6a6e94fd4f10cbe81ba34ded9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_magenta.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_magenta.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c2dd41890a9ea1829797f6216c28da55b17a38fce6892e743ad927e180d1a46d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_orange.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_orange.json",
+                        "area":  "advancement",
+                        "targetSha256":  "a94ad095bb15f8ae419a96df5863fe2e2c8f98fc2870c531b00584f5cf8d3fd8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_pink.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_pink.json",
+                        "area":  "advancement",
+                        "targetSha256":  "9ec9c63a9a3c796277546730608d4e4f4f4ce0e3ad1eec76bd57b1ad777e0ca9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_purple.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_purple.json",
+                        "area":  "advancement",
+                        "targetSha256":  "52759616b251cab85e9d4a71db482006b3a75019c44ebd2241f17d5e5a6e95db",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_red.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_red.json",
+                        "area":  "advancement",
+                        "targetSha256":  "d5e52a6d73e796ce935bce023bfcd6824d29ff314506f951998a18768b41731b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_white.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_white.json",
+                        "area":  "advancement",
+                        "targetSha256":  "3ff64dc6c2b7a0e6e1c231d5531722aea6d9369e57b56b580d2500794916990e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tackle_box_yellow.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tackle_box_yellow.json",
+                        "area":  "advancement",
+                        "targetSha256":  "d5a014546dde3f56f5c30147246c2e2b71da1adf9454d8a23e4f69bdf6bdde7f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/tournament_stand.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/tournament_stand.json",
+                        "area":  "advancement",
+                        "targetSha256":  "1ef74d7aae9a965e5de4329b1debafb53b142640d72f2bd4061e91b6e52d31f4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/vanilla_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/vanilla_bobber.json",
+                        "area":  "advancement",
+                        "targetSha256":  "9e785c645dd255760857f04ca4b2296239b7cc89c12b1742da25431df1be3fe9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/vanilla_bobber_from_vanilla_fishing_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/vanilla_bobber_from_vanilla_fishing_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6ad676decec657663dd6a4ca5d5ea19cb0007cd22ef996528d289b2fb23f62cf",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/vanilla_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/vanilla_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "1c9a1c4454e45fd27c1f2c5d1063d1ab08d720e3487b39c31e61a097b54ef684",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/misc/weathered_copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/misc/weathered_copper_hook.json",
+                        "area":  "advancement",
+                        "targetSha256":  "10ab723a17b87e4a6363ac79e418e84c962b0a8c3cd809394f3e037cd91343fd",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/alpha_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/alpha_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "e3aca958e642986364e0f37f9f0d5b4b47e8ca41372c234ef842337c681eeb99",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/azure_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/azure_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "1a57ffe3507c993f30bd64e2e669ff989e0504553fa1e96251ef856b61c40a37",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/bamboo_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/bamboo_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "852f1893943b426be78ebd454853b1e382f5993544c113d59fce6979db23a36e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/boner_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/boner_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "28e189ca23c27ff0a266f70cf31d5035cb7aaf3ffc1d2b70f9ff435b58ead4f8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/clear_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/clear_tackle.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6760d5af4fe73b2093f61192c9a08c0a6192eae85d96886873a04232f0360e46",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/colorful_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/colorful_tackle.json",
+                        "area":  "advancement",
+                        "targetSha256":  "bd605e2538e0183077c614dad6960154f28561cd391514fadf1079ee0e555e2b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/frog_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/frog_tackle.json",
+                        "area":  "advancement",
+                        "targetSha256":  "ab01e0e406145ff262984c96ab0d8e706251a45b332d929dc05983e128386455",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/good_old_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/good_old_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "f86aca26ac4bc831959796a35a3611ff690da2fc8901e8f7de4946d7782e54d0",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/humble_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/humble_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "451516ad30a7bba1dfb378f512cf68c443c980873f64676f1feda3e143610dde",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/iceborn_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/iceborn_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "44f913a6a6c587c38e644b3406abdf5a56aa2ad3d5ab62572e97bffbd15ac08f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/kimbe_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/kimbe_tackle.json",
+                        "area":  "advancement",
+                        "targetSha256":  "ad94ac75cd3a936869b7bd749b09976c1f761f0486ccd3a5cfe9b151c864b736",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/king_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/king_tackle.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c8eb6e7f840127882b2c76c16830279444147462916933d6b5b3723d9f0ea328",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/lush_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/lush_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "5212214bbcb2c7111ee102d2fc2965db1c2b0a7e1f139f2bf33930c2dd9c9513",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/magmaforged_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/magmaforged_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "7842bfc2b5031c1c29d015720e1dbb9d9b9182bc610c7b71481b5bb3f2823132",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/naturalist_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/naturalist_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c7b29e5810bd7fde390a927d8ac015ea229b5326e8e23835aa81dc82d91a0b38",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/netherite_upgrade.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/netherite_upgrade.json",
+                        "area":  "advancement",
+                        "targetSha256":  "8e039e9fa374fd110e739558b5c62b950b0b3b34bf31cb5a6e0c3616f984939c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/obsidian_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/obsidian_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "a61d58ba2aa9e86f778f800ded3afc7452ccaee18de7af67abf577a99154a611",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/pearl_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/pearl_tackle.json",
+                        "area":  "advancement",
+                        "targetSha256":  "f51cac69530ccccdcce47abb4752352318ad90aec3b0a577345afa096759eab4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/rod_from_vanilla.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/rod_from_vanilla.json",
+                        "area":  "advancement",
+                        "targetSha256":  "16e2ec3c9b1a94c526e034b002185df3d2778304f778b68488dfa3543f84c686",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/sharktooth_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/sharktooth_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "cfe383b823ef9d91146cc3e42688491d4c3974fe887c7f4894db16df25b767e0",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/sky_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/sky_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "2195c2e63e2a4f937ca5e2d9d51510617717d5038b959567a35ec6d4fcc8494f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/slimed_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/slimed_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "6ce7f616023a610122991acfcabd796821c156473451c13b39d44305bb9fed24",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/starcatcher_guide.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/elarion_angling_guide.json",
+                        "area":  "advancement",
+                        "targetSha256":  "73a546bc75982bb90097289c30871e80a899121e8f33007faff41bfd850c8517",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/advancement/recipes/tools/starcatcher_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/advancement/recipes/tools/elarion_angling_rod.json",
+                        "area":  "advancement",
+                        "targetSha256":  "c65df85c6e14996e24055305eb3bd9f4c52b246edefd8481b9bd9fc3b6a6aeaa",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/aquarium.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/aquarium.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "654aba333dc0cfe7f9580ae0c2db47288f1b66b1aa2dcc86235f9c1229706039",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/clam.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/river_clam.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "b86e9583368f4c3de5fc02e4e41ee97a786376380700d9d1c57d4919afee6d83",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/conch.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/weathered_conch.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "8cd364116c99c9ab3cde8071aa6397f569c642b872693749368442c491a28bb2",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/display.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/display.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "029f9ec9cbf82f005c338e291b34319140482440055be2859469798d323c00b8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_black.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_black.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "1e93d6a21ba61657afa5b27fca4477c6415d4550e554db4c4363a4011f8f2ea1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_blue.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "d27d5a99f4885fdc34f194cc26622073b5b47aea173ec100dd368bde236eede0",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_brown.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_brown.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "53ac58b20022ec640d03a8c4353d7819deb0ea54a428a29975c3a146cfebf9f6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_cyan.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_cyan.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "b8cc0a964c616faba44d7668052917c1748a272a9ed42de76e4165b5ec6ba314",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_gray.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "f1a37174f865252113e2cdfcc638af5f3b3b31bdc588dfb4168c00b78dbef6f9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_green.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_green.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "0dea171c001da8e3fe2739e6b15b6a85d6069c6c4150d472c98f6d18345943e6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_light_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_light_blue.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "4a312ead2e4d73427bf7ccdf2fcc2f2158e4261cf0197409c30c86b660e713d9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_light_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_light_gray.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "4f91a625afb114c1407fe0e2e5f26c51327bdccf627411f4276dc54d2a5036e3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_lime.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_lime.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "b24fe84d591bac5162db12f827dfd4602a3e917d7e5dd52e1a450b0208b93972",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_magenta.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_magenta.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "4d51776977de5a5339aa4235a9f719c83366ef3ae3933c77998eea54aa24d942",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_orange.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_orange.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "8adee20593afc185387a5197649a27b333df0b02e8eea3d2d33065797f44391f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_pink.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_pink.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "0a4959e66776a7730066e0fecae0d6f37f7ffc9110929c09a335c25a636dcc5c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_purple.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_purple.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "689469108ef818347cdf5da4a033bf4ffda2831adf11a3beeac46da1b2e4ebb2",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_red.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_red.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "2d0c7cd814607a53e22e34cb5824aaf05fe3baeafbb962e40f2b1bd9c0e3adf1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_white.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_white.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "8e75285376879ba6af40a48ca1ec04f53de7bdf02cd9fc40958bfd290db8c348",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/fisherman_hat_yellow.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/fisherman_hat_yellow.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "e4d602fa01e4e5ee0979f53f4d1b543691da0c9754eaf4cb9db80d9ea05e952b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "912dd4707646e946a6abe1e499e837878425b2bfc30f2e1bb30db516ed03449a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_black.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_black.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "e400f6599c9b740900f9dbccfa19d573f9bcb8df64424aea1bb1009e507cc5a7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_blue.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "f1f0afb1e0ce427860818b90f70a1970a6481292e091735aced6a33c87d81142",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_brown.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_brown.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "dbd2b13ba6716bebf94fa2bbe048a3dee904846497a489398326d73ae7f27d71",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_cyan.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_cyan.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "e2e2e29e5935dd8401902573b190918eb236b2b7de34e02449694c4935aced12",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_gray.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "6a514591c6fbbda36fbaccbc6bce25bdee06db74b4ac1da4049ab295bae096ec",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_green.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_green.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "6cd2b541cb12a5649581d74c4cbf56d1f544e09ea5c983699d6c03e141c30530",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_light_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_light_blue.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "b99c167cf3d8470c9df90941b936852b767e73d93d3ea3856671df03f23b0269",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_light_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_light_gray.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "cdb7334b8c05125cc44d2c07df83a4bbc25c38db32ba62d4081b75af66752aae",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_lime.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_lime.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "0319e05b79a7cf313d6ee967fb7c3ed4e1451acca48689a318ced1da6e5d2004",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_magenta.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_magenta.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "57cc72dc904451e8283796a3384519eab61ea3e5b305a5a2314f58053ad2fcc7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_orange.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_orange.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "a10d93ac38a08ef58cd71baf92a8a9944112c34bd9eb2490d61ae3a32fe0069f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_pink.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_pink.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "67c6a3fe597480dcbcbd55e93220bf75109c8f4d5096e2e8bf09c18bb8cb88a8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_purple.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_purple.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "255e232c542fc62413204c12db0a7bfcaaac048f4769489d4d506a8b75970e43",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_red.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_red.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "5e5a744dab6bc9f478957fb2ef7702e5c4a02a60995dfa60c7791fc7d3d3ba31",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_white.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_white.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "ed564655eb4ef4b5ac0050e58c7683bd0cabc05cfb9e8c7246af41898a8dd597",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/tackle_box_yellow.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tackle_box_yellow.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "46d7a2d6d4855757d7d99c475df0dd6eac9c9ed752cb03432cdcfbd47dab688a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/loot_table/blocks/tournament_stand.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/tournament_stand.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "d5bc6cacb9885366204029da30f77b8cb17453afc3fcdef93381e420966c09d1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/trophy_copper.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/trophy_copper.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "99bc7d9f164f2dc4052ad3eda71690cb5bcef54e7ce49c5c3eb711f57851764d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/trophy_diamond.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/trophy_diamond.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "3f7ac2b94d26f5ea0c514c4053a906239e84ff31c842a45b5ab68543959f85b7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/trophy_emerald.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/trophy_emerald.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "7696412454c8e9e1de57a0a0e4db543030eb81370c98d64ab44c90f4d2a3b73c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/trophy_gold.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/trophy_gold.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "5943008b53a191a740449e8489ca8bc72f00816b7b097fd80229b643668855d7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/loot_table/blocks/trophy_iron.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/trophy_iron.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "652bd8ed1267b3e7953163bf2c392b78370b0220706d20de3b7a3e2e5680e05b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/loot_table/blocks/trophy_of_the_older_angler.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/blocks/trophy_of_the_older_angler.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "9a953dcbe76cd4a2833f24d4183cdaef9140db573eaac30cecc979400bfe9747",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/loot_table/waterlogged_satchel/cosmetics.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/waterlogged_satchel/cosmetics.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "4b1f6569a85d9e85d895e630713002607811808cfb388d5159e803657629f96c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/loot_table/waterlogged_satchel/extra_loot.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/waterlogged_satchel/extra_loot.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "b478dcacd327fd27d55e067fffc28f1a7ea0afe343773658ba91e0e689cad48a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/loot_table/waterlogged_satchel/waterlogged_satchel.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/loot_table/waterlogged_satchel/waterlogged_satchel.json",
+                        "area":  "loot_table",
+                        "targetSha256":  "e836d66c92168ac1574c03253dc467358f303963bf4de388acff50a338c757a9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/alpha_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/alpha_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "2e943dde893e842f7f54b3d128e7ee8c150b6a7f3f89d1ad2eb3550666d3f7ce",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/alpha_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/alpha_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "ab38cd3a844e5e63d70d3077792a5e1403da6fae3b9b60812ef4b5d25cd0e1c4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/amethyst_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/amethyst_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8fd65c18c2ed63eb4915c5b33b656da1e8f34484453f28f12f881ba2f84ef643",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/aquarium.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/aquarium.json",
+                        "area":  "recipe",
+                        "targetSha256":  "6efc595d9ceeef115aa77f93e8c5a976ac0d6b50e81aef44cf6daee55c81e679",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/azure_crystal_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/azure_crystal_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8b30a48279ddea4cec15e97c4be66c2cb36f3750b83034dd052af26da36749b6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/azure_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/azure_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "d25d458d0e93cea94ac54e7b6d24df0d31bffcc84b163d71c3716fbb42d73bdf",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/bamboo_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/bamboo_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "4d49b85c975d545dba223802857141ead6079c2da06c0c7b4d8b63be53fe572a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/bamboo_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/bamboo_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b1c7acd0b586168f1ece50e264042af81e1c0e0ec89af169c680cc935149a9a2",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "c7784212639bacdb14adc0c725d469d952a56bdcc36272990400aa22ffccf3c3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/bone_meal_from_clam.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/bone_meal_from_clam.json",
+                        "area":  "recipe",
+                        "targetSha256":  "a6491cfcef15a1d062a8c4afc9345778c2035c5c44437054a0e0914cd278a87b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/bone_meal_from_conch.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/bone_meal_from_conch.json",
+                        "area":  "recipe",
+                        "targetSha256":  "383209945da7fa53168d6820715abe7edf6bde8156d70b28d2bf79e2d724f8c8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/bone_meal_from_fish_bones.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/bone_meal_from_fish_bones.json",
+                        "area":  "recipe",
+                        "targetSha256":  "66ad07c43621c5bb05e3012a7c59ca82946cb084aa5cdb64919dc5d3b7bfd90c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/boner_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/boner_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "08de1d2d410978c67283ca7cb7a1e29db6c3f5df796c7d55261ec60f16d17543",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/boner_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/boner_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8ba84ccba837854f0b23c7b69a658ff6f06e750fc7cfe88fbf2aeb2c53067db6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/recipe/bottled_letter.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/bottled_letter.json",
+                        "area":  "recipe",
+                        "targetSha256":  "f590acb28a09fb6e258ed673b5c688c6dd8e79dcd787c96470bc37abaf1959f1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/cherry_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/cherry_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "fa394f5ca83cb66cdfe0a8dde9bfc3fbf22fdfcc042188eeadaa6a99caca1ef4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/clear_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/clear_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "0bf89a85b3cee861173e0d38f02e062a5f2561ad1cac48798f64bd3a1935ea46",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/clear_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/clear_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "3ad44cfe559866d939f5249744a5d24d898f0eb1240c81161936e94815496d9f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/clear_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/clear_tackle.json",
+                        "area":  "recipe",
+                        "targetSha256":  "0e1c0045a358537c68067927c9fb03d55b446f07db9f8100220cca21d2949c45",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/cloud_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/cloud_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "9d1aecadeba93d51e65d0dc4d84dae67f4ecf951bd35c5861ee9da7ac012a013",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/colorful_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/colorful_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "5497f6de03587c552ee8a5865519979b9800c32646b44bba0a0f527e49bb82ce",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/colorful_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/colorful_tackle.json",
+                        "area":  "recipe",
+                        "targetSha256":  "e04790a44da1971abacdff91568fb4d298c0cfab7acf353f5d125f859f716cbe",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/copper_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "db74c4ef61f1357d00c4759171c951797388619e0cee8b3a4a70c15b56cb77df",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/deep_ocean_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/deep_ocean_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "6e730b611ff0dc86e84c62ee0ae21b78d45b2b6b554d61a71d1e195ed4cb244e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/display.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/display.json",
+                        "area":  "recipe",
+                        "targetSha256":  "bcab287e10a32a371fe00f991f43b6484dd078c59b29e8b00f558c43c4e3d4ce",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/dripstone_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/dripstone_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "fa94fbb95dde3239e2fe164f74e8cc8bbd913ee5b6dc12284943aa2fa64d52fa",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/dripstone_bait_from_pointed_dripstone.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/dripstone_bait_from_pointed_dripstone.json",
+                        "area":  "recipe",
+                        "targetSha256":  "30a1d2566693dbab0a31d8cac350fa317450e68a2631442d79d6e8a834af406f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/echoing_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/echoing_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "36c3cc0c8d6534269f8b03bf478c3adfcb62296789736cadfee67fc98ead56d5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/exposed_copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/exposed_copper_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "1192aa5c2f318f9ccf6511b6af6a8070afa7def9f6beb9768d739b50558095ab",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/fish_radar.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/fish_radar.json",
+                        "area":  "recipe",
+                        "targetSha256":  "64b82dbd76b35a2f40ffde448625b8da88beb499ad8094641f4bd33bdb8fefbf",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/frog_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/frog_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "53162a2fa2f25d6edf91dbc14de7c851de7f7b60ea91484a23b5bfbf1180d6ab",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/frog_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/frog_tackle.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b8cef604414609893ed8eb96552fb71732d108dcfbd6013dfb58dc2189bbda95",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/frozen_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/frozen_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "cbf664381b2b5ba5230dedd13eb142e3b0c52b2efb65578e5271b0e6e379a299",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/glowing_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/glowing_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "396963c6ae997cae14ab4dbb87b51f32ce452784816f88cfdff299ff588b217e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/gold_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/gold_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "94e3dff59dc5cf90ff4e23bd2e5b384cd2b2c806fe89cac3e55fb63c72cc7223",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/golden_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/golden_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "dbad750003a839113c8708ee30c373ed76d15fc31bc7b997aa2fc7bfff01c2a3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/good_old_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/good_old_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b5bd30e41ac1a470b3e247befcabe0e74556268fe477307b078fa2efb5eaf19f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/good_old_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/good_old_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8aab3d3dc98b341316f57f2dcdc46300edc06ca002a970e28f21e8962b07dba5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/gunpowder_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/gunpowder_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "98c33663df35c0ba9cea3685fed9cc63b9497cbae37d4e51f383984f7356b4f7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/heavy_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/heavy_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "c5e4e8b67a694875baf6e4d1d9c0ef9ecfcb6be4608333397498e2853e1d5981",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "99504a0b91998f7939deaebebfc0bfddd068833f6b0bd3878ed4f385dc3f49f5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/humble_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/humble_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "992bfb32073ca866c7e3f326ceadb0914eef32c80d586a1406a97d83e80c0f4d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/humble_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/humble_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "741800b7520347b47cbb0bef2ac64c16feba8015633014dc56be0dc562883910",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/iceborn_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/iceborn_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b560d66e4be29b449385171c6dfe629f5a0ff338c6f35c917528b96475cae14b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/iceborn_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/iceborn_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8bccb864667fed5d1ff1e76ddac5ead3dfac2bdcc7037b7f172e18f280b7dcfe",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/kimbe_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/kimbe_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "46a4384e8b57c683b7f4e459d6f9ce7374d9bd948c42e6f39f673066d55008fc",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/kimbe_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/kimbe_tackle.json",
+                        "area":  "recipe",
+                        "targetSha256":  "53b7f9868cff71605217f0f1ad661b9e52447fca5058e3720c7e68eb8d8f5ada",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/king_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/king_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "5c1e2787e83f9dbaaf6acdcb291da21f870798b396e6530d52cc404e251aacb4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/king_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/king_tackle.json",
+                        "area":  "recipe",
+                        "targetSha256":  "7ac3f68499472c7b18fe499a91575f3edc376e6ba6ca0f88e9d8e4276486e42f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/leaf_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/leaf_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "eb4f1efa3b1b2886e45ffa00dd39b8fc08fef9bccb64b37f3e69bdaf90d0c8b7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/legendary_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/legendary_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "bb99596fb19a1b08e4ee7dfcd412eb07aca62d53e484e3fab1636a02413fde74",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/legendary_bait_from_enchanted_golden_apple.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/legendary_bait_from_enchanted_golden_apple.json",
+                        "area":  "recipe",
+                        "targetSha256":  "929cbb0a7eeabb06eee8f7234f42d6f8ef41ce79e3510ce09d8cdb3614cc8fcf",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/legendary_bait_from_legendary_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/legendary_bait_from_legendary_fish.json",
+                        "area":  "recipe",
+                        "targetSha256":  "c187645b320d28fe495bdf8d5919dc0b710ed4ee2eb8e47aa4846a11cd56e4b7",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/letter.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/letter.json",
+                        "area":  "recipe",
+                        "targetSha256":  "a37ce968e18461025f81b402139d1d3d3c50a9770abf857f8450ca2be6cc2841",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/lush_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/lush_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "ac89a65ba87a7b2afbf89d93b7bc707eaa1578949bd9c611313876fa63ef003f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/lush_glowberry_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/lush_glowberry_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "136dd92cd95a6d87305e065d2f197cbf8b317fe9fa67c58ca7f65e2a0830b5f1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/lush_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/lush_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b83fa02056d973a41303cea1fdb2ce8fdd6274c4fa0aa2b26dafceb38e1c4a74",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/lust_bait_from_moss_carpet.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/lust_bait_from_moss_carpet.json",
+                        "area":  "recipe",
+                        "targetSha256":  "6a1c135e52b39898c336c16bc988d5b66ab75c96a24a877f575e070756cdfb08",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/lust_bait_from_mossy_boot.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/lust_bait_from_mossy_boot.json",
+                        "area":  "recipe",
+                        "targetSha256":  "53c1b72d263d7e4773fe840f20a71d73c676c9cd80d52006d3b2dc6918caee03",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/magmaforged_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/magmaforged_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "e60da46f1c16fb92c85ccee0e61d5c48493eeb55b05d0a3fcc90135432c1621f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/magmaforged_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/magmaforged_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "73be938b3e3af08c3538c372ea53d28d851a757b1507bab71a81a5718a44646c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/meteorological_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/meteorological_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "2328eca953a4ffda46bc1dc7502fd0481468627400538b8fe06271c5ebfdc2ee",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/meteorological_bait_from_epic_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/meteorological_bait_from_epic_fishes.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b5316a77911947b2df98b36492e44ffa6e58313ea7fbb98501d5758ca7f84f95",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/mossy_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/mossy_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "d8fec49ccde2f8281fffe15adee4f1b8dc9baa82be8eaac6996e86cdbf50d161",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/murkwater_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/murkwater_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "34e514c6aee3a72cdfe0007dda1fca7275124b4ef5580babfdbb6dd6957a4cf1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/murkwater_bait_from_lilypad.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/murkwater_bait_from_lilypad.json",
+                        "area":  "recipe",
+                        "targetSha256":  "7e8b1b748adefaf3de3f32c1382dc1507c9c1744c42d480dd2435d3201a75930",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/murkwater_bait_from_mangrove_roots.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/murkwater_bait_from_mangrove_roots.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b870ea023c873feeeb36e7015681d34decfee005ef4f6941a8195dbae7c87239",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/naturalist_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/naturalist_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "2dac6f0bc098aee116cc3fe59bdb3eff6b1300568897e2bcd87126cb092570c8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/naturalist_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/naturalist_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "c4ee899cf5ebd37671cdf37fa44fbf35158194422f9b9e9f515a1119784b9745",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/netherite_upgrade.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/netherite_upgrade.json",
+                        "area":  "recipe",
+                        "targetSha256":  "aae238908e7d4415070275a25f9a39493dbb886156e1627571fccbfa629e9aa9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/obsidian_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/obsidian_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "0a165ae50bd5d16d7e97d38e8298d59f6234ab03cf70bff7c79bd6a1074a0641",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/obsidian_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/obsidian_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "d096f3f50c7f9dbc68ccd8881e42e0e1e066de1df55abf50ecc91fa02df02e12",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/oxidised_copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/oxidised_copper_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "71424b0313d1ce8f64696ab392b17e9bee4b5fcbd781d776d153d13b157d9a32",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/pearl_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/pearl_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "c2d9eb7bba28784a16537020ecaefd908a57dd9d658e9faf0c74878676f19d1b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/pearl_tackle.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/pearl_tackle.json",
+                        "area":  "recipe",
+                        "targetSha256":  "7d4c8d73cd3d4a4236e18a2869aa39579132717d0fc98e6cf4b07abc7f77b3e6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/rod_from_vanilla.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/rod_from_vanilla.json",
+                        "area":  "recipe",
+                        "targetSha256":  "cfa605845f081045e27e663d5180277ee203edc2faf19324603c003cd493fc36",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/sculk_bait.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/sculk_bait.json",
+                        "area":  "recipe",
+                        "targetSha256":  "b1251c796ef642462903554ba79944d66233c7409327b7f6e60e9c64356a43ef",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/sculk_bait_from_sculk_catalyst.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/sculk_bait_from_sculk_catalyst.json",
+                        "area":  "recipe",
+                        "targetSha256":  "088acc134ade20ec7670ccf20ba28deec622359239b23ce6623cc1bd9b1aace9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/sculk_bait_from_sculkfish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/sculk_bait_from_sculkfish.json",
+                        "area":  "recipe",
+                        "targetSha256":  "6dec2e6c08e4e86850363396080d4d667bf4d06f23516ddfa3cce3fa3e5a6885",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/sharktooth_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/sharktooth_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "c16e66b2dc768d8913557b7e430030012a337f912ae398e5db0f00c55de93fee",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/sharktooth_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/sharktooth_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "60182a14dad58bd19d5d5d060c4ae36ab483a851e246002cc484216f0ed09409",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/shiny_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/shiny_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "3bd4be382509f00a8b30e84b536d81abab3d42f4178da0ae05fc136e905a5a98",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/sky_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/sky_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "2eeba5db806c45c127cda5fea6c109fbbfe5e3bbd778436a1a30efb3467df090",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/sky_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/sky_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "17c0d20d139a82a69a41f7f454b8d4e9338fab229c8bb0593ea3951085677ce0",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/slimed_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/slimed_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "1d26b8b49743895ae78b3a807c67594afe8a1ca52310b549f06142d66be7db0c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/slimed_skin_smithing_template.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/slimed_skin_smithing_template.json",
+                        "area":  "recipe",
+                        "targetSha256":  "cc70a9e2cb02bc338da59d793d38c3ac4b76afc912c0e9727fc9b8bb96f64101",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/slimey_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/slimey_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "e52618e4d50932206ceb4d493e10fbb38db899ae7c44d3c25768e0f30dd5a236",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/split_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/split_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "60b8e941b8c1df76085f91102dd37ca3de1ec421f40890781a5f0a85eb45c468",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcatcher_guide.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/elarion_angling_guide.json",
+                        "area":  "recipe",
+                        "targetSha256":  "5be3e338dc492ffc22551b7836308ac2e8512ef9f5d3a27a35723d8c2df6c9ba",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcatcher_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/elarion_angling_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "2aa8aa4de0473d1862c6e6ef072532ec5c9e285e0263f27f6b96e4fce2c542f8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcatcher_twine.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/elarion_angling_twine.json",
+                        "area":  "recipe",
+                        "targetSha256":  "a91ef2fc1117deb781652ebc0107cfb21a85e85ff51d666490aae197db9a1acd",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcaught_fish_from_campfire.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/starcaught_fish_from_campfire.json",
+                        "area":  "recipe",
+                        "targetSha256":  "359f2c150529ee108f08950862e8a8fb5e5e95333d6674ce32886fead4f0f72f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcaught_fish_from_campfire_from_starcaught_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/starcaught_fish_from_campfire_from_starcaught_fish.json",
+                        "area":  "recipe",
+                        "targetSha256":  "98f2a3a07b68be720902a13c6c5eee482dd60f03b8af074b1de12890ee659c85",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcaught_fish_from_common.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/starcaught_fish_from_common.json",
+                        "area":  "recipe",
+                        "targetSha256":  "80ea3e2eb9de55b132fdc624f6fedd14639649ae3f12b1ee66af1645e51d949d",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcaught_fish_from_smelting.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/starcaught_fish_from_smelting.json",
+                        "area":  "recipe",
+                        "targetSha256":  "43c09ab80c2f4120d73fc9ebefc8013f9418ca37e92721f8f8f1dda6d1c32cb6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcaught_fish_from_smelting_from_starcaught_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/starcaught_fish_from_smelting_from_starcaught_fish.json",
+                        "area":  "recipe",
+                        "targetSha256":  "54f99a033cc0aa39bab8acf18f7640787c212afb184447b9d29195ab96918fb6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcaught_fish_from_smoking.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/starcaught_fish_from_smoking.json",
+                        "area":  "recipe",
+                        "targetSha256":  "90c57322834c103d55c32fb14829ed1534d4b16fd55b1bad13f469dee2e794b5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/starcaught_fish_from_smoking_from_starcaught_fish.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/starcaught_fish_from_smoking_from_starcaught_fish.json",
+                        "area":  "recipe",
+                        "targetSha256":  "e4244a15dc06a5103c326d5fc2225536f1b293593aa6930c6983fb9933ac7efd",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/steady_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/steady_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "d7fe6afb87320368200c92ca0b9c5b4ca580083edb15be4bf683f6e333174f40",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/stone_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/stone_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "5b693a74246bf6d3d00494eca753c951c5e68ba606b911801bb3e2b3dc104044",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box.json",
+                        "area":  "recipe",
+                        "targetSha256":  "0a6c5f3207eda952b2ad863456f88d1f23b737387e2c32345944a3ff36cf3079",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_black.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_black.json",
+                        "area":  "recipe",
+                        "targetSha256":  "68404bb40b783ffb96627578316cce6546df1c97e5560b710199dab450609aa6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_blue.json",
+                        "area":  "recipe",
+                        "targetSha256":  "d0c4c7eb7271764f293997917ff9d744eda11b13dd15bc0acdc2e2710ffa8e15",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_brown.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_brown.json",
+                        "area":  "recipe",
+                        "targetSha256":  "9be8db8e637990b7bfd7fa7c288b519bc427c536d088b86a2bc129e6d3272e1a",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_cyan.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_cyan.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8573fac8a840ab2794ad7afc191eacd117f0dfd1862ab64052c8d4f25aee63b5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_gray.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8837aaf0dac94b0dac58503ed028c38678067e67e83efa2c4b0597e9083da7cc",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_green.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_green.json",
+                        "area":  "recipe",
+                        "targetSha256":  "19547fa5d77a161015991ffd199ad9256655f4d622a3572c14c5bd367520831c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_light_blue.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_light_blue.json",
+                        "area":  "recipe",
+                        "targetSha256":  "3cf76fe449c2127d6daa6749e9c74a7f213c5f573fe5abb844f98b772c41f1f8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_light_gray.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_light_gray.json",
+                        "area":  "recipe",
+                        "targetSha256":  "0a6db8d6931f14f3a97ee817f733f142f9f95b1365459f3dba19fc2b2c1b2d28",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_lime.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_lime.json",
+                        "area":  "recipe",
+                        "targetSha256":  "185e4eda79476b235d40a31b16a7b2fef8997907d10de80b2788b68cfe1620e6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_magenta.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_magenta.json",
+                        "area":  "recipe",
+                        "targetSha256":  "d20cba427a8238969c0ced42280971598593ff3c930b2f07f1e007c1a62da9fb",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_orange.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_orange.json",
+                        "area":  "recipe",
+                        "targetSha256":  "a3c473222c1287cd92653e25a6862d3410d89380e072d8a8f2fcd80c940e4dee",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_pink.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_pink.json",
+                        "area":  "recipe",
+                        "targetSha256":  "a066b737c271372e79c0f8ead19bfedc1d8585bd7b2b514e368669db1c61be32",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_purple.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_purple.json",
+                        "area":  "recipe",
+                        "targetSha256":  "8901a01553969aa8e199acad7c1e922fa7658298561f3f39e6f0dc9e5343fd9c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_red.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_red.json",
+                        "area":  "recipe",
+                        "targetSha256":  "faa9ace0b39f0b1ef8a01170796978ce9bb11c5eb99c451e23cc296aa6bdf270",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_white.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_white.json",
+                        "area":  "recipe",
+                        "targetSha256":  "14ff921bdb0827bc05ac00e3ddf6f4948bd590a78f18fcbec02dc80f9e1ee440",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tackle_box_yellow.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tackle_box_yellow.json",
+                        "area":  "recipe",
+                        "targetSha256":  "df2a9fa0831f15f2ce149e61e5376792a099207a1124b3f7271b3b5a35d7a651",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/tournament_stand.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/tournament_stand.json",
+                        "area":  "recipe",
+                        "targetSha256":  "681a73dac9c27acb7957c5801fff54d9094079eb6f35dae733db19ba22e64fae",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/vanilla_bobber.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/vanilla_bobber.json",
+                        "area":  "recipe",
+                        "targetSha256":  "07d1b745b087286b84a8ce20c9bd9c1ba88f87cfcfb58b58aa054522eb358b9f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/vanilla_bobber_from_vanilla_fishing_rod.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/vanilla_bobber_from_vanilla_fishing_rod.json",
+                        "area":  "recipe",
+                        "targetSha256":  "792bbee2c30c26a2623bfc33173d46ddfce7939af348768134661213e8492fa6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/vanilla_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/vanilla_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "854b67dbebf57dbcfc20e1b72b7eca78a45d139661959fef024d146dc2c29203",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/recipe/weathered_copper_hook.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/recipe/weathered_copper_hook.json",
+                        "area":  "recipe",
+                        "targetSha256":  "69c43e701bdaff1b270ec9e12272aec1d147758c7b7a71272e445f3c3e5daea5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/tags/dimensions/is_end.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/dimension/is_end.json",
+                        "area":  "tags",
+                        "targetSha256":  "701c2ed3b819ae9c51acc89d7f82ab0ba2fc6951907242494f5f0bd0c3d0b4e1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/tags/dimensions/is_nether.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/dimension/is_nether.json",
+                        "area":  "tags",
+                        "targetSha256":  "36a8f8ede5955924af4c5b41cf6b2df856b8e813f0c301f46aae3bb833044237",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/main/resources/data/starcatcher/tags/dimensions/is_overworld.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/dimension/is_overworld.json",
+                        "area":  "tags",
+                        "targetSha256":  "b2d6144817de9366449f4ae991b791ced4a33e3774affd5591c84805616bd47c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/aquarium_guide_display.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/aquarium_guide_display.json",
+                        "area":  "tags",
+                        "targetSha256":  "bfa06ee1cec5b06ede045f4108bbdf36eacb08bc694e40a5ac639cba05b1a52e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/baits.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/baits.json",
+                        "area":  "tags",
+                        "targetSha256":  "b104652f003555fef05293fb12cdb8ce6738fd595ce202abf5caca2906a797da",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/bobbers.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/bobbers.json",
+                        "area":  "tags",
+                        "targetSha256":  "a60b0d73b16bb20c3524c10b4696912ffa0da209aad2c84becaec217cf423f8f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/bucketable_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/bucketable_fishes.json",
+                        "area":  "tags",
+                        "targetSha256":  "a96063970ae711cb0b4ca6ca22a16083e8792188fbee9503a7a7cdd02e030ad1",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/common_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/common_fishes.json",
+                        "area":  "tags",
+                        "targetSha256":  "b643a5293dad57405a8d212f9da0072836d1c17daefcbac4a56486bd8b9d1527",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/crabs.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/crabs.json",
+                        "area":  "tags",
+                        "targetSha256":  "4ea4ca6ff5a052dcec4f920b171f7b10790f3ad3c9af48e963b4b54e28afc3db",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/eels.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/eels.json",
+                        "area":  "tags",
+                        "targetSha256":  "f804b7a44dd4a29b8b892ba1b74e04a6d0a086429f966b4367d5934a4e0ceba4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/epic_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/epic_fishes.json",
+                        "area":  "tags",
+                        "targetSha256":  "b2a08abfb3427861e48d06ad2c2117a4d47fa0037d518300ceac26489bf1df01",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/equipments.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/equipments.json",
+                        "area":  "tags",
+                        "targetSha256":  "d9a9c132b81f05ace271caee52b6165df43ee459050b2721478800dfc333fe57",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/fishable.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/fishable.json",
+                        "area":  "tags",
+                        "targetSha256":  "ed39063f4d018761ee2f1d6b3acdeac8e9876a0165df76ce26530bca9d08ee66",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/gadgets.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/gadgets.json",
+                        "area":  "tags",
+                        "targetSha256":  "84a24211550951d9da96132d7851781ec066aa9be8db9febbe419476bf87834f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/has_radar_layer.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/has_radar_layer.json",
+                        "area":  "tags",
+                        "targetSha256":  "84a24211550951d9da96132d7851781ec066aa9be8db9febbe419476bf87834f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/has_tracker_layer.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/has_tracker_layer.json",
+                        "area":  "tags",
+                        "targetSha256":  "dd68df5bd6ceae3651cf3b7c8b5934b8dbbed4bcce66320f0fdee90503cd331b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/hats.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/hats.json",
+                        "area":  "tags",
+                        "targetSha256":  "b59cd4ffeb834cf350f5be15215ba9e5d2b6f2087f83bc084852ce8d3d2ccd3f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/hooks.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/hooks.json",
+                        "area":  "tags",
+                        "targetSha256":  "4cd116fcc2e01c28af389e1b772f3d87119107a78107e5d40e0aa116a28745e4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/legendary_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/legendary_fishes.json",
+                        "area":  "tags",
+                        "targetSha256":  "8896d94f30fb00e17afae60fb81c2b56a9f35d5a710db114bf2d594b156a1850",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/placeable_in_display.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/placeable_in_display.json",
+                        "area":  "tags",
+                        "targetSha256":  "d6c55adebdc1d83542a50e84b0ea4621cc4b73878e09e05749151b75626a8fb9",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/placeable_in_tackle_box.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/placeable_in_tackle_box.json",
+                        "area":  "tags",
+                        "targetSha256":  "b89d968276baee87ef418fa974599135ddeeb2054941a06d6393628b64d3861e",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/rare_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/rare_fishes.json",
+                        "area":  "tags",
+                        "targetSha256":  "64673e40052f2d3bc0e528c09788cad058846fe1e1d8583a3365fd7c91ef5ff8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/rods.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/rods.json",
+                        "area":  "tags",
+                        "targetSha256":  "d9a9c132b81f05ace271caee52b6165df43ee459050b2721478800dfc333fe57",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/shrimps.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/shrimps.json",
+                        "area":  "tags",
+                        "targetSha256":  "b442914c305b97f250738e9ae6b722cd43d772ddf00c67a245770f89b963efa4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/starcaught_fishables.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/starcaught_fishables.json",
+                        "area":  "tags",
+                        "targetSha256":  "dc25a3ef8d0323c5b1f5d76a45baaa5623e3475434893271e5778446704daa2b",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/tackle_boxes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/tackle_boxes.json",
+                        "area":  "tags",
+                        "targetSha256":  "158694bedb1ded8123bbb0eaccf70ecf2c69115673d640997a1ecb8d5e5eb9d5",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/tackle_skins.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/tackle_skins.json",
+                        "area":  "tags",
+                        "targetSha256":  "eb5c5a1430db582958e3eb087d1b7f2d5c6dfaa39d72a5b730a23f92021b3fec",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/templates.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/templates.json",
+                        "area":  "tags",
+                        "targetSha256":  "5e58e4fe41e6b7802059b544f03ae9f792f942b4a839d91cd8d85a784d491578",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/uncommon_fishes.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/uncommon_fishes.json",
+                        "area":  "tags",
+                        "targetSha256":  "55e0f48cbd096dfb085f1439c03307d32f322f7fbf3ebe7594d49f049229d804",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/item/worms.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/item/worms.json",
+                        "area":  "tags",
+                        "targetSha256":  "31d77e0d07dfd383f84c8422d4f4db367d898df40c78843c9b9ef0776fc31207",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/starcatcher/fish/common_entries.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/elarion_angling/fish/common_entries.json",
+                        "area":  "tags",
+                        "targetSha256":  "6dbe101af137485177219f9e8bfe07753e190b94969a8cc9a185ef3e5e048ff3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/starcatcher/fish/epic_entries.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/elarion_angling/fish/epic_entries.json",
+                        "area":  "tags",
+                        "targetSha256":  "6dc0999e3af5284283e922bcb0bb3dc610e40113b3141e863a31275fc39d80b3",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/starcatcher/fish/legendary_entries.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/elarion_angling/fish/legendary_entries.json",
+                        "area":  "tags",
+                        "targetSha256":  "f37102886d8b7d96321a19076347388a043a5bd0c428a66ad1e7c108331825cd",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/starcatcher/fish/rare_entries.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/elarion_angling/fish/rare_entries.json",
+                        "area":  "tags",
+                        "targetSha256":  "b9df03ade6fade48befae75bd7088afa590e8eefb9768aebbdb56590a60a0a90",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/starcatcher/fish/trash_entries.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/elarion_angling/fish/trash_entries.json",
+                        "area":  "tags",
+                        "targetSha256":  "7b2d5212676b1b0b8d438d7a2e3930361e2dd3a9afbc165db9e6884e606d2125",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/starcatcher/fish/uncommon_entries.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/elarion_angling/fish/uncommon_entries.json",
+                        "area":  "tags",
+                        "targetSha256":  "651cabcae7e57a6aafa2a707aff3bae2176bf12c1db46c5c0962a4de2bb140d4",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_basalt_deltas.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_basalt_deltas.json",
+                        "area":  "tags",
+                        "targetSha256":  "c7de00e77bcac68a6b5020d3c1f1ba212a355813690178d5ea807277987d868c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_beach.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_beach.json",
+                        "area":  "tags",
+                        "targetSha256":  "79bc68633e5db98140e302e3d2b023dc424c932277726ecd2962d3dbc902acb6",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_birch_forest.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_birch_forest.json",
+                        "area":  "tags",
+                        "targetSha256":  "e3a898f00969eb0519d45270d7dc321927ccc64fc75d7fb692ba899e3a91ac21",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_cherry_grove.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_cherry_grove.json",
+                        "area":  "tags",
+                        "targetSha256":  "cc4b8e19357260f4d57c07699152df8f649da46c5d15d043dc6e2b2b34485b97",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_cold_lake.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_cold_lake.json",
+                        "area":  "tags",
+                        "targetSha256":  "542409bb1f510767abfc9f4fc6dba9913fa3ebde551a01d6f6a11e271f682665",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_cold_ocean.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_cold_ocean.json",
+                        "area":  "tags",
+                        "targetSha256":  "f2bfdfd36ebf74407dded3767fa14a91ba6bbf80c16d3b1a95944aff0e793ccf",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_cold_river.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_cold_river.json",
+                        "area":  "tags",
+                        "targetSha256":  "f7c8077167761f5e7e07126452bfe091ec2cc7fc99f4e5916f82eb4093f96b26",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_crimson_forest.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_crimson_forest.json",
+                        "area":  "tags",
+                        "targetSha256":  "b91162f4e6dc618f75280b3b31f33d330af58c39840ac33b75c3accaebdbd639",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_dark_forest.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_dark_forest.json",
+                        "area":  "tags",
+                        "targetSha256":  "d1bc51cc1f0084ea9cc6bf9b2aa45e0f3bf5437627b2d2c07d4982e49728eb19",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_deep_ocean.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_deep_ocean.json",
+                        "area":  "tags",
+                        "targetSha256":  "41f6fb764960e2fa174888e610d065eb6ca75115478f22c3200e64a690f42377",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_lukewarm_ocean.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_lukewarm_ocean.json",
+                        "area":  "tags",
+                        "targetSha256":  "92eccccec48119418b2441f106088c4ee89f61b9d4ee2cc8ee03a28910447e6f",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_mushroom_fields.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_mushroom_fields.json",
+                        "area":  "tags",
+                        "targetSha256":  "7c0434ce4b199877fcc15acaf77a597056ec273623ae0a2860be3f6f32991115",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_normal_ocean.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_normal_ocean.json",
+                        "area":  "tags",
+                        "targetSha256":  "77ea5bed29bc9f2b91ee5256f75e4c62ac3ee61c491d9c019508afce28f6e705",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_ocean.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_ocean.json",
+                        "area":  "tags",
+                        "targetSha256":  "212f37ef1bc141baac3d1fd0e72a5acbd405d464d712ee8d32812794c97535de",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_river.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_river.json",
+                        "area":  "tags",
+                        "targetSha256":  "71a314191b54785f187524d8bc5f9d1b1c7d6461f7d1ca525b9ab41d04abf377",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_soul_sand_valley.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_soul_sand_valley.json",
+                        "area":  "tags",
+                        "targetSha256":  "8003505fe11175575307e708ddeffd05b6cc3f3e9d33dd915069419d79a29ea8",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_swamp.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_swamp.json",
+                        "area":  "tags",
+                        "targetSha256":  "103821a031c834a2dbb96610a31b3e443840bff04370df847913a45689b6dddf",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_warm_lake.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_warm_lake.json",
+                        "area":  "tags",
+                        "targetSha256":  "a1067388738de2e9d39e4fbfe494d9e14cd82754ee0bd3c0e502f9197cb0cffd",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_warm_ocean.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_warm_ocean.json",
+                        "area":  "tags",
+                        "targetSha256":  "f8420a38fc81fe19da7bc3194edd98eef4f4fb80cdfaf37da9cc8a9a771f412c",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_warm_river.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_warm_river.json",
+                        "area":  "tags",
+                        "targetSha256":  "feab6e1fedaf1bd2753a16c549deaa9aa81cfc39163aea4c2ce8c66992308607",
+                        "disposition":  "ported"
+                    },
+                    {
+                        "sourcePath":  "src/generated/resources/data/starcatcher/tags/worldgen/biome/is_warped_forest.json",
+                        "targetPath":  "src/main/resources/data/elarion_angling/tags/worldgen/biome/is_warped_forest.json",
+                        "area":  "tags",
+                        "targetSha256":  "f3ba1a98f14e71be72ff8f133cfab57fcd815b888fdf19977e95f4b64645bbb7",
+                        "disposition":  "ported"
+                    }
+                ]
+}

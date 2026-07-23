@@ -15,7 +15,8 @@ public final class UnderworldClientStatus {
         return previous.active() != next.active()
                 || previous.fractures() != next.fractures()
                 || previous.maxFractures() != next.maxFractures()
-                || previous.trueDeath() != next.trueDeath();
+                || previous.trueDeath() != next.trueDeath()
+                || previous.banished() != next.banished();
     }
 
     public static void clear() {

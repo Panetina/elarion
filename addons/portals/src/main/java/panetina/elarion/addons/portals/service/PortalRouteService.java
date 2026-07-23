@@ -542,6 +542,34 @@ public final class PortalRouteService {
         dirty = false;
     }
 
+    public int resetAllPlayerState() {
+        int changed = state.entitlements.size() + state.freePassages.size();
+        state.entitlements.clear();
+        state.freePassages.clear();
+        dirty = true;
+        save();
+        return changed;
+    }
+
+    public synchronized int deleteWorldEndpoints(String worldId) {
+        int changed = 0;
+        for (PortalRouteState route : state.routes.values()) {
+            boolean matches = (route.source != null && worldId.equals(route.source.worldId()))
+                    || (route.returnEndpoint != null && worldId.equals(route.returnEndpoint.worldId()));
+            if (!matches) continue;
+            route.source = null;
+            route.returnEndpoint = null;
+            route.outboundArrival = null;
+            route.returnArrival = null;
+            route.unlocked = false;
+            route.forcedOpenUntil = null;
+            route.forcedClosedUntil = null;
+            changed++;
+        }
+        if (changed > 0) { dirty = true; endpointIndex.rebuild(state.routes); save(); }
+        return changed;
+    }
+
     public void reconcileFields() {
         if (server == null) return;
         scheduleReconciler.reconcileAll(state);

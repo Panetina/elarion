@@ -28,9 +28,16 @@ Website whitelist workflow
   -> canonical Minecraft whitelist
 
 Launcher
-  -> signed immutable release feed and managed client files
+  -> signed immutable release feed
+  -> build/export/client/manifest.json contract
+  -> official-origin third-party downloads plus Elarion release-bundle files
   -> never receives server, database, Discord, or release-signing secrets
 ```
+
+`distribution/mods.json` is canonical for third-party versions, side, source,
+license, and SHA-512. `build.gradle` projects it into client/server install
+roots and IntelliJ/Loom runs. The launcher consumes generated manifests but
+does not become an owner of modpack truth.
 
 The website owns web sessions, OAuth links, applications, review/audit state,
 permissions, and acknowledged read models. Discord is an identity/notification
@@ -70,10 +77,11 @@ addons/groups
 
 addons/government
   -> Core Realm/citizen/history
-  -> Groups API for Confederation delegate eligibility and group locks
+  -> Offerings flags for Foundation gates
 
 addons/underworld
-  -> Core player restrictions
+  -> Core player/account restrictions and global interaction gates
+  -> Core root-command registry for /banish and /unbanish
   -> Core character lifecycle reset handlers
   -> Core domain events
   -> Worlds for configured Underworld dimension availability
@@ -96,6 +104,18 @@ addons/optimization
 
 addons/security
   -> Core commands/history future hooks
+
+addons/angling
+  -> Core accepted-catch, rewards, metrics/rankings, titles, history, and events
+  -> Economy pricing and settlement contracts
+
+addons/angling-delight
+  -> Angling public item/component contracts
+  -> Farmer's Delight Refabricated cooking and recipe APIs
+
+addons/atlas (current shell)
+  -> Core shared UI primitives only
+  -> no Economy, Government, Offering, Portal, NPC, storage, or bridge dependency
 ```
 
 ## Shared Infrastructure
@@ -107,6 +127,8 @@ Core registries      -> actions, conditions, requirements, milestone handlers
 Core networking      -> typed payload examples and identity/theme sync
 Core UI              -> panels, buttons, lists, scaled layout, numeric input, Collection menu
 Core command output  -> readable admin command style
+Core command roots   -> bounded addon-contributed top-level commands
+Core restrictions   -> live interaction gates plus UUID admission policy
 Core history         -> audit and public-memory source
 Core domain events   -> bounded cross-addon lifecycle signals
 Core notifications  -> persistent player-facing event projections
@@ -181,6 +203,10 @@ Selected events publish through Core notifications
 Core owns shared truth and history
 ```
 
+Atlas must follow that preferred shape. Future owner addons publish bounded
+map projections through Core contracts/events; Atlas must not gain direct
+required dependencies on NPCs, Offerings, Portals, Government, or Economy.
+
 For example, NPC banker actions are registered by Economy. NPCs dispatch actions but do not own wallet state.
 Quest dialogue choices should follow the same rule: NPCs dispatch registered
 Quest actions and conditions, while Quests owns questline state.
@@ -215,7 +241,7 @@ Core bootstrap.
 
 - Core citizens vs Ledger reputation.
 - Core Realm membership vs Government offices/laws.
-- Groups membership vs Government offices/delegate seats.
+- Groups membership vs Government offices.
 - Economy balances vs Offering progress.
 - NPC dialogue sessions vs Quest/Economy/Government state.
 - Quest state vs NPC placements, Offering progress, Government offices, and

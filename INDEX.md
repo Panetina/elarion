@@ -122,7 +122,7 @@ bounded context command and `docs/ai/routes.json` to select task material.
     library-ready event families require at least 10 authored stable variants
     each, selected by `chronicle.variant` or deterministic event/family id.
 - `docs/systems/Teams.md`
-- `docs/systems/Maps.md`
+- [Atlas system](docs/systems/Atlas.md)
   - Typed website marker contract:
     `platform/core/src/main/java/panetina/elarion/core/integration/minecraft/WebsiteMapMarker.java`.
   - Offerings adapter:
@@ -144,6 +144,20 @@ bounded context command and `docs/ai/routes.json` to select task material.
   - `deploy-live-server.ps1 -PlanOnly` writes the exact stage, commit, rollback,
     and hash-manifest plan without opening an SFTP connection.
   - Website, launcher, Discord, and Fabric release/ownership boundaries.
+- `docs/systems/Distribution.md`
+  - Canonical `distribution/mods.json` third-party pins, official-origin and
+    SHA-512 rules, client/server install roots, IntelliJ/Loom synchronization,
+    managed/default config policy, and launcher manifest contract.
+  - Audits: `docs/reports/FABULOUSLY_OPTIMIZED_ADAPTATION.md` and
+    `docs/reports/FABRIC_1_21_1_PERFORMANCE_CATALOG.md`.
+  - Runtime validation:
+    `docs/reports/PERFORMANCE_DISTRIBUTION_VALIDATION.md`.
+  - Release soak harness: `dev/tools/test-performance-distribution.ps1` joins
+    Client Two, exercises safe managed-world travel, samples memory/cache
+    growth, and captures deterministic server/client evidence.
+  - Server A/B harness: `dev/tools/benchmark-performance-server.ps1`
+    temporarily stages only Lithium, FerriteCore, and ModernFix, uses ABBA
+    ordering, restores exact jars, and records startup/memory evidence.
 - `docs/systems/GUI.md`
   - Shared runtime UI icon catalog:
     `platform/core/src/main/java/panetina/elarion/core/client/ui/ElarionUiIcons.java`
@@ -193,6 +207,7 @@ bounded context command and `docs/ai/routes.json` to select task material.
     and
     `platform/core/src/main/java/panetina/elarion/core/storage/WorldheartAuthorityStorage.java`.
     It is separate from Economy's Worldheart treasury.
+- [Atlas](docs/addons/atlas.md)
 - [Economy](docs/addons/economy.md)
   - Currency registration lives in
     `addons/economy/src/main/java/panetina/elarion/addons/economy/EconomyItems.java`.
@@ -210,6 +225,9 @@ bounded context command and `docs/ai/routes.json` to select task material.
 - [Offerings](docs/addons/offerings.md)
 - [Government](docs/addons/government.md)
 - [Groups](docs/addons/groups.md)
+  - Groups owns canonical leadership and publishes the current leader through
+    the bounded authenticated `authority.group.lore` state projection. Website
+    roles and Discord roles never become group ownership truth.
 - [NPCs](docs/addons/npcs.md)
   - Conversation and service presentation contracts live under
     `addons/npcs/src/main/java/panetina/elarion/addons/npcs/model/` and
@@ -272,6 +290,19 @@ bounded context command and `docs/ai/routes.json` to select task material.
 - [Optimization](docs/addons/optimization.md)
 - [Security](docs/addons/security.md)
 - [Angling](docs/addons/angling.md)
+  - [Core catch telemetry](docs/systems/CatchTelemetry.md) owns accepted catches
+    and direct per-species projections.
+  - [Core metrics and rankings](docs/systems/Metrics.md) documents the internal
+    bounded ranking foundation and its persistence release gate.
+  - `addons/angling` is the release-excluded Fabric port foundation.
+  - `addons/angling-delight` is the separate release-excluded Farmer's Delight
+    integration foundation.
+  - Frozen-source, ownership, performance, parity, distribution, and
+    cross-machine handoff contracts live in the authoritative addon doc and
+    `addons/angling*/porting/foundation.json`.
+  - The local reference is owner-authorized as the full port source, including
+    its edited creative resources. Authorized files may move into proper
+    Elarion module paths; only the raw checkout/build metadata stays excluded.
 - [Worlds](docs/addons/worlds.md)
 - [Realms](docs/addons/realms.md)
 - [Names](docs/addons/names.md)
@@ -280,6 +311,17 @@ bounded context command and `docs/ai/routes.json` to select task material.
 - [Newspapers](docs/addons/newspapers.md)
 - [Tablist](docs/addons/tablist.md)
 - [Underworld](docs/addons/underworld.md)
+  - Moderation banishment source:
+    `addons/underworld/src/main/java/panetina/elarion/addons/underworld/command/BanishCommands.java`,
+    `addons/underworld/src/main/java/panetina/elarion/addons/underworld/model/BanishmentRecord.java`,
+    and `addons/underworld/src/main/java/panetina/elarion/addons/underworld/service/UnderworldService.java`.
+  - Living/Afterlife inventory boundary:
+    `addons/underworld/src/main/java/panetina/elarion/addons/underworld/model/InventorySnapshot.java`
+    and Underworld-owned `UnderworldState` maps; corpse recovery remains the
+    only canonical store for Living inventory lost on a normal death.
+  - Shared command/admission/interaction contracts remain Core-owned in
+    `ElarionCommandRegistry`, `PlayerRestrictionService`, and
+    `PlayerInteractionRestrictionRegistrar`.
 - [Mounts](docs/addons/mounts.md)
 - [Voice Chat Hooks](docs/addons/voicechat-hooks.md)
 
@@ -301,10 +343,12 @@ bounded context command and `docs/ai/routes.json` to select task material.
   - `addons/titles`
   - `addons/optimization`
   - `addons/security`
-  - `addons/angling`
   - `addons/underworld`
   - `addons/mounts`
 - Shell/foundation modules:
+  - `addons/atlas`
+  - `addons/angling`
+  - `addons/angling-delight`
   - `addons/jail`
   - `addons/newspapers`
   - `addons/tablist`
@@ -312,9 +356,10 @@ bounded context command and `docs/ai/routes.json` to select task material.
 
 ## Ignore Unless Explicitly Requested
 
-- `addons/angling/reference/**`: upstream reference material for future
-  Angling porting only. Do not include it in ordinary project audits,
-  architecture decisions, or source searches.
+- `addons/angling/reference/**`: owner-authorized port source for explicitly
+  requested Angling work. It remains excluded from ordinary project work and
+  is not itself a Gradle source root, but selected files may be ported into the
+  production Angling modules.
 
 ## References
 

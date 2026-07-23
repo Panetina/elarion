@@ -1,0 +1,16 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "equipment",
+    "ingredients":  [
+                        {
+                            "item":  "elarion_angling:elarion_angling_rod"
+                        },
+                        {
+                            "item":  "minecraft:book"
+                        }
+                    ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:elarion_angling_guide"
+               }
+}

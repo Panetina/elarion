@@ -1,0 +1,32 @@
+{
+    "parent":  "minecraft:recipes/root",
+    "criteria":  {
+                     "has_elarion_angling_rod":  {
+                                                     "conditions":  {
+                                                                        "items":  [
+                                                                                      {
+                                                                                          "items":  "#elarion_angling:rods"
+                                                                                      }
+                                                                                  ]
+                                                                    },
+                                                     "trigger":  "minecraft:inventory_changed"
+                                                 },
+                     "has_the_recipe":  {
+                                            "conditions":  {
+                                                               "recipe":  "elarion_angling:sculk_bait_from_sculk_catalyst"
+                                                           },
+                                            "trigger":  "minecraft:recipe_unlocked"
+                                        }
+                 },
+    "requirements":  [
+                         [
+                             "has_the_recipe",
+                             "has_elarion_angling_rod"
+                         ]
+                     ],
+    "rewards":  {
+                    "recipes":  [
+                                    "elarion_angling:sculk_bait_from_sculk_catalyst"
+                                ]
+                }
+}

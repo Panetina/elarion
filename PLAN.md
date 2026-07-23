@@ -16,16 +16,87 @@ feature or hardening slice using `docs/systems/EXTENSION_GUIDE.md`.
 
 ## Active Approved Work
 
-### Post-Revamp Finding Remediation Complete
+### F-01 Afterlife Inventory And Protection
 
-- All review findings are fixed and verified.
-- The final evidence is in
-  `docs/reports/POST_REVAMP_FINDINGS_COMPLETION.md`.
-- Future work starts as a new bounded feature slice.
+- Complete this boundary before `ADM-01`. Persist separate Living and Afterlife
+  inventory snapshots for every player regardless of rank or game mode; never
+  let Underworld entry, death, return, logout, restart, or admin mode merge the
+  two inventories.
+- Living-world death items remain in the existing corpse/grave flow. Obols and
+  approved Underworld/Limbo resources remain in the Afterlife inventory across
+  visits and cannot enter living worlds without a future explicit allowlisted
+  transfer contract.
+- Disable PvP in Underworld/Limbo and close the reported banishment pickup gap.
+  Movement-only banished accounts cannot acquire items, XP, rewards, or
+  progression through operator/game-mode bypasses.
+- Add round-trip, repeated-death, return, restart, disconnect, game-mode,
+  banishment, and corpse-recovery tests before destructive reset tooling uses
+  this ownership boundary.
+
+### ADM-01 Complete Player-Data Reset
+
+- Implement only `/e reset players` in this slice. The first invocation shows
+  affected counts and clickable confirm/cancel controls; confirmation is tied
+  to the executor and expires after 60 seconds.
+- Core owns one reset coordinator, backup manifest, audit summary, and handler
+  registry. Each addon resets and backs up only its own state through a
+  registered handler.
+- Reset UUID-keyed vanilla and Elarion player progression, Shrine progression,
+  tombstones, and Underworld/Afterlife state. Back up and clear operator,
+  whitelist, and persisted/in-memory profile-cache state together with vanilla
+  playerdata/stats/advancements; recovery requires console access or a fresh
+  signed bridge access operation. Preserve all worlds, terrain,
+  buildings, placed Shrine blocks, configured NPCs, portals, Seats of Rule,
+  definitions, configuration, and map infrastructure.
+- `WORLD-01` managed-world regeneration follows in a separate run and must not
+  share destructive execution logic with this slice.
+
+### WORLD-01 Managed World Reset
+
+`/e reset world <world>` previews and confirms a managed-world regeneration,
+backs up world-scoped addon state, removes placed NPCs, Shrine/offering records,
+and portal endpoints tied to that world, then recreates the world from its
+existing definition. Definitions and config remain intact.
+
+### Underworld Moderation Banishment
+
+- `/banish` and `/unbanish` form a persisted timed/permanent moderation path
+  separate from ordinary death sessions and corpses.
+- Banished players are confined to the Underworld, see the Soul Sight grade and
+  their reason, retain movement only, and appear dark emissive-red to others.
+- Core owns the global interaction gates and UUID-only `queued_admission`
+  restriction. The actual queue consumer remains a later Core admission slice.
+
+### Elarion Angling Fabric Port
+
+- The frozen local reference is owner-authorized as the full Elarion Angling
+  port source, including code, content, and edited creative resources. Ported
+  files may ship from proper Fabric module paths without a later replacement-
+  asset phase.
+- The completed foundation established the two Fabric module boundaries,
+  frozen-source and parity contracts, performance/authority rules, release
+  exclusion, and cross-machine handoff. The first content slice now registers
+  134 exact vanilla-behavior items; custom fish, equipment, blocks, and fishing
+  gameplay remain gated on their real Fabric behavior classes.
+- Later work proceeds through bounded vertical slices and keeps accepted catch,
+  reward, title, metric, ranking, and event truth Core-owned.
+- When parity and technical release gates pass, both modules become canonical
+  exportable Elarion mods without another general asset-approval step.
 
 ## Planned Follow-ups
 
-1. Select one concrete feature from `TODO.md` when development resumes.
+1. Port the custom item and bucketable-fish behavior classes, then complete the
+   item and entity registries without placeholder registrations.
+2. Port blocks, block entities, screen handlers, and entity renderers before
+   enabling the server-authoritative fishing pipeline. The three particle
+   factories are complete and isolated behind the client entrypoint.
+3. `CHAT-01`: remove vanilla `/say` and prove that Local, Underworld,
+   banishment, and future Jail restrictions cannot be bypassed through vanilla
+   command routing.
+4. Promote the detailed SMP features in `PLANS.md` one bounded slice at a time.
+   `GUILD-01` must migrate the current Group domain and persisted data to the
+   single Guild/Guilds vocabulary before Guild UI, roles, announcements,
+   secrecy, heraldry, or NPC creation expands the system.
 
 ## Required Work Style
 

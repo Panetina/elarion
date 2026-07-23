@@ -47,6 +47,18 @@ final class ElarionTaskServiceTest {
     }
 
     @Test
+    void emptyServerQueueReportsNoApplyWork() {
+        ElarionTaskService tasks = new ElarionTaskService(
+                LoggerFactory.getLogger("test"), 1, 1, 10, 2, TimeUnit.MILLISECONDS.toNanos(100));
+
+        tasks.tickServerQueue();
+
+        assertEquals(0, tasks.snapshot().lastTickApplied());
+        assertEquals(0L, tasks.snapshot().lastTickNanos());
+        tasks.shutdown();
+    }
+
+    @Test
     void computeTasksRunOnBackgroundExecutor() throws Exception {
         ElarionTaskService tasks = new ElarionTaskService(
                 LoggerFactory.getLogger("test"), 1, 1, 10, 10, TimeUnit.MILLISECONDS.toNanos(1));

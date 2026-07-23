@@ -2,6 +2,7 @@ package panetina.elarion.core.config;
 
 import org.slf4j.Logger;
 import org.yaml.snakeyaml.Yaml;
+import net.minecraft.util.Identifier;
 import panetina.elarion.core.model.ProgressionRegion;
 import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RewardAction;
@@ -152,6 +153,7 @@ final class CoreConfigParser {
                     stringSet(continuous.get("allowed-status-effects")),
                     stringSet(continuous.get("required-metadata"))
             );
+            TitleUnlockRule.MetricCondition metricRule = metricCondition(map(data.get("metric")));
             result.put(id, new TitleUnlockRule(
                     id,
                     string(data.get("title"), id),
@@ -168,10 +170,39 @@ final class CoreConfigParser {
                     stringSet(data.get("biomes")),
                     stringSet(data.get("regions")),
                     stringMap(data.get("metadata")),
-                    continuousRule
+                    continuousRule,
+                    metricRule
             ));
         }
         return Map.copyOf(result);
+    }
+
+    private static TitleUnlockRule.MetricCondition metricCondition(Map<String, Object> data) {
+        if (data.isEmpty()) return null;
+        Identifier metricId = Identifier.tryParse(string(data.get("id"), ""));
+        if (metricId == null) throw new IllegalArgumentException("metric title rule requires a valid metric id");
+        String rawScope = string(data.get("scope"), "global").trim().toLowerCase(java.util.Locale.ROOT);
+        String[] scopeParts = rawScope.split(":", 2);
+        panetina.elarion.core.metric.MetricScopeType scopeType = switch (scopeParts[0]) {
+            case "global" -> panetina.elarion.core.metric.MetricScopeType.GLOBAL;
+            case "realm" -> panetina.elarion.core.metric.MetricScopeType.REALM;
+            case "event", "tournament" -> panetina.elarion.core.metric.MetricScopeType.EVENT;
+            default -> throw new IllegalArgumentException("invalid metric title scope " + rawScope);
+        };
+        Identifier scopeId = scopeParts.length == 1 ? null : Identifier.tryParse(scopeParts[1]);
+        if (scopeParts.length > 1 && scopeId == null) {
+            throw new IllegalArgumentException("invalid metric title scope id " + rawScope);
+        }
+        Map<String, Identifier> dimensions = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : stringMap(data.get("dimensions")).entrySet()) {
+            Identifier id = Identifier.tryParse(entry.getValue());
+            if (id == null) throw new IllegalArgumentException("invalid metric title dimension " + entry);
+            dimensions.put(entry.getKey(), id);
+        }
+        return new TitleUnlockRule.MetricCondition(
+                metricId, scopeType, scopeId, dimensions,
+                TitleUnlockRule.MetricComparator.parse(string(data.get("comparator"), "gte")),
+                number(data.get("threshold"), 1).longValue());
     }
 
     Map<String, List<RewardAction>> loadRewards() {

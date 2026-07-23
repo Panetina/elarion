@@ -10,8 +10,8 @@ Admin guide for reusable public player groups.
 
 Groups are public player-created organizations. V1 supports one group per
 player, one leader, invites, membership management, group chat, and admin
-inspection. Secret societies, cities, guild types, and Confederation delegate
-elections are future work.
+inspection. Secret societies, cities, guild types, and political-party style
+metadata are future work.
 
 ## Config And Runtime
 
@@ -65,14 +65,12 @@ Only the public tag renders next to a player identity:
 Ember
 ```
 
-Full display names appear in `/group info` and future Civic Forum, Government,
-election, and delegate screens.
+Full display names appear in `/group info` and future group UI screens.
 
 ## Government Integration
 
-Confederation will use Groups later. Delegate candidates must represent an
-eligible registered group, but elections and cross-Realm eligibility checks are
-not implemented yet.
+Government no longer uses Groups for active founding offices. Groups remains a
+reusable social/faction system for future mechanics.
 
 ## Source-Backed Notes
 

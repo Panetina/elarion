@@ -48,6 +48,7 @@ notifications, or status changes.
 
 ## Shell / Early Integration Modules
 
+- `atlas.md`
 - `jail.md`
 - `newspapers.md`
 - `tablist.md`

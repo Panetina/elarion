@@ -1,0 +1,16 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "minecraft:bone_meal"
+                        },
+                        {
+                            "tag":  "elarion_angling:epic_fishes"
+                        }
+                    ],
+    "result":  {
+                   "count":  8,
+                   "id":  "elarion_angling:meteorological_bait"
+               }
+}

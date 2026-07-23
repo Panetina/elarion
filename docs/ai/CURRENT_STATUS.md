@@ -18,6 +18,10 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 
 ## Latest Completed Architecture Work
 
+- Atlas now exists as a compiling shell addon: `M` opens a data-free Elarion
+  placeholder, its public marker API exposes no capabilities, and it registers
+  no server, storage, network, config, command, bridge, or domain integration.
+  The functional design remains future work in `docs/systems/Atlas.md`.
 - The final post-revamp findings are resolved. Shared JSON state quarantines
   malformed input and propagates save failure; Government, Quest, and
   Underworld state use schema v1; profile requests and contributor diagnostics
@@ -71,6 +75,17 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
   from config, runtime state, founding flow, UI, commands, tests, titles, and
   documentation; focused command, packet, civic-mutation, persistence, and
   GameTest coverage closes the former Government hardening item.
+- Client/server distribution is now manifest-owned. `distribution/mods.json`
+  pins official origins, versions, sides, licenses, filenames, sizes, and
+  SHA-512 values; builds no longer read a local Modrinth profile. Exports are
+  full install roots with configs, resource packs, and launcher manifests.
+- The stable performance core ships Sodium, Lithium, FerriteCore, ModernFix,
+  ImmediatelyFast, conservative rendering culling, EBE, BadOptimizations,
+  Particle Core, Dynamic FPS, and FastQuit. Distant Horizons and Bobby are
+  required clients with bounded, generation-disabled safety settings.
+  LambDynamicLights 4.8.10 is client-only and uses managed fancy/culling/
+  adaptive settings; Underworld registers low-luminance white dead and red
+  banished silhouettes without any custom post-processing, fog, or aura pass.
 
 ## Verification Snapshot
 
@@ -97,6 +112,34 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
   teleport, `/e` rejection, and authorized title resync. Invalid `Player###`
   prefills are filtered. Concurrent observation remains partial due native
   `glfw.dll` host crashes; see `PHASE_14_CLIENT_AUTHORITY_QA.md`.
+- The canonical distribution manifest validated; the official-CDN export
+  resolved and passed SHA-512 verification. Current generated roots contain 62
+  client jars, 12 `config/` files, one managed Bobby cache sentinel, and two
+  resource packs; the server contains 46 jars plus three managed config files.
+  `syncDevRuntimeMods` produced 41-jar standard clients, a 43-jar admin Client
+  One, and a 25-jar development server.
+- The Excalibured CIT release blocker is resolved. Seventy-six active rules now
+  use Minecraft 1.21 item-component predicates, six invalid/empty definitions
+  were removed, and the stale `clarentmod` shield-model reference was corrected.
+  `verifyExcaliburedCit` validates 267 active definitions and is required by
+  distribution verification. A fresh ordinary-player client resource load
+  completed CIT model linking with zero CIT errors and no removed-namespace
+  model warning.
+- Bobby's fresh-install cache-root error and Sodium Extra's Reese's Sodium
+  Options recommendation remain corrected in source.
+- Performance validation passed a 120-minute joined Peaceful soak, 12
+  managed-world teleports, restart/reconnect, client Generational ZGC, and
+  clean shutdown. The server A/B measured the optimized stack 5.01% faster in
+  wall startup. See `docs/reports/PERFORMANCE_DISTRIBUTION_VALIDATION.md`.
+- A settled dedicated-server startup/stop reached `Done`, saved all dimensions,
+  and exited successfully. Its Lithium/ModernFix `SortedArraySet` and
+  biome-temperature overwrite warnings are resolved by explicitly assigning
+  both overlapping patches to Lithium.
+- Server startup now declares Lithium's block-tracking-dependent options at
+  their effective disabled values and supplies the vanilla birch/mangrove
+  biome tags required by the world-generation stack. Remaining missing-refmap,
+  optional-compatibility-class, data-fixer, and empty backport-registry messages
+  originate in pinned upstream jars and are not hidden by modifying artifacts.
 
 - Phase 10-13 focused suites and full cross-module builds passed; their detailed
   evidence remains in the indexed completion reports.
@@ -105,9 +148,89 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 
 ## Active Work
 
-- None. The project-wide revamp and its final review remediation are complete.
-  Future work begins as one bounded feature slice using
-  `docs/systems/EXTENSION_GUIDE.md`.
+- Elarion Angling has been selected as the next bounded feature. Its foundation
+  slice is complete: separate main/Delight Fabric modules, frozen-source and
+  parity contracts, Core ownership boundaries, performance/authority rules,
+  release exclusion, and a USB/new-machine resume procedure. The first bounded
+  content and server runtime registries are active, but public fishing remains
+  behind an explicit false release gate.
+- The owner has authorized the local `Modding` tree as the Angling port source,
+  including edited art and other creative resources. Ported files may enter
+  proper Elarion module paths without a separate replacement-asset phase; the
+  raw reference checkout remains excluded from jars.
+- Angling now tracks all 2,603 authorized reference files in a deterministic
+  SHA-256 inventory. The versioned immutable catch-definition codec decodes
+  all 463 actual catch definitions, and the registered caught-fish Fabric
+  component has persistent and bounded packet round-trip coverage. The audit
+  corrected the compatibility count from 322 to 315; the seven previously
+  included JSON files are rarity tags and a treasure data map, not catches.
+  All 12 durable Fabric item-component identities are registered with bounded
+  value tests. Signed guides snapshot Core projections without owning live
+  counters; persisted modifiers compile once and expose immutable runtime
+  values. Server selection is implemented; screen gameplay remains disabled.
+- The native Angling substrate is transformed and typed: 148 catch resources,
+  640 compiled restrictions, 68 compiled native modifiers, 352 resolved
+  sweetspots, transactional indexed reload snapshots, 1,010 runtime assets,
+  and 347 additional server-data files. Authorized PNG/OGG binaries remain
+  byte-identical. All 11 sound events and three server-safe particle types now
+  register under `elarion_angling`; their three client-only factories now
+  preserve the reference bite and notification animations. The registry now
+  contains 198 items, including 48 bucketable fish, their persistent bucket,
+  and all 15 component-safe rods. The non-cascading identity transform enforces
+  target IDs/names and zero visible source branding. The master ledger marks
+  1,518 files ported, 1,083 pending, and two Curios files dependency-
+  unavailable. Remaining custom items, blocks, renderers, screens, UI,
+  tournaments, compatibility, and Delight remain incomplete.
+- All five former NeoForge data maps are transformed into domain-owned Elarion
+  resources with 89 values. All five now compile and publish as one atomic
+  immutable snapshot: 13 aquarium interactions, eight tackle skins, 92
+  modifier nodes across 57 selectors using 43 active types, and 11 treasure
+  definitions. All nine dormant modifier IDs are also registered, completing
+  the 52-schema reference roster. Lure/throw and a first broad equipment
+  minigame behavior slice are now executed at cast/session creation; remaining
+  catch/treasure effects are pending. Catch selection, stable inline pool
+  entries, treasure resolution, and added loot-table outcomes now execute
+  server-side with bounded weighted pools.
+- Minigame authority hardening now includes typed bounded start/input/state
+  payloads, server-thread receiver dispatch, same-world live-entity and owner
+  validation, replay/gap/rate/transition rejection, and a deterministic
+  bobber-owned simulation. The server owns pointer/progress/perfect/treasure/
+  hits/layers, seeded sweetspots, the nine compiled native modifier types, the
+  nine compiled behavior types, and terminal idempotency. A tested four-state
+  bobber core preserves flying/bobbing/biting/fishing timing and the 80-tick
+  bite window. A live nonpersistent Fabric bobber, O(1) owner index,
+  restriction-context capture, weighted selection, server outcome generation,
+  and rod-to-commit path are wired. The authoritative client screen foundation
+  consumes only server snapshots and sends only input edges. Exact bobber/fish
+  renderers and remaining behavior parity are pending, so the public gameplay
+  gate is false.
+- Core catch telemetry now persists schema-2 typed server outcomes and
+  materializes immutable per-species count/performance summaries. Schema-1
+  journals and summaries migrate during decode, so guide/leaderboard consumers
+  can use bounded direct projections without scanning catch JSONL.
+- Catch acceptance now has a forced Angling request journal and bounded
+  coordinator. Restart replay preserves event UUID/source sequence across Core
+  telemetry and metrics, then idempotently enqueues exact component-bearing,
+  bounded multi-item/entity rewards before accepted-event delivery. Per-action
+  completion makes partial claims restart-safe. Failures close later admission;
+  full inventories remain claimable through Core.
+- Bait consumption is the first durable reward action. Canonical per-player
+  totals use lazy append journals and bounded per-player snapshots; Fabric
+  persists the applied cursor with inventory and reconciles only that player's
+  used bait types on join. No synchronous gameplay-thread save is used.
+  Runtime kill/restart GameTests remain pending.
+- Core now has a bound typed metric/ranking engine with bounded batches,
+  explicit materialized dimensions, logarithmic update/rank indexes,
+  competition ties, revisioned queries, append-first journals, atomic
+  snapshots, restart replay, a bounded worker, diagnostics, and public API.
+  Versioned metric events, metric-indexed title conditions, and bounded online
+  lazy reconciliation are implemented. Completed-event retention, offline
+  cursor reconciliation, and web projections remain.
+  Angling's exact 18-metric roster is registered.
+- Focused Core/Angling checks and the 215-task root build pass. Both generated
+  Angling jars were scanned and contain no raw reference checkout, Git,
+  NeoForge, or source-brand paths. Release exclusion remains active because
+  gameplay parity is incomplete.
 
 ## Known Risks
 
@@ -122,10 +245,14 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 - Phase 13 is complete; Portal responsibilities are extracted behind the stable
   facade and no further duplicate deletion was evidence-safe. See
   `docs/reports/PHASE_13_COMPLETION.md`.
-- Phase 14 exports contain 42 server jars and 43 client jars with no duplicate
-  names; Mod Menu is the only client-only jar. Build, GameTests, startup,
-  restart, optional-addon, client/onboarding, UI/resource, and deployment-plan
-  evidence is indexed in the verification matrix.
+- Phase 14's former export evidence predates the manifest-owned performance
+  distribution. Its dedicated startup, restart, DH/Bobby travel, A/B, and
+  two-hour soak gates are now refreshed; the remaining promotion blocker is
+  eleven legacy Excalibured/Polytone colormap-target errors.
+- Distant Horizons 3.2.0-b is a required beta artifact. Its generation and
+  updater paths are disabled, its former 2.3.0-b OpenGL fault is absent, and
+  Java 21 Generational ZGC is enforced for clients. “100% stability” remains a
+  release-gate target rather than a guarantee.
 - Concurrent dual-renderer observation is still limited by native `glfw.dll`
   crashes on this host; each authority direction passed independently.
 - Two isolated remote staging releases created while detecting the original
@@ -133,8 +260,10 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 
 ## Next Slice
 
-- None selected. Choose one concrete feature from `TODO.md`; do not reopen the
-  completed broad revamp.
+- Complete exact bobber/fish rendering, remaining catch/minigame behavior,
+  compatibility catch-tag membership, the Fabric loot-hook replacement, and
+  bait-debit kill/restart GameTests. Continue block/UI/tournament/
+  economy slices only while the public gameplay gate stays false.
 
 ## Historical Recovery
 

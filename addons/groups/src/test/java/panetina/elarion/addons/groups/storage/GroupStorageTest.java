@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GroupStorageTest {
     @TempDir
@@ -36,7 +35,6 @@ class GroupStorageTest {
         state.playerGroups.put(member, "merc");
         GroupInvite invite = new GroupInvite("merc", invited, leader, 5678L);
         state.invites.put(invite.key(), invite);
-        state.confederationLockedGroups.add("merc");
 
         GroupStorage storage = new GroupStorage(LoggerFactory.getLogger("groups-test"), root);
         storage.save(root, state);
@@ -47,6 +45,5 @@ class GroupStorageTest {
         assertEquals(Set.of(leader, member), loadedGroup.members());
         assertEquals("merc", loaded.playerGroups.get(leader));
         assertEquals(invited, loaded.invites.get(invite.key()).invitedPlayer());
-        assertTrue(loaded.confederationLockedGroups.contains("merc"));
     }
 }

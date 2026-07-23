@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 public final class GroupService {
     private final ElarionApi api;
     private final GroupStorage storage;
+    private final GroupWebProjectionPublisher webProjections;
     private GroupConfig config;
     private GroupState state = new GroupState();
     private MinecraftServer server;
@@ -38,6 +39,7 @@ public final class GroupService {
         this.api = api;
         this.storage = storage;
         this.config = config;
+        this.webProjections = new GroupWebProjectionPublisher(api);
     }
 
     public void reload(GroupConfig config) {
@@ -50,6 +52,7 @@ public final class GroupService {
         expireInvites();
         rebuildPlayerIndex();
         save();
+        webProjections.publishAll(groups());
     }
 
     public GroupConfig config() {
@@ -106,6 +109,7 @@ public final class GroupService {
         save();
         api.history().record("groups", "created", creator.getUuid(), "group", group.id(),
                 realmOf(creator.getUuid()), java.util.Map.of("tag", group.tag(), "name", group.displayName()));
+        webProjections.publishActive(group);
         return group;
     }
 
@@ -115,7 +119,6 @@ public final class GroupService {
         if (state.playerGroups.containsKey(target.getUuid())) {
             throw new IllegalArgumentException(target.getGameProfile().getName() + " is already in a group.");
         }
-        validateConfederationLock(group, target.getUuid());
         GroupInvite invite = new GroupInvite(group.id(), target.getUuid(), actor.getUuid(), System.currentTimeMillis());
         state.invites.put(invite.key(), invite);
         save();
@@ -151,7 +154,6 @@ public final class GroupService {
             save();
             throw new IllegalArgumentException("That group invitation expired.");
         }
-        validateConfederationLock(group, player.getUuid());
         LinkedHashSet<UUID> members = new LinkedHashSet<>(group.members());
         members.add(player.getUuid());
         GroupRecord updated = group.withMembers(members);
@@ -161,6 +163,7 @@ public final class GroupService {
         save();
         api.history().record("groups", "joined", player.getUuid(), "group", updated.id(),
                 realmOf(player.getUuid()), java.util.Map.of("tag", updated.tag()));
+        webProjections.publishActive(updated);
         notifyPersonal(invite.invitedBy(), "Group Invitation Accepted",
                 player.getGameProfile().getName() + " joined " + updated.displayName() + ".",
                 "group-invite-accepted:" + invite.key());
@@ -190,6 +193,8 @@ public final class GroupService {
         save();
         api.history().record("groups", "kicked", actor.getUuid(), "group", updated.id(),
                 realmOf(actor.getUuid()), java.util.Map.of("target", target.getUuid().toString()));
+        webProjections.publishActive(updated);
+        webProjections.publishNoMembership(target.getUuid());
         notifyPersonal(target.getUuid(), "Removed From Group",
                 "You were removed from " + updated.displayName() + ".", "group-kicked:" + updated.id()
                         + ":" + target.getUuid() + ":" + System.currentTimeMillis());
@@ -207,6 +212,8 @@ public final class GroupService {
         save();
         api.history().record("groups", "left", player.getUuid(), "group", updated.id(),
                 realmOf(player.getUuid()), java.util.Map.of("tag", updated.tag()));
+        webProjections.publishActive(updated);
+        webProjections.publishNoMembership(player.getUuid());
         return updated;
     }
 
@@ -223,6 +230,7 @@ public final class GroupService {
         save();
         api.history().record("groups", "leader-transferred", actorId, "group", updated.id(),
                 realmOf(target), java.util.Map.of("leader", target.toString()));
+        webProjections.publishActive(updated);
         notifyPersonal(target, "Group Leadership Transferred",
                 "You are now the leader of " + updated.displayName() + ".",
                 "group-leader:" + updated.id() + ":" + target + ":" + System.currentTimeMillis());
@@ -236,6 +244,7 @@ public final class GroupService {
         save();
         api.history().record("groups", hidden ? "tag-hidden" : "tag-shown", actor.getUuid(), "group", updated.id(),
                 realmOf(actor.getUuid()), java.util.Map.of("tag", updated.tag()));
+        webProjections.publishActive(updated);
         return updated;
     }
 
@@ -244,10 +253,10 @@ public final class GroupService {
         state.groups.remove(group.id());
         group.members().forEach(state.playerGroups::remove);
         state.invites.entrySet().removeIf(entry -> entry.getValue().groupId().equals(group.id()));
-        state.confederationLockedGroups.remove(group.id());
         save();
         api.history().record("groups", "deleted", actorId, "group", group.id(),
                 realmOf(group.leaderId()), java.util.Map.of("tag", group.tag()));
+        webProjections.publishInactive(group);
         group.members().forEach(member -> notifyPersonal(member, "Group Disbanded",
                 group.displayName() + " was disbanded.", "group-deleted:" + group.id() + ":" + member));
         return group;
@@ -270,6 +279,15 @@ public final class GroupService {
         state.groups.put(group.id(), group.withMembers(members));
         state.playerGroups.remove(accountId);
         save();
+        webProjections.publishActive(group.withMembers(members));
+        webProjections.publishNoMembership(accountId);
+    }
+
+    public synchronized int resetAllPlayerState() {
+        int changed = state.playerGroups.size();
+        state = new GroupState();
+        save();
+        return changed;
     }
 
     private void expireInvites() {
@@ -296,25 +314,6 @@ public final class GroupService {
                 api.notifications().defaultExpiry());
     }
 
-    public boolean eligibleForConfederationDelegate(String groupId, String realmId) {
-        GroupRecord group = state.groups.get(normalizeId(groupId));
-        String realm = normalizeRealm(realmId);
-        if (group == null || realm.isBlank()) return false;
-        return group.members().stream().allMatch(member -> realm.equals(realmOf(member)));
-    }
-
-    public void setConfederationLocked(String groupId, boolean locked) {
-        String id = normalizeId(groupId);
-        requireGroup(id);
-        if (locked) state.confederationLockedGroups.add(id);
-        else state.confederationLockedGroups.remove(id);
-        save();
-    }
-
-    public boolean isConfederationLocked(String groupId) {
-        return state.confederationLockedGroups.contains(normalizeId(groupId));
-    }
-
     public boolean sendGroupMessage(ServerPlayerEntity sender, String message) {
         if (message == null || message.isBlank()) return false;
         if (api.system().restrictions().denyWithMessage(sender, PlayerRestrictionService.GROUP_CHAT)) return false;
@@ -335,15 +334,6 @@ public final class GroupService {
         api.history().record("chat", "group-message", sender.getUuid(), "group", group.id(),
                 realmOf(sender.getUuid()), java.util.Map.of("channel", "group", "group", group.id()));
         return true;
-    }
-
-    private void validateConfederationLock(GroupRecord group, UUID joiningPlayer) {
-        if (!state.confederationLockedGroups.contains(group.id())) return;
-        String leaderRealm = realmOf(group.leaderId());
-        String targetRealm = realmOf(joiningPlayer);
-        if (!leaderRealm.equals(targetRealm)) {
-            throw new IllegalArgumentException("This group represents its Realm in a Confederation and cannot invite cross-Realm members.");
-        }
     }
 
     private GroupRecord requireLeaderGroup(UUID playerId) {

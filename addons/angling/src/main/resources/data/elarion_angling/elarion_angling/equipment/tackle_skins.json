@@ -1,0 +1,13 @@
+{
+    "schema_version":  1,
+    "values":  {
+                   "elarion_angling:clear_smithing_template":  "elarion_angling:clear",
+                   "elarion_angling:colorful_smithing_template":  "elarion_angling:colorful",
+                   "elarion_angling:frog_smithing_template":  "elarion_angling:frog",
+                   "elarion_angling:kimbe_smithing_template":  "elarion_angling:kimbe",
+                   "elarion_angling:king_smithing_template":  "elarion_angling:king",
+                   "elarion_angling:pearl_smithing_template":  "elarion_angling:pearl",
+                   "elarion_angling:survivor_smithing_template":  "elarion_angling:survivor_valley",
+                   "elarion_angling:valley_smithing_template":  "elarion_angling:valley"
+               }
+}

@@ -1,21 +1,2043 @@
 {
-    "fish.elarion_angling.placeholder_fish_001": "Pale Brookling",
-    "fish.elarion_angling.placeholder_fish_002": "Reedglass Darter",
-    "fish.elarion_angling.placeholder_fish_003": "Rainthread Minnow",
-    "fish.elarion_angling.placeholder_fish_004": "Moonwell Pike",
-    "fish.elarion_angling.placeholder_fish_005": "Cavern Siltfin",
-    "fish.elarion_angling.placeholder_fish_006": "Stormveil Koi",
-    "fish.elarion_angling.placeholder_fish_007": "Baitbright Perch",
-    "item.elarion_angling.placeholder_catch_item": "Angler's Keepsake",
-    "item.elarion_angling.placeholder_bait_item": "Glowthread Bait",
-    "item.elarion_angling.pale_brookling": "Pale Brookling",
-    "item.elarion_angling.reedglass_darter": "Reedglass Darter",
-    "item.elarion_angling.rainthread_minnow": "Rainthread Minnow",
-    "item.elarion_angling.moonwell_pike": "Moonwell Pike",
-    "item.elarion_angling.cavern_siltfin": "Cavern Siltfin",
-    "item.elarion_angling.stormveil_koi": "Stormveil Koi",
-    "item.elarion_angling.baitbright_perch": "Baitbright Perch",
-    "feedback.elarion_angling.catch_accepted": "[REPLACE: feedback.catch.accepted]",
-    "feedback.elarion_angling.catch_unavailable": "[REPLACE: feedback.catch.unavailable]",
-    "modmenu.descriptionTranslation.elarion_angling": "Fishing addon shell for future Elarion catch systems."
+  "block.minecraft.empty": "Void",
+
+  "structure.minecraft.end_city": "End Cities",
+  "structure.minecraft.village_desert": "Desert Villages",
+  "structure.minecraft.village_plains": "Plains Villages",
+  "structure.minecraft.village_savanna": "Savanna Villages",
+  "structure.minecraft.village_taiga": "Taiga Villages",
+  "structure.minecraft.village_snowy": "Snowy Villages",
+
+  "advancements.husbandry.elarion_angling.fisherman.title": "Fisherman",
+  "advancements.husbandry.elarion_angling.fisherman.description": "Catch a Fish without missing once",
+
+  "key.category.elarion_angling.elarion_angling": "Elarion Angling",
+  "key.elarion_angling.minigame_hit": "Minigame Hit",
+  "key.elarion_angling.expand_tournament": "Toggle Tournament Overlay",
+
+  "creativetab.elarion_angling.elarion_angling": "Elarion Angling",
+  "creativetab.elarion_angling.elarion_angling.fish": "Fish",
+  "creativetab.elarion_angling.elarion_angling.hooks_bobbers": "Hooks, Bobbers & Baits",
+  "creativetab.elarion_angling.elarion_angling.cosmetics": "Cosmetics",
+  "creativetab.elarion_angling.elarion_angling.must_have": "Must Have",
+  "creativetab.elarion_angling.elarion_angling.trophies": "Trophies & Secrets",
+  "creativetab.elarion_angling.elarion_angling.miscellaneous": "Miscellaneous",
+  "creativetab.elarion_angling.elarion_angling.tackle_boxes": "Tackle Boxes",
+
+  "stat.elarion_angling.starcaught_treasures": "Starcaught Treasures",
+  "stat.elarion_angling.starcaught_fish": "Starcaught Fish",
+  "stat.elarion_angling.starcaught_fish_missed": "Starcaught Fish Missed",
+
+  "emi.elarion_angling.open_as_guide_entry" : "Open as guide entry",
+  "emi.elarion_angling.entity_entry" : "This entry will always spawn a %s",
+
+  "emi.category.elarion_angling.fishing" : "Elarion Angling's Fishing",
+
+  "emi.info.elarion_angling.worms.0" : "Worms have different fishing modifiers when used as bait.",
+  "emi.info.elarion_angling.worms.1" : "Obtainable by bonemealing farmland.",
+  "emi.info.elarion_angling.worms.2" : "Compostable.",
+
+  "emi.info.elarion_angling.pearls.0" : "Clams placed on sand will slowly create pearls.",
+  "emi.info.elarion_angling.pearls.1" : "Once the river_clam has opened up you may click on it to harvest a pearl.",
+
+  "emi.info.elarion_angling.attachments.0" : "Hooks, Bobbers & Baits may be attached to your rod using a Tackle Box.",
+  "emi.info.elarion_angling.attachments.1" : "They provide several different 'modifiers' which will aid you in different ways, from decreasing lure time, to difficulty reducing buffs.",
+
+  "emi.info.elarion_angling.fish_bones.0" : "Fish Bones are obtained after eating Starcaught Fish.",
+
+  "emi.info.elarion_angling.pearl_template.0" : "This template may be found rarely when collecting pearls from clams.",
+
+  "emi.info.elarion_angling.hat.0" : "Fisherman's hats may be found rarely inside Shipwrecks's chests.",
+
+  "elarion_angling.tip.legendary_fish" : "Most legendary fish love legendary bait!",
+  "elarion_angling.tip.too_hard" : "A fish feels too hard? Better rethink which Bobber & Hook you're using!",
+  "elarion_angling.tip.fisherman_hat" : "Fisherman Hats can be found rarely inside shipwrecks.",
+  "elarion_angling.tip.templates" : "Fishing templates can be used to modify the look of your rod!",
+  "elarion_angling.tip.tackle_box" : "Lots of fishes filling up your inventory? Better place them in a tackle box!",
+  "elarion_angling.tip.secret_messages" : "Secret messages may sometimes be fished up! Who knows what stories they might tell...",
+  "elarion_angling.tip.river_clam" : "Clams may produce pearls when placed on sand!",
+  "elarion_angling.tip.aquarium" : "Too many fish and don't know how to display? Why not build an Aquarium!",
+  "elarion_angling.tip.weather" : "Some fish will only come out during specific Weather and Daytime conditions.",
+  "elarion_angling.tip.golden" : "Golden Fishes can only be caught once!",
+  "elarion_angling.tip.wither" : "Using a wither skeleton skull as a bait might produce... undesirable results...",
+  "elarion_angling.tip.sell" : "Fishes will sell for more if they are a low percentile. And even more if they are golden",
+  "elarion_angling.tip.dimension" : "You can find fishes everywhere, even in The Nether and The End",
+  "elarion_angling.tip.ice" : "Icy fishes will freeze your handle on misses!",
+
+
+
+  "tag.elarion_angling.is_overworld" : "Overworld-like",
+  "tag.elarion_angling.is_nether" : "Nether-like",
+  "tag.elarion_angling.is_end" : "End-like",
+
+  "tag.elarion_angling.is_beach" : "Beaches",
+  "tag.elarion_angling.is_birch_forest" : "Birch Forests",
+  "tag.elarion_angling.is_cherry_grove" : "Cherry Groves",
+  "tag.elarion_angling.is_cold_lake" : "Cold Lakes",
+  "tag.elarion_angling.is_cold_ocean" : "Cold Oceans",
+  "tag.elarion_angling.is_frozen_ocean" : "Frozen Oceans",
+  "tag.elarion_angling.is_cold_river" : "Cold Rivers",
+  "tag.elarion_angling.is_dark_forest" : "Dark Forests",
+  "tag.elarion_angling.is_deep_ocean" : "Deep Oceans",
+  "tag.elarion_angling.is_mushroom_fields" : "Mushroom Fields",
+  "tag.elarion_angling.is_ocean" : "All Oceans",
+  "tag.elarion_angling.is_normal_ocean" : "Ocean",
+  "tag.elarion_angling.is_river" : "Rivers",
+  "tag.elarion_angling.is_swamp" : "Swamps",
+  "tag.elarion_angling.is_warm_lake" : "Warm Climate",
+  "tag.elarion_angling.is_lukewarm_ocean" : "Lukewarm Oceans",
+  "tag.elarion_angling.is_warm_ocean" : "Warm Oceans",
+  "tag.elarion_angling.is_warm_river" : "Warm Rivers",
+  "tag.elarion_angling.is_basalt_deltas" : "Basalt Deltas",
+
+  "tag.minecraft.is_badlands" : "Badlands",
+  "tag.minecraft.is_beach" : "Beaches",
+  "tag.minecraft.is_deep_ocean" : "Deep Oceans",
+  "tag.minecraft.is_end" : "The End Biomes",
+  "tag.minecraft.is_forest" : "Forests",
+  "tag.minecraft.is_hill" : "Hills",
+  "tag.minecraft.is_jungle" : "Jungles",
+  "tag.elarion_angling.lush_and_jungle" : "Jungles & Lush Caves",
+  "tag.minecraft.is_mountain" : "Mountains",
+  "tag.minecraft.is_nether" : "Nether Biomes",
+  "tag.minecraft.is_ocean" : "All Oceans",
+  "tag.minecraft.is_overworld" : "Overworld Biomes",
+  "tag.minecraft.is_river" : "Rivers",
+  "tag.minecraft.is_savanna" : "Savannas",
+  "tag.minecraft.is_taiga" : "Taigas",
+
+  "tag.elarion_angling.baits" : "Fishing Baits",
+  "tag.elarion_angling.hooks" : "Fishing Hooks",
+  "tag.elarion_angling.bobbers" : "Fishing Bobbers",
+  "tag.elarion_angling.equipments" : "Fishing Equipment",
+  "tag.elarion_angling.gadgets" : "Fishing Gadgets",
+  "tag.elarion_angling.rods" : "Elarion Angling Rods",
+  "tag.elarion_angling.templates" : "Fishing Rod Templates",
+  "tag.elarion_angling.bucketable_fishes" : "Elarion Angling Bucketable Fishes",
+  "tag.elarion_angling.starcaught_fishes" : "Starcaught Fishables",
+  "tag.elarion_angling.hats" : "Hats",
+
+  "tag.elarion_angling.common_fishes" : "Common Fishes",
+  "tag.elarion_angling.uncommon_fishes" : "Uncommon Fishes",
+  "tag.elarion_angling.rare_fishes" : "Rare Fishes",
+  "tag.elarion_angling.epic_fishes" : "Epic Fishes",
+  "tag.elarion_angling.legendary_fishes" : "Legendary Fishes",
+
+  "tag.elarion_angling.aquarium_guide_display" : "Aquarium Interactions For The Guide",
+  "tag.elarion_angling.placeable_in_display" : "Placeable In The Display Block",
+  "tag.elarion_angling.placeable_in_tackle_box" : "Placeable In Tackle Box",
+  "tag.elarion_angling.placeable_in_tackle_box_fish_slot" : "Placeable In Tackle Box Fish Slot",
+  "tag.elarion_angling.tackle_boxes" : "Tackle Boxes",
+  "tag.elarion_angling.tackle_skins" : "Tackle Skins",
+  "tag.elarion_angling.trash" : "Trash",
+  "tag.elarion_angling.worms" : "Worms",
+
+
+
+
+
+  "sounds.elarion_angling.king_cry" : "Crying noises",
+  "sounds.elarion_angling.king_grr" : "Angry noises",
+  "sounds.elarion_angling.king_heheha" : "HEHEHEHA noises",
+
+  "sounds.elarion_angling.biting" : "Fish biting sounds!",
+  "sounds.elarion_angling.cast" : "Fishing rod cast",
+  "sounds.elarion_angling.failed" : "Fishing minigame failed",
+  "sounds.elarion_angling.missed" : "Fish swam away",
+  "sounds.elarion_angling.boop" : "Fishing boop",
+  "sounds.elarion_angling.reel" : "Fishing rod reeled in",
+
+  "commands.elarion_angling.fish_entry_not_found" : "Fish Entry %s not found",
+  "commands.elarion_angling.modifier_not_found" : "Modifier %s not found",
+  "commands.elarion_angling.rod_not_found" : "You must have a Elarion Angling-compatible rod in your hand",
+  "commands.elarion_angling.nothing_there" : "There are no fishes available at the current location. Make sure you're standing inside the correct fluid.",
+  "commands.elarion_angling.item_empty" : "You must have an item in your hand to apply the modifier to",
+
+  "elarion_angling.configuration.ui_settings": "!!! UI Moving & Scale !!!",
+
+  "elarion_angling.configuration.minigame_x_offset": "Minigame X Offset",
+  "elarion_angling.configuration.minigame_y_offset": "Minigame Y Offset",
+  "elarion_angling.configuration.minigame_scale": "Minigame Scale",
+
+  "elarion_angling.configuration.tournament_x_offset": "Tournament X Offset",
+  "elarion_angling.configuration.tournament_y_offset": "Tournament Y Offset",
+  "elarion_angling.configuration.tournament_scale": "Tournament Scale",
+
+  "elarion_angling.configuration.radar_x_offset": "Radar X Offset",
+  "elarion_angling.configuration.radar_y_offset": "Radar Y Offset",
+  "elarion_angling.configuration.radar_scale": "Radar Scale",
+
+  "elarion_angling.configuration.debug": "Debug Minigame Info",
+
+  "elarion_angling.configuration.hit_delay" : "Minigame Hit Delay",
+  "elarion_angling.configuration.units" : "Measurement Units",
+  "elarion_angling.configuration.sort" : "Guide Sort order",
+  "elarion_angling.configuration.enable_tackle_sounds" : "Tackle Skin Sounds",
+  "elarion_angling.configuration.enable_hit_sounds" : "Sweet-spot Hit Sounds",
+  "elarion_angling.configuration.enable_miss_sound" : "Minigame miss Sound",
+  "elarion_angling.configuration.remove_notif_on_hover" : "Remove New Fish Notif on Hover",
+
+  "elarion_angling.configuration.give_guide" : "Give Guide",
+  "elarion_angling.configuration.enable_worms" : "Worms From Bonemealing Farmland",
+  "elarion_angling.configuration.enable_minigame" : "Enable Fishing Minigame",
+  "elarion_angling.configuration.enable_ftb_team_sharing" : "Enable FTBTeams Sharing",
+  "elarion_angling.configuration.enable_seasons" : "Enable Seasons Compatibility",
+  "elarion_angling.configuration.vanishing_rate_multiplier" : "Global Vanishing Rate Multiplier",
+  "elarion_angling.configuration.moving_speed_multiplier" : "Global Moving Speed Multiplier",
+  "elarion_angling.configuration.penalty_multiplier" : "Global Penalty Multiplier",
+  "elarion_angling.configuration.decay_multiplier" : "Global Decay Multiplier",
+  "elarion_angling.configuration.hp_multiplier" : "Global HP Multiplier",
+  "elarion_angling.configuration.handle_speed_multiplier" : "Global Handle Speed Multiplier",
+  "elarion_angling.configuration.hide_entries_until_found" : "Hide Guide Entries Until Found",
+  "elarion_angling.configuration.fish_player_messages_chance" : "Player Messages Chance To Fish",
+  "elarion_angling.configuration.save_data_to_items" : "Size, Weight, Rarity & Golden NBT saving",
+  "elarion_angling.configuration.base_min_ticks" : "Minimum Ticks To Fish",
+  "elarion_angling.configuration.base_max_ticks" : "Maximum Ticks To Fish",
+  "elarion_angling.configuration.base_chance" : "Base Chance To Fish Per Tick",
+  "elarion_angling.configuration.restrict_tackle_box_to_tag" : "Restrict Tackle Box To Tag",
+  "elarion_angling.configuration.fish_percentile_size_max_scale" : "Fish Model Max Scale",
+  "elarion_angling.configuration.fish_percentile_size_min_scale" : "Fish Model Min Scale",
+  "elarion_angling.configuration.enable_rod_menu" : "Enable Rod Menu",
+  "elarion_angling.configuration.max_tackle_box_fish_storage" : "Max Tackle Box Fish",
+  "elarion_angling.configuration.hide_treasures" : "Hide Treasures",
+
+
+
+  "gui.elarion_angling.processor.fishes_processor.percentile" : "- Price is increased by +%s%% based on top 50%%",
+  "gui.elarion_angling.processor.fishes_processor.golden" : "- Price is multiplied by %sx if golden.",
+
+
+
+
+
+
+
+
+
+  "entity.elarion_angling.fish" : "Starcaught Fish",
+
+  "gui.elarion_angling.bait_running_low" : "Your bait is running low...",
+  "gui.elarion_angling.reel_no_fish" : "There are no fishes here...",
+  "gui.elarion_angling.no_hook_or_bobber" : "A fishing rod won't work without a hook and a bobber...",
+
+
+  "tooltip.minecraft.fishing_rod.0": "A simple fishing rod used for catching",
+  "tooltip.minecraft.fishing_rod.1": "the most basic of fishes.",
+  "tooltip.minecraft.fishing_rod.2": "One can only dream of upgrading",
+  "tooltip.minecraft.fishing_rod.3": "it to a <sclegendary>Elarion Angling's rod</sclegendary>.",
+
+
+
+  "tooltip.elarion_angling.rod.netherite" : "<sclegendary>Netherite Upgraded</sclegendary>",
+
+  "item.elarion_angling.elarion_angling_rod": "Elarion Angling's Rod",
+
+  "item.elarion_angling.naturalist_rod": "Naturalist Rod",
+  "item.elarion_angling.iceborn_rod": "Iceborn Rod",
+  "item.elarion_angling.magmaforged_rod": "Magmaforged Rod",
+  "item.elarion_angling.slimed_rod": "Slimed Rod",
+  "item.elarion_angling.sharktooth_rod": "Sharktooth Rod",
+  "item.elarion_angling.azure_crystal_rod": "Azure Crystal Rod",
+  "item.elarion_angling.good_old_rod": "Good Ol' Rod",
+  "item.elarion_angling.bamboo_rod": "Bamboo Rod",
+  "item.elarion_angling.obsidian_rod": "Obsidian Rod",
+  "item.elarion_angling.alpha_rod": "Alpha Rod",
+  "item.elarion_angling.boner_rod": "Boner Rod",
+  "item.elarion_angling.sky_rod": "Sky Rod",
+  "item.elarion_angling.lush_glowberry_rod": "Lush Glowberry Rod",
+  "item.elarion_angling.humble_rod": "Humble Rod",
+
+  "item.elarion_angling.elarion_angling_guide": "Elarion Angling's Guide",
+  "tooltip.elarion_angling.elarion_angling_guide.0": "An angler's best companion, keeping track",
+  "tooltip.elarion_angling.elarion_angling_guide.1": "of all the fishes you've caught, and",
+  "tooltip.elarion_angling.elarion_angling_guide.2": "those you have yet to reel in!",
+
+  "tooltip.elarion_angling.elarion_angling_guide.signed": "This Book Belongs To: %s",
+  "tooltip.elarion_angling.elarion_angling_guide.signed_shift": "Signed By: %s",
+
+  "item.elarion_angling.elarion_angling_twine": "Elarion Angling's Twine",
+  "tooltip.elarion_angling.elarion_angling_twine.0": "A delicate twine wrapped around a stick.",
+  "tooltip.elarion_angling.elarion_angling_twine.1": "Vansire used these for string instruments once upon a time.",
+
+  "block.elarion_angling.tournament_stand": "Tournament Stand",
+  "tooltip.elarion_angling.tournament_stand.0": "A stand used to host fishing tournaments.",
+
+
+  "tooltip.elarion_angling.modifiers": "Fishing Modifiers:",
+  "tooltip.elarion_angling.modifiers.active": "<scepic><u>Active Modifiers:</scepic></u>",
+
+  "tooltip.modifier.elarion_angling.prevent_frozen": "Prevents your handle from freezing up",
+
+  "tooltip.modifier.elarion_angling.never_lose": "[dev] never lose the minigame",
+
+  "tooltip.modifier.elarion_angling.bounce_back": "Prevents the fish from swimming away once by bouncing it back up",
+
+  "tooltip.modifier.elarion_angling.survives_lava": "Allows for lava-fishing",
+
+  "tooltip.modifier.elarion_angling.add_creeper": "An ill-tempered friend might show up",
+
+  "tooltip.modifier.elarion_angling.no_gravity": "Your bobber will no longer follow the laws of gravity",
+
+  "tooltip.modifier.elarion_angling.extra_golden_chance.perfect": "Perfect catches are more likely to become golden",
+  "tooltip.modifier.elarion_angling.extra_golden_chance.perfect.shift": "Perfect catches are %s%% more likely to become golden",
+  "tooltip.modifier.elarion_angling.extra_golden_chance.base": "A golden fish is more likely to bite",
+  "tooltip.modifier.elarion_angling.extra_golden_chance.base.shift": "A golden fish is %s%% more likely to bite",
+
+  "tooltip.modifier.elarion_angling.award_treasure_on_perfect_catch": "Perfect catch may award a treasure",
+  "tooltip.modifier.elarion_angling.award_treasure_on_perfect_catch.always": "Perfect catches award a treasure",
+  "tooltip.modifier.elarion_angling.award_treasure_on_perfect_catch.shift": "Perfect catches award treasure on a %s%% chance",
+
+  "tooltip.modifier.elarion_angling.spawn_treasure_on_hit_x": "A treasure spawns after %s consecutive hits",
+
+  "tooltip.modifier.elarion_angling.anglers_hat": "",
+
+  "tooltip.modifier.elarion_angling.hide_catch": "You can no longer see your catch whilst fishing",
+
+  "tooltip.modifier.elarion_angling.freeze_on_miss": "Missing a sweet-spot will cause your handle to freeze up for a short period",
+
+  "tooltip.modifier.elarion_angling.spawn_frozen_sweetspots": "Every so often a frozen sweet-spot might show up",
+
+  "tooltip.modifier.elarion_angling.spawn_tnt_sweetspots": "Explosive sweet-spots might show up",
+
+  "tooltip.modifier.elarion_angling.spawn_treasure_on_three_hits": "Successfully hitting 3 sweet-spots in a row will summon a treasure chest",
+
+  "tooltip.modifier.elarion_angling.slower_moving_sweetspots": "Slows down moving sweet-spots",
+
+  "tooltip.modifier.elarion_angling.stop_decay_on_hit": "Prevents the fish from swimming away for a short period after a hit",
+
+  "tooltip.modifier.elarion_angling.harder_with_treasure_on_perfect": "The catch will be harder than usual, but a perfect catch awards a treasure",
+
+  "tooltip.modifier.elarion_angling.no_flip": "Sweet-spots will no longer flip when hit",
+
+  "tooltip.modifier.elarion_angling.slower_vanishing": "Vanishing sweet-spots will take longer to vanish",
+
+  "tooltip.modifier.elarion_angling.bigger_green_sweetspots": "Green sweet-spots will be slightly bigger",
+
+  "tooltip.modifier.elarion_angling.add_leaves_spots": "Leaf sweetspots will appear at random",
+
+  "tooltip.modifier.elarion_angling.add_aqua_sweetspot": "An extra aqua sweet-spot is added",
+
+  "tooltip.modifier.elarion_angling.add_three_aqua_sweetspot": "Three extra aqua sweet-spot are added",
+
+  "tooltip.modifier.elarion_angling.flip_every_hit": "Flip every time you hit a sweet-spot",
+
+
+
+
+  "tooltip.modifier.elarion_angling.skip_minigame_if_vanilla_bobber": "Skips minigame if equipped alongsides the Vanilla-flavoured Bobber",
+
+
+  "tooltip.modifier.keyword.big_decrease": "Tremendously decreases",
+  "tooltip.modifier.keyword.decrease": "Decreases",
+  "tooltip.modifier.keyword.increase": "Increases",
+  "tooltip.modifier.keyword.big_increase": "Tremendously increases",
+
+  "tooltip.modifier.number.1": "One",
+  "tooltip.modifier.number.2": "Two",
+  "tooltip.modifier.number.3": "Three",
+  "tooltip.modifier.number.4": "Four",
+  "tooltip.modifier.number.5": "Five",
+  "tooltip.modifier.number.6": "Six",
+  "tooltip.modifier.number.7": "Seven",
+  "tooltip.modifier.number.8": "Eight",
+  "tooltip.modifier.number.9": "Nine",
+  "tooltip.modifier.number.10": "Ten",
+  "tooltip.modifier.number.11": "Eleven",
+  "tooltip.modifier.number.12": "Twelve",
+  "tooltip.modifier.number.32": "Thirty-two",
+  "tooltip.modifier.number.64": "A stack",
+
+  "tooltip.modifier.elarion_angling.adjust_handle_speed": " the handle's rotation speed",
+  "tooltip.modifier.elarion_angling.adjust_handle_speed.shift": "Adjusts the handle's rotation speed by %s%%",
+
+  "tooltip.modifier.elarion_angling.add_basic_sweetspot": "Adds a Sweet-spot",
+  "tooltip.modifier.elarion_angling.deep_ocean_bobber": "Adds a Deep Ocean Sweet-spot",
+  "tooltip.modifier.elarion_angling.glowing_bobber": "Adds a Glowing Sweet-spot",
+
+  "tooltip.modifier.elarion_angling.adjust_vanishing_rate": " the vanishing rate of sweet-spots",
+  "tooltip.modifier.elarion_angling.adjust_vanishing_rate.shift": "Adjusts the vanishing rate of sweet-spots by %s%%",
+
+  "tooltip.modifier.elarion_angling.adjust_lure_time.base": " lure time",
+  "tooltip.modifier.elarion_angling.adjust_lure_time.shift.min_ticks": "Adjusts minimum ticks to fish by %s%%",
+  "tooltip.modifier.elarion_angling.adjust_lure_time.shift.max_ticks": "Adjusts maximum ticks to fish by %s%%",
+  "tooltip.modifier.elarion_angling.adjust_lure_time.shift.random": "Adjusts the chance of biting every tick by %s%%",
+
+  "tooltip.modifier.elarion_angling.adjust_moving_sweetspots.increase": "Increases the speed of moving sweet-spots",
+  "tooltip.modifier.elarion_angling.adjust_moving_sweetspots.decrease": "Decreases the speed of moving sweet-spots",
+  "tooltip.modifier.elarion_angling.adjust_moving_sweetspots.shift": "Adjusts the speed of moving sweet-spots by %s%%",
+
+  "tooltip.modifier.elarion_angling.adjust_decay_rate.increase": "Increases the rate at which fish swim away",
+  "tooltip.modifier.elarion_angling.adjust_decay_rate.decrease": "Decreases the rate at which fish swim away",
+  "tooltip.modifier.elarion_angling.adjust_decay_rate.shift": "Adjusts the rate of decay of fishes by %s%%",
+
+  "tooltip.modifier.elarion_angling.adjust_penalty_rate.increase": "Increases the penalty for missing sweet-spots",
+  "tooltip.modifier.elarion_angling.adjust_penalty_rate.decrease": "Decreases the penalty for missing sweet-spots",
+  "tooltip.modifier.elarion_angling.adjust_penalty_rate.shift": "Adjusts the penalty of missing sweet-spots by %s%%",
+
+  "tooltip.modifier.elarion_angling.vanilla_bobber": "Restores vanilla fishing loot",
+
+  "tooltip.modifier.elarion_angling.luck_attribute": "Adjusts fish chance based on your luck",
+
+  "tooltip.modifier.elarion_angling.burn_on_miss": "Missing will cause your handle to lit on fire",
+
+  "tooltip.modifier.elarion_angling.deep_dark": "Hitting sweet-spots will consume you by darkness",
+
+  "tooltip.modifier.elarion_angling.ignore_daytime_restrictions": "Ignores fishing daytime restrictions",
+  "tooltip.modifier.elarion_angling.ignore_daytime_restrictions.maybe": "Fishing daytime restrictions will sometimes be bypassed",
+  "tooltip.modifier.elarion_angling.ignore_daytime_restrictions.shift": "%s%% chance of ignoring fishing daytime restrictions",
+
+  "tooltip.modifier.elarion_angling.ignore_weather_restrictions": "Ignores fishing weather restrictions",
+  "tooltip.modifier.elarion_angling.ignore_weather_restrictions.maybe": "Fishing weather restrictions will sometimes be bypassed",
+  "tooltip.modifier.elarion_angling.ignore_weather_restrictions.shift": "%s%% chance of ignoring fishing weather restrictions",
+
+  "tooltip.modifier.elarion_angling.new_catch_increase.shift" : "Increases the base chance of every uncaught fish by an extra %s",
+  "tooltip.modifier.elarion_angling.new_catch_increase" : "Increases the likelihood of a new catch biting",
+
+  "tooltip.modifier.elarion_angling.cancel_golden" : "You can no longer catch golden fishes",
+
+  "tooltip.modifier.elarion_angling.extra_exp_based_on_performance": "Extra exp is awarded based on your performance",
+
+  "tooltip.modifier.elarion_angling.force_fish_entity": "If available, will catch the live fish instead",
+
+  "tooltip.modifier.elarion_angling.guarantee_new_fish_always": "If available, an undiscovered fish will bite",
+  "tooltip.modifier.elarion_angling.guarantee_new_fish_half": "An undiscovered fish is more likely to bite",
+
+  "tooltip.modifier.elarion_angling.extra_base_catch": "%s extra fish will come alongside your catch",
+  "tooltip.modifier.elarion_angling.extra_base_catch.1": "One",
+
+  "tooltip.tackle.elarion_angling.kimbe": "Kimbe",
+  "tooltip.tackle.elarion_angling.clear": "Clear",
+  "tooltip.tackle.elarion_angling.colorful": "Colorful",
+  "tooltip.tackle.elarion_angling.pearl": "Pearl",
+  "tooltip.tackle.elarion_angling.base": "Simple",
+  "tooltip.tackle.elarion_angling.frog": "Frog",
+  "tooltip.tackle.elarion_angling.king": "King",
+  "tooltip.tackle.elarion_angling.valley": "Valley",
+  "tooltip.tackle.elarion_angling.survivor": "Survivor",
+
+
+  "item.elarion_angling.hook": "Iron Hook",
+  "tooltip.elarion_angling.hook.0": "A basic iron hook for your fishing rod.",
+  "tooltip.elarion_angling.hook.1": "Everyone starts somewhere.",
+
+  "item.elarion_angling.shiny_hook": "Shiny Hook",
+  "item.elarion_angling.gold_hook": "Gold Hook",
+  "item.elarion_angling.mossy_hook": "Mossy Hook",
+  "item.elarion_angling.amethyst_hook": "Amethyst Hook",
+  "item.elarion_angling.stone_hook": "Stone Hook",
+  "item.elarion_angling.split_hook": "Split Hook",
+  "item.elarion_angling.stabilizing_hook": "Stabilizing Hook",
+  "item.elarion_angling.heavy_hook": "Heavy Hook",
+  "item.elarion_angling.vanilla_hook": "Vanilla-flavoured Hook",
+  "item.elarion_angling.copper_hook": "Copper Hook",
+  "item.elarion_angling.exposed_copper_hook": "Exposed Copper Hook",
+  "item.elarion_angling.weathered_copper_hook": "Weathered Copper Hook",
+  "item.elarion_angling.oxidised_copper_hook": "Oxidised Copper Hook",
+  "item.elarion_angling.echoing_hook": "Echoing Hook",
+  "item.elarion_angling.frozen_hook": "Frozen Hook",
+
+
+
+  "item.elarion_angling.bobber": "Bobber",
+  "tooltip.elarion_angling.bobber.0": "A basic bobber for your fishing rod.",
+  "tooltip.elarion_angling.bobber.1": "Hook's best friend.",
+
+  "item.elarion_angling.steady_bobber": "Steady Bobber",
+  "item.elarion_angling.leaf_bobber": "Leafy Bobber",
+  "item.elarion_angling.clear_bobber": "Clear Bobber",
+  "item.elarion_angling.deep_dark_bobber": "Deep Dark Bobber",
+  "item.elarion_angling.vanilla_bobber": "Vanilla-flavoured Bobber",
+  "item.elarion_angling.slimey_bobber": "Slimey Bobber",
+  "item.elarion_angling.glowing_bobber": "Glowing Bobber",
+  "item.elarion_angling.golden_bobber": "Golden Bobber",
+  "item.elarion_angling.deep_ocean_bobber": "Deep Ocean Bobber",
+  "item.elarion_angling.cloud_bobber": "Cloud Bobber",
+
+
+
+  "item.elarion_angling.worm": "Worm",
+  "item.elarion_angling.seeking_worm": "Seeking Worm",
+  "item.elarion_angling.almighty_worm": "Almighty Worm",
+
+  "item.elarion_angling.dev_worm": "Dev Worm",
+  "tooltip.elarion_angling.dev_worm.0": "A worm that ignores all fish restrictions. For dev use.",
+
+
+  "item.elarion_angling.gunpowder_bait": "Gunpowder Bait",
+  "item.elarion_angling.cherry_bait": "Cherry Bait",
+  "item.elarion_angling.lush_bait": "Lush Bait",
+  "item.elarion_angling.sculk_bait": "Sculk Bait",
+  "item.elarion_angling.dripstone_bait": "Dripstone Bait",
+  "item.elarion_angling.murkwater_bait": "Murkwater Bait",
+  "item.elarion_angling.meteorological_bait": "Meteorological Bait",
+  "item.elarion_angling.legendary_bait": "Legendary Bait",
+
+
+  "tooltip.elarion_angling.templates": "Cosmetic Template:",
+  "tooltip.elarion_angling.tackle": "Tackle Skin:",
+
+  "item.elarion_angling.kimbe_smithing_template": "Kimbe Tackle Smithing Template",
+  "item.elarion_angling.king_smithing_template": "King Tackle Smithing Template",
+  "item.elarion_angling.frog_smithing_template": "Frog Tackle Smithing Template",
+  "item.elarion_angling.clear_smithing_template": "Clear Tackle Smithing Template",
+  "item.elarion_angling.pearl_smithing_template": "Pearl Tackle Smithing Template",
+  "item.elarion_angling.colorful_smithing_template": "Colorful Tackle Smithing Template",
+
+  "item.elarion_angling.naturalist_skin_smithing_template": "Naturalist Skin Smithing Template",
+  "item.elarion_angling.iceborn_skin_smithing_template": "Iceborn Skin Smithing Template",
+  "item.elarion_angling.magmaforged_skin_smithing_template": "Magmaforged Skin Smithing Template",
+  "item.elarion_angling.slimed_skin_smithing_template": "Slimed Skin Smithing Template",
+  "item.elarion_angling.sharktooth_skin_smithing_template": "Sharktooth Skin Smithing Template",
+  "item.elarion_angling.azure_crystal_skin_smithing_template": "Azure Crystal Skin Smithing Template",
+  "item.elarion_angling.bamboo_skin_smithing_template": "Bamboo Skin Smithing Template",
+  "item.elarion_angling.obsidian_skin_smithing_template": "Obsidian Skin Smithing Template",
+  "item.elarion_angling.alpha_skin_smithing_template": "Alpha Skin Smithing Template",
+  "item.elarion_angling.good_old_skin_smithing_template": "Good Ol' Skin Smithing Template",
+  "item.elarion_angling.boner_skin_smithing_template": "Bone Skin Smithing Template",
+  "item.elarion_angling.sky_skin_smithing_template": "Sky Skin Smithing Template",
+  "item.elarion_angling.lush_glowberry_skin_smithing_template": "Lush Glowberry Skin Smithing Template",
+  "item.elarion_angling.humble_skin_smithing_template": "Humble Skin Smithing Template",
+
+
+
+  "item.elarion_angling.missingno": "???",
+  "item.elarion_angling.unknown_fish": "Unknown Fish",
+  "tooltips.elarion_angling.unknown_fish.0": "template fish used in the minigame for entries which hide the item being fished",
+
+
+
+
+
+  "container.elarion_angling.tackle_box.itemCount" : "%s x%s",
+  "container.elarion_angling.tackle_box.unknownContents" : "%s x%s",
+  "container.elarion_angling.tackle_box.more" : "and %s more...",
+
+  "block.elarion_angling.tackle_box" : "Tackle Box",
+  "block.elarion_angling.tackle_box_white" : "White Tackle Box",
+  "block.elarion_angling.tackle_box_lime" : "Lime Tackle Box",
+  "block.elarion_angling.tackle_box_orange" : "Orange Tackle Box",
+  "block.elarion_angling.tackle_box_red" : "Red Tackle Box",
+  "block.elarion_angling.tackle_box_gray" : "Gray Tackle Box",
+  "block.elarion_angling.tackle_box_light_gray" : "Light Gray Tackle Box",
+  "block.elarion_angling.tackle_box_black" : "Black Tackle Box",
+  "block.elarion_angling.tackle_box_brown" : "Brown Tackle Box",
+  "block.elarion_angling.tackle_box_yellow" : "Yellow Tackle Box",
+  "block.elarion_angling.tackle_box_pink" : "Pink Tackle Box",
+  "block.elarion_angling.tackle_box_magenta" : "Magenta Tackle Box",
+  "block.elarion_angling.tackle_box_purple" : "Purple Tackle Box",
+  "block.elarion_angling.tackle_box_blue" : "Blue Tackle Box",
+  "block.elarion_angling.tackle_box_light_blue" : "Light Blue Tackle Box",
+  "block.elarion_angling.tackle_box_cyan" : "Cyan Tackle Box",
+  "block.elarion_angling.tackle_box_green" : "Green Tackle Box",
+
+  "block.elarion_angling.aquarium" : "Aquarium",
+
+  "block.elarion_angling.fisherman_hat_black": "Black Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_blue": "Blue Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_brown": "Brown Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_cyan": "Cyan Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_gray": "Gray Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_green": "Green Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_light_blue": "Light Blue Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_light_gray": "Light Gray Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_lime": "Lime Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_magenta": "Magenta Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_orange": "Orange Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_pink": "Pink Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_purple": "Purple Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_red": "Red Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_white": "White Fisherman's Hat",
+  "block.elarion_angling.fisherman_hat_yellow": "Yellow Fisherman's Hat",
+
+  "item.elarion_angling.fish_radar": "Fish Radar",
+  "tooltip.elarion_angling.fish_radar.0": "A handy radar which displays the fishes",
+  "tooltip.elarion_angling.fish_radar.1": "around the area in a total futuristic way.",
+
+  "item.elarion_angling.pearl" : "Pearl",
+  "tooltip.elarion_angling.pearl.0" : "A beautiful pearl obtained from a river_clam.",
+
+  "item.elarion_angling.fish_bones" : "Fish Bones",
+  "tooltip.elarion_angling.fish_bones.0" : "Some fish bones. All that",
+  "tooltip.elarion_angling.fish_bones.1" : "remains of a once happy fish.",
+
+  "item.elarion_angling.waterlogged_satchel" : "Waterlogged Satchel",
+  "tooltip.elarion_angling.waterlogged_satchel.0" : "A satchel containing many secrets",
+  "tooltip.elarion_angling.waterlogged_satchel.1" : "from the waters underneath.",
+
+  "item.elarion_angling.treasure" : "Treasure",
+  "tooltip.elarion_angling.treasure.0" : "A shiny treasure fished by a skilled angler.",
+  "tooltip.elarion_angling.treasure.1" : "What could be hiding inside?",
+
+  "item.elarion_angling.scalding_treasure" : "Scalding Treasure",
+  "tooltip.elarion_angling.scalding_treasure.0" : "A treasure fished directly from the scalding",
+  "tooltip.elarion_angling.scalding_treasure.1" : "lands of The Nether. What's inside?",
+
+  "block.elarion_angling.trophy_copper" : "Copper Trophy",
+  "block.elarion_angling.trophy_iron" : "Iron Trophy",
+  "block.elarion_angling.trophy_gold" : "Gold Trophy",
+  "block.elarion_angling.trophy_emerald" : "Emerald Trophy",
+  "block.elarion_angling.trophy_diamond" : "Diamond Trophy",
+  "block.elarion_angling.trophy_of_the_older_angler" : "Trophy Of The Older Angler",
+
+  "block.elarion_angling.display" : "Elarion Angling's Display",
+
+  "item.elarion_angling.award_all_fishes" : "Awardfish All Fishes",
+  "item.elarion_angling.award_one_fish" : "Awardfish One Fish",
+  "item.elarion_angling.revoke_all_fishes" : "Revoke All Fishes",
+
+  "item.elarion_angling.award_all_trophies" : "Awardfish All Trophies",
+  "item.elarion_angling.revoke_all_trophies" : "Revoke All trophies",
+
+  "item.elarion_angling.award_all_secrets" : "Awardfish All Secrets",
+  "item.elarion_angling.revoke_all_secrets" : "Revoke All Secrets",
+
+  "item.elarion_angling.revoke_all_extras" : "Revoke All Extras",
+
+  "gui.elarion_angling.toast.fish_caught" : "New Fish Caught!",
+
+  "gui.guide.signed.0" : "This book is Signed and will",
+  "gui.guide.signed.1" : "not update with new catches",
+
+  "gui.guide.sign" : "Sign",
+  "gui.guide.sign.locked.0" : "Signing will lock in all your current catches",
+  "gui.guide.sign.locked.1" : "This book will no longer be updated with new catches after locking.",
+  "gui.guide.season" : "Season: ",
+  "gui.guide.seasons" : "Seasons: ",
+
+  "gui.guide.seasons.all" : "All",
+
+  "gui.guide.seasons.not_spring" : "Not Spring",
+  "gui.guide.seasons.not_summer" : "Not Summer",
+  "gui.guide.seasons.not_autumn" : "Not Autumn",
+  "gui.guide.seasons.not_winter" : "Not Winter",
+
+  "gui.guide.seasons.spring_summer" : "Spring & Summer",
+  "gui.guide.seasons.spring_autumn" : "Spring & Autumn",
+  "gui.guide.seasons.spring_winter" : "Spring & Winter",
+  "gui.guide.seasons.summer_autumn" : "Summer & Autumn",
+  "gui.guide.seasons.summer_winter" : "Summer & Winter",
+  "gui.guide.seasons.autumn_winter" : "Autumn & Winter",
+
+  "gui.guide.seasons.around_spring" : "Around Spring",
+  "gui.guide.seasons.around_summer" : "Around Summer",
+  "gui.guide.seasons.around_autumn" : "Around Autumn",
+  "gui.guide.seasons.around_winter" : "Around Winter",
+
+  "gui.guide.seasons.early_spring" : "Early Spring",
+  "gui.guide.seasons.mid_spring" : "Mid Spring",
+  "gui.guide.seasons.late_spring" : "Late Spring",
+
+  "gui.guide.seasons.early_summer" : "Early Summer",
+  "gui.guide.seasons.mid_summer" : "Mid Summer",
+  "gui.guide.seasons.late_summer" : "Late Summer",
+
+  "gui.guide.seasons.early_autumn" : "Early Autumn",
+  "gui.guide.seasons.mid_autumn" : "Mid Autumn",
+  "gui.guide.seasons.late_autumn" : "Late Autumn",
+
+  "gui.guide.seasons.early_winter" : "Early Winter",
+  "gui.guide.seasons.mid_winter" : "Mid Winter",
+  "gui.guide.seasons.late_winter" : "Late Winter",
+
+
+  "gui.guide.seasons.in_season" : "✅ In season!",
+  "gui.guide.seasons.not_in_season" : "❌ Not in season",
+
+  "gui.guide.weather.clear" : "Clear Skies",
+  "gui.guide.weather.rain" : "Raining",
+  "gui.guide.weather.thunder" : "Thundering",
+  "gui.guide.weather.clear_or_rain" : "Clear or Raining",
+  "gui.guide.weather.clear_or_thunder" : "Clear or Thundering",
+  "gui.guide.weather.rain_or_thunder" : "Raining or Thundering",
+
+  "gui.guide.elevation.surface" : "Surface",
+  "gui.guide.elevation.mountains" : "Mountains",
+  "gui.guide.elevation.skies" : "Skies",
+  "gui.guide.elevation.deepslate" : "Deepslate",
+  "gui.guide.elevation.void" : "Void",
+  "gui.guide.elevation.stone_caves" : "Stone Caves",
+  "gui.guide.elevation.underground" : "Underground",
+
+  "gui.guide.sort" : "[sort]",
+
+  "gui.guide.sort.alphabetical_up" : "⏬ Alphabetical",
+  "gui.guide.sort.alphabetical_down" : "⏫ Alphabetical",
+  "gui.guide.sort.mod_up" : "⏬ Mod Name",
+  "gui.guide.sort.mod_down" : "⏫ Mod Name",
+  "gui.guide.sort.rarity_up" : "⏬ Rarity",
+  "gui.guide.sort.rarity_down" : "⏫ Rarity",
+  "gui.guide.sort.caught_up" : "⏬ Caught",
+  "gui.guide.sort.caught_down" : "⏫ Caught",
+  "gui.guide.sort.fluid_up" : "⏬ Fluid",
+  "gui.guide.sort.fluid_down" : "⏫ Fluid",
+  "gui.guide.sort.season_up" : "⏬ Season",
+  "gui.guide.sort.season_down" : "⏫ Season",
+
+  "gui.guide.units.metric" : "Metric (cm & kg)",
+  "gui.guide.units.imperial" : "Imperial (in & lb)",
+
+  "gui.guide.units.cheeseburger" : "Cheeseburger",
+  "gui.guide.units.cheeseburger.size" : "Cheeseburgers",
+  "gui.guide.units.cheeseburger.weight" : "Cheeseburgers",
+
+  "gui.guide.units.football" : "Football",
+  "gui.guide.units.football.size" : "Footballs",
+  "gui.guide.units.football.weight" : "Footballs",
+
+  "gui.guide.units.developer" : "Developer",
+  "gui.guide.units.developer.size" : "wds",
+  "gui.guide.units.developer.weight" : "wds",
+
+  "gui.guide.units.banana" : "Banana",
+  "gui.guide.units.banana.size" : "Bananas",
+  "gui.guide.units.banana.weight" : "Bananas",
+
+  "gui.guide.units.duck" : "Average Duck",
+  "gui.guide.units.duck.size" : "Ducks",
+  "gui.guide.units.duck.weight" : "Ducks",
+
+  "gui.guide.units.space_whale" : "Space Whale",
+  "gui.guide.units.scientific" : "Scientific",
+
+
+
+
+  "gui.guide.not_caught_yet_fish_name" : "-------",
+  "gui.guide.not_caught_fish_name" : "???",
+  "gui.guide.caught" : "Caught:",
+  "gui.guide.not_caught" : "------",
+  "gui.guide.not_caught_yet" : "Not Caught Yet!",
+  "gui.guide.rarity" : "Rarity:",
+
+  "gui.guide.first" : "First Catch:",
+  "gui.guide.fastest" : "Fastest: ",
+  "gui.guide.average" : "Average: ",
+  "gui.guide.biggest" : "Biggest: ",
+  "gui.guide.heaviest" : "Heaviest: ",
+  "gui.guide.percentile" : "Best: top ",
+
+  "gui.guide.track" : "Click to track this fish!",
+  "gui.guide.bucketable" : "Can be caught in a bucket when using one as a bait!",
+  "gui.guide.entity" : "Can be caught alive when using an Almighty Worm as a bait!",
+  "gui.guide.always_entity" : "This fish is more lively than usual!",
+
+  "gui.guide.fishing" : "All about fishing:",
+  "gui.guide.index.basics" : "The Basics",
+  "gui.guide.index.sweetspots" : "Sweetspot Types",
+  "gui.guide.index.treasures" : "Treasures",
+  "gui.guide.index.upgrades" : "Upgrades",
+  "gui.guide.index.tackle_box" : "Tackle Boxes & Rod Attachments",
+  "gui.guide.index.hooks_bobbers_baits" : "Hooks, Bobbers & Baits",
+  "gui.guide.index.settings" : "Minigame Settings & Playtest",
+
+  "gui.guide.index.cosmetics" : "Cosmetics",
+  "gui.guide.index.tournaments" : "Fishing Tournaments",
+  "gui.guide.index.messages" : "Letters & Messages-in-a-bottle",
+  "gui.guide.index.selling_bin" : "Selling Your Fishes!",
+  "gui.guide.index.aquarium" : "Aquariums",
+  "gui.guide.index.display" : "Display",
+  "gui.guide.index.trophies_and_secrets" : "Trophies & Secrets",
+
+
+
+  "gui.guide.page.0.left.title" : "The Basics",
+  "gui.guide.page.0.left.0" : "",
+  "gui.guide.page.0.left.1" : "",
+  "gui.guide.page.0.left.2" : "",
+  "gui.guide.page.0.left.3" : "",
+  "gui.guide.page.0.left.4" : "",
+  "gui.guide.page.0.left.5" : "  If you wish to catch more",
+  "gui.guide.page.0.left.6" : "than measly salmon or cod",
+  "gui.guide.page.0.left.7" : "you'll  first need a",
+  "gui.guide.page.0.left.8" : "<sclegendary>Elarion Angling's rod</sclegendary>!",
+  "gui.guide.page.0.left.9" : "",
+  "gui.guide.page.0.left.10" : "  Keep your eyes on the",
+  "gui.guide.page.0.left.11" : "bobber and patiently wait",
+  "gui.guide.page.0.left.12" : "for your time to strike.",
+
+  "gui.guide.page.0.right.0" : "",
+  "gui.guide.page.0.right.1" : "",
+  "gui.guide.page.0.right.2" : "",
+  "gui.guide.page.0.right.3" : "  These fish won't give in so",
+  "gui.guide.page.0.right.4" : "easily, make sure to hit all",
+  "gui.guide.page.0.right.5" : "their sweetspots until you",
+  "gui.guide.page.0.right.6" : "reel them in!",
+  "gui.guide.page.0.right.7" : "",
+  "gui.guide.page.0.right.8" : "",
+  "gui.guide.page.0.right.9" : "",
+  "gui.guide.page.0.right.10" : "",
+  "gui.guide.page.0.right.11" : "",
+  "gui.guide.page.0.right.12" : "",
+  "gui.guide.page.0.right.13" : "",
+  "gui.guide.page.0.right.14" : "  With enough practice",
+  "gui.guide.page.0.right.15" : "one day you might even",
+  "gui.guide.page.0.right.16" : "be able to catch a",
+  "gui.guide.page.0.right.17" : "precious <sclegendary>Legendary</sclegendary> fish",
+
+
+  "gui.guide.page.1.left.title" : "Sweetspots",
+  "gui.guide.page.1.left.0" : "",
+  "gui.guide.page.1.left.1" : "",
+  "gui.guide.page.1.left.2" : "",
+  "gui.guide.page.1.left.3" : "",
+  "gui.guide.page.1.left.4" : "",
+  "gui.guide.page.1.left.5" : "  Different fishes will",
+  "gui.guide.page.1.left.6" : "fight differently when",
+  "gui.guide.page.1.left.7" : "being reeled in!",
+  "gui.guide.page.1.left.8" : "",
+  "gui.guide.page.1.left.9" : "  Knowing your fish's traits",
+  "gui.guide.page.1.left.10" : "is half the fight!",
+  "gui.guide.page.1.left.11" : "",
+  "gui.guide.page.1.left.12" : "",
+  "gui.guide.page.1.left.13" : "",
+
+  "gui.guide.page.1.right.0" : "",
+  "gui.guide.page.1.right.1" : "",
+  "gui.guide.page.1.right.2" : "",
+  "gui.guide.page.1.right.3" : "    The basic sweetspot.",
+  "gui.guide.page.1.right.4" : "    Not much else to it.",
+  "gui.guide.page.1.right.5" : "",
+  "gui.guide.page.1.right.6" : "    A frozen Sweetspot.",
+  "gui.guide.page.1.right.7" : "    Best to avoid it.",
+  "gui.guide.page.1.right.8" : "",
+  "gui.guide.page.1.right.9" : "    Aqua sweetspots are",
+  "gui.guide.page.1.right.10" : "    gone once they vanish.",
+  "gui.guide.page.1.right.11" : "",
+  "gui.guide.page.1.right.12" : "    Stone sweetspots barely",
+  "gui.guide.page.1.right.13" : "    award any progress.",
+  "gui.guide.page.1.right.14" : "",
+  "gui.guide.page.1.right.15" : "    Gold sweetspots award",
+  "gui.guide.page.1.right.16" : "    treasure progress.",
+
+
+  "gui.guide.page.2.left.title" : "Treasures",
+  "gui.guide.page.2.left.0" : "",
+  "gui.guide.page.2.left.1" : "",
+  "gui.guide.page.2.left.2" : "",
+  "gui.guide.page.2.left.3" : "",
+  "gui.guide.page.2.left.4" : "",
+  "gui.guide.page.2.left.5" : "  Whilst fishing you might",
+  "gui.guide.page.2.left.6" : "feel something extra heavy",
+  "gui.guide.page.2.left.7" : "pulling down on your hook!",
+  "gui.guide.page.2.left.8" : "",
+  "gui.guide.page.2.left.9" : "You've found a <scgolden>treasure</scgolden>!",
+
+  "gui.guide.page.2.right.0" : "",
+  "gui.guide.page.2.right.1" : "",
+  "gui.guide.page.2.right.2" : "",
+  "gui.guide.page.2.right.3" : "",
+  "gui.guide.page.2.right.4" : "  Now do you have the skill",
+  "gui.guide.page.2.right.5" : "to get the treasure without",
+  "gui.guide.page.2.right.6" : "losing your catch?",
+  "gui.guide.page.2.right.7" : "",
+  "gui.guide.page.2.right.8" : "",
+  "gui.guide.page.2.right.9" : "  Stronger fishes might",
+  "gui.guide.page.2.right.10" : "award stronger loot!",
+  "gui.guide.page.2.right.11" : "",
+  "gui.guide.page.2.right.12" : "",
+  "gui.guide.page.2.right.13" : "  Be ready for a tough",
+  "gui.guide.page.2.right.14" : "fight if you wish for the",
+  "gui.guide.page.2.right.15" : "best loot, and even",
+  "gui.guide.page.2.right.16" : "some unique cosmetics.",
+
+
+
+  "gui.guide.page.3.left.title" : "Upgrades",
+  "gui.guide.page.3.left.0" : "",
+  "gui.guide.page.3.left.1" : "",
+  "gui.guide.page.3.left.2" : "",
+  "gui.guide.page.3.left.3" : "",
+  "gui.guide.page.3.left.4" : "",
+  "gui.guide.page.3.left.5" : "  Upgrading your rod",
+  "gui.guide.page.3.left.6" : "will be an essential part",
+  "gui.guide.page.3.left.7" : "of your fishing journey.",
+  "gui.guide.page.3.left.8" : "",
+  "gui.guide.page.3.left.9" : "The best a angler can wish",
+  "gui.guide.page.3.left.10" : "for is a <sclegendary>Netherite Upgraded<sclegendary>",
+  "gui.guide.page.3.left.11" : "rod, boosting your stats,",
+  "gui.guide.page.3.left.12" : "and unlocking for lava",
+  "gui.guide.page.3.left.13" : "fishing, but that will",
+  "gui.guide.page.3.left.14" : "take a while to get to.",
+  "gui.guide.page.3.left.15" : "",
+  "gui.guide.page.3.left.16" : "Until then a <scrare>Amethyst Hook</scrare>",
+  "gui.guide.page.3.left.17" : "will suffice for lava fishing.",
+
+  "gui.guide.page.3.right.0" : "",
+  "gui.guide.page.3.right.1" : "",
+  "gui.guide.page.3.right.2" : "",
+  "gui.guide.page.3.right.3" : "",
+  "gui.guide.page.3.right.4" : "  The best way to improve",
+  "gui.guide.page.3.right.5" : "your fishing experience is",
+  "gui.guide.page.3.right.6" : "by the use of different",
+  "gui.guide.page.3.right.7" : "Hooks, Bobbers, and Baits.",
+  "gui.guide.page.3.right.8" : "",
+  "gui.guide.page.3.right.9" : "  These provide different",
+  "gui.guide.page.3.right.10" : "modifiers which range from",
+  "gui.guide.page.3.right.11" : "decreasing lure time,",
+  "gui.guide.page.3.right.12" : "to completely changing",
+  "gui.guide.page.3.right.13" : "the fish's behaviour!",
+  "gui.guide.page.3.right.14" : "",
+  "gui.guide.page.3.right.15" : "  Cosmetics such as",
+  "gui.guide.page.3.right.16" : "fishing hat's may also",
+  "gui.guide.page.3.right.17" : "contain modifiers!",
+
+
+
+  "gui.guide.page.4.left.title" : "Tackle Boxes",
+  "gui.guide.page.4.left.0" : "",
+  "gui.guide.page.4.left.1" : "",
+  "gui.guide.page.4.left.2" : "",
+  "gui.guide.page.4.left.3" : "",
+  "gui.guide.page.4.left.4" : "",
+  "gui.guide.page.4.left.5" : "  Tackle Boxes will be your",
+  "gui.guide.page.4.left.6" : "best friend whilst fishing!",
+  "gui.guide.page.4.left.7" : "",
+  "gui.guide.page.4.left.8" : "  It serves as a storage",
+  "gui.guide.page.4.left.9" : "for your fish alongside",
+  "gui.guide.page.4.left.10" : "other fishing related items",
+  "gui.guide.page.4.left.11" : "such as Hooks, Bobbers, ",
+  "gui.guide.page.4.left.12" : "and Baits.",
+  "gui.guide.page.4.left.13" : "",
+  "gui.guide.page.4.left.14" : "",
+
+  "gui.guide.page.4.right.0" : "",
+  "gui.guide.page.4.right.1" : "",
+  "gui.guide.page.4.right.2" : "",
+  "gui.guide.page.4.right.3" : "",
+  "gui.guide.page.4.right.4" : "  On top of storing your",
+  "gui.guide.page.4.right.5" : "stuff, the tackle box also",
+  "gui.guide.page.4.right.6" : "allows you to swap your",
+  "gui.guide.page.4.right.7" : "rod attachments!",
+  "gui.guide.page.4.right.8" : "",
+  "gui.guide.page.4.right.9" : "  Truly a must have if",
+  "gui.guide.page.4.right.10" : "you plan on catching fish",
+  "gui.guide.page.4.right.11" : "all across the Overworld.",
+
+
+
+  "gui.guide.page.5.left.title" : "Hooks & Bobbers",
+  "gui.guide.page.5.left.0" : "",
+  "gui.guide.page.5.left.1" : "",
+  "gui.guide.page.5.left.2" : "",
+  "gui.guide.page.5.left.3" : "",
+  "gui.guide.page.5.left.4" : "",
+  "gui.guide.page.5.left.5" : "  Hooks & Bobbers provide",
+  "gui.guide.page.5.left.6" : "you with a wide range of",
+  "gui.guide.page.5.left.7" : "modifiers to choose from.",
+  "gui.guide.page.5.left.8" : "",
+  "gui.guide.page.5.left.9" : "  It's important to pick the",
+  "gui.guide.page.5.left.10" : "correct combination for",
+  "gui.guide.page.5.left.11" : "the task at hand!",
+  "gui.guide.page.5.left.12" : "",
+  "gui.guide.page.5.left.13" : "Swap them at a Tackle Box.",
+
+  "gui.guide.page.5.right.title" : "Baits",
+  "gui.guide.page.5.right.0" : "",
+  "gui.guide.page.5.right.1" : "",
+  "gui.guide.page.5.right.2" : "",
+  "gui.guide.page.5.right.3" : "",
+  "gui.guide.page.5.right.4" : "",
+  "gui.guide.page.5.right.5" : "  Most baits will reduce",
+  "gui.guide.page.5.right.6" : "your lure time, but they can",
+  "gui.guide.page.5.right.7" : "also have unique modifiers!",
+  "gui.guide.page.5.right.8" : "",
+  "gui.guide.page.5.right.9" : "  Some fish are attracted",
+  "gui.guide.page.5.right.10" : "to specific baits, and using",
+  "gui.guide.page.5.right.11" : "buckets will allow you to",
+  "gui.guide.page.5.right.12" : "fish up the bucketed",
+  "gui.guide.page.5.right.13" : "version of your catch!",
+
+
+  "gui.guide.page.6.left.title" : "Cosmetics",
+  "gui.guide.page.6.left.0" : "",
+  "gui.guide.page.6.left.1" : "",
+  "gui.guide.page.6.left.2" : "",
+  "gui.guide.page.6.left.3" : "",
+  "gui.guide.page.6.left.4" : "",
+  "gui.guide.page.6.left.5" : "  There are several",
+  "gui.guide.page.6.left.6" : "different cosmetic items",
+  "gui.guide.page.6.left.7" : "to collect, ranging from",
+  "gui.guide.page.6.left.8" : "armor, to even fancy new ",
+  "gui.guide.page.6.left.9" : "looks for your rod.",
+  "gui.guide.page.6.left.10" : "",
+  "gui.guide.page.6.left.11" : "  Collecting every cosmetic",
+  "gui.guide.page.6.left.12" : "is a challenge only the most",
+  "gui.guide.page.6.left.13" : "fashionable of anglers",
+  "gui.guide.page.6.left.14" : "would dare to attempt!",
+
+  "gui.guide.page.6.right.title" : "Tackle Skins",
+  "gui.guide.page.6.right.0" : "",
+  "gui.guide.page.6.right.1" : "",
+  "gui.guide.page.6.right.2" : "",
+  "gui.guide.page.6.right.3" : "",
+  "gui.guide.page.6.right.4" : "",
+  "gui.guide.page.6.right.5" : "  Tired of your boring",
+  "gui.guide.page.6.right.6" : "looking tackle? If you're",
+  "gui.guide.page.6.right.7" : "lucky you might just come ",
+  "gui.guide.page.6.right.8" : "across a Tackle Skin",
+  "gui.guide.page.6.right.9" : "Smithing Template!",
+  "gui.guide.page.6.right.10" : "",
+  "gui.guide.page.6.right.11" : "  Much like other templates,",
+  "gui.guide.page.6.right.12" : "simply combine it in a ",
+  "gui.guide.page.6.right.13" : "smithing table and enjoy",
+  "gui.guide.page.6.right.14" : "your new tackle look.",
+
+
+  "gui.guide.page.7.left.title" : "Tournaments",
+  "gui.guide.page.7.left.0" : "",
+  "gui.guide.page.7.left.1" : "",
+  "gui.guide.page.7.left.2" : "",
+  "gui.guide.page.7.left.3" : "",
+  "gui.guide.page.7.left.4" : "",
+  "gui.guide.page.7.left.5" : "  Fishing tournaments let",
+  "gui.guide.page.7.left.6" : "you put your skills to the",
+  "gui.guide.page.7.left.7" : "test by competing against",
+  "gui.guide.page.7.left.8" : "other anglers!",
+  "gui.guide.page.7.left.9" : "",
+  "gui.guide.page.7.left.10" : "",
+  "gui.guide.page.7.left.11" : "  Configure the tournament",
+  "gui.guide.page.7.left.12" : "settings however you want",
+  "gui.guide.page.7.left.13" : "and invite your friends",
+  "gui.guide.page.7.left.14" : "over for a friendly",
+  "gui.guide.page.7.left.15" : "fishing competition.",
+
+  "gui.guide.page.7.right.0" : "",
+  "gui.guide.page.7.right.1" : "",
+  "gui.guide.page.7.right.2" : "",
+  "gui.guide.page.7.right.3" : "",
+  "gui.guide.page.7.right.4" : "  There might even be",
+  "gui.guide.page.7.right.5" : "special rewards for",
+  "gui.guide.page.7.right.6" : "winning a tournament!",
+  "gui.guide.page.7.right.7" : "",
+  "gui.guide.page.7.right.8" : "  To get started you'll just",
+  "gui.guide.page.7.right.9" : "need a Tournament Stand.",
+
+
+
+  "gui.guide.page.8.left.title" : "Messages",
+  "gui.guide.page.8.left.0" : "",
+  "gui.guide.page.8.left.1" : "",
+  "gui.guide.page.8.left.2" : "",
+  "gui.guide.page.8.left.3" : "",
+  "gui.guide.page.8.left.4" : "",
+  "gui.guide.page.8.left.5" : "  Every so often you",
+  "gui.guide.page.8.left.6" : "may come across some",
+  "gui.guide.page.8.left.7" : "long forgotten stories",
+  "gui.guide.page.8.left.8" : "stuck inside a bottle",
+  "gui.guide.page.8.left.9" : "drifting amid the waves.",
+
+  "gui.guide.page.8.right.0" : "",
+  "gui.guide.page.8.right.1" : "",
+  "gui.guide.page.8.right.2" : "",
+  "gui.guide.page.8.right.3" : "",
+  "gui.guide.page.8.right.4" : "",
+  "gui.guide.page.8.right.5" : "  Whoever left these is",
+  "gui.guide.page.8.right.6" : "most likely gone by now,",
+  "gui.guide.page.8.right.7" : "however you too can",
+  "gui.guide.page.8.right.8" : "write down your stories",
+  "gui.guide.page.8.right.9" : "in a <sclegendary>letter</sclegendary>, put it inside",
+  "gui.guide.page.8.right.10" : "a bottle, and throw it",
+  "gui.guide.page.8.right.11" : "out to the ocean!",
+  "gui.guide.page.8.right.12" : "",
+  "gui.guide.page.8.right.13" : "",
+  "gui.guide.page.8.right.14" : "",
+  "gui.guide.page.8.right.15" : "  Some lonely angler is",
+  "gui.guide.page.8.right.16" : "bound find it at some point...",
+
+  "gui.guide.page.9.left.title" : "Selling Bin",
+  "gui.guide.page.9.left.0" : "",
+  "gui.guide.page.9.left.1" : "",
+  "gui.guide.page.9.left.2" : "",
+  "gui.guide.page.9.left.3" : "",
+  "gui.guide.page.9.left.4" : "",
+  "gui.guide.page.9.left.5" : "  Have you ever fished",
+  "gui.guide.page.9.left.6" : "so much that you don't",
+  "gui.guide.page.9.left.7" : "know what to do with all",
+  "gui.guide.page.9.left.8" : "the fishes you've caught?",
+  "gui.guide.page.9.left.9" : "",
+  "gui.guide.page.9.left.10" : "  Time to send them off",
+  "gui.guide.page.9.left.11" : "to the Selling Bin!",
+
+
+  "gui.guide.page.9.right.0" : "",
+  "gui.guide.page.9.right.1" : "",
+  "gui.guide.page.9.right.2" : "",
+  "gui.guide.page.9.right.3" : "",
+  "gui.guide.page.9.right.4" : "  By selling your fishes",
+  "gui.guide.page.9.right.5" : "you can get some nice",
+  "gui.guide.page.9.right.6" : "rewards in exchange.",
+  "gui.guide.page.9.right.7" : "",
+  "gui.guide.page.9.right.8" : "  Fish are valued",
+  "gui.guide.page.9.right.9" : "differently based on their",
+  "gui.guide.page.9.right.10" : "rarity, size, and even get",
+  "gui.guide.page.9.right.11" : "an extra bonus for the",
+  "gui.guide.page.9.right.12" : "super rare golden variants!",
+  "gui.guide.page.9.right.13" : "",
+  "gui.guide.page.9.right.14" : "  Create the ultimate fish",
+  "gui.guide.page.9.right.15" : "monopoly and control the",
+  "gui.guide.page.9.right.16" : "market with the power of fish",
+
+  "gui.guide.page.10.left.title" : "Aquariums",
+  "gui.guide.page.10.left.0" : "",
+  "gui.guide.page.10.left.1" : "",
+  "gui.guide.page.10.left.2" : "",
+  "gui.guide.page.10.left.3" : "",
+  "gui.guide.page.10.left.4" : "",
+  "gui.guide.page.10.left.5" : "  Aquariums are a great",
+  "gui.guide.page.10.left.6" : "addition to any home and",
+  "gui.guide.page.10.left.7" : "are sure to make your",
+  "gui.guide.page.10.left.8" : "living space come alive!",
+  "gui.guide.page.10.left.9" : "",
+  "gui.guide.page.10.left.10" : "  They can be customized",
+  "gui.guide.page.10.left.11" : "with several different",
+  "gui.guide.page.10.left.12" : "decorations to fit any",
+  "gui.guide.page.10.left.13" : "setting and any style.",
+
+  "gui.guide.page.10.right.0" : "",
+  "gui.guide.page.10.right.1" : "",
+  "gui.guide.page.10.right.2" : "",
+  "gui.guide.page.10.right.3" : "",
+  "gui.guide.page.10.right.4" : "  Use a bucket whilst",
+  "gui.guide.page.10.right.5" : "fishing to catch a bucket",
+  "gui.guide.page.10.right.6" : "of fish. I'm sure they will",
+  "gui.guide.page.10.right.7" : "love their new home!",
+  "gui.guide.page.10.right.8" : "  ",
+
+  "gui.guide.page.11.left.title" : "Book Display",
+  "gui.guide.page.11.left.0" : "",
+  "gui.guide.page.11.left.1" : "",
+  "gui.guide.page.11.left.2" : "",
+  "gui.guide.page.11.left.3" : "",
+  "gui.guide.page.11.left.4" : "",
+  "gui.guide.page.11.left.5" : "  If you ever want to",
+  "gui.guide.page.11.left.6" : "make your friends jealous",
+  "gui.guide.page.11.left.7" : "of your incredible angling",
+  "gui.guide.page.11.left.8" : "skills there's no better",
+  "gui.guide.page.11.left.9" : "way than to display your",
+  "gui.guide.page.11.left.10" : "collection using a Display!",
+  "gui.guide.page.11.left.11" : "",
+  "gui.guide.page.11.left.12" : "  Display blocks can",
+  "gui.guide.page.11.left.13" : "showcase this book as",
+  "gui.guide.page.11.left.14" : "well as starcaught fish!",
+
+
+  "gui.guide.page.11.right.title" : "Book Signing",
+  "gui.guide.page.11.right.0" : "",
+  "gui.guide.page.11.right.1" : "",
+  "gui.guide.page.11.right.2" : "",
+  "gui.guide.page.11.right.3" : "",
+  "gui.guide.page.11.right.4" : "",
+  "gui.guide.page.11.right.5" : "  When displaying your book",
+  "gui.guide.page.11.right.6" : "make sure to first sign it",
+  "gui.guide.page.11.right.7" : "to bound your collection",
+  "gui.guide.page.11.right.8" : "to the book! Otherwise",
+  "gui.guide.page.11.right.9" : "the book will show the",
+  "gui.guide.page.11.right.10" : "player their own collection",
+  "gui.guide.page.11.right.11" : "instead of yours.",
+  "gui.guide.page.11.right.12" : "",
+  "gui.guide.page.11.right.13" : "  Simply head to the start",
+  "gui.guide.page.11.right.14" : "of the book to sign in",
+  "gui.guide.page.11.right.15" : "and you'll be able to share",
+  "gui.guide.page.11.right.16" : "the book with your friends!",
+
+
+
+
+
+  "gui.guide.page.12.left.title" : "Trophies",
+  "gui.guide.page.12.left.0" : "",
+  "gui.guide.page.12.left.1" : "",
+  "gui.guide.page.12.left.2" : "",
+  "gui.guide.page.12.left.3" : "",
+  "gui.guide.page.12.left.4" : "",
+  "gui.guide.page.12.left.5" : "  Trophies are a display",
+  "gui.guide.page.12.left.6" : "of one's skill in angling",
+  "gui.guide.page.12.left.7" : "and are sure to put",
+  "gui.guide.page.12.left.8" : "others to shame for their",
+  "gui.guide.page.12.left.9" : "lack of trophyfulness.",
+  "gui.guide.page.12.left.10" : "",
+  "gui.guide.page.12.left.11" : "  Trophies will instantly",
+  "gui.guide.page.12.left.12" : "bite your hook once all",
+  "gui.guide.page.12.left.13" : "the conditions are met.",
+
+  "gui.guide.page.12.right.title" : "Secrets",
+  "gui.guide.page.12.right.0" : "",
+  "gui.guide.page.12.right.1" : "",
+  "gui.guide.page.12.right.2" : "",
+  "gui.guide.page.12.right.3" : "",
+  "gui.guide.page.12.right.4" : "",
+  "gui.guide.page.12.right.5" : "  Who knows what forgotten",
+  "gui.guide.page.12.right.6" : "stories you might find",
+  "gui.guide.page.12.right.7" : "encapsulated in bottles",
+  "gui.guide.page.12.right.8" : "adrift the waves.",
+  "gui.guide.page.12.right.9" : "",
+  "gui.guide.page.12.right.10" : "  Keep an eye out for",
+  "gui.guide.page.12.right.11" : "hints of treasures left",
+  "gui.guide.page.12.right.12" : "behind by other anglers!",
+
+
+  "gui.guide.lakes" : "Lakes",
+  "gui.guide.lakes.hover" : "Surface biomes besides Rivers and Oceans",
+
+  "gui.guide.hover.dimension.correct" : "✅ Dimension",
+  "gui.guide.hover.dimension.incorrect" : "❌ Dimension",
+  "gui.guide.hover.biome.correct" : "✅ Biome",
+  "gui.guide.hover.biome.incorrect" : "❌ Biome",
+  "gui.guide.hover.daytime.correct" : "✅ Daytime",
+  "gui.guide.hover.daytime.incorrect" : "❌ Daytime",
+  "gui.guide.hover.weather.correct" : "✅ Weather",
+  "gui.guide.hover.weather.incorrect" : "❌ Weather",
+  "gui.guide.hover.elevation.correct" : "✅ Elevation",
+  "gui.guide.hover.elevation.incorrect" : "❌ Elevation",
+  "gui.guide.hover.caught_limit" : "Caught Limit: %s",
+
+  "gui.guide.dimension" : "Dimension: ",
+  "gui.guide.dimension_tags" : "Dimension Tags: ",
+  "gui.guide.dimensions" : "Dimensions: ",
+  "gui.guide.dimension.empty" : "[No Dimensions]",
+  "gui.guide.biome" : "Biome: ",
+  "gui.guide.biome_tags" : "Biome Tags: ",
+  "gui.guide.biomes" : "Biomes: ",
+  "gui.guide.biomes.empty" : "[No Biomes]",
+  "gui.guide.blacklisted_biomes" : "Blacklisted Biomes: ",
+  "gui.guide.blacklisted_biome_tags" : "Blacklisted Biome Tags: ",
+  "gui.guide.blacklisted_dimensions" : "Blacklisted Dimensions: ",
+  "gui.guide.bait" : "Prefers: ",
+  "gui.guide.weather" : "Weather: ",
+  "gui.guide.raining" : "Raining",
+  "gui.guide.thundering" : "Thundering",
+  "gui.guide.clear_chance" : "Clear weather chance added: %s",
+  "gui.guide.rain_chance" : "Raining chance added: %s",
+  "gui.guide.thunder_chance" : "Thunderstorm chance added: %s",
+  "gui.guide.daytime" : "Daytime: ",
+  "gui.guide.structure" : "Structure: ",
+  "gui.guide.elevation" : "Elevation: ",
+  "gui.guide.caught_limit" : "Caught Limit: ",
+  "gui.guide.rarity_count.caught" : "Caught: ",
+  "gui.guide.fluid" : "Fluid: ",
+  "gui.guide.chance" : "%s chance",
+
+  "gui.guide.day" : "Day",
+  "gui.guide.noon" : "Noon",
+  "gui.guide.night" : "Night",
+  "gui.guide.midnight" : "Midnight",
+  "gui.guide.below" : "Below %s",
+  "gui.guide.above" : "Above %s",
+  "gui.guide.around" : "Around %s",
+  "gui.guide.between" : "Between %s and %s",
+  "gui.guide.extra_chance" : "Extra chance at %s: %s",
+  "gui.guide.range" : "Extra Chance Range: %s",
+  "gui.guide.no_restriction" : "-------",
+  "gui.guide.bait_required" : "The correct bait is required for this catch!",
+  "gui.guide.rarity_count.single" : "%s fishes",
+  "gui.guide.bait_chance_added" : "Chance added by bait:",
+  "gui.guide.rarity_count.all" : "All %s fishes",
+
+  "gui.guide.hover" : "[hover]",
+
+
+  "gui.guide.rarity.golden" : "Golden",
+
+  "gui.guide.rarity.trash" : "Trash",
+  "gui.guide.rarity.common" : "Common",
+  "gui.guide.rarity.uncommon" : "<scuncommon>Uncommon</scuncommon>",
+  "gui.guide.rarity.rare" : "<scrare>Rare</scrare>",
+  "gui.guide.rarity.epic" : "<scepic>Epic</scepic>",
+  "gui.guide.rarity.legendary" : "<sclegendary>Legendary</sclegendary>",
+
+
+
+  "gui.elarion_angling.tournament.organizer" : "Organizer",
+  "gui.elarion_angling.tournament.status" : "Status",
+  "gui.elarion_angling.tournament.duration" : "Duration",
+  "gui.elarion_angling.tournament.start_date" : "Start Date",
+  "gui.elarion_angling.tournament.previous_tournaments" : "Previous Tournaments",
+  "gui.elarion_angling.tournament.signed_up" : "Players Signed Up",
+
+  "gui.elarion_angling.tournament.button.unsign" : "Withdraw",
+  "gui.elarion_angling.tournament.button.sign_up" : "Sign Up",
+  "gui.elarion_angling.tournament.button.back" : "Back to Current Tournament",
+  "gui.elarion_angling.tournament.button.start" : "Start",
+  "gui.elarion_angling.tournament.button.cancel" : "Cancel",
+
+  "gui.elarion_angling.tournament.ended" : "%s has ended! The winner is %s with a score of %s!",
+  "gui.elarion_angling.tournament.ended.no_winner" : "%s has ended! Nobody caught a single fish :(",
+
+  "gui.elarion_angling.tournament.scoring" : "Scoring Rules",
+
+  "gui.elarion_angling.tournament.scoring.percentile" : "Percentile Multiplier",
+  "gui.elarion_angling.tournament.scoring.perfect" : "Perfect Catch Multiplier",
+
+  "gui.elarion_angling.tournament.started" : "%s has started!",
+  "gui.elarion_angling.tournament.press_tab" : "Press [Tab] to toggle the tournament's scoreboard.",
+
+  "gui.elarion_angling.tournament.duration.days" : "Minecraft days",
+
+
+  "gui.elarion_angling.tournament.status.preparing" : "Preparing",
+  "gui.elarion_angling.tournament.status.active" : "Ongoing",
+  "gui.elarion_angling.tournament.status.finished" : "Complete",
+
+  "gui.elarion_angling.tournament.scoring.simple" : "Simple",
+  "gui.elarion_angling.tournament.scoring.weight" : "Weight",
+  "gui.elarion_angling.tournament.scoring.rarity" : "Rarity",
+  "gui.elarion_angling.tournament.scoring.golden" : "Golden",
+  "gui.elarion_angling.tournament.scoring.advanced" : "Advanced",
+
+
+  "gui.secret_note.sample_note.0" : "Hey how did you get this note??",
+  "gui.secret_note.sample_note.1" : "Are you cheating in creative mode??",
+  "gui.secret_note.sample_note.2" : "",
+  "gui.secret_note.sample_note.3" : "These notes should only be obtained through",
+  "gui.secret_note.sample_note.4" : "bottles otherwise they won't have the correct",
+  "gui.secret_note.sample_note.5" : "data and might crash the game! Be careful.",
+
+  "gui.secret_note.amethyst_hook.0" : "Day 34",
+  "gui.secret_note.amethyst_hook.1" : "",
+  "gui.secret_note.amethyst_hook.2" : "After yesterday's trouble I decided it's best",
+  "gui.secret_note.amethyst_hook.3" : "I finally get my hands on some diamond tools.",
+  "gui.secret_note.amethyst_hook.4" : "",
+  "gui.secret_note.amethyst_hook.5" : "That's what past me thought anyways,",
+  "gui.secret_note.amethyst_hook.6" : "if I knew I would accidentally drop my amethyst",
+  "gui.secret_note.amethyst_hook.7" : "hook down by the deepslate water lakes,",
+  "gui.secret_note.amethyst_hook.8" : "I would have never went down there.",
+  "gui.secret_note.amethyst_hook.9" : "",
+  "gui.secret_note.amethyst_hook.10" : "If anyone finds this letter drifting amid the",
+  "gui.secret_note.amethyst_hook.11" : "oceans, you are welcome to take my precious",
+  "gui.secret_note.amethyst_hook.12" : "Amethyst Hook. Once you've caught at least",
+  "gui.secret_note.amethyst_hook.13" : "one epic fish, the <scuncommon>Older Anglers</scuncommon>",
+  "gui.secret_note.amethyst_hook.14" : "will shine their blessing upon you and",
+  "gui.secret_note.amethyst_hook.15" : "my amethyst hook will bite your hook.",
+  "gui.secret_note.amethyst_hook.16" : "-Roguy",
+
+  "gui.secret_note.lava_proof_bottle_1.0" : "'Buy my bottles! Buy my bottles!'",
+  "gui.secret_note.lava_proof_bottle_1.1" : "'They are <sclava>Lava-Proof™</sclava4>!!'",
+  "gui.secret_note.lava_proof_bottle_1.2" : "",
+  "gui.secret_note.lava_proof_bottle_1.3" : "'I promise they really are <sclava>Lava-Proof™</sclava>!'",
+  "gui.secret_note.lava_proof_bottle_1.4" : "",
+  "gui.secret_note.lava_proof_bottle_1.5" : "I am so tired of these SCAMMERS promising",
+  "gui.secret_note.lava_proof_bottle_1.6" : "<sclava>Lava-Proof™</sclava> bottles, as if anything could",
+  "gui.secret_note.lava_proof_bottle_1.7" : "survive being submerged in lava! Wanna see",
+  "gui.secret_note.lava_proof_bottle_1.8" : "what I think of your stupid <sclava>Lava-Proof™</sclava>",
+  "gui.secret_note.lava_proof_bottle_1.9" : "bottles??",
+  "gui.secret_note.lava_proof_bottle_1.10" : "",
+  "gui.secret_note.lava_proof_bottle_1.11" : "This letter is going right into this so-called",
+  "gui.secret_note.lava_proof_bottle_1.12" : "'<sclava>Lava-Proof™</sclava> Bottle' and straight to the",
+  "gui.secret_note.lava_proof_bottle_1.13" : "nearest lava pool I can find! Heh that will",
+  "gui.secret_note.lava_proof_bottle_1.14" : "show them.",
+  "gui.secret_note.lava_proof_bottle_1.15" : "",
+  "gui.secret_note.lava_proof_bottle_1.16" : "-Arnwulf the Skeptic",
+
+  "gui.secret_note.lava_proof_bottle_2.0" : "",
+  "gui.secret_note.lava_proof_bottle_2.1" : "If anyone finds this letter, I would like",
+  "gui.secret_note.lava_proof_bottle_2.2" : "to apologise about my previous letter.",
+  "gui.secret_note.lava_proof_bottle_2.3" : "",
+  "gui.secret_note.lava_proof_bottle_2.4" : "These <sclava>Lava-Proof™</sclava> bottles really work.",
+  "gui.secret_note.lava_proof_bottle_2.5" : "",
+  "gui.secret_note.lava_proof_bottle_2.6" : "I must admit after so many scams and",
+  "gui.secret_note.lava_proof_bottle_2.7" : "promises of <sclava>Lava-Proof™</sclava> bottles I was",
+  "gui.secret_note.lava_proof_bottle_2.8" : "skeptical and never even gave them a shot.",
+  "gui.secret_note.lava_proof_bottle_2.9" : "",
+  "gui.secret_note.lava_proof_bottle_2.10" : "What can I say, you live and you learn.",
+  "gui.secret_note.lava_proof_bottle_2.11" : "",
+  "gui.secret_note.lava_proof_bottle_2.12" : "I have to go now, I heard there's a new",
+  "gui.secret_note.lava_proof_bottle_2.13" : "so-called 'lava-proof' enchantment. As if.",
+  "gui.secret_note.lava_proof_bottle_2.14" : "",
+  "gui.secret_note.lava_proof_bottle_2.15" : "",
+  "gui.secret_note.lava_proof_bottle_2.16" : "-Arnwulf the Skeptic",
+
+  "gui.secret_note.hopeful_note.0" : "",
+  "gui.secret_note.hopeful_note.1" : "",
+  "gui.secret_note.hopeful_note.2" : "",
+  "gui.secret_note.hopeful_note.3" : "Day 201",
+  "gui.secret_note.hopeful_note.4" : "",
+  "gui.secret_note.hopeful_note.5" : "It has now been over half a year since I",
+  "gui.secret_note.hopeful_note.6" : "embarked on this journey to find a",
+  "gui.secret_note.hopeful_note.7" : "<scrare>Heart of the Sea</scrare>. My hope grows dim but",
+  "gui.secret_note.hopeful_note.8" : "I will search for it until the end of my days.",
+  "gui.secret_note.hopeful_note.9" : "",
+  "gui.secret_note.hopeful_note.10" : "",
+  "gui.secret_note.hopeful_note.11" : "",
+  "gui.secret_note.hopeful_note.12" : "",
+  "gui.secret_note.hopeful_note.13" : "",
+  "gui.secret_note.hopeful_note.14" : "",
+  "gui.secret_note.hopeful_note.15" : "",
+  "gui.secret_note.hopeful_note.16" : "-Gauward",
+
+  "gui.secret_note.hopeless_note.0" : "",
+  "gui.secret_note.hopeless_note.1" : "",
+  "gui.secret_note.hopeless_note.2" : "",
+  "gui.secret_note.hopeless_note.3" : "Day 202",
+  "gui.secret_note.hopeless_note.4" : "",
+  "gui.secret_note.hopeless_note.5" : "This is hopeless. There is no <scrare>Heart of the</scrare>",
+  "gui.secret_note.hopeless_note.6" : "<scrare>Sea</scrare>. Those BASTARDS lied to me. I am",
+  "gui.secret_note.hopeless_note.7" : "never returning home. Little Jimmy will forever",
+  "gui.secret_note.hopeless_note.8" : "live with the thought his dad went after an",
+  "gui.secret_note.hopeless_note.9" : "imaginary all-powerful item.",
+  "gui.secret_note.hopeless_note.10" : "",
+  "gui.secret_note.hopeless_note.11" : "It really is my fault. How could I be such a",
+  "gui.secret_note.hopeless_note.12" : "fool as to believe an item could possibly",
+  "gui.secret_note.hopeless_note.13" : "allow you to breath underwater. Unbelievable.",
+  "gui.secret_note.hopeless_note.14" : "",
+  "gui.secret_note.hopeless_note.15" : "",
+  "gui.secret_note.hopeless_note.16" : "-Gauward",
+
+  "gui.secret_note.true_blue.0"  : "   Something is inserted,",
+  "gui.secret_note.true_blue.1"  : "   or taken out, or examined.",
+  "gui.secret_note.true_blue.2"  : "",
+  "gui.secret_note.true_blue.3"  : "               Something lies dormant inside and ",
+  "gui.secret_note.true_blue.4"  : "               it's been there all along.",
+  "gui.secret_note.true_blue.5"  : "",
+  "gui.secret_note.true_blue.6"  : "   Or you've swallowed it,",
+  "gui.secret_note.true_blue.7"  : "   or you've spit it out.",
+  "gui.secret_note.true_blue.8"  : "",
+  "gui.secret_note.true_blue.9"  : "               Ten years or ten moments ago,",
+  "gui.secret_note.true_blue.10" : "               reflected in my eyes,",
+  "gui.secret_note.true_blue.11" : "               or floating behind yours.",
+  "gui.secret_note.true_blue.12" : "",
+  "gui.secret_note.true_blue.13" : "   In your mother's mother,",
+  "gui.secret_note.true_blue.14" : "   or your child's child,",
+  "gui.secret_note.true_blue.15" : "   in dream or awake.",
+
+  "gui.secret_note.wither_note.0"  : "",
+  "gui.secret_note.wither_note.1"  : "",
+  "gui.secret_note.wither_note.2"  : "",
+  "gui.secret_note.wither_note.3"  : "",
+  "gui.secret_note.wither_note.4"  : "I would be more careful if I were you...",
+  "gui.secret_note.wither_note.5"  : "",
+  "gui.secret_note.wither_note.6"  : "",
+  "gui.secret_note.wither_note.7"  : "You never know what you might catch",
+  "gui.secret_note.wither_note.8"  : "drifting amid the oceans.",
+  "gui.secret_note.wither_note.9"  : "",
+  "gui.secret_note.wither_note.10" : "",
+  "gui.secret_note.wither_note.11" : "",
+  "gui.secret_note.wither_note.12" : "",
+  "gui.secret_note.wither_note.13" : "",
+  "gui.secret_note.wither_note.14" : "",
+  "gui.secret_note.wither_note.15" : "",
+
+
+  "item.elarion_angling.letter" : "Letter",
+  "tooltip.elarion_angling.letter.0" : "A letter awaiting to be written and sent off.",
+
+  "item.elarion_angling.bottled_letter" : "Bottled Letter",
+  "tooltip.elarion_angling.bottled_letter.0" : "A letter imprisoned in a bottle.",
+  "tooltip.elarion_angling.bottled_letter.1" : "The only thing left to do now is throw it into",
+  "tooltip.elarion_angling.bottled_letter.2" : "the ocean and let it start its journey.",
+
+  "item.elarion_angling.bottled_letter.thrown" : "Your bottled letter starts its journey...",
+
+  "item.elarion_angling.message_in_a_bottle" : "Message in a Bottle",
+  "tooltip.elarion_angling.message_in_a_bottle.0" : "A bottle containing a message written many moons ago.",
+  "tooltip.elarion_angling.message_in_a_bottle.1" : "Looks like the only way to get it out is to break it open.",
+
+  "item.elarion_angling.message" : "Message",
+  "tooltip.elarion_angling.message.0" : "The message half of a message-in-a-bottle.",
+  "tooltip.elarion_angling.message.1" : "Who knows how long it's been drifting the waves to reach you.",
+
+  "item.elarion_angling.broken_bottle" : "Broken Bottle",
+  "tooltip.elarion_angling.broken_bottle.0" : "The remains of an once intact bottle.",
+
+  "item.elarion_angling.secret_note" : "Secret Note",
+  "tooltip.elarion_angling.secret_note.0" : "An old secret note almost lost to time.",
+  "tooltip.elarion_angling.secret_note.1" : "Holding nothing more than the thoughts of",
+  "tooltip.elarion_angling.secret_note.2" : "those probably not amongst us anymore.",
+
+  "item.elarion_angling.settings" : "Settings",
+
+  "item.elarion_angling.drifting_waterlogged_bottle" : "Drifting Waterlogged Bottle",
+  "tooltip.elarion_angling.drifting_waterlogged_bottle.0" : "A bottle found drifting amid the oceans.",
+
+  "item.elarion_angling.scalding_bottle" : "Scalding Bottle",
+  "tooltip.elarion_angling.scalding_bottle.0" : "A scalding hot Bottle. Nothing remarkable about it.",
+  "tooltip.elarion_angling.scalding_bottle.1" : "Wait... Could this really be a <sclava>Lava-Proof™</sclava> bottle!?",
+  "tooltip.elarion_angling.scalding_bottle.2" : "I never thought these were real!",
+  "tooltip.elarion_angling.scalding_bottle.3" : "Unfortunately it seems like breaking it open is the",
+  "tooltip.elarion_angling.scalding_bottle.4" : "only way to get the message out...",
+
+  "item.elarion_angling.burning_bottle" : "Burning Bottle",
+  "tooltip.elarion_angling.burning_bottle.0" : "A burning bottle. There is no hiding it, this",
+  "tooltip.elarion_angling.burning_bottle.1" : "must be a <sclava>Lava-Proof™</sclava> bottle!",
+
+  "item.elarion_angling.hopeless_bottle" : "Hopeless Bottle",
+  "tooltip.elarion_angling.hopeless_bottle.0" : "A hopeless Bottle. Or rather, the message inside is.",
+
+  "item.elarion_angling.hopeful_bottle" : "Hopeful Bottle",
+  "tooltip.elarion_angling.hopeful_bottle.0" : "Somehow just looking at this bottle",
+  "tooltip.elarion_angling.hopeful_bottle.1" : "makes you hopeful of the future to come.",
+
+  "item.elarion_angling.true_blue_bottle" : "True Blue Bottle",
+  "tooltip.elarion_angling.true_blue_bottle.0" : "Instinctive, impatient, impossible.",
+  "tooltip.elarion_angling.true_blue_bottle.1" : "In memory, mirror, and membrane.",
+
+  "item.elarion_angling.withered_bottle" : "Withered Bottle",
+  "tooltip.elarion_angling.withered_bottle.0" : "An ominous dark bottle.",
+
+  "item.elarion_angling.starcaught_fish" : "Starcaught Fish",
+  "tooltip.elarion_angling.starcaught_fish.0" : "A starcaught fish, stripped from its uniqueness to fit with the rest of the stack.",
+  "tooltip.elarion_angling.starcaught_fish.1" : "A shame it had to end this way really.",
+
+  "item.elarion_angling.cooked_starcaught_fish" : "Cooked Starcaught Fish",
+  "tooltip.elarion_angling.cooked_starcaught_fish.0" : "A starcaught fish, but cooked.",
+  "tooltip.elarion_angling.cooked_starcaught_fish.1" : "Nothing is unique about what remains of this once beautiful fish.",
+
+
+  "item.elarion_angling.starcaught_bucket" : "Starcaught Bucket",
+  "tooltip.elarion_angling.starcaught_bucket.name" : "Bucket of %s",
+  "tooltip.elarion_angling.starcaught_bucket.creative.0" : "[CREATIVE MODE] This bucket will always spawn an Aurorafin. To get the corresponding [Bucket of X] you must catch it through normal means using a bucket as a bait.",
+  "tooltip.elarion_angling.starcaught_bucket.creative.1" : "If you wish to summon the fish entity, you can right click on the ground with the fish item in creative mode.",
+
+  "item.elarion_angling.obsidonti" : "Obsidonti",
+  "tooltip.elarion_angling.obsidonti.0" : "A small devious fish.",
+  "tooltip.elarion_angling.obsidonti.1" : "Said to often mispronounce words.",
+
+  "item.elarion_angling.morganite_minnow" : "Morganite Minnow",
+  "tooltip.elarion_angling.morganite_minnow.0" : "An ocean fish resembling Morganite Minnow gemstones.",
+
+  "item.elarion_angling.silvermist_perch" : "Silvermist Perch",
+  "tooltip.elarion_angling.silvermist_perch.0" : "A small perch with scales resembling silver.",
+
+  "item.elarion_angling.elderfin" : "Elderfin",
+  "tooltip.elarion_angling.elderfin.0" : "A deceiving fish often found in lakes.",
+  "tooltip.elarion_angling.elderfin.1" : "Elderscales may live up to several decades and often",
+  "tooltip.elarion_angling.elderfin.2" : "spend all day hiding during their youth, making sighing a",
+  "tooltip.elarion_angling.elderfin.3" : "young one little more than a rumor, therefore the name.",
+
+  "item.elarion_angling.driftwing" : "Driftwing",
+  "tooltip.elarion_angling.driftwing.0" : "A small fish which loves drifting close to",
+  "tooltip.elarion_angling.driftwing.1" : "the surface on clear weather days.",
+
+  "item.elarion_angling.dusk_koi" : "Dusk Koi",
+  "tooltip.elarion_angling.dusk_koi.0" : "A rather rare species of Koi said to",
+  "tooltip.elarion_angling.dusk_koi.1" : "only appear at lakes during the midnight hours.",
+
+  "item.elarion_angling.storm_bass" : "Storm Bass",
+  "tooltip.elarion_angling.storm_bass.0" : "A unique species of bass which seems to be",
+  "tooltip.elarion_angling.storm_bass.1" : "attracted by the thunder sounds during storms.",
+  "tooltip.elarion_angling.storm_bass.2" : "Often seen swimming around with Lighting Bass.",
+
+  "item.elarion_angling.stormflash_bass" : "Stormflash Bass",
+  "tooltip.elarion_angling.stormflash_bass.0" : "A unique species of bass which seems to be",
+  "tooltip.elarion_angling.stormflash_bass.1" : "attracted by the lighting flashes during storms.",
+  "tooltip.elarion_angling.stormflash_bass.2" : "Often seen swimming around with Storm Bass.",
+
+  "item.elarion_angling.sodden_boot" : "Sodden Boot",
+  "tooltip.elarion_angling.sodden_boot.0" : "An incredibly high quality sodden_boot fished from a lake.",
+  "tooltip.elarion_angling.sodden_boot.1" : "Every fisherman's dream.",
+
+
+
+
+
+  "item.elarion_angling.icejaw_trout" : "Icejaw Trout",
+  "tooltip.elarion_angling.icejaw_trout.0" : "A trout species known for it's sharp",
+  "tooltip.elarion_angling.icejaw_trout.1" : "jaws made of petrified ice crystals.",
+
+  "item.elarion_angling.prismback_trout" : "Prismback Trout",
+  "tooltip.elarion_angling.prismback_trout.0" : "A tough trout species which uses it's",
+  "tooltip.elarion_angling.prismback_trout.1" : "back as a way to protect itself when attacked.",
+
+  "item.elarion_angling.aurorafin" : "Aurorafin",
+  "tooltip.elarion_angling.aurorafin.0" : "A beautiful <sclegendary>legendary</sclegendary> fish. It's size makes for an",
+  "tooltip.elarion_angling.aurorafin.1" : "incredibly hard and evasive catch, not letting the angler",
+  "tooltip.elarion_angling.aurorafin.2" : "rest if they wish to take it home as proof of their skills.",
+
+  "item.elarion_angling.wintry_pike" : "Wintry Pike",
+  "tooltip.elarion_angling.wintry_pike.0" : "A spiky predatory fish. ",
+  "tooltip.elarion_angling.wintry_pike.1" : "It is often seen searching for prey in icy lakes.",
+
+
+
+
+  "item.elarion_angling.dunetail" : "Dunetail",
+  "tooltip.elarion_angling.dunetail.0" : "A long sand-covered fish, which although mostly",
+  "tooltip.elarion_angling.dunetail.1" : "found in warm climates, prefers the cold of the night",
+
+  "item.elarion_angling.miragefin_carp" : "Miragefin Carp",
+  "tooltip.elarion_angling.miragefin_carp.0" : "A carp species found during warm sunny days on warm climates.",
+  "tooltip.elarion_angling.miragefin_carp.1" : "Its said it got it's name from desert villagers,",
+  "tooltip.elarion_angling.miragefin_carp.2" : "as spotting one was often just a mirage.",
+
+  "item.elarion_angling.scorchfin" : "Scorchfin",
+  "tooltip.elarion_angling.scorchfin.0" : "A fish species which hates the rain,",
+  "tooltip.elarion_angling.scorchfin.1" : "and as such prefers to stay around warmer climates.",
+
+  "item.elarion_angling.cactusfin" : "Cactusfin",
+  "tooltip.elarion_angling.cactusfin.0" : "Although the name might suggest this fish",
+  "tooltip.elarion_angling.cactusfin.1" : "is connected to cacti in some way, it is",
+  "tooltip.elarion_angling.cactusfin.2" : "just a coincidence on it's green colored scales.",
+
+  "item.elarion_angling.aloe_bream" : "Aloe Bream",
+  "tooltip.elarion_angling.aloe_bream.0" : "A rare bream which only comes out at night",
+  "tooltip.elarion_angling.aloe_bream.1" : "during clear weather. It's long fins help",
+  "tooltip.elarion_angling.aloe_bream.2" : "navigating the dirty lakes of deserts.",
+  "tooltip.elarion_angling.aloe_bream.3" : "It is said this fish loves mangosteens",
+
+
+
+
+  "item.elarion_angling.sunlit_sturgeon" : "Sunlit Sturgeon",
+  "tooltip.elarion_angling.sunlit_sturgeon.0" : "A rare surgeon often found high up in mountains during sunny days.",
+  "tooltip.elarion_angling.sunlit_sturgeon.1" : "Because of it's size it's a rather hard catch,",
+  "tooltip.elarion_angling.sunlit_sturgeon.2" : "requiring a strong grip and tight adjustments of your rod.",
+
+  "item.elarion_angling.summit_dweller" : "Summit Dweller",
+  "tooltip.elarion_angling.summit_dweller.0" : "A golden colored fish common to mountains.",
+  "tooltip.elarion_angling.summit_dweller.1" : "Not an easy catch for inexperienced anglers.",
+
+  "item.elarion_angling.stonegill" : "Stonegill",
+  "tooltip.elarion_angling.stonegill.0" : "A rock-hard fish common to the high mountains.",
+  "tooltip.elarion_angling.stonegill.1" : "It is said to make for a great stew, at least for",
+  "tooltip.elarion_angling.stonegill.2" : "those who have the teeth to bite through its skin",
+
+  "item.elarion_angling.sunseeker_carp" : "Sunseeker Carp",
+  "tooltip.elarion_angling.sunseeker_carp.0" : "A rare sun-loving carp, only found when",
+  "tooltip.elarion_angling.sunseeker_carp.1" : "the sun is right above your head.",
+
+
+
+
+  "item.elarion_angling.mire_catfish" : "Mire Catfish",
+  "tooltip.elarion_angling.mire_catfish.0" : "A dirty catfish species common to murky swamp",
+  "tooltip.elarion_angling.mire_catfish.1" : "waters. Said to make a great dish if washed properly.",
+
+  "item.elarion_angling.lilypad_snapper" : "Lilypad Snapper",
+  "tooltip.elarion_angling.lilypad_snapper.0" : "A thin long rare snapper species common to swamps.",
+  "tooltip.elarion_angling.lilypad_snapper.1" : "It hunts other fishes with it's pointy mouth.",
+
+  "item.elarion_angling.sagewhisker_catfish" : "Sagewhisker Catfish",
+  "tooltip.elarion_angling.sagewhisker_catfish.0" : "A beautiful sage-colored catfish found in swamps.",
+  "tooltip.elarion_angling.sagewhisker_catfish.1" : "It only comes out during clear nights to admire",
+  "tooltip.elarion_angling.sagewhisker_catfish.2" : "the tranquility of nighttime swamps.",
+
+  "item.elarion_angling.mossbound_boot" : "Mossbound Boot",
+  "tooltips.elarion_angling.mossbound_boot.0" : "A sodden_boot, but this time it's mossy!",
+
+
+
+
+  "item.elarion_angling.pallid_pinfish" : "Pallid Pinfish",
+  "tooltip.elarion_angling.pallid_pinfish.0" : "A tiny pale pinfin, only found around midnight",
+  "tooltip.elarion_angling.pallid_pinfish.1" : "in dark forests. It wishes to exist in a version",
+  "tooltip.elarion_angling.pallid_pinfish.2" : "where pale gardens exist.",
+
+  "item.elarion_angling.pinfin" : "Pinfin",
+  "tooltip.elarion_angling.pinfin.0" : "A tiny pale pinfin, only found around midnight",
+
+  "item.elarion_angling.pallid_carp" : "Pallid Carp",
+  "tooltip.elarion_angling.pallid_carp.0" : "A carp species common to the [redacted].",
+  "tooltip.elarion_angling.pallid_carp.1" : "Their habitat is still under construction in this",
+  "tooltip.elarion_angling.pallid_carp.2" : "universe so instead they stick to the dark forest.",
+
+
+
+
+  "item.elarion_angling.bloomfish" : "Bloomfish",
+  "tooltip.elarion_angling.bloomfish.0" : "A beautiful fish resembling the pink petals of Cherry Grooves.",
+  "tooltip.elarion_angling.bloomfish.1" : "It prefers to swim around in the warm sunlight.",
+
+  "item.elarion_angling.vesanii" : "Vesanii",
+  "tooltip.elarion_angling.vesanii.0" : "This species of fish is really good",
+  "tooltip.elarion_angling.vesanii.1" : "at camouflaging as other species.",
+  "tooltip.elarion_angling.vesanii.2" : "It's unusual to see them out in the",
+  "tooltip.elarion_angling.vesanii.3" : "open with it's normal appearance.",
+
+  "item.elarion_angling.bloomdrift_carp" : "Bloomdrift Carp",
+  "tooltip.elarion_angling.bloomdrift_carp.0" : "A pink carp common to Cherry Grooves which",
+  "tooltip.elarion_angling.bloomdrift_carp.1" : "prefers to come out during the rain.",
+
+  "item.elarion_angling.rose_koi" : "Rose Koi",
+  "tooltip.elarion_angling.rose_koi.0" : "A pink koi most commonly found in Cherry Grooves.",
+  "tooltip.elarion_angling.rose_koi.1" : "It comes out during rainy days to feed.",
+
+  "item.elarion_angling.rose_siamese_fin" : "Rose Siamese Fin",
+  "tooltip.elarion_angling.rose_siamese_fin.0" : "A rare gorgeous fish found during rainy days.",
+  "tooltip.elarion_angling.rose_siamese_fin.1" : "A decently challenging catch for even experienced anglers.",
+
+
+  "item.elarion_angling.pallid_bamboo_fin" : "Pallid Bamboo Fin",
+  "tooltip.elarion_angling.pallid_bamboo_fin.0" : "A piece of bamboo, but as a fish. Or so it is said.",
+
+  "item.elarion_angling.blossom_bass" : "Blossom Bass",
+  "tooltip.elarion_angling.blossom_bass.0" : "A species of bass adapted to live amongst the flowers of the Overworld.",
+
+  "item.elarion_angling.prismback_sturgeon" : "Prismback Sturgeon",
+  "tooltip.elarion_angling.prismback_sturgeon.0" : "A sturgeon often found in high altitudes,",
+  "tooltip.elarion_angling.prismback_sturgeon.1" : "known for it's crystalback which helps it passively",
+  "tooltip.elarion_angling.prismback_sturgeon.2" : "defend from attackers whilst hunting.",
+
+  "item.elarion_angling.frosttooth_sturgeon" : "Frosttooth Sturgeon",
+  "tooltip.elarion_angling.frosttooth_sturgeon.0" : "Found high up in the mountains, this sturgeon",
+  "tooltip.elarion_angling.frosttooth_sturgeon.1" : "uses it's sharp petrified ice teeth to bite down on prey.",
+
+  "item.elarion_angling.borealis_fin" : "Borealis Fin",
+  "tooltip.elarion_angling.borealis_fin.0" : "A <sclegendary>legendary</sclegendary> fish found in icy mountains.",
+  "tooltip.elarion_angling.borealis_fin.1" : "A real challenge even for skilled anglers, they are",
+  "tooltip.elarion_angling.borealis_fin.2" : "known for blending into the icy waters making it hard",
+  "tooltip.elarion_angling.borealis_fin.3" : "follow their quick movements.",
+
+  "item.elarion_angling.crystalback_borealis" : "Crystalback Borealis",
+  "tooltip.elarion_angling.crystalback_borealis.0" : "Although named after the <sclegendary>legendary</sclegendary> fish <sclegendary>Borealis Fin</sclegendary>, this",
+  "tooltip.elarion_angling.crystalback_borealis.1" : "fish is not nearly as hard to catch. Its shiny back makes it",
+  "tooltip.elarion_angling.crystalback_borealis.2" : "easy to keep track and the crystallized back slows down its swimming speed.",
+
+
+
+
+  "item.elarion_angling.silvercrest_pike" : "Silvercrest Pike",
+  "tooltip.elarion_angling.silvercrest_pike.0" : "A large pike common to rivers.",
+
+  "item.elarion_angling.carpenjo" : "Carpenjo",
+  "tooltip.elarion_angling.carpenjo.0" : "A majestic carp glowing in modding knowledge.",
+  "tooltip.elarion_angling.carpenjo.1" : "It is said anglers eat it for good luck before debugging.",
+
+  "item.elarion_angling.willowfin_bream" : "Willowfin Bream",
+  "tooltip.elarion_angling.willowfin_bream.0" : "A tricky catch only found during nighttime.",
+  "tooltip.elarion_angling.willowfin_bream.1" : "Its blue scales makes it incredibly hard to track whilst reeling it in.",
+
+  "item.elarion_angling.driftwater_bream" : "Driftwater Bream",
+  "tooltip.elarion_angling.driftwater_bream.0" : "A species of bream known for slowly",
+  "tooltip.elarion_angling.driftwater_bream.1" : "drifting atop rivers during nighttime",
+
+  "item.elarion_angling.rainfell_bream" : "Rainfell Bream",
+  "tooltip.elarion_angling.rainfell_bream.0" : "A hard to spot but easy to catch bream,",
+  "tooltip.elarion_angling.rainfell_bream.1" : "only coming out during rainy nights.",
+
+  "item.elarion_angling.hollowgut_darter" : "Hollowgut Darter",
+  "tooltip.elarion_angling.hollowgut_darter.0" : "A really small easy to catch river fish.",
+
+  "item.elarion_angling.mistfin_chub" : "Mistfin Chub",
+  "tooltip.elarion_angling.mistfin_chub.0" : "A river fish known for its silver colored scaled",
+
+  "item.elarion_angling.bluejiji" : "Bluejiji",
+  "tooltip.elarion_angling.bluejiji.0" : "Not to be confused with a bluegill,",
+  "tooltip.elarion_angling.bluejiji.1" : "this small fish is rather common around rivers.",
+
+  "item.elarion_angling.brittle_seaweed" : "Brittle Seaweed",
+  "tooltip.elarion_angling.brittle_seaweed.0" : "A piece of dead seaweed which got",
+  "tooltip.elarion_angling.brittle_seaweed.1" : "caught up in your hook.",
+
+
+
+
+  "item.elarion_angling.icegill_chub" : "Icegill Chub",
+  "tooltip.elarion_angling.icegill_chub.0" : "A popular fish amongst anglers",
+  "tooltip.elarion_angling.icegill_chub.1" : "commonly found in rivers",
+
+  "item.elarion_angling.prismback_minnow" : "Prismback Minnow",
+  "tooltip.elarion_angling.prismback_minnow.0" : "A really small fish often used as bait.",
+  "tooltip.elarion_angling.prismback_minnow.1" : "This specific species is most common at nighttime.",
+
+  "item.elarion_angling.cerulean_crystalback_minnow" : "Cerulean Crystalback Minnow",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.0" : "A rare mutation of crystalback minnow's",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.1" : "which glows a soft blue tone during midnight.",
+  "tooltip.elarion_angling.cerulean_crystalback_minnow.2" : "A challenging catch due to it's tiny size.",
+
+  "item.elarion_angling.sapphire_crystalfin" : "Sapphire Crystalfin",
+  "tooltip.elarion_angling.sapphire_crystalfin.0" : "An uncommon fish most commonly found during daytime.",
+
+
+
+  "item.elarion_angling.steeljaw_herring" : "Steeljaw Herring",
+  "tooltip.elarion_angling.steeljaw_herring.0" : "This type of herring common to the ocean and often",
+  "tooltip.elarion_angling.steeljaw_herring.1" : "has a petrified silvery jaw resembling iron.",
+
+  "item.elarion_angling.cobalt_herring" : "Cobalt Herring",
+  "tooltip.elarion_angling.cobalt_herring.0" : "A very illusive fish, always searching for the 46th ocean.",
+  "tooltip.elarion_angling.cobalt_herring.1" : "Fisherman use it for directions as it always goes back to where it all started.",
+
+  "item.elarion_angling.abyssjaw_herring" : "Abyssjaw Herring",
+  "tooltip.elarion_angling.abyssjaw_herring.0" : "A fish common to oceans, often regarded highly for trading.",
+
+  "item.elarion_angling.duskfin_snapper" : "Duskfin Snapper",
+  "tooltip.elarion_angling.duskfin_snapper.0" : "A heavy fish for it's size often used in dishes.",
+
+  "item.elarion_angling.joelian" : "Joelian",
+  "tooltip.elarion_angling.joelian.0" : "A rare <sclegendary>legendary</sclegendary> fish found in oceans.",
+  "tooltip.elarion_angling.joelian.1" : "It has a <sclegendary>nice</sclegendary> size.",
+
+  "item.elarion_angling.redscale_tuna" : "Redscale Tuna",
+  "tooltip.elarion_angling.redscale_tuna.0" : "A large tuna with red colored scales.",
+  "tooltip.elarion_angling.redscale_tuna.1" : "A single one of these often feeds an entire village.",
+
+  "item.elarion_angling.ocean_bass" : "Ocean Bass",
+  "tooltip.elarion_angling.ocean_bass.0" : "A sea bass!",
+  "tooltip.elarion_angling.ocean_bass.1" : "No, wait—it's at least a C+!",
+
+  "item.elarion_angling.waterlogged_bottle" : "Waterlogged Bottle",
+  "tooltip.elarion_angling.waterlogged_bottle.0" : "A bottle thrown into the ocean many moons ago.",
+  "tooltip.elarion_angling.waterlogged_bottle.1" : "Whatever it once held, it's long gone by now.",
+
+  "item.elarion_angling.moon_eye_tuna" : "Moon Eye Tuna",
+  "tooltip.elarion_angling.moon_eye_tuna.0" : "A big heavy fish known for it's big eye.",
+  "tooltip.elarion_angling.moon_eye_tuna.1" : "This species is only found in deep ocean waters.",
+  "tooltip.elarion_angling.moon_eye_tuna.2" : "It's said to hang around other Kaupen fish.",
+
+  "block.elarion_angling.weathered_conch" : "Weathered Conch",
+  "tooltip.elarion_angling.weathered_conch.0" : "The remains of a mollusk with a spiral shell often used as an ornament.",
+
+  "block.elarion_angling.river_clam" : "River Clam",
+  "tooltip.elarion_angling.river_clam.0" : "Once a bivalve mollusk living in the sandy shores, now just a shell.",
+
+  "item.elarion_angling.mycelfin" : "Mycelfin",
+  "tooltip.elarion_angling.mycelfin.0" : "An antique <sclegendary>legendary</sclegendary> fish species taken over by the spores",
+  "tooltip.elarion_angling.mycelfin.1" : "of the Mushroom Islands. A really tasty dish for mushroom enjoyers.",
+
+  "item.elarion_angling.sporefin" : "Sporefin",
+  "tooltip.elarion_angling.sporefin.0" : "A rare fish found in the Mushroom Islands, may prove a",
+  "tooltip.elarion_angling.sporefin.1" : "tough catch for inexperienced anglers.",
+
+
+
+
+  "item.elarion_angling.gilded_fanfin" : "Gilded Fanfin",
+  "tooltip.elarion_angling.gilded_fanfin.0" : "An underground fish with a tail that resembles a fan.",
+  "tooltip.elarion_angling.gilded_fanfin.1" : "As funny as it would be, it does not spin its tail like a fan to move around.",
+
+  "item.elarion_angling.geode_ribbon_eel" : "Geode Ribbon Eel",
+  "tooltip.elarion_angling.geode_ribbon_eel.0" : "A shiny, heavy, long eel.",
+  "tooltip.elarion_angling.geode_ribbon_eel.1" : "Their color and texture comes from infused amethyst",
+  "tooltip.elarion_angling.geode_ribbon_eel.2" : "due to their eggs being hatched inside amethyst geodes.",
+
+
+
+  "item.elarion_angling.ivoryveil" : "Ivoryveil",
+  "tooltip.elarion_angling.ivoryveil.0" : "A pale long-finned fish common underground.",
+  "tooltip.elarion_angling.ivoryveil.1" : "surprisingly heavy for what looks like a ghost.",
+
+  "item.elarion_angling.dusk_eel" : "Dusk Eel",
+  "tooltip.elarion_angling.dusk_eel.0" : "A carnivorous black eel common underground.",
+
+  "item.elarion_angling.violet_crystalback" : "Violet Crystalback",
+  "tooltip.elarion_angling.violet_crystalback.0" : "A rare hard to catch fish common close to amethyst geodes.",
+
+  "item.elarion_angling.stonefin" : "Stonefin",
+  "tooltip.elarion_angling.stonefin.0" : "A huge heavy fish made of stone,",
+  "tooltip.elarion_angling.stonefin.1" : "often feeding miners for days.",
+
+
+
+  "item.elarion_angling.fossil_angelfish" : "Fossil Angelfish",
+  "tooltip.elarion_angling.fossil_angelfish.0" : "An angelfish resembling a fossil.",
+  "tooltip.elarion_angling.fossil_angelfish.1" : "It is not actually fossilised and is often",
+  "tooltip.elarion_angling.fossil_angelfish.2" : "ignored due to its low nutritional value,",
+  "tooltip.elarion_angling.fossil_angelfish.3" : "heavy weight and high difficulty to catch.",
+
+  "item.elarion_angling.dripstone_fin" : "Dripstone Fin",
+  "tooltip.elarion_angling.dripstone_fin.0" : "A basic fish which inhabits the",
+  "tooltip.elarion_angling.dripstone_fin.1" : "water pools of dripstone caves.",
+
+  "item.elarion_angling.brimstone_fish" : "Brimstone Fish",
+  "tooltip.elarion_angling.brimstone_fish.0" : "A beautiful gold colored fish common to dripstone caves.",
+
+
+
+
+
+  "item.elarion_angling.verdant_pike" : "Verdant Pike",
+  "tooltip.elarion_angling.verdant_pike.0" : "A mossy <sclegendary>legendary</sclegendary> pike rarely",
+  "tooltip.elarion_angling.verdant_pike.1" : "found in the Lush Caves. A real tough",
+  "tooltip.elarion_angling.verdant_pike.2" : "catch even for experienced anglers.",
+
+  "item.elarion_angling.radiant_mossfin" : "Radiant Mossfin",
+  "tooltip.elarion_angling.radiant_mossfin.0" : "A piece of moss resembling a fish found in Lush Caves.",
+  "tooltip.elarion_angling.radiant_mossfin.1" : "Or perhaps an actual fish consumed in moss?",
+  "tooltip.elarion_angling.radiant_mossfin.2" : "Either way it's a hard catch due to its slipperiness.",
+
+  "item.elarion_angling.quarryfish" : "Quarryfish",
+  "tooltip.elarion_angling.quarryfish.0" : "A fish often seen around the overgrown lush caves.",
+  "tooltip.elarion_angling.quarryfish.1" : "Its heavy size makes for a very tedious catch.",
+
+
+
+  "item.elarion_angling.phantom_pike" : "Phantom Pike",
+  "tooltip.elarion_angling.phantom_pike.0" : "A ghost-looking pike rarely found deep underground.",
+
+  "item.elarion_angling.seaglass_pike" : "Seaglass Pike",
+  "tooltip.elarion_angling.seaglass_pike.0" : "A predatory fish found deep underground.",
+
+  "item.elarion_angling.ruby_mackerel" : "Ruby Mackerel",
+  "tooltip.elarion_angling.ruby_mackerel.0" : "A hard to catch mackerel species found deep in caves.",
+
+  "item.elarion_angling.radiant_amethyst_snapper" : "Radiant Amethyst Snapper",
+  "tooltip.elarion_angling.radiant_amethyst_snapper.0" : "A gorgeous pink colored fish found at deepslate level.",
+  "tooltip.elarion_angling.radiant_amethyst_snapper.1" : "It's said to always swim around with it's pair of Dusky Amethyst Snapper.",
+
+  "item.elarion_angling.dusky_amethyst_snapper" : "Dusky Amethyst Snapper",
+  "tooltip.elarion_angling.dusky_amethyst_snapper.0" : "A gorgeous dark blue colored fish found at deepslate level.",
+  "tooltip.elarion_angling.dusky_amethyst_snapper.1" : "It's said to always swim around with it's pair of Radiant Amethyst Snapper.",
+
+  "item.elarion_angling.deepslate_fin" : "Deepslate Fin",
+  "tooltip.elarion_angling.deepslate_fin.0" : "A hard to catch fish found high up in the mountains.",
+  "tooltip.elarion_angling.deepslate_fin.1" : "Just kidding. It's found at deepslate.",
+
+
+
+
+  "item.elarion_angling.sculkfin" : "Sculkfin",
+  "tooltip.elarion_angling.sculkfin.0" : "A tricky fish corrupted by Sculk.",
+
+  "item.elarion_angling.wardfish" : "Wardfish",
+  "tooltip.elarion_angling.wardfish.0" : "A <sclegendary>legendary</sclegendary> fish said to be best friends with the warden.",
+  "tooltip.elarion_angling.wardfish.1" : "Instead of resisting Sculk, this fish embraced it and became stronger for it.",
+
+  "item.elarion_angling.darkglow" : "Darkglow",
+  "tooltip.elarion_angling.darkglow.0" : "A fast fish only found in the deep dark.",
+
+
+
+  "item.elarion_angling.sun_devourer" : "Sun Devourer",
+  "tooltip.elarion_angling.sun_devourer.0" : "A rare fish found in the lava lakes of the Overworld.",
+  "tooltip.elarion_angling.sun_devourer.1" : "It hunts down sunfishes for food.",
+
+  "item.elarion_angling.flame_trout" : "Flame Trout",
+  "tooltip.elarion_angling.flame_trout.0" : "A trout adapted to live in the surface lava of the Overworld.",
+
+  "item.elarion_angling.obsidian_ribbon_eel" : "Obsidian Ribbon Eel",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.0" : "A <sclegendary>legendary</sclegendary> species of eel made of obsidian, found",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.1" : "during rainy days inside Overworld lava lakes.",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.2" : "It often requires several anglers to carry",
+  "tooltip.elarion_angling.obsidian_ribbon_eel.3" : "it back to the village.",
+
+
+
+
+  "item.elarion_angling.magma_shrimp" : "Magma Shrimp",
+  "tooltip.elarion_angling.magma_shrimp.0" : "A small shrimp found in lava rivers underground.",
+
+  "item.elarion_angling.obsidian_shellcrab" : "Obsidian Shellcrab",
+  "tooltip.elarion_angling.obsidian_shellcrab.0" : "An illusive crab found close to underground lava pools.",
+
+
+
+
+  "item.elarion_angling.charred_bloodsucker" : "Charred Bloodsucker",
+  "tooltip.elarion_angling.charred_bloodsucker.0" : "A hard to catch parasite found in deepslate lava lakes.",
+
+  "item.elarion_angling.molten_slate_crab" : "Molten Slate Crab",
+  "tooltip.elarion_angling.molten_slate_crab.0" : "A gold colored crab found at deepslate levels close to lava rivers.",
+
+
+
+  "item.elarion_angling.hellhound_ray" : "Hellhound Ray",
+  "tooltip.elarion_angling.hellhound_ray.0" : "A stinging fish with 3 heads.",
+  "tooltip.elarion_angling.hellhound_ray.1" : "The 2 smaller ones only share 1 brain",
+
+  "item.elarion_angling.cindergill" : "Cindergill",
+  "tooltip.elarion_angling.cindergill.0" : "A fish found in the vast lava oceans of The Nether.",
+
+  "item.elarion_angling.boiling_pike" : "Boiling Pike",
+  "tooltip.elarion_angling.boiling_pike.0" : "A predatory fish only found in The Nether.",
+
+  "item.elarion_angling.ember_squid" : "Ember Squid",
+  "tooltip.elarion_angling.ember_squid.0" : "A slippery squid found in The Nether.",
+
+  "item.elarion_angling.magma_crab" : "Magma Crab",
+  "tooltip.elarion_angling.magma_crab.0" : "This particular species of crab somehow entered The Nether",
+  "tooltip.elarion_angling.magma_crab.1" : "and evolved a protective shell out of netherrack.",
+
+  "item.elarion_angling.magmafin" : "Magmafin",
+  "tooltip.elarion_angling.magmafin.0" : "A common Nether fish known for it's red glowing fins.",
+
+  "item.elarion_angling.glowstone_hunter" : "Glowstone Hunter",
+  "tooltip.elarion_angling.glowstone_hunter.0" : "A fish which seems to be weirdly attracted",
+  "tooltip.elarion_angling.glowstone_hunter.1" : "to glowstone, usually swimming under it.",
+
+  "item.elarion_angling.glowstone_puffer" : "Glowstone Puffer",
+  "tooltip.elarion_angling.glowstone_puffer.0" : "A pufferfish glittering just like glowstone.",
+
+  "item.elarion_angling.willowish" : "Willowish",
+  "tooltip.elarion_angling.willowish.0" : "A fish known for scamming other fishes out of their food.",
+  "tooltip.elarion_angling.willowish.1" : "It is incredibly ugly and should be discarded back to The Nether where it belongs.",
+
+  "item.elarion_angling.magma_crab_claw" : "Magma Crab Claw",
+  "tooltip.elarion_angling.magma_crab_claw.0" : "A claw ripped off from a Magma Crab.",
+  "tooltip.elarion_angling.magma_crab_claw.1" : "Due to the aggressive nature of Lava Crabs,",
+  "tooltip.elarion_angling.magma_crab_claw.2" : "it's quite a common find in The Nether.",
+
+
+
+  "item.elarion_angling.charred_char" : "Charred Char",
+  "tooltip.elarion_angling.charred_char.0" : "A purple fish only found in The End.",
+
+  "item.elarion_angling.chorus_shellcrab" : "Chorus Shellcrab",
+  "tooltip.elarion_angling.chorus_shellcrab.0" : "This crab species uses Chorus fruit as it's main source of food.",
+  "tooltip.elarion_angling.chorus_shellcrab.1" : "It is said it can teleport around at will after feeding.",
+
+  "item.elarion_angling.ender_glowfin" : "Ender Glowfin",
+  "tooltip.elarion_angling.ender_glowfin.0" : "A tricky fish only found in The End.",
+  "tooltip.elarion_angling.ender_glowfin.1" : "Enderman don't seem to mind it.",
+
+  "item.elarion_angling.voidfang" : "Voidfang",
+  "tooltip.elarion_angling.voidfang.0" : "A <sclegendary>legendary</sclegendary> fish found floating in the vast void of The End.",
+  "tooltip.elarion_angling.voidfang.1" : "So few anglers have seen it that it's only rumored to exist.",
+  "tooltip.elarion_angling.voidfang.2" : "It's said only <scuncommon>Older Anglers</scuncommon> have successfully",
+  "tooltip.elarion_angling.voidfang.3" : "caught it before.",
+
+  "item.elarion_angling.violet_carp" : "Violet Carp",
+  "tooltip.elarion_angling.violet_carp.0" : "These species of carp have adapted to the cold void of The End.",
+  "tooltip.elarion_angling.violet_carp.1" : "It is said to make a great stew,",
+  "tooltip.elarion_angling.violet_carp.2" : "although no one is sure how they cook it.",
+
+  "item.elarion_angling.abyssfin" : "Abyssfin",
+  "tooltip.elarion_angling.abyssfin.0" : "A pale purple fish known for its large fins used to glide the void.",
+
+  "item.elarion_angling.void_jelly" : "Void Jelly",
+  "tooltip.elarion_angling.void_jelly.0" : "An incredibly light pink jellyfish.",
+  "tooltip.elarion_angling.void_jelly.1" : "It floats around the outer islands of The End in search of End Cities.",
+
+  "item.elarion_angling.chorusfin_minnow" : "Chorusfin Minnow",
+  "tooltip.elarion_angling.chorusfin_minnow.0" : "A species of Minnor consumed by Chorus.",
+  "tooltip.elarion_angling.chorusfin_minnow.1" : "It is unknown if they are native to The End.",
+
+  "item.elarion_angling.starcloud_squid" : "Starcloud Squid",
+  "tooltip.elarion_angling.starcloud_squid.0" : "Unlike the Ember Squid, Nebula Squids are quite sticky,",
+  "tooltip.elarion_angling.starcloud_squid.1" : "and often use their tentacles to wrap around chorus fruits whilst feeding.",
+
+
+
+  "item.elarion_angling.geargill" : "Geargill",
+  "tooltip.elarion_angling.geargill.0" : "A dusty construct made of brass gears and cogs often used in arid areas to move air around.",
+
+  "item.elarion_angling.clockwork_brass_snail" : "Clockwork Brass Snail",
+  "tooltip.elarion_angling.clockwork_brass_snail.0" : "A machine made to clean oil off of beaches.",
+  "tooltip.elarion_angling.clockwork_brass_snail.1" : "This one seems to have been upgraded to brass, making it more efficient.",
+
+  "item.elarion_angling.clockwork_snail" : "Clockwork Snail",
+  "tooltip.elarion_angling.clockwork_snail.0" : "A machine made to clean oil off of beaches.",
+  "tooltip.elarion_angling.clockwork_snail.1" : "It slowly moves back and forth cleaning up polution,",
+  "tooltip.elarion_angling.clockwork_snail.2" : "left behind by whoever made it.",
+
+
+  "item.elarion_angling.philipfin" : "Philipfin",
+  "tooltip.elarion_angling.philipfin.0" : "This machine drifts around the ocean and plugs itself wherever it can fit in.",
+
+  "item.elarion_angling.brass_valvefish" : "Brass Valvefish",
+  "tooltip.elarion_angling.brass_valvefish.0" : "A loose brass_valvefish attached to a pipe.",
+  "tooltip.elarion_angling.brass_valvefish.1" : "Somewhere, someone is wondering where it went.",
+
+  "item.elarion_angling.copper_pipehead" : "Copper Pipehead",
+  "tooltip.elarion_angling.copper_pipehead.0" : "This type of machine, sometimes called a pipesucker,",
+  "tooltip.elarion_angling.copper_pipehead.1" : "is often used to connect different mechanisms underwater.",
+  "tooltip.elarion_angling.copper_pipehead.2" : "It would appear this one got loose and started drifting the oceans.",
+
+  "item.elarion_angling.geartopus" : "Geartopus",
+  "tooltip.elarion_angling.geartopus.0" : "A very intelligent machine made to mimic the behaviour of octopus.",
+  "tooltip.elarion_angling.geartopus.1" : "Each of its brains (cogs) controls a different arm, making it able to maneuver anywhere it pleases.",
+
+  "item.elarion_angling.dynamo_eel" : "Dynamo Eel",
+  "tooltip.elarion_angling.dynamo_eel.0" : "A oily slippery eel ran by gears.",
+
+  "item.elarion_angling.surge_pike" : "Surge Pike",
+  "tooltip.elarion_angling.surge_pike.0" : "An aggressive machine made to control the fish population around rivers",
+
+  "item.elarion_angling.bronzegill" : "Bronzegill",
+  "tooltip.elarion_angling.bronzegill.0" : "A mechanical construct resembling the Cindergill,",
+  "tooltip.elarion_angling.bronzegill.1" : "made to survive high temperature fluids.",
+  "tooltip.elarion_angling.bronzegill.2" : "It's use is unknown.",
+
+  "item.elarion_angling.mech_aloe_bream" : "Mech Aloe Bream",
+  "tooltip.elarion_angling.mech_aloe_bream.0" : "The mechanical version of an Aloe Bream made for controlling bream population.",
+  "tooltip.elarion_angling.mech_aloe_bream.1" : "If it's unable to find a suitable Aloe Bream in time it will hibernate until next mating season.",
+  "item.elarion_angling.sunbloom_carp": "Sunbloom Carp"
 }

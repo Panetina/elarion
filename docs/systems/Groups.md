@@ -13,11 +13,6 @@ Status: Implemented foundation.
 - `addons/groups/src/main/java/panetina/elarion/addons/groups/storage/GroupStorage.java`
 - `addons/groups/src/main/java/panetina/elarion/addons/groups/api/ElarionGroupsApi.java`
 
-## Entry Points
-
-- Fabric module: `addons/groups/src/main/resources/fabric.mod.json`
-- Custom addon entrypoint: `ElarionGroupsAddon`
-
 ## Commands
 
 Player:
@@ -39,14 +34,6 @@ Admin:
 - `/e groups delete <group>`
 - `/e groups transfer <group> <player>`
 
-## Network Packets
-
-None in V1.
-
-## GUI / Screens
-
-None in V1. Future group info screens should use the shared Core UI primitives.
-
 ## Storage / Persistence
 
 Config:
@@ -64,10 +51,10 @@ Runtime:
 
 ## Related Systems
 
-- Government: Confederation delegates represent registered groups through
-  `ElarionGroupsApi`.
 - Identity: public tag rendering uses a Core chat prefix provider.
 - Economy: group creation fee payment.
+- Government: no active founding office depends on Groups after the two-form
+  Government simplification.
 
 ## Extension Points
 
@@ -78,14 +65,9 @@ Runtime:
 
 ## Risks
 
-- Confederation must consume `ElarionGroupsApi`; it must not read group storage
-  directly.
-- Delegate groups are locked while they hold a Confederation seat so they
-  cannot invite cross-Realm members. Government releases that lock when the
-  delegate office is removed or vacated.
 - Group tags are public identity. Validation must stay config-driven and
   collision-safe.
-- Do not add secret/criminal/revolutionary group behavior into V1 public group
+- Do not add secret/criminal/revolutionary behavior into V1 public group
   commands. Add group types and visibility first.
 
 ## Do Not Duplicate This System By Creating

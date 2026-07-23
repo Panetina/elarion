@@ -1,0 +1,196 @@
+{
+    "values":  [
+                   {
+                       "id":  "elarion_angling:obsidonti",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:silvermist_perch",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:elderfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:driftwing",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:dusk_koi",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:storm_bass",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:stormflash_bass",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:mire_catfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:lilypad_snapper",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:pallid_pinfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:pinfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:prismback_trout",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:wintry_pike",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:miragefin_carp",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:cactusfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:aloe_bream",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sunlit_sturgeon",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sunseeker_carp",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:bloomdrift_carp",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:rose_koi",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:morganite_minnow",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:frosttooth_sturgeon",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:borealis_fin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:crystalback_borealis",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:silvercrest_pike",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:carpenjo",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:willowfin_bream",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:driftwater_bream",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:rainfell_bream",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:hollowgut_darter",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:mistfin_chub",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:icegill_chub",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:prismback_minnow",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sapphire_crystalfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:cobalt_herring",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:steeljaw_herring",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:abyssjaw_herring",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:duskfin_snapper",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:redscale_tuna",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:moon_eye_tuna",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:ivoryveil",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:brimstone_fish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:verdant_pike",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:radiant_mossfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:quarryfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:phantom_pike",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sculkfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:charred_char",
+                       "required":  false
+                   }
+               ]
+}

@@ -5,6 +5,17 @@
   "name": "Elarion Groups",
   "icon": "assets/elarion_groups/icon.png",
   "description": "Reusable public group, tag, invite, and group chat foundation for Elarion.",
+  "contact": {
+    "homepage": "https://ashesofelarion.com",
+    "discord": "https://discord.gg/bSEHtMhqKa"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+      }
+    }
+  },
   "authors": [
     "Panyel"
   ],

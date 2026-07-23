@@ -52,4 +52,22 @@ final class ElarionCatchTelemetryApiTest {
         assertEquals(3, api.quantityForRarity(actorId, rarityId));
         assertThrows(UnsupportedOperationException.class, () -> api.recentCatches(actorId).clear());
     }
+
+    @Test
+    void ordinaryApiQueryDoesNotLoadOrReplayPlayerStorage() throws Exception {
+        UUID actorId = UUID.randomUUID();
+        CatchSummaryStorage storage = new CatchSummaryStorage();
+        Path state = CatchSummaryStorage.summaryPath(tempDir, actorId);
+        java.nio.file.Files.createDirectories(state.getParent());
+        java.nio.file.Files.writeString(state, "{broken");
+        CatchTelemetryService service = new CatchTelemetryService(
+                new CatchTelemetryJournalStorage(), storage,
+                LoggerFactory.getLogger("catch-telemetry-api-test"));
+        service.bind(tempDir);
+        ElarionCatchTelemetryApi api = new ElarionCatchTelemetryApi(service);
+
+        assertEquals(0, api.totalQuantity(actorId));
+        // A cached query intentionally neither parses nor quarantines the malformed file.
+        org.junit.jupiter.api.Assertions.assertTrue(java.nio.file.Files.exists(state));
+    }
 }

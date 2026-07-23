@@ -76,62 +76,6 @@ public final class CoreConfigManager {
                         hidden-from-discovery: true
                         abilities: []
                     """,
-            "government_councilor", """
-                      government_councilor:
-                        description: "Active authority title for a Realm councilor."
-                        display-name: "Councilor"
-                        prefix: ""
-                        suffix: ""
-                        color: "#58D1A5"
-                        priority: 60
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
-                    """,
-            "government_high_cleric", """
-                      government_high_cleric:
-                        description: "Active authority title for a Realm theocratic leader."
-                        display-name: "Holy Priest"
-                        prefix: ""
-                        suffix: ""
-                        color: "#C084FF"
-                        priority: 70
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
-                    """,
-            "government_synod_member", """
-                      government_synod_member:
-                        description: "Active authority title for a Realm synod member."
-                        display-name: "Synod Member"
-                        prefix: ""
-                        suffix: ""
-                        color: "#C084FF"
-                        priority: 60
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
-                    """,
-            "government_delegate", """
-                      government_delegate:
-                        description: "Active authority title for a confederation delegate."
-                        display-name: "Delegate"
-                        prefix: ""
-                        suffix: ""
-                        color: "#E6B45A"
-                        priority: 70
-                        visible-under-username: true
-                        acquisition-mode: "ADMIN_ONLY"
-                        ownership-mode: "UNLIMITED"
-                        hidden-from-discovery: true
-                        abilities: []
-                    """,
             "government_officer", """
                       government_officer:
                         description: "Active authority title for an appointed Realm officer."
@@ -153,10 +97,6 @@ public final class CoreConfigManager {
             Map.entry("government_monarch", "#FFD36A"),
             Map.entry("government_heir", "#E6B45A"),
             Map.entry("government_president", "#FFD36A"),
-            Map.entry("government_councilor", "#58D1A5"),
-            Map.entry("government_high_cleric", "#C084FF"),
-            Map.entry("government_synod_member", "#C084FF"),
-            Map.entry("government_delegate", "#E6B45A"),
             Map.entry("government_officer", "#5CB7E8"),
             Map.entry("goblin_slayer", "#8DDCFF"),
             Map.entry("dragon_slayer", "#FFA83D"),

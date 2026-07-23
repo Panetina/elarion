@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "item":  "elarion_angling:river_clam"
+                        }
+                    ],
+    "result":  {
+                   "count":  4,
+                   "id":  "minecraft:bone_meal"
+               }
+}

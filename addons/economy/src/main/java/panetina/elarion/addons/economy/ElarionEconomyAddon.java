@@ -19,6 +19,8 @@ import panetina.elarion.addons.economy.storage.EconomyStorage;
 import panetina.elarion.addons.economy.storage.EconomyTaxPolicyStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -59,6 +61,19 @@ public final class ElarionEconomyAddon implements ElarionAddon {
             if (!result.successful()) throw new IllegalStateException(result.message());
         });
         new ElarionEconomyApi(transactions, inventory, governor, pricing, taxPolicies);
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_economy"; }
+            @Override public Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return Map.of();
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                return java.util.List.of(panetina.elarion.core.storage.JsonStateStorage
+                        .addonStateRoot(server, "economy").resolve("economy-state.json"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                return PlayerResetResult.of("playerWallets", transactions.resetAllPlayerState());
+            }
+        });
         EconomyConfigDescriptors.register(api.system().configs(), transactions::config, pricing::definitions);
         EconomyNpcActions.register(api, transactions, inventory);
         EconomyRewardActions.register(api, transactions);

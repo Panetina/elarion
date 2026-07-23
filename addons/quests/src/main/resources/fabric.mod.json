@@ -5,6 +5,17 @@
     "name": "Elarion Quests",
     "icon": "assets/elarion_quests/icon.png",
     "description": "Data-driven questline state, dialogue actions, and bounded consequence processing for Elarion.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors": [
         "Panyel"
     ],

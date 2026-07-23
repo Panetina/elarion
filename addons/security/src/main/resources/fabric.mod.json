@@ -5,6 +5,17 @@
     "name": "Elarion Security",
     "icon": "assets/elarion_security/icon.png",
     "description": "Security, anti-cheat, and anti-AFK farm protection foundation for Elarion.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors": [
         "Panyel"
     ],

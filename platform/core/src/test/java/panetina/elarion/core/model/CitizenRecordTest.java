@@ -42,4 +42,15 @@ final class CitizenRecordTest {
         assertEquals("", citizen.activeTitleId());
         assertTrue(citizen.unlockedTitleIds().isEmpty());
     }
+
+    @Test
+    void lastWorldIsNormalizedAndDefaultsBlankForExistingCitizens() {
+        CitizenRecord citizen = new CitizenRecord(UUID.randomUUID(), "Player");
+
+        assertEquals("", citizen.lastWorldId());
+        citizen.setLastWorldId(" elarion:realm_world_1 ");
+        assertEquals("elarion:realm_world_1", citizen.lastWorldId());
+        citizen.setLastWorldId(null);
+        assertEquals("", citizen.lastWorldId());
+    }
 }

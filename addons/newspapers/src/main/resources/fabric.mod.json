@@ -5,6 +5,17 @@
     "name":  "Elarion Newspapers",
     "icon": "assets/elarion_newspapers/icon.png",
     "description":  "Newspapers addon shell backed by Elarion Core title abilities.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

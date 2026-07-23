@@ -122,6 +122,25 @@ public final class GovernmentStateService {
         return api.realms().find(realmId).map(api.realms()::displayName).orElse(realmId == null ? "" : realmId);
     }
 
+    /** Bounded read model for external presentation; Government remains the office authority. */
+    public String officeDisplayName(UUID citizenId) {
+        if (citizenId == null) return "";
+        CitizenRecord citizen = api.citizens().find(citizenId).orElse(null);
+        if (citizen == null || citizen.realmId().isBlank()) return "";
+        RealmGovernmentState government = realm(citizen.realmId());
+        String formId = government.activeGovernmentFormId();
+        if (formId.isBlank()) return "";
+        GovernmentFormDefinition form = definitions.require(formId);
+        return government.officeHolders().entrySet().stream()
+                .filter(entry -> entry.getValue().contains(citizenId))
+                .map(Map.Entry::getKey)
+                .sorted()
+                .map(officeId -> officeLabel(form, officeId))
+                .filter(label -> label != null && !label.isBlank())
+                .findFirst()
+                .orElse("");
+    }
+
     public int resetRealm(String realmId) {
         String normalizedRealm = normalize(realmId);
         if (api.realms().find(normalizedRealm).isEmpty()) {

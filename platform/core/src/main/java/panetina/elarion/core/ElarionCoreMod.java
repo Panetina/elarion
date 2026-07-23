@@ -3,6 +3,7 @@ package panetina.elarion.core;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
@@ -18,7 +19,15 @@ import org.slf4j.LoggerFactory;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.api.ElarionCommandRegistry;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetRegistry;
+import panetina.elarion.core.api.reset.PlayerResetResult;
+import panetina.elarion.core.api.reset.WorldResetRegistry;
 import panetina.elarion.core.command.ElarionCommands;
+import panetina.elarion.core.command.PlayerResetCommandRegistrar;
+import panetina.elarion.core.command.WorldResetCommandRegistrar;
+import panetina.elarion.core.service.PlayerResetService;
+import panetina.elarion.core.service.WorldResetService;
 import panetina.elarion.core.command.CharacterCommands;
 import panetina.elarion.core.config.CoreConfigDescriptors;
 import panetina.elarion.core.config.CoreConfigManager;
@@ -53,6 +62,7 @@ import panetina.elarion.core.service.ProgressionService;
 import panetina.elarion.core.service.ElarionTaskService;
 import panetina.elarion.core.service.ElarionTaskConfig;
 import panetina.elarion.core.service.PlayerRestrictionService;
+import panetina.elarion.core.service.PlayerInteractionRestrictionRegistrar;
 import panetina.elarion.core.registry.ElarionRegistries;
 import panetina.elarion.core.storage.CitizenStorage;
 import panetina.elarion.core.storage.ChronicleArchiveStorage;
@@ -76,6 +86,7 @@ import panetina.elarion.core.service.ElarionUiThemeService;
 import panetina.elarion.core.service.DeferredRewardGrantService;
 import panetina.elarion.core.service.ElarionNotificationService;
 import panetina.elarion.core.service.CatchTelemetryService;
+import panetina.elarion.core.service.CatchTelemetryWorker;
 import panetina.elarion.core.service.CoreTitleCollectionProvider;
 import panetina.elarion.core.service.CoreProgressionProfileContributor;
 import panetina.elarion.core.storage.CatchSummaryStorage;
@@ -104,6 +115,7 @@ import panetina.elarion.core.network.AdminPanelOpenRequestPayload;
 import panetina.elarion.core.network.ElarionConfigEditOpenPayload;
 import panetina.elarion.core.network.ElarionConfigEditRequestPayload;
 import panetina.elarion.core.network.ElarionConfigEditResultPayload;
+import panetina.elarion.core.network.LauncherPassageTicketPayload;
 import panetina.elarion.core.service.ElarionAdminPanelService;
 import panetina.elarion.core.service.ElarionConfigApplyService;
 import panetina.elarion.core.service.WorldheartGovernanceService;
@@ -113,8 +125,11 @@ import panetina.elarion.core.integration.minecraft.MinecraftProjectionProtocol.V
 import panetina.elarion.core.integration.minecraft.MinecraftProjectionPublisher;
 import panetina.elarion.core.integration.minecraft.AdvancementLeaderboardProjection;
 import panetina.elarion.core.integration.minecraft.MinecraftWhitelistBridgeService;
-import panetina.elarion.core.network.LauncherPassageTicketPayload;
 import panetina.elarion.core.integration.minecraft.LauncherPassageTicketService;
+import panetina.elarion.core.metric.MetricProjectionWorker;
+import panetina.elarion.core.metric.PersistentMetricProjectionService;
+import panetina.elarion.core.storage.MetricJournalStorage;
+import panetina.elarion.core.storage.MetricProjectionStorage;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -200,6 +215,7 @@ public final class ElarionCoreMod implements ModInitializer {
                 new RealmGovernanceService(new RealmRuntimeStorage(LOGGER), realms, citizens, history);
         identities.setGovernance(governance);
         PlayerRestrictionService restrictions = new PlayerRestrictionService();
+        PlayerInteractionRestrictionRegistrar.register(restrictions);
         identities.setRestrictions(restrictions);
         CharacterLifecycleService characters = new CharacterLifecycleService(
                 LOGGER, new CharacterLifecycleStorage(LOGGER), citizens, realms, nicknames, events, restrictions);
@@ -217,7 +233,7 @@ public final class ElarionCoreMod implements ModInitializer {
         DeferredRewardGrantService deferredRewards = new DeferredRewardGrantService(
                 new DeferredRewardGrantStorage(LOGGER), rewards, history);
         ElarionNotificationService notifications =
-                new ElarionNotificationService(new NotificationStorage(LOGGER), citizens);
+                new ElarionNotificationService(new NotificationStorage(LOGGER), citizens, webProjections);
         notifications.registerProvider(deferredRewards::snapshotEntries);
         deferredRewards.setNotificationSync(notifications::sync);
         titles.setNotifications(notifications);
@@ -240,6 +256,43 @@ public final class ElarionCoreMod implements ModInitializer {
                 new RealmDeliveryService(new RealmDeliveryStorage(LOGGER), citizens, realms, rewards,
                         deferredRewards, notifications, history, config.serverIdentity());
         ElarionCommandRegistry commands = new ElarionCommandRegistry();
+        PlayerResetRegistry playerResets = new PlayerResetRegistry();
+        PlayerResetService playerResetService = new PlayerResetService(LOGGER, playerResets);
+        WorldResetRegistry worldResets = new WorldResetRegistry();
+        WorldResetService worldResetService = new WorldResetService(LOGGER, worldResets);
+        playerResets.register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_core"; }
+
+            @Override public java.util.Map<String, Long> preview(MinecraftServer server) {
+                return java.util.Map.of("citizens", (long) citizens.all().size());
+            }
+
+            @Override public java.util.List<java.nio.file.Path> backupTargets(MinecraftServer server) {
+                java.nio.file.Path root = JsonStateStorage.elarionRoot(server);
+                return java.util.List.of(
+                        root.resolve("citizens"), root.resolve("core/characters/state.json"),
+                        root.resolve("notifications/notifications.json"), root.resolve("reward-grants.json"),
+                        root.resolve("player-stats"), root.resolve("progression/title-progress"),
+                        root.resolve("title-claims.json"));
+            }
+
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context)
+                    throws Exception {
+                java.util.Map<String, Long> changed = new java.util.LinkedHashMap<>();
+                changed.put("notifications", (long) notifications.resetAllPlayerState());
+                changed.put("rewardGrants", (long) deferredRewards.resetAllPlayerState());
+                changed.put("titleProgress", (long) progression.resetAllPlayerState());
+                changed.put("playerStats", (long) playerStats.resetAll());
+                changed.put("titleClaims", (long) titles.resetAllClaims());
+                changed.put("characters", (long) characters.resetAllPlayerState());
+                changed.put("citizens", (long) citizens.resetAll());
+                return new PlayerResetResult(changed);
+            }
+        });
+        commands.registerAdminSubcommand(() -> PlayerResetCommandRegistrar.register(playerResetService));
+        commands.registerAdminSubcommand(() -> WorldResetCommandRegistrar.register(worldResetService, java.util.List::of));
+        commands.registerHelpDescription("/e reset players", "Preview and confirm a complete player progression reset.");
+        commands.registerHelpDescription("/e reset world <world>", "Regenerate a managed world and remove its world-scoped content.");
         commands.registerAdminSubcommand(() -> CharacterCommands.admin(characters));
         commands.registerTestSubcommand(() -> CharacterCommands.test(characters));
         commands.registerHelpDescription("/e character ...", "Inspect character lifecycle and archives.");
@@ -267,14 +320,19 @@ public final class ElarionCoreMod implements ModInitializer {
                 new CatchTelemetryJournalStorage(),
                 new CatchSummaryStorage(),
                 LOGGER);
-        catchTelemetry.registerEvents(events);
+        CatchTelemetryWorker catchTelemetryWorker = new CatchTelemetryWorker(catchTelemetry);
+        MetricProjectionWorker metrics = new MetricProjectionWorker(new PersistentMetricProjectionService(
+                new MetricJournalStorage(), new MetricProjectionStorage()), events::emitMetricUpdated);
+        progression.setMetricProjection(metrics);
+        events.onMetricUpdated(progression::recordMetric);
         history.setTaskService(tasks);
         ElarionApi api = new ElarionApi(
                 citizens, realms, titles, abilities, identities, identitySync, nicknames, history, privateMessages,
                 chat, governance, realmSpawns, realmDeliveries, rewards, playerStats, progression, events, commands,
                 registries, tasks, collections, profiles, adminPanel, configRegistry, configApplyRegistry::register,
                 config.serverIdentity(), uiThemes, deferredRewards, notifications, restrictions, catchTelemetry,
-                characters, worldheart, webProjections);
+                catchTelemetryWorker,
+                characters, worldheart, webProjections, metrics, playerResets, worldResets, worldResetService);
         adminPanel.bindApi(api);
 
         ServerPlayNetworking.registerGlobalReceiver(CharacterCreationSubmitPayload.ID, (payload, context) ->
@@ -349,7 +407,7 @@ public final class ElarionCoreMod implements ModInitializer {
         progression.registerEvents();
         events.onCitizenChanged(event -> {
             MinecraftServer server = citizens.server();
-            updateCitizenProjection(event.citizen(), realms, webProjections, citizenRealms,
+            updateCitizenProjection(event.citizen(), config, realms, webProjections, citizenRealms,
                     realmMemberCounts, onlineCitizenRealms, realmOnlineCounts);
             advancementLeaderboard.update(event.citizen(),
                     playerStats.value(event.citizenId(), ProgressionService.ADVANCEMENTS_COMPLETED));
@@ -375,68 +433,62 @@ public final class ElarionCoreMod implements ModInitializer {
             deferredRewards.bind(server);
             notifications.bind(server);
             realmDeliveries.bind(server);
-            catchTelemetry.bind(JsonStateStorage.elarionRoot(server));
+            catchTelemetryWorker.bind(JsonStateStorage.elarionRoot(server));
+            long recoveredMetrics = metrics.bind(JsonStateStorage.elarionRoot(server));
             configApplyService.bind(JsonStateStorage.elarionRoot(server));
             minecraftBridge.start(server);
             advancementLeaderboard.bind(JsonStateStorage.elarionRoot(server));
-            initializeWorldProjections(citizens, realms, webProjections, citizenRealms,
+            initializeWorldProjections(citizens, config, realms, webProjections, citizenRealms,
                     realmMemberCounts, realmOnlineCounts);
             realms.initializeScoreboardTeams(server);
             LOGGER.info("Elarion Core bound to server {}", server.getServerMotd());
+            if (recoveredMetrics > 0) {
+                LOGGER.info("Recovered {} Core metric batches after the last checkpoint", recoveredMetrics);
+            }
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            citizens.markSeen(handler.getPlayer());
-            CitizenRecord joinedCitizen = citizens.getOrCreate(handler.getPlayer());
+            playerResetService.clearResetDisconnect(handler.getPlayer().getUuid());
+            CitizenRecord joinedCitizen = citizens.markLocation(handler.getPlayer(), "join-location");
             updateOnlineRealm(joinedCitizen.uuid(), joinedCitizen.realmId(), realms, webProjections,
                     onlineCitizenRealms, realmMemberCounts, realmOnlineCounts);
             characters.onJoin(handler.getPlayer());
             titles.repair(citizens.getOrCreate(handler.getPlayer()), null);
             progression.synchronizeAdvancementCount(handler.getPlayer());
+            progression.reconcileMetricRules(handler.getPlayer());
             realms.applyCurrentScoreboardTeam(handler.getPlayer());
             realmDeliveries.deliverPending(handler.getPlayer());
             notifications.sync(handler.getPlayer());
-            catchTelemetry.activate(handler.getPlayer().getUuid());
+            catchTelemetryWorker.activate(handler.getPlayer().getUuid());
             identitySync.syncAllNow(server);
             uiThemes.sync(handler.getPlayer());
-        });
             String launcherPassageTicket = launcherPassageTickets.issue(handler.getPlayer().getUuid());
             if (!launcherPassageTicket.isBlank()) {
                 ServerPlayNetworking.send(handler.getPlayer(), new LauncherPassageTicketPayload(
                         handler.getPlayer().getUuid().toString(), launcherPassageTicket));
             }
+        });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            citizens.markSeen(handler.getPlayer());
+            if (playerResetService.isResetDisconnect(handler.getPlayer().getUuid())) return;
+            citizens.markLocation(handler.getPlayer(), "disconnect-location");
             updateOnlineRealm(handler.getPlayer().getUuid(), "", realms, webProjections,
                     onlineCitizenRealms, realmMemberCounts, realmOnlineCounts);
             playerStats.save(handler.getPlayer().getUuid());
             progression.save(handler.getPlayer().getUuid());
-            catchTelemetry.save(handler.getPlayer().getUuid());
+            catchTelemetryWorker.save(handler.getPlayer().getUuid());
             requestLimiter.clear(handler.getPlayer().getUuid());
         });
+        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) ->
+                citizens.markLocation(player, "world-transition"));
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             tasks.tickServerQueue();
             playerStats.saveIfDue();
             progression.tick(server);
             history.tick();
             identitySync.tick(server);
-            catchTelemetry.tick();
+            catchTelemetryWorker.tick();
             characters.tick();
         });
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-            playerStats.saveDirty();
-            progression.saveDirty();
-            deferredRewards.save();
-            notifications.save();
-            history.flush();
-            catchTelemetry.shutdown();
-            characters.save();
-            configApplyService.unbind();
-            minecraftBridge.stop();
-            activeServer.set(null);
-            tasks.shutdown();
-        });
-
         ServerPlayerEvents.JOIN.register(chat::sendJoinNotice);
         ServerPlayerEvents.LEAVE.register(chat::sendLeaveNotice);
         ServerPlayerEvents.AFTER_RESPAWN.register(realmSpawns::routeRespawn);
@@ -452,6 +504,22 @@ public final class ElarionCoreMod implements ModInitializer {
                 ElarionCommands.register(dispatcher, registryAccess, api, config, commands));
 
         initializeAddons(api);
+        // Core is the dependency root, so addon shutdown hooks registered
+        // during initializeAddons must drain before these shared workers stop.
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            playerStats.saveDirty();
+            progression.saveDirty();
+            deferredRewards.save();
+            notifications.save();
+            history.flush();
+            catchTelemetryWorker.shutdown();
+            metrics.shutdown();
+            characters.save();
+            configApplyService.unbind();
+            minecraftBridge.stop();
+            activeServer.set(null);
+            tasks.shutdown();
+        });
         LOGGER.info("Elarion Core initialized");
     }
 
@@ -505,6 +573,7 @@ public final class ElarionCoreMod implements ModInitializer {
 
     private static void initializeWorldProjections(
             CitizenService citizens,
+            CoreConfigManager config,
             RealmService realms,
             MinecraftProjectionPublisher projections,
             Map<UUID, String> citizenRealms,
@@ -516,15 +585,20 @@ public final class ElarionCoreMod implements ModInitializer {
         for (CitizenRecord citizen : citizens.all()) {
             citizenRealms.put(citizen.uuid(), citizen.realmId());
             increment(memberCounts, citizen.realmId(), 1);
-            publishCitizenProjection(citizen, realms, projections);
+            publishCitizenProjection(citizen, config, realms, projections);
         }
         for (RealmDefinition realm : realms.all()) {
             publishRealmProjection(realm, realms, projections, memberCounts, onlineCounts);
+            publishRealmWorldPresentation(realm, realms, projections);
         }
+        publishWorldPresentation(projections, "elarion:worldheart", "Worldheart", "");
+        publishWorldPresentation(projections, "minecraft:the_nether", "Nether", "");
+        publishWorldPresentation(projections, "minecraft:the_end", "End", "");
     }
 
     private static void updateCitizenProjection(
             CitizenRecord citizen,
+            CoreConfigManager config,
             RealmService realms,
             MinecraftProjectionPublisher projections,
             Map<UUID, String> citizenRealms,
@@ -545,7 +619,7 @@ public final class ElarionCoreMod implements ModInitializer {
             updateOnlineRealm(citizen.uuid(), newRealm, realms, projections,
                     onlineCitizenRealms, memberCounts, onlineCounts);
         }
-        publishCitizenProjection(citizen, realms, projections);
+        publishCitizenProjection(citizen, config, realms, projections);
         realms.find(newRealm).ifPresent(realm ->
                 publishRealmProjection(realm, realms, projections, memberCounts, onlineCounts));
     }
@@ -577,6 +651,7 @@ public final class ElarionCoreMod implements ModInitializer {
 
     private static void publishCitizenProjection(
             CitizenRecord citizen,
+            CoreConfigManager config,
             RealmService realms,
             MinecraftProjectionPublisher projections
     ) {
@@ -585,8 +660,12 @@ public final class ElarionCoreMod implements ModInitializer {
         putProjection(payload, "nickname", citizen.nickname());
         putProjection(payload, "realmId", citizen.realmId());
         putProjection(payload, "titleId", citizen.titleId());
+        var title = config.titles().get(citizen.titleId());
+        if (title != null) putProjection(payload, "titleDisplayName", title.displayName());
         putProjection(payload, "status", citizen.status().name());
         payload.put("joinedAt", Long.toString(citizen.joinedAt()));
+        payload.put("lastSeenAt", Long.toString(citizen.lastSeenAt()));
+        putProjection(payload, "lastWorldId", citizen.lastWorldId());
         realms.find(citizen.realmId()).ifPresent(realm -> {
             RealmPresentation presentation = realms.presentation(realm);
             putProjection(payload, "realmName", presentation.officialName());
@@ -615,6 +694,27 @@ public final class ElarionCoreMod implements ModInitializer {
         payload.put("memberCount", Integer.toString(memberCounts.getOrDefault(realm.id(), 0)));
         payload.put("activeCount", Integer.toString(onlineCounts.getOrDefault(realm.id(), 0)));
         projections.publishState("realm", realm.id(), realm.id(), Visibility.PUBLIC, payload);
+    }
+
+    private static void publishRealmWorldPresentation(
+            RealmDefinition realm,
+            RealmService realms,
+            MinecraftProjectionPublisher projections
+    ) {
+        if (realm == null || realm.spawn() == null) return;
+        RealmPresentation presentation = realms.presentation(realm);
+        publishWorldPresentation(projections, realm.spawn().worldId(), presentation.officialName(), realm.id());
+    }
+
+    private static void publishWorldPresentation(
+            MinecraftProjectionPublisher projections,
+            String worldId,
+            String displayName,
+            String realmId
+    ) {
+        if (worldId == null || worldId.isBlank() || displayName == null || displayName.isBlank()) return;
+        projections.publishState("world.presentation", worldId, realmId, Visibility.PUBLIC,
+                Map.of("displayName", displayName));
     }
 
     private static void publishChronicleProjection(

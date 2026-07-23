@@ -131,6 +131,12 @@ public final class CatchTelemetryService {
         return processActor(actorId);
     }
 
+    /** Memory-only projection query; never reads or replays telemetry storage. */
+    public synchronized CatchSummary cachedSummary(UUID actorId) {
+        Objects.requireNonNull(actorId, "actorId");
+        return requireBound().peek(actorId);
+    }
+
     public synchronized void tick() {
         requireBound();
         long now = System.currentTimeMillis();

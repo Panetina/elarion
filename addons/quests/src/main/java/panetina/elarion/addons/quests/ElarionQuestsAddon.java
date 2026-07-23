@@ -15,6 +15,8 @@ import panetina.elarion.addons.quests.service.QuestStateService;
 import panetina.elarion.addons.quests.storage.QuestStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
 
 public final class ElarionQuestsAddon implements ElarionAddon {
     private static final Logger LOGGER = LoggerFactory.getLogger("elarion_quests");
@@ -25,6 +27,19 @@ public final class ElarionQuestsAddon implements ElarionAddon {
                 LOGGER, null, api.registries().conditions()::contains, api.registries().actions()::contains));
         QuestStateService states = new QuestStateService(LOGGER, api, definitions, new QuestStorage(LOGGER));
         new ElarionQuestsApi(definitions, states);
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_quests"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return java.util.Map.of();
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                return java.util.List.of(panetina.elarion.core.storage.JsonStateStorage
+                        .addonStateRoot(server, "quests").resolve("state.json"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                return PlayerResetResult.of("questRuntimeRecords", states.resetAllRuntimeState());
+            }
+        });
         api.system().profiles().registerContributor(new QuestProfileContributor(api.playerStats()));
 
         api.system().abilities().register("elarion.quest.admin");

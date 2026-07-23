@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "owner-authorized-local-port-source",
+    "parentRevision": "016161dfc2d556d20fa641cd275e18c539256d4d",
+    "minecraftVersion": "1.21.1",
+    "ownerAuthorizedForPort": true,
+    "ownerAuthorizedCodeContentAndResources": true
+  },
+  "identity": {
+    "modId": "elarion_angling_delight",
+    "displayName": "Elarion Angling Delight",
+    "javaPackage": "panetina.elarion.addons.angling.delight"
+  },
+  "dependencies": {
+    "elarionAngling": "required",
+    "farmersDelightRefabricated": "required",
+    "testedVersion": "1.21.1-3.3.3"
+  },
+  "rules": {
+    "ownsCatchState": false,
+    "ownsQualityState": false,
+    "ownsLeaderboardState": false,
+    "consumesAnglingComponents": true,
+    "usesResourceConditions": true
+  },
+  "release": {
+    "releaseReady": false,
+    "excludedFromCanonicalExports": true,
+    "referenceCheckoutMayBePackaged": false,
+    "authorizedFilesMayBePortedIntoModules": true,
+    "assetReplacementRequired": false,
+    "additionalAssetLicenseGateRequired": false
+  }
+}

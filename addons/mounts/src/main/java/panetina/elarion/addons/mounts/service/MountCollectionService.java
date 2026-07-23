@@ -122,6 +122,14 @@ public final class MountCollectionService {
         dirty = false;
     }
 
+    public int resetAll() {
+        int changed = players.size();
+        players.clear();
+        dirty = true;
+        save();
+        return changed;
+    }
+
     private PlayerMountCollection collection(UUID playerId) {
         return players.computeIfAbsent(playerId, ignored -> new PlayerMountCollection());
     }

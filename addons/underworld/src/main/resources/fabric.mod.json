@@ -5,6 +5,17 @@
     "name":  "Elarion Underworld",
     "icon": "assets/elarion_underworld/icon.png",
     "description":  "Underworld addon shell backed by Elarion Core Ember status.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],
@@ -16,8 +27,14 @@
                                           ],
                         "client": [
                                               "panetina.elarion.addons.underworld.client.ElarionUnderworldClient"
+                                          ],
+                        "lambdynlights:initializer": [
+                                              "panetina.elarion.addons.underworld.client.UnderworldDynamicLightsInitializer"
                                           ]
                     },
+    "mixins": [
+        "elarion_underworld.mixins.json"
+    ],
     "depends":  {
                     "fabricloader":  "\u003e=0.16.14",
                     "minecraft":  "~1.21.1",

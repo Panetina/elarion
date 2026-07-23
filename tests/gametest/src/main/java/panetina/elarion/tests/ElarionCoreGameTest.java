@@ -118,6 +118,8 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertRegistered("group");
         commands.assertRegistered("gc");
         commands.assertRegistered("lc");
+        commands.assertRegistered("banish");
+        commands.assertRegistered("unbanish");
 
         commands.assertPermission("e", 0, false);
         commands.assertPermission("e", 4, true);
@@ -127,6 +129,11 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertPermission("seed", 4, false);
         commands.assertPermission("random", 0, false);
         commands.assertPermission("random", 4, true);
+        commands.assertPermission("banish", 0, false);
+        commands.assertPermission("banish", 4, true);
+        commands.assertPermission("unbanish", 0, false);
+        commands.assertPermission("unbanish", 4, true);
+        commands.assertDispatches("banish list", 4);
         commands.assertExecutes("random value 1..10", 4);
         commands.assertExecutes("e history category gametest 1", 4);
         commands.assertExecutes("e history chronicle list 1", 4);

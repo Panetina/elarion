@@ -1,0 +1,6 @@
+{
+  "parent": "item/fishing_rod",
+  "textures": {
+    "layer0": "elarion_angling:item/magmaforged_rod_cast"
+  }
+}

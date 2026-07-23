@@ -5,6 +5,17 @@
     "name": "Elarion Mounts",
     "icon": "assets/elarion_mounts/icon.png",
     "description": "Native Fabric rideable mount entities, Collection-menu active mount selection, and converted external mount assets.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors": [
         "Panyel"
     ],

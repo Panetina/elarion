@@ -75,6 +75,7 @@ public final class MinecraftWhitelistBridgeService {
         executor = null;
         if (current != null) current.shutdownNow();
         server = null;
+        projections.persistForShutdown();
         projections.unbind();
     }
 
@@ -96,12 +97,12 @@ public final class MinecraftWhitelistBridgeService {
         MinecraftBridgeStateStorage.State next = state;
         Acknowledgement failed = null;
         for (Command command : commands) {
-            ApplyResult result = applyOnServerThread(command);
+            ApplyResult result = applyOnServerThread(command, next);
             if (!result.applied()) {
                 failed = Acknowledgement.failed(command.sequence(), result.error());
                 break;
             }
-            next = next.applied(command.sequence());
+            next = applyOwnership(next.applied(command.sequence()), command);
         }
         if (next.cursor() != state.cursor()) {
             state = next;
@@ -123,12 +124,13 @@ public final class MinecraftWhitelistBridgeService {
         storage.save(JsonStateStorage.elarionRoot(requireServer()), state);
     }
 
-    private ApplyResult applyOnServerThread(Command command) throws InterruptedException {
+    private ApplyResult applyOnServerThread(Command command, MinecraftBridgeStateStorage.State ownership)
+            throws InterruptedException {
         MinecraftServer current = requireServer();
         CompletableFuture<ApplyResult> result = new CompletableFuture<>();
         current.execute(() -> {
             try {
-                result.complete(apply(current, command));
+                result.complete(apply(current, command, ownership));
             } catch (RuntimeException exception) {
                 result.complete(new ApplyResult(false, safeMessage(exception)));
             }
@@ -140,7 +142,13 @@ public final class MinecraftWhitelistBridgeService {
         }
     }
 
-    private ApplyResult apply(MinecraftServer server, Command command) {
+    private MinecraftBridgeStateStorage.State applyOwnership(MinecraftBridgeStateStorage.State current, Command command) {
+        return command.action() == MinecraftBridgeProtocol.Action.ADD
+                ? current.bridgeAdded(command.minecraftUuid())
+                : current.bridgeRemoved(command.minecraftUuid());
+    }
+
+    private ApplyResult apply(MinecraftServer server, Command command, MinecraftBridgeStateStorage.State ownership) {
         if (!server.getPlayerManager().isWhitelistEnabled()) {
             return new ApplyResult(false, "whitelist_disabled");
         }
@@ -149,6 +157,11 @@ public final class MinecraftWhitelistBridgeService {
         WhitelistEntry existing = whitelist.get(profile);
         if (command.action() == MinecraftBridgeProtocol.Action.ADD) {
             if (existing == null) whitelist.add(new WhitelistEntry(profile));
+            return ApplyResult.success();
+        }
+        if (!ownership.isBridgeManaged(command.minecraftUuid())) {
+            logger.info("Preserved manually managed whitelist entry for {} after website removal command.",
+                    command.minecraftName());
             return ApplyResult.success();
         }
         if (existing != null) whitelist.remove(profile);

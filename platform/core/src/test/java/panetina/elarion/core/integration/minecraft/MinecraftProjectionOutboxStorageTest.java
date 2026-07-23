@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,6 +44,21 @@ final class MinecraftProjectionOutboxStorageTest {
 
         assertEquals(1, storage.load(tempDir).pending().size());
         assertEquals(2, storage.load(tempDir).pending().getFirst().sequence());
+    }
+
+    @Test
+    void publisherDefersOutboxPersistenceUntilBridgeWorkerOrShutdown() throws Exception {
+        MinecraftProjectionPublisher publisher = new MinecraftProjectionPublisher(
+                LoggerFactory.getLogger("test"), true);
+        publisher.bind(tempDir);
+
+        publisher.publishState("realm", "ashlands", "ashlands",
+                MinecraftProjectionProtocol.Visibility.PUBLIC, Map.of("name", "Ashlands"));
+
+        Path outbox = tempDir.resolve("core").resolve("minecraft-bridge").resolve("projection-outbox.json");
+        assertEquals(false, Files.exists(outbox));
+        publisher.persistForShutdown();
+        assertEquals(true, Files.exists(outbox));
     }
 
     private static MinecraftProjectionProtocol.Projection projection(

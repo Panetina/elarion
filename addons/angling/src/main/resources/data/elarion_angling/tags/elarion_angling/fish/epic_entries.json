@@ -1,0 +1,232 @@
+{
+    "values":  [
+                   {
+                       "id":  "fintastic:moony",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:aquathorn",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:chorus_shellcrab",
+                       "required":  false
+                   },
+                   {
+                       "id":  "unusualfishmod:zebra_cornetfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:uranias_pisces",
+                       "required":  false
+                   },
+                   {
+                       "id":  "aquaculture:synodontis",
+                       "required":  false
+                   },
+                   {
+                       "id":  "netherdepthsupgrade:wither_bonefish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "betterend:cubozoa",
+                       "required":  false
+                   },
+                   {
+                       "id":  "fishofthieves:wrecker",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sculkfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:shooting_starfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:quarryfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:violet_carp",
+                       "required":  false
+                   },
+                   {
+                       "id":  "netherdepthsupgrade:lava_pufferfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "aquaculture:red_shrooma",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:abyssfin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "minecraft:creeper",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:geode_ribbon_eel",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:marstilus",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:magma_crab",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:darkness_eater",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:dynamo_eel",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:carpenjo",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:pluto_snail",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:dusk_koi",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sagewhisker_catfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:echo_snapper",
+                       "required":  false
+                   },
+                   {
+                       "id":  "aquaculture:brown_shrooma",
+                       "required":  false
+                   },
+                   {
+                       "id":  "aquaculture:box_turtle",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:snatcher_squid",
+                       "required":  false
+                   },
+                   {
+                       "id":  "aquaculture:catfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:great_white_shark",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:starcloud_squid",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:chasm_eel",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:bull_shark",
+                       "required":  false
+                   },
+                   {
+                       "id":  "aquaculture:pink_salmon",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:saturn_cuttlefish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:sun_emblem",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:molten_slate_crab",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:violet_crystalback",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:willowfin_bream",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:charred_bloodsucker",
+                       "required":  false
+                   },
+                   {
+                       "id":  "unusualfishmod:wizard_jelly",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:windbass",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:mantyvern",
+                       "required":  false
+                   },
+                   {
+                       "id":  "unusualfishmod:skipper",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:mooneye",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:radiant_amethyst_snapper",
+                       "required":  false
+                   },
+                   {
+                       "id":  "unusualfishmod:raw_snowflake",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:shadow_shark",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:neptune_koi",
+                       "required":  false
+                   },
+                   {
+                       "id":  "netherdepthsupgrade:soulsucker",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:obsidian_shellcrab",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:rose_siamese_fin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tide:blazing_swordfish",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:pallid_bamboo_fin",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:dusky_amethyst_snapper",
+                       "required":  false
+                   }
+               ]
+}

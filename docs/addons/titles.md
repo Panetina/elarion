@@ -35,7 +35,7 @@ already-owned active title does not create notification noise.
 
 The client renderer reads active-title presentation from Core
 `IdentitySyncPayload`. The payload includes the configured title ARGB color, so
-titles such as Monarch, President, Councilor, Synod, Officer, and progression
+titles such as Monarch, Heir, President, Officer, and progression
 titles render above the player's head with the same project-wide color used by
 Character Menu title rows and previews. Do not hard-code rank/title colors in
 the Titles addon renderer; update Core title definitions/config if a title

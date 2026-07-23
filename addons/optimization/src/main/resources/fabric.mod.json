@@ -5,6 +5,17 @@
     "name": "Elarion Optimization",
     "icon": "assets/elarion_optimization/icon.png",
     "description": "Performance diagnostics and bounded work queue integration for Elarion.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors": [
         "Panyel"
     ],

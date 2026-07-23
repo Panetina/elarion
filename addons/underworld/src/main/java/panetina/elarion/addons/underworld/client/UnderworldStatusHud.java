@@ -10,7 +10,8 @@ import panetina.elarion.core.client.ui.ElarionUiThemes;
 
 public final class UnderworldStatusHud {
     private static final int WIDTH = 158;
-    private static final int HEIGHT = 30;
+    private static final int NORMAL_HEIGHT = 30;
+    private static final int BANISHMENT_HEIGHT = 42;
 
     private UnderworldStatusHud() {
     }
@@ -22,17 +23,28 @@ public final class UnderworldStatusHud {
 
         TextRenderer renderer = client.textRenderer;
         ElarionUiStyle style = ElarionUiStyle.from(ElarionUiThemes.variant("default"));
+        int height = status.banished() ? BANISHMENT_HEIGHT : NORMAL_HEIGHT;
         int x = (context.getScaledWindowWidth() - WIDTH) / 2;
         int y = 8;
-        context.fill(x, y, x + WIDTH, y + HEIGHT, style.bevelHighlightColor());
-        context.fill(x + 1, y + 1, x + WIDTH - 1, y + HEIGHT - 1, style.cardColor());
+        context.fill(x, y, x + WIDTH, y + height, status.banished() ? 0xFFA01820 : style.bevelHighlightColor());
+        context.fill(x + 1, y + 1, x + WIDTH - 1, y + height - 1, style.cardColor());
 
-        String title = "Soul Bound To The Underworld";
-        String timer = "Return in " + formatTime(status.remainingMillis());
+        String title = status.banished() ? "Banished To The Underworld" : "Soul Bound To The Underworld";
+        String timer = status.banished()
+                ? status.banishmentExpiresAt() <= 0L
+                    ? "Sentence: permanent"
+                    : "Release in " + formatTime(status.remainingMillis())
+                : "Return in " + formatTime(status.remainingMillis());
         ElarionUiTypography.draw(context, renderer, title, x + (WIDTH - ElarionUiTypography.width(renderer, title)) / 2, y + 6,
-                style.titleColor(), false);
+                status.banished() ? 0xFFE75A62 : style.titleColor(), false);
         ElarionUiTypography.draw(context, renderer, timer, x + (WIDTH - ElarionUiTypography.width(renderer, timer)) / 2,
                 y + 17, style.textColor(), false);
+        if (status.banished()) {
+            String reason = renderer.trimToWidth("Reason: " + status.banishmentReason(), WIDTH - 12);
+            ElarionUiTypography.draw(context, renderer, reason,
+                    x + (WIDTH - ElarionUiTypography.width(renderer, reason)) / 2,
+                    y + 28, 0xFFD8A0A4, false);
+        }
     }
 
     private static String formatTime(long millis) {

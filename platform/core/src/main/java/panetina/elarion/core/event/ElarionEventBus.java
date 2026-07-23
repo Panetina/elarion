@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.CatchTelemetryEvent;
 import panetina.elarion.core.model.ElarionDomainEvent;
+import panetina.elarion.core.metric.MetricUpdatedEvent;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +22,7 @@ public final class ElarionEventBus {
     private final List<Consumer<ProgressionEvent>> progressionListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<CatchTelemetryEvent>> catchTelemetryListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<ElarionDomainEvent>> domainListeners = new CopyOnWriteArrayList<>();
+    private final List<Consumer<MetricUpdatedEvent>> metricListeners = new CopyOnWriteArrayList<>();
 
     public AutoCloseable onCitizenChanged(Consumer<CitizenChanged> listener) {
         citizenListeners.add(listener);
@@ -42,6 +44,11 @@ public final class ElarionEventBus {
         return () -> domainListeners.remove(listener);
     }
 
+    public AutoCloseable onMetricUpdated(Consumer<MetricUpdatedEvent> listener) {
+        metricListeners.add(listener);
+        return () -> metricListeners.remove(listener);
+    }
+
     public void emitCitizenChanged(CitizenChanged event) {
         dispatch(citizenListeners, event, "citizen");
     }
@@ -57,6 +64,10 @@ public final class ElarionEventBus {
     public void emitDomainEvent(ElarionDomainEvent event) {
         if (event == null) return;
         dispatch(domainListeners, event, event.sourceSystem() + ":" + event.eventType());
+    }
+
+    public void emitMetricUpdated(MetricUpdatedEvent event) {
+        dispatch(metricListeners, event, "metric-updated");
     }
 
     private static <T> void dispatch(List<Consumer<T>> listeners, T event, String eventType) {

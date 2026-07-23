@@ -12,7 +12,10 @@ public record UnderworldStatusSyncPayload(
         String deathType,
         int fractures,
         int maxFractures,
-        boolean trueDeath
+        boolean trueDeath,
+        boolean banished,
+        long banishmentExpiresAt,
+        String banishmentReason
 ) implements CustomPayload {
     public static final Id<UnderworldStatusSyncPayload> ID =
             new Id<>(Identifier.of("elarion_underworld", "status_sync"));
@@ -25,6 +28,9 @@ public record UnderworldStatusSyncPayload(
                 buffer.writeVarInt(payload.fractures);
                 buffer.writeVarInt(payload.maxFractures);
                 buffer.writeBoolean(payload.trueDeath);
+                buffer.writeBoolean(payload.banished);
+                buffer.writeLong(payload.banishmentExpiresAt);
+                ElarionPacketCodecs.writeString(buffer, payload.banishmentReason, 256);
             },
             buffer -> new UnderworldStatusSyncPayload(
                     buffer.readBoolean(),
@@ -32,11 +38,14 @@ public record UnderworldStatusSyncPayload(
                     ElarionPacketCodecs.readString(buffer, 32),
                     buffer.readVarInt(),
                     buffer.readVarInt(),
-                    buffer.readBoolean())
+                    buffer.readBoolean(),
+                    buffer.readBoolean(),
+                    buffer.readLong(),
+                    ElarionPacketCodecs.readString(buffer, 256))
     );
 
     public static UnderworldStatusSyncPayload clear() {
-        return new UnderworldStatusSyncPayload(false, 0L, "", 0, 3, false);
+        return new UnderworldStatusSyncPayload(false, 0L, "", 0, 3, false, false, 0L, "");
     }
 
     public UnderworldStatusSyncPayload {
@@ -44,6 +53,8 @@ public record UnderworldStatusSyncPayload(
         deathType = deathType == null ? "" : deathType;
         maxFractures = Math.max(1, maxFractures);
         fractures = Math.max(0, fractures);
+        banishmentExpiresAt = Math.max(0L, banishmentExpiresAt);
+        banishmentReason = banishmentReason == null ? "" : banishmentReason;
     }
 
     @Override

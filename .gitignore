@@ -36,3 +36,7 @@ output/
 !wiki/**/*.md
 lore/folklore/
 external/
+
+# Frozen local porting inputs are copied separately when moving machines and
+# must never become source or distribution inputs implicitly.
+/addons/angling/reference/upstream-starcatcher-neoforge-1.21.1/

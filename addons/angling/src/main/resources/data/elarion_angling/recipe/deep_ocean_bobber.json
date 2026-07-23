@@ -1,0 +1,27 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "key":  {
+                "B":  {
+                          "item":  "elarion_angling:bobber"
+                      },
+                "D":  {
+                          "item":  "minecraft:diamond"
+                      },
+                "H":  {
+                          "item":  "minecraft:heart_of_the_sea"
+                      },
+                "S":  {
+                          "item":  "minecraft:stick"
+                      }
+            },
+    "pattern":  [
+                    " HS",
+                    "DBD",
+                    "SD "
+                ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:deep_ocean_bobber"
+               }
+}

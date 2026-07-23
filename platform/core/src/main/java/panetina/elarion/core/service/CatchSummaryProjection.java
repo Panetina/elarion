@@ -5,6 +5,7 @@ import panetina.elarion.core.model.AcceptedCatchRecord;
 import panetina.elarion.core.model.CatchJournalCheckpoint;
 import panetina.elarion.core.model.CatchJournalReplay;
 import panetina.elarion.core.model.CatchSummary;
+import panetina.elarion.core.model.CatchSpeciesSummary;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -25,6 +26,7 @@ public final class CatchSummaryProjection {
         Map<Identifier, Long> bySource = new LinkedHashMap<>(current.quantitiesBySource());
         Map<Identifier, Long> byFish = new LinkedHashMap<>(current.quantitiesByFishDefinition());
         Map<Identifier, Long> byRarity = new LinkedHashMap<>(current.quantitiesByRarity());
+        Map<Identifier, CatchSpeciesSummary> species = new LinkedHashMap<>(current.speciesSummaries());
         long firstCatchAt = current.firstCatchAt();
         long latestCatchAt = current.latestCatchAt();
         List<AcceptedCatchRecord> recent = new ArrayList<>(current.recentCatches());
@@ -37,6 +39,9 @@ public final class CatchSummaryProjection {
             increment(bySource, record.sourceId(), record.quantity());
             increment(byFish, record.fishDefinitionId(), record.quantity());
             increment(byRarity, record.rarityId(), record.quantity());
+            species.put(record.fishDefinitionId(), species
+                    .getOrDefault(record.fishDefinitionId(), CatchSpeciesSummary.countOnly(0, 0))
+                    .apply(record));
             firstCatchAt = firstCatchAt == 0
                     ? record.occurredAt()
                     : Math.min(firstCatchAt, record.occurredAt());
@@ -57,6 +62,7 @@ public final class CatchSummaryProjection {
                 bySource,
                 byFish,
                 byRarity,
+                species,
                 firstCatchAt,
                 latestCatchAt,
                 replay.nextCheckpoint(),

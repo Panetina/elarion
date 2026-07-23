@@ -29,15 +29,14 @@ final class CoreConfigManagerTest {
                 config.titles().get("citizen").ownershipMode());
         assertEquals(0xFFC9C9C9, config.titles().get("citizen").colorArgb());
         assertEquals(0xFFFFD36A, config.titles().get("government_monarch").colorArgb());
-        assertEquals(0xFFC084FF, config.titles().get("government_synod_member").colorArgb());
+        assertEquals(0xFFE6B45A, config.titles().get("government_heir").colorArgb());
         assertEquals(0xFFFFA83D, config.titles().get("dragon_slayer").colorArgb());
         assertTrue(config.titles().get("aquatic").activeEffects().stream()
                 .anyMatch(effect -> effect.parameters().get("id").equals("minecraft:water_breathing")));
         assertEquals(panetina.elarion.core.model.TitleOwnershipMode.ONE_PER_PLAYER,
                 config.titles().get("aquatic").ownershipMode());
         assertEquals("Monarch", config.titles().get("government_monarch").displayName());
-        assertEquals("Holy Priest", config.titles().get("government_high_cleric").displayName());
-        assertEquals("Councilor", config.titles().get("government_councilor").displayName());
+        assertEquals("Heir", config.titles().get("government_heir").displayName());
         assertTrue(config.titleUnlockRules().containsKey("goblin_slayer"));
         assertEquals("modded_goblin_kills", config.titleUnlockRules().get("goblin_slayer").statKey());
         assertTrue(config.progressionRegions().containsKey("maze_end"));

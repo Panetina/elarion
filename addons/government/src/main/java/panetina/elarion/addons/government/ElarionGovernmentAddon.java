@@ -21,6 +21,9 @@ import panetina.elarion.addons.government.service.GovernmentProfileContributor;
 import panetina.elarion.addons.government.storage.GovernmentStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
+import panetina.elarion.core.storage.JsonStateStorage;
 
 public final class ElarionGovernmentAddon implements ElarionAddon {
     private static final Logger LOGGER = LoggerFactory.getLogger("elarion_government");
@@ -41,6 +44,18 @@ public final class ElarionGovernmentAddon implements ElarionAddon {
         api.system().profiles().registerContributor(new GovernmentProfileContributor(definitions, states));
         api.system().adminPanel().registerProvider(new GovernmentAdminPanelProvider(states));
         GovernmentConfigDescriptors.register(api.system().configs(), definitions::settings, definitions::forms);
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_government"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return java.util.Map.of("governments", (long) states.realms().size());
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                return java.util.List.of(JsonStateStorage.addonStateRoot(server, "government").resolve("state.json"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                return PlayerResetResult.of("governments", states.resetAllRealms());
+            }
+        });
         api.characters().registerResetHandler("elarion_government",
                 context -> states.handleCharacterTrueDeath(context.accountId()));
         api.notifications().registerAction("elarion_government:open_civic_forum", context -> {

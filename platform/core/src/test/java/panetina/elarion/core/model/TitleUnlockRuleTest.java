@@ -9,6 +9,11 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import panetina.elarion.core.metric.MetricOperation;
+import panetina.elarion.core.metric.MetricScope;
+import panetina.elarion.core.metric.MetricScopeType;
+import panetina.elarion.core.metric.MetricUpdate;
+import panetina.elarion.core.metric.MetricUpdateBatch;
 
 final class TitleUnlockRuleTest {
     @Test
@@ -96,5 +101,27 @@ final class TitleUnlockRuleTest {
 
         assertTrue(continuous.requiredMetadata().contains("underwater"));
         assertTrue(continuous.requiredTicks() == 72_000L);
+    }
+
+    @Test
+    void metricConditionMatchesOnlyItsMaterializedScopeAndDimensions() {
+        Identifier metric = Identifier.of("elarion_angling", "catch/count");
+        Identifier fish = Identifier.of("elarion_angling", "aurorafin");
+        var condition = new TitleUnlockRule.MetricCondition(
+                metric, MetricScopeType.GLOBAL, null, Map.of("fish_id", fish),
+                TitleUnlockRule.MetricComparator.GTE, 10);
+        UUID actor = UUID.randomUUID();
+        MetricUpdate matching = new MetricUpdate(metric, MetricOperation.ADD, 1,
+                Set.of(MetricScope.global()), Map.of("fish_id", fish));
+        MetricUpdate overall = new MetricUpdate(metric, MetricOperation.ADD, 1,
+                Set.of(MetricScope.global()), Map.of());
+        MetricUpdateBatch batch = new MetricUpdateBatch(
+                Identifier.of("elarion_angling", "fishing"), "catch:" + actor, 1,
+                UUID.randomUUID(), actor, 1000, null, java.util.List.of(matching, overall));
+
+        assertTrue(condition.matches(matching, batch));
+        assertFalse(condition.matches(overall, batch));
+        assertFalse(condition.accepts(9));
+        assertTrue(condition.accepts(10));
     }
 }

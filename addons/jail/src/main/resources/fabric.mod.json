@@ -5,6 +5,17 @@
     "name":  "Elarion Jail",
     "icon": "assets/elarion_jail/icon.png",
     "description":  "Jail addon shell backed by Elarion Core Ember status.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

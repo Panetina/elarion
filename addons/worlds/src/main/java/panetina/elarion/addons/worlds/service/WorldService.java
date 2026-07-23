@@ -131,10 +131,7 @@ public final class WorldService {
         ServerWorld world = handle.asWorld();
         configure(world, definition);
         createSpawnPlatform(world, definition);
-        recordHistory("opened", definition, Map.of(
-                "type", definition.type().name(),
-                "template", definition.template(),
-                "seed", Long.toString(definition.seed())));
+        // Opening a managed world is runtime housekeeping, not a player-facing Chronicle event.
         logger.info("Opened Elarion managed world {} ({})", definition.id(), definition.type());
         return world;
     }
@@ -214,6 +211,29 @@ public final class WorldService {
                 .filter(definition -> definition.id().equals(name))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public boolean hasManagedWorld(String worldId) {
+        return findDefinition(worldId) != null;
+    }
+
+    /** Recreates a managed runtime world while retaining its editable definition/config entry. */
+    public void regenerate(String worldId) {
+        requireServer();
+        ManagedWorldDefinition definition = findDefinition(worldId);
+        if (definition == null) throw new IllegalArgumentException("Unknown managed world: " + worldId);
+        ServerWorld fallback = resolveWorld("lobby");
+        ServerWorld current = getWorld(definition.id());
+        if (current != null && fallback != null && current != fallback) {
+            for (ServerPlayerEntity player : List.copyOf(current.getPlayers())) teleport(player, "lobby");
+        }
+        RuntimeWorldHandle handle = handles.remove(definition.id());
+        if (handle != null) {
+            listeningBorders.remove(handle.asWorld().getWorldBorder());
+            handle.delete();
+        }
+        open(definition);
+        recordHistory("regenerated", definition, Map.of());
     }
 
     public Map<String, ManagedWorldDefinition> definitions() {

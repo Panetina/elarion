@@ -236,6 +236,14 @@ public final class CharacterLifecycleService {
         sync(player, "Character state reset for testing.");
     }
 
+    public synchronized int resetAllPlayerState() {
+        int count = state.accounts.size();
+        state = new CharacterLifecycleState();
+        dirty = true;
+        save();
+        return count;
+    }
+
     public void tick() {
         if (server == null || ++ticks % 20 != 0) return;
         boolean changed = false;

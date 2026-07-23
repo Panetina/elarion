@@ -1,0 +1,72 @@
+{
+  "king_cry": {
+    "subtitle": "sounds.elarion_angling.king_cry",
+    "sounds": [
+      "elarion_angling:king_cry"
+    ]
+  },
+  "king_heheha": {
+    "subtitle": "sounds.elarion_angling.king_heheha",
+    "sounds": [
+      "elarion_angling:king_heheha"
+    ]
+  },
+  "king_grr": {
+    "subtitle": "sounds.elarion_angling.king_grr",
+    "sounds": [
+      "elarion_angling:king_grr"
+    ]
+  },
+
+  "valley_biting": {
+    "subtitle": "sounds.elarion_angling.biting",
+    "sounds": [
+      "elarion_angling:valley_biting"
+    ]
+  },
+  "valley_cast": {
+    "subtitle": "sounds.elarion_angling.cast",
+    "sounds": [
+      "elarion_angling:valley_cast"
+    ]
+  },
+  "valley_missed": {
+    "subtitle": "sounds.elarion_angling.missed",
+    "sounds": [
+      "elarion_angling:valley_missed"
+    ]
+  },
+  "valley_minigame_starts": {
+    "subtitle": "sounds.elarion_angling.minigame_starts",
+    "sounds": [
+      "elarion_angling:valley_minigame_starts"
+    ]
+  },
+  "valley_boop": {
+    "subtitle": "sounds.elarion_angling.boop",
+    "sounds": [
+      "elarion_angling:valley_boop"
+    ]
+  },
+  "valley_reel": {
+    "subtitle": "sounds.elarion_angling.reel",
+    "sounds": [
+      "elarion_angling:valley_reel"
+    ]
+  },
+
+
+
+  "survivor_biting": {
+    "subtitle": "sounds.elarion_angling.biting",
+    "sounds": [
+      "elarion_angling:survivor_biting"
+    ]
+  },
+  "survivor_minigame_starts": {
+    "subtitle": "sounds.elarion_angling.minigame_starts",
+    "sounds": [
+      "elarion_angling:survivor_minigame_starts"
+    ]
+  }
+}

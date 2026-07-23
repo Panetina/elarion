@@ -33,6 +33,11 @@ import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.registry.ActionType;
 import panetina.elarion.core.registry.RegistryExecutionResult;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
+import panetina.elarion.core.api.reset.WorldResetHandler;
+import panetina.elarion.core.api.reset.WorldResetResult;
+import panetina.elarion.core.storage.JsonStateStorage;
 
 public final class ElarionOfferingsAddon implements ElarionAddon {
     private static final Logger LOGGER = LoggerFactory.getLogger("elarion_offerings");
@@ -54,6 +59,30 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
         api.publicHistory().registerRenderer(OfferingChronicleText.INSTANCE);
         new ElarionOfferingsApi(definitions, service);
         OfferingConfigDescriptors.register(api.system().configs(), definitions::all, definitions::ui);
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_offerings"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return java.util.Map.of("shrines", (long) service.instances().size());
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                return java.util.List.of(JsonStateStorage.addonStateRoot(server, "offerings").resolve("state.json"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                return PlayerResetResult.of("shrines", service.resetAllProgression(null));
+            }
+        });
+        api.system().worldResets().register(new WorldResetHandler() {
+            @Override public String id() { return "elarion_offerings"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server, String worldId) {
+                return java.util.Map.of("shrines", service.instances().stream().filter(i -> worldId.equals(i.worldId())).count());
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server, String worldId) {
+                return java.util.List.of(JsonStateStorage.addonStateRoot(server, "offerings").resolve("state.json"));
+            }
+            @Override public WorldResetResult reset(panetina.elarion.core.api.reset.WorldResetContext context) {
+                return WorldResetResult.of("shrines", service.deleteWorld(context.worldId()));
+            }
+        });
 
         api.system().abilities().register("elarion.offering.manage");
         registerActions(api, service);

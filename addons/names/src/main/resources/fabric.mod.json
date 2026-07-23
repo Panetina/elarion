@@ -5,6 +5,17 @@
     "name":  "Elarion Names",
     "icon": "assets/elarion_names/icon.png",
     "description":  "Optional nickname presentation integration backed by Elarion Core identity.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

@@ -1,0 +1,6 @@
+{
+  "parent": "item/fishing_rod",
+  "textures": {
+    "layer0": "elarion_angling:item/humble_rod_cast"
+  }
+}

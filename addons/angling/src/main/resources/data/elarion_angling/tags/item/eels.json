@@ -1,0 +1,11 @@
+{
+    "values":  [
+                   "elarion_angling:dusk_eel",
+                   "elarion_angling:geode_ribbon_eel",
+                   "elarion_angling:obsidian_ribbon_eel",
+                   {
+                       "id":  "elarion_angling:dynamo_eel",
+                       "required":  false
+                   }
+               ]
+}

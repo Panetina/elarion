@@ -12,6 +12,9 @@ import panetina.elarion.core.service.ElarionAdminPanelService;
 import panetina.elarion.core.service.PlayerRestrictionService;
 import panetina.elarion.core.placeholder.ElarionPlaceholderService;
 import panetina.elarion.core.integration.minecraft.MinecraftProjectionPublisher;
+import panetina.elarion.core.api.reset.PlayerResetRegistry;
+import panetina.elarion.core.api.reset.WorldResetRegistry;
+import panetina.elarion.core.service.WorldResetService;
 
 public final class ElarionSystemApi {
     private final AbilityService abilities;
@@ -27,6 +30,9 @@ public final class ElarionSystemApi {
     private final PlayerRestrictionService restrictions;
     private final ElarionPlaceholderService placeholders;
     private final MinecraftProjectionPublisher webProjections;
+    private final PlayerResetRegistry playerResets;
+    private final WorldResetRegistry worldResets;
+    private final WorldResetService worldResetService;
 
     ElarionSystemApi(
             AbilityService abilities,
@@ -41,7 +47,10 @@ public final class ElarionSystemApi {
             ElarionConfigApplyRegistrar configAppliers,
             PlayerRestrictionService restrictions,
             ElarionPlaceholderService placeholders,
-            MinecraftProjectionPublisher webProjections
+            MinecraftProjectionPublisher webProjections,
+            PlayerResetRegistry playerResets,
+            WorldResetRegistry worldResets,
+            WorldResetService worldResetService
     ) {
         this.abilities = abilities;
         this.events = events;
@@ -56,6 +65,9 @@ public final class ElarionSystemApi {
         this.restrictions = restrictions;
         this.placeholders = placeholders;
         this.webProjections = webProjections;
+        this.playerResets = playerResets;
+        this.worldResets = worldResets;
+        this.worldResetService = worldResetService;
     }
 
     public AbilityService abilities() {
@@ -111,5 +123,17 @@ public final class ElarionSystemApi {
      */
     public MinecraftProjectionPublisher webProjections() {
         return webProjections;
+    }
+
+    public PlayerResetRegistry playerResets() {
+        return playerResets;
+    }
+
+    public WorldResetRegistry worldResets() {
+        return worldResets;
+    }
+
+    public WorldResetService worldResetService() {
+        return worldResetService;
     }
 }

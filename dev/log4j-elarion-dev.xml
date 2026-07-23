@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
+    <Filters>
+        <!-- Exact third-party development compatibility noise. Keep all other warnings visible. -->
+        <RegexFilter regex="^Cannot remap (method_25343|this\$0|iterateVisibleBlockEntities|lambda\$init\$2|getRenderLayers) because it does not exist in any of the targets .*" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^Reference map '(supermartijn642configlib\.mixins|supermartijn642corelib\.mixins|rechiseled\.mixins)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^Error loading class: (mezz/jei/library/gui/recipes/RecipeLayoutInputHandler|mezz/jei/gui/recipes/RecipeLayoutWithButtons\$RecipeLayoutUserInputHandler|me/jellysquid/mods/sodium/client/render/chunk/DefaultChunkRenderer) .*" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^Force-disabling mixin 'features\.render\.world\.sky\.(FogRendererMixin|ClientLevelMixin|LevelRendererMixin)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^Sodium has applied one or more workarounds to prevent crashes or other issues on your system: \[NVIDIA_THREADED_OPTIMIZATIONS_BROKEN\]$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^This is not necessarily an issue, but it may result in certain features or optimizations being disabled\..*" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^\[Iris Update Check\] This version doesn't have an update index, skipping\.$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^Unable to resolve shader pack option menu element \&quot;(LIGHTNING_FLASH|CLOUDS_CUMULUS_CONGESTUS_PRIMARY_STEPS_H|CLOUDS_CUMULUS_CONGESTUS_PRIMARY_STEPS_Z)\&quot; defined in shaders\.properties$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^Ignoring ConstDirective \{ INT voxelDistance = 32; \} because it is of the wrong type, a type of float is expected\.$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^Shader rendertype_entity_translucent_emissive could not find sampler named Sampler2 in the specified shader program\.$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^\*{4} SERVER IS RUNNING IN OFFLINE/INSECURE MODE!$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^The server will make no attempt to authenticate usernames\. Beware\.$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose\.$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <RegexFilter regex="^To change this, set \&quot;online-mode\&quot; to \&quot;true\&quot; in the server\.properties file\.$" onMatch="DENY" onMismatch="NEUTRAL"/>
+        <!-- Vanilla reports intentional synchronous persistent-world bootstrap as tick lag. Dev-only; production logging is unchanged. -->
+        <RegexFilter regex="^Can't keep up! Is the server overloaded\? Running [0-9]+ms or [0-9]+ ticks behind$" onMatch="DENY" onMismatch="NEUTRAL"/>
+    </Filters>
     <Appenders>
         <Console name="SysOut" target="SYSTEM_OUT">
             <Filters>
@@ -7,12 +26,12 @@
                 <RegexFilter regex="^Failed to fetch user properties$" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^Couldn't connect to realms$" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="(?s).*Forge Config API Port.*(recommends|suggests).*Mod Menu.*" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <RegexFilter regex="^Reference map '(climaterivers\.fabric|forgeconfigapiport\.common)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Cannot remap (method_25343|this\$0) because it does not exist in any of the targets .*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Reference map '(climaterivers\.fabric|forgeconfigapiport\.common|supermartijn642configlib\.mixins|supermartijn642corelib\.mixins|rechiseled\.mixins)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^Error loading class: (jeresources/api/util/BiomeHelper|yalter/mousetweaks/Main|com/electronwill/nightconfig/core/io/IoUtils).*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^No data fixer registered for (sulfur_cube|creaking|happy_ghast|pale_oak_boat|pale_oak_chest_boat|biomesoplenty:boat|biomesoplenty:chest_boat|anomaly)$" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^Registry 'minecraft:(wolf_sound_variant|cow_variant|chicken_variant|pig_variant|frog_variant|cat_variant)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^Registry 'vanillabackport:(wolf_variant|frog_variant|cat_variant|sulfur_cube_archetypes)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <RegexFilter regex="^Not all defined tags for registry ResourceKey.*is_birch_forest.*is_mangrove.*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^\*\*\* Server will start in offline mode!$" onMatch="DENY" onMismatch="NEUTRAL"/>
             </Filters>
             <PatternLayout>
@@ -23,6 +42,10 @@
         </Console>
 
         <Queue name="ServerGuiConsole" ignoreExceptions="true">
+            <Filters>
+                <RegexFilter regex="^Cannot remap (method_25343|this\$0) because it does not exist in any of the targets .*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Reference map '(supermartijn642configlib\.mixins|supermartijn642corelib\.mixins|rechiseled\.mixins)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
             <PatternLayout>
                 <LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss} %level] (%logger{1}) %msg{nolookups}%n">
                     <PatternMatch key="net.minecraft.,com.mojang." pattern="[%d{HH:mm:ss} %level] %msg{nolookups}%n"/>
@@ -33,12 +56,12 @@
         <RollingRandomAccessFile name="LatestFile" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <Filters>
                 <RegexFilter regex="(?s).*Forge Config API Port.*(recommends|suggests).*Mod Menu.*" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <RegexFilter regex="^Reference map '(climaterivers\.fabric|forgeconfigapiport\.common)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Cannot remap (method_25343|this\$0) because it does not exist in any of the targets .*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Reference map '(climaterivers\.fabric|forgeconfigapiport\.common|supermartijn642configlib\.mixins|supermartijn642corelib\.mixins|rechiseled\.mixins)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^Error loading class: (jeresources/api/util/BiomeHelper|yalter/mousetweaks/Main|com/electronwill/nightconfig/core/io/IoUtils).*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^No data fixer registered for (sulfur_cube|creaking|happy_ghast|pale_oak_boat|pale_oak_chest_boat|biomesoplenty:boat|biomesoplenty:chest_boat|anomaly)$" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^Registry 'minecraft:(wolf_sound_variant|cow_variant|chicken_variant|pig_variant|frog_variant|cat_variant)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^Registry 'vanillabackport:(wolf_variant|frog_variant|cat_variant|sulfur_cube_archetypes)'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
-                <RegexFilter regex="^Not all defined tags for registry ResourceKey.*is_birch_forest.*is_mangrove.*" onMatch="DENY" onMismatch="NEUTRAL"/>
                 <RegexFilter regex="^\*\*\* Server will start in offline mode!$" onMatch="DENY" onMismatch="NEUTRAL"/>
             </Filters>
             <PatternLayout>
@@ -53,6 +76,10 @@
         </RollingRandomAccessFile>
 
         <RollingRandomAccessFile name="DebugFile" fileName="logs/debug.log" filePattern="logs/debug-%i.log.gz">
+            <Filters>
+                <RegexFilter regex="^Cannot remap (method_25343|this\$0) because it does not exist in any of the targets .*" onMatch="DENY" onMismatch="NEUTRAL"/>
+                <RegexFilter regex="^Reference map '(supermartijn642configlib\.mixins|supermartijn642corelib\.mixins|rechiseled\.mixins)\.refmap\.json'.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
             <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] (%logger) %msg{nolookups}%n"/>
             <DefaultRolloverStrategy max="5" fileIndex="min"/>
             <Policies>

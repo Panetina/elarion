@@ -5,6 +5,17 @@
     "name":  "Elarion Worlds",
     "icon": "assets/elarion_worlds/icon.png",
     "description":  "Persistent managed worlds, per-world borders, and configurable world ecology for Elarion.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

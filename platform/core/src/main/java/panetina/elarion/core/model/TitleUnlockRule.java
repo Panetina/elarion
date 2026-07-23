@@ -8,6 +8,10 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import panetina.elarion.core.metric.MetricScope;
+import panetina.elarion.core.metric.MetricScopeType;
+import panetina.elarion.core.metric.MetricUpdate;
+import panetina.elarion.core.metric.MetricUpdateBatch;
 
 public record TitleUnlockRule(
         String id,
@@ -25,8 +29,18 @@ public record TitleUnlockRule(
         Set<String> biomes,
         Set<String> regions,
         Map<String, String> metadata,
-        Continuous continuous
+        Continuous continuous,
+        MetricCondition metric
 ) {
+    public TitleUnlockRule(
+            String id, String titleId, String trigger, String statKey, long threshold, long amount,
+            Set<RegistryMatcher> entities, Set<RegistryMatcher> blocks, Set<RegistryMatcher> items,
+            Set<RegistryMatcher> recipes, Set<String> worlds, Set<String> dimensions, Set<String> biomes,
+            Set<String> regions, Map<String, String> metadata, Continuous continuous
+    ) {
+        this(id, titleId, trigger, statKey, threshold, amount, entities, blocks, items, recipes, worlds,
+                dimensions, biomes, regions, metadata, continuous, null);
+    }
     public TitleUnlockRule {
         id = normalize(id);
         titleId = normalize(titleId);
@@ -67,6 +81,10 @@ public record TitleUnlockRule(
 
     public boolean isContinuousRule() {
         return "continuous".equals(trigger) && continuous != null;
+    }
+
+    public boolean isMetricRule() {
+        return metric != null;
     }
 
     private static boolean matchesLocation(Set<String> allowed, String actual) {
@@ -146,6 +164,74 @@ public record TitleUnlockRule(
                 case "minecraft_days" -> duration * 24_000L;
                 default -> duration * 24_000L;
             };
+        }
+    }
+
+    public record MetricCondition(
+            Identifier metricId,
+            MetricScopeType scopeType,
+            Identifier scopeId,
+            Map<String, Identifier> dimensions,
+            MetricComparator comparator,
+            long threshold
+    ) {
+        public static final int MAX_DIMENSIONS = 4;
+
+        public MetricCondition {
+            java.util.Objects.requireNonNull(metricId, "metricId");
+            java.util.Objects.requireNonNull(scopeType, "scopeType");
+            java.util.Objects.requireNonNull(comparator, "comparator");
+            dimensions = dimensions == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(dimensions));
+            if (dimensions.size() > MAX_DIMENSIONS || dimensions.entrySet().stream()
+                    .anyMatch(entry -> entry.getKey() == null || entry.getKey().isBlank() || entry.getValue() == null)) {
+                throw new IllegalArgumentException("metric title dimensions are invalid or unbounded");
+            }
+            if (scopeType == MetricScopeType.GLOBAL && scopeId != null) {
+                throw new IllegalArgumentException("global metric title scope cannot have an ID");
+            }
+            if (scopeType == MetricScopeType.EVENT && scopeId == null) {
+                throw new IllegalArgumentException("event metric title scope requires an ID");
+            }
+        }
+
+        public MetricScope resolveScope(MetricUpdateBatch batch) {
+            return resolveScope(batch.realmId());
+        }
+
+        public MetricScope resolveScope(Identifier realmId) {
+            return switch (scopeType) {
+                case GLOBAL -> MetricScope.global();
+                case REALM -> MetricScope.realm(scopeId != null ? scopeId
+                        : java.util.Objects.requireNonNull(realmId, "metric query has no realm scope"));
+                case EVENT -> MetricScope.event(scopeId);
+            };
+        }
+
+        public boolean matches(MetricUpdate update, MetricUpdateBatch batch) {
+            if (!metricId.equals(update.metricId())) return false;
+            MetricScope scope;
+            try {
+                scope = resolveScope(batch);
+            } catch (RuntimeException exception) {
+                return false;
+            }
+            return update.scopes().contains(scope) && update.dimensions().equals(dimensions);
+        }
+
+        public boolean accepts(long value) {
+            return switch (comparator) {
+                case GTE -> value >= threshold;
+                case LTE -> value <= threshold;
+                case EQ -> value == threshold;
+            };
+        }
+    }
+
+    public enum MetricComparator {
+        GTE, LTE, EQ;
+
+        public static MetricComparator parse(String value) {
+            return valueOf(normalize(value).toUpperCase(Locale.ROOT));
         }
     }
 }

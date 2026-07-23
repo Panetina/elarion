@@ -2,6 +2,18 @@
 
 Development-only command contract for resetting and advancing progression tests.
 
+Administrative world reset is separate from the test namespace: `/e reset world
+<world>` previews and confirms regeneration of a managed world, removes its
+placed NPCs, Shrine/offering records, and portal endpoints, then recreates the
+world from its existing definition. It does not delete definitions or configs.
+
+Administrative player reset is also separate from the test namespace:
+`/e reset players` backs up and removes all player-owned vanilla and Elarion
+state, plus `ops.json`, `whitelist.json`, and both layers of `usercache.json`.
+Its preview explicitly warns that console or bridge access is required to
+re-whitelist players and restore operators after confirmation. It never deletes
+the whole `world/elarion` tree or shared world/Realm/NPC infrastructure.
+
 These commands are OP level 4 only and live under `/e test`. They are not
 player-facing gameplay commands. Use them to reset Shrine/Foundation and
 Government state during local verification without deleting Portal coordinates,
@@ -183,7 +195,8 @@ founding election flows.
 - Valid mount test types are `airship`, `bee`, `chinese_dragon`, `ghast`,
   `hot_air_balloon`, `scifi_bike`, and `wyvern`.
 - `/e test death return <player>` force-returns the player even if the active
-  session was already cleared.
+  death session was already cleared, but never bypasses an active moderation
+  banishment; use `/unbanish <player>` explicitly.
 - `/e test death reset-state` clears all Underworld sessions, Soul Fractures,
   corpses, grave markers, and combat tags.
 - `/e test character force-active <player>` is a local repair escape hatch

@@ -194,6 +194,20 @@ public final class NpcPlacementService {
         return true;
     }
 
+    public synchronized int removeWorld(String worldId) {
+        List<UUID> ids = placed.values().stream().filter(record -> worldId.equals(record.worldId()))
+                .map(PlacedNpcRecord::id).toList();
+        for (UUID id : ids) {
+            PlacedNpcRecord record = placed.remove(id);
+            if (record != null) {
+                discardAllAnchors(record);
+                removalListener.accept(record.id());
+            }
+        }
+        if (!ids.isEmpty()) { save(); broadcastVisuals(); }
+        return ids.size();
+    }
+
     public Optional<PlacedNpcRecord> move(String idOrHandle, ServerPlayerEntity player) {
         PlacedNpcRecord current = find(idOrHandle).orElse(null);
         if (current == null) return Optional.empty();

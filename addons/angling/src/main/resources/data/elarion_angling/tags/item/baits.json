@@ -1,0 +1,46 @@
+{
+    "values":  [
+                   "elarion_angling:worm",
+                   "elarion_angling:almighty_worm",
+                   "elarion_angling:seeking_worm",
+                   "elarion_angling:dev_worm",
+                   "elarion_angling:gunpowder_bait",
+                   "elarion_angling:cherry_bait",
+                   "elarion_angling:lush_bait",
+                   "elarion_angling:sculk_bait",
+                   "elarion_angling:dripstone_bait",
+                   "elarion_angling:murkwater_bait",
+                   "elarion_angling:legendary_bait",
+                   "elarion_angling:meteorological_bait",
+                   "minecraft:wither_skeleton_skull",
+                   "#c:buckets/empty",
+                   {
+                       "id":  "fishofthieves:earthworms",
+                       "required":  false
+                   },
+                   {
+                       "id":  "fishofthieves:grubs",
+                       "required":  false
+                   },
+                   {
+                       "id":  "fishofthieves:leeches",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tfc:food/bluegill",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tfc:food/cod",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tfc:food/salmon",
+                       "required":  false
+                   },
+                   {
+                       "id":  "tfc:food/tropical_fish",
+                       "required":  false
+                   }
+               ]
+}

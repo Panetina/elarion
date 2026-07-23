@@ -81,6 +81,7 @@ Rules:
 /random reset ...
 /e reload
 /e panel
+/e reset players
 /e realm ...
 /e realm announce <realm> <message...>
 /e realm mail <realm> "<title>" <message...>
@@ -167,6 +168,10 @@ Rules:
 /e portal window open <route> <duration>
 /e portal window close <route>
 /e portal entitlement inspect|grant|clear <player> <route>
+/banish <player> <minutes> <reason...>
+/banish <player> permanent <reason...>
+/banish list
+/unbanish <player>
 /e death reload
 /e death inspect <player>
 /e death corpse list
@@ -219,6 +224,13 @@ Rules:
 /e security status
 ```
 
+`/banish` is OP level 4 and requires an online target plus a non-empty reason.
+It creates an Underworld-owned timed or permanent moderation sentence without
+creating a corpse or normal death session. `/unbanish` accepts the stored name
+of an online or offline banished player. Banished players retain movement only;
+Core rejects block, entity, item, and combat interactions before addon-owned
+NPC, Shrine, or future Underworld skyblock handlers execute.
+
 Portal linking uses the `Portal Surveyor`. Attack a frame-facing block to mark
 the adjacent first interior cell, then use the Surveyor on the opposite
 frame-facing block to mark the adjacent second interior cell. The selected
@@ -226,6 +238,22 @@ cuboid must be one block thick on exactly one axis.
 
 All `/e ...` commands are OP level 4 unless a future feature is explicitly
 approved as player-facing.
+
+`/e reset players` is a destructive, preview-first global reset with an
+executor-bound confirmation token that expires after 60 seconds. Before any
+deletion it disconnects online players and copies every registered reset
+target into `world/elarion/backups/player-reset/<timestamp>/`. It removes
+vanilla `world/playerdata`, `world/stats`, and `world/advancements`; clears
+`ops.json`, `whitelist.json`, and the disk/in-memory `usercache.json`; and then
+invokes each registered Core/addon handler for player-owned Elarion state.
+Worlds, terrain, buildings, configured NPCs, placed Shrines, portals, Realm
+and world definitions, and other shared infrastructure are preserved.
+
+After confirmation, no player remains whitelisted or operator. Re-establish
+access from the server console or submit fresh approved access through the
+signed website/bridge flow; the command does not replay historical bridge
+commands. Do not run it from an in-game operator unless console or bridge
+recovery is available.
 
 `/random` is Minecraft's vanilla random-number and named random-sequence
 command. The bare `/random` root is incomplete; examples are

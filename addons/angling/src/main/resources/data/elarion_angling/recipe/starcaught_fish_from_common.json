@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:crafting_shapeless",
+    "category":  "misc",
+    "ingredients":  [
+                        {
+                            "tag":  "elarion_angling:starcaught_fishables"
+                        }
+                    ],
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:starcaught_fish"
+               }
+}

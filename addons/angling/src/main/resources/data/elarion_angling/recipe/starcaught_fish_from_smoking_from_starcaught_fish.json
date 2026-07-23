@@ -1,0 +1,13 @@
+{
+    "type":  "minecraft:smoking",
+    "category":  "food",
+    "cookingtime":  100,
+    "experience":  0.35,
+    "ingredient":  {
+                       "item":  "elarion_angling:starcaught_fish"
+                   },
+    "result":  {
+                   "count":  1,
+                   "id":  "elarion_angling:cooked_starcaught_fish"
+               }
+}

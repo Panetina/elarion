@@ -22,6 +22,15 @@ public final class ElarionWorldsAddon implements ElarionAddon {
         WorldRuleService rules = new WorldRuleService(LOGGER, api, worlds);
         new ElarionWorldsApi(worlds);
         WorldsConfigDescriptors.register(api.system().configs(), config);
+        api.system().worldResets().setOperator(new panetina.elarion.core.api.reset.WorldResetOperator() {
+            @Override public boolean exists(net.minecraft.server.MinecraftServer server, String worldId) {
+                return worlds.hasManagedWorld(worldId);
+            }
+
+            @Override public void regenerate(net.minecraft.server.MinecraftServer server, String worldId) {
+                worlds.regenerate(worldId);
+            }
+        });
 
         api.system().abilities().register("elarion.world.manage");
         api.system().commands().registerAdminSubcommand(() -> WorldCommands.create(worlds));

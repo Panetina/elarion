@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "elarion_atlas",
+  "version": "${version}",
+  "name": "Elarion Atlas",
+  "icon": "assets/elarion_atlas/icon.png",
+  "description": "Non-operational Atlas addon shell reserving Elarion's future map UI and ownership boundaries.",
+  "contact": {
+    "homepage": "https://ashesofelarion.com",
+    "discord": "https://discord.gg/bSEHtMhqKa"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+      }
+    }
+  },
+  "authors": [
+    "Panyel"
+  ],
+  "contributors": [
+    "Panetina Team"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "elarion:addon": [
+      "panetina.elarion.addons.atlas.ElarionAtlasAddon"
+    ],
+    "client": [
+      "panetina.elarion.addons.atlas.client.ElarionAtlasClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "elarion_core": "*"
+  }
+}

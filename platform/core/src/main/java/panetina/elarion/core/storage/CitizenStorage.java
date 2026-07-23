@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
+import panetina.elarion.core.api.reset.PlayerResetFiles;
 
 public final class CitizenStorage {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -72,6 +73,10 @@ public final class CitizenStorage {
         return List.copyOf(citizens);
     }
 
+    public void deleteAll(MinecraftServer server) throws IOException {
+        PlayerResetFiles.deleteTree(citizenDir(server));
+    }
+
     private static Path citizenDir(MinecraftServer server) {
         return JsonStateStorage.elarionRoot(server).resolve("citizens");
     }
@@ -86,6 +91,7 @@ public final class CitizenStorage {
         String status;
         long joinedAt;
         long lastSeenAt;
+        String lastWorldId;
         List<String> flags = new ArrayList<>();
         List<String> grantedAbilities = new ArrayList<>();
         List<String> unlockedTitleIds = new ArrayList<>();
@@ -101,6 +107,7 @@ public final class CitizenStorage {
             stored.status = citizen.status().name();
             stored.joinedAt = citizen.joinedAt();
             stored.lastSeenAt = citizen.lastSeenAt();
+            stored.lastWorldId = citizen.lastWorldId();
             stored.flags = new ArrayList<>(citizen.flags());
             stored.grantedAbilities = new ArrayList<>(citizen.grantedAbilities());
             stored.unlockedTitleIds = new ArrayList<>(citizen.unlockedTitleIds());
@@ -127,6 +134,7 @@ public final class CitizenStorage {
             record.setNickname(nickname);
             record.setJoinedAt(joinedAt);
             record.setLastSeenAt(lastSeenAt > 0 ? lastSeenAt : System.currentTimeMillis());
+            record.setLastWorldId(lastWorldId);
             try {
                 record.setStatus(CitizenStatus.valueOf(status));
             } catch (IllegalArgumentException | NullPointerException ignored) {

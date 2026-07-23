@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "elarion_angling:block/weathered_conch"
+    },
+    "facing=east": {
+      "model": "elarion_angling:block/weathered_conch",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "elarion_angling:block/weathered_conch",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "elarion_angling:block/weathered_conch",
+      "y": 270
+    }
+  }
+}

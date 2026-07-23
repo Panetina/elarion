@@ -1,0 +1,28 @@
+{
+    "values":  [
+                   {
+                       "id":  "elarion_angling:magma_crab_claw",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:brittle_seaweed",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:mossbound_boot",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:weathered_conch",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:sodden_boot",
+                       "required":  false
+                   },
+                   {
+                       "id":  "elarion_angling:river_clam",
+                       "required":  false
+                   }
+               ]
+}

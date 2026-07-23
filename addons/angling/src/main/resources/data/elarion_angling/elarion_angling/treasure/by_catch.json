@@ -1,0 +1,125 @@
+{
+    "schema_version":  1,
+    "values":  {
+                   "#elarion_angling:common_entries":  {
+                                                           "blacklist":  [
+                                                                             {
+                                                                                 "item":  "minecraft:fishing_rod"
+                                                                             }
+                                                                         ],
+                                                           "loot_tables":  [
+                                                                               {
+                                                                                   "loot_table":  "minecraft:gameplay/fishing/treasure"
+                                                                               }
+                                                                           ]
+                                                       },
+                   "#elarion_angling:epic_entries":  {
+                                                         "blacklist":  [
+                                                                           {
+                                                                               "item":  "minecraft:fishing_rod"
+                                                                           }
+                                                                       ],
+                                                         "loot_tables":  [
+                                                                             {
+                                                                                 "loot_table":  "minecraft:gameplay/fishing/treasure"
+                                                                             }
+                                                                         ]
+                                                     },
+                   "#elarion_angling:legendary_entries":  {
+                                                              "blacklist":  [
+                                                                                {
+                                                                                    "item":  "minecraft:fishing_rod"
+                                                                                }
+                                                                            ],
+                                                              "loot_tables":  [
+                                                                                  {
+                                                                                      "loot_table":  "minecraft:gameplay/fishing/treasure"
+                                                                                  }
+                                                                              ]
+                                                          },
+                   "#elarion_angling:rare_entries":  {
+                                                         "blacklist":  [
+                                                                           {
+                                                                               "item":  "minecraft:fishing_rod"
+                                                                           }
+                                                                       ],
+                                                         "loot_tables":  [
+                                                                             {
+                                                                                 "loot_table":  "minecraft:gameplay/fishing/treasure"
+                                                                             }
+                                                                         ]
+                                                     },
+                   "#elarion_angling:uncommon_entries":  {
+                                                             "blacklist":  [
+                                                                               {
+                                                                                   "item":  "minecraft:fishing_rod"
+                                                                               }
+                                                                           ],
+                                                             "loot_tables":  [
+                                                                                 {
+                                                                                     "loot_table":  "minecraft:gameplay/fishing/treasure"
+                                                                                 }
+                                                                             ]
+                                                         },
+                   "elarion_angling:aurorafin":  {
+                                                     "stacks":  [
+                                                                    {
+                                                                        "stack":  {
+                                                                                      "count":  1,
+                                                                                      "id":  "elarion_angling:iceborn_skin_smithing_template"
+                                                                                  }
+                                                                    }
+                                                                ]
+                                                 },
+                   "elarion_angling:cerulean_crystalback_minnow":  {
+                                                                       "stacks":  [
+                                                                                      {
+                                                                                          "stack":  {
+                                                                                                        "count":  1,
+                                                                                                        "id":  "elarion_angling:azure_crystal_skin_smithing_template"
+                                                                                                    }
+                                                                                      }
+                                                                                  ]
+                                                                   },
+                   "elarion_angling:borealis_fin":  {
+                                                        "stacks":  [
+                                                                       {
+                                                                           "stack":  {
+                                                                                         "count":  1,
+                                                                                         "id":  "elarion_angling:clear_smithing_template"
+                                                                                     }
+                                                                       }
+                                                                   ]
+                                                    },
+                   "elarion_angling:hellhound_ray":  {
+                                                         "stacks":  [
+                                                                        {
+                                                                            "stack":  {
+                                                                                          "count":  1,
+                                                                                          "id":  "elarion_angling:king_smithing_template"
+                                                                                      }
+                                                                        }
+                                                                    ]
+                                                     },
+                   "elarion_angling:vesanii":  {
+                                                   "stacks":  [
+                                                                  {
+                                                                      "stack":  {
+                                                                                    "count":  1,
+                                                                                    "id":  "elarion_angling:colorful_smithing_template"
+                                                                                }
+                                                                  }
+                                                              ]
+                                               },
+                   "elarion_angling:willowish":  {
+                                                     "stacks":  [
+                                                                    {
+                                                                        "stack":  {
+                                                                                      "count":  1,
+                                                                                      "id":  "elarion_angling:kimbe_smithing_template"
+                                                                                  }
+                                                                    }
+                                                                ]
+                                                 }
+               }
+}

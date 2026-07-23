@@ -30,6 +30,10 @@ public final class ElarionCommands {
         CommandPolicy.applyVanillaPolicy(dispatcher);
         PlayerCommandRegistrar.register(dispatcher, api, config, extensions);
 
+        for (Supplier<LiteralArgumentBuilder<ServerCommandSource>> extension : extensions.rootCommands()) {
+            dispatcher.register(extension.get());
+        }
+
         LiteralArgumentBuilder<ServerCommandSource> root = literal("e")
                 .requires(source -> source.hasPermissionLevel(4))
                 .then(RealmCommandRegistrar.register(api, registryAccess))
@@ -53,10 +57,12 @@ public final class ElarionCommands {
                             return 0;
                         }
                         api.titles().all().forEach(title -> title.abilities().forEach(api.abilities()::register));
+                        api.progression().reloadRules();
                         api.realms().initializeScoreboardTeams(context.getSource().getServer());
                         for (ServerPlayerEntity player :
                                 context.getSource().getServer().getPlayerManager().getPlayerList()) {
                             api.realms().applyCurrentScoreboardTeam(player);
+                            api.progression().reconcileMetricRules(player);
                         }
                         api.identitySync().syncAll(context.getSource().getServer());
                         api.uiThemes().syncAll(context.getSource().getServer());

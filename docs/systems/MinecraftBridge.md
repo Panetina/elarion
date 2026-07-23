@@ -29,7 +29,9 @@ Main package:
 - Flushes durable pending acknowledgements before fetching more work after a
   restart.
 - Add/remove operations are idempotent. Removal disconnects an affected online
-  player.
+  player only when that entry was originally added by the bridge. A manual
+  console whitelist entry remains server-owned and is never removed by a
+  stale website command after restart.
 - Does not receive RCON access, database credentials, browser cookies, or
   administrator credentials.
 - On a successful online-mode join, issues the client an opaque, seven-day
@@ -85,6 +87,21 @@ Addons publish through `api.system().webProjections()`. Initial contracts are:
 - `realm`: Core-owned member and online aggregates plus configured identity.
 - `realm.identity`: Government-owned voted presentation overrides.
 - `citizen`: whitelisted-only per-player Realm tag and identity summary.
+- `citizen.notifications`: Core-owned, recipient-scoped snapshot of at most five
+  unread notification entries for the launcher. It is refreshed only on
+  notification lifecycle changes, server startup recovery, and the recipient's
+  bounded join sync; it is never a history scan or a public feed.
+- `world.presentation`: public display label keyed by world ID. Core owns base
+  worlds and Realm spawn mappings; addons may publish their own worlds without
+  changing citizen storage.
+- `government.office`: Government-owned resolved office display label keyed by
+  the office holder UUID. It prevents launcher clients from interpreting
+  internal office/title IDs.
+- `group.membership`: Groups-owned recipient-scoped active group identity keyed
+  by member UUID. It exposes only the member's group display name, tag, and
+  resolved member role; membership removal is an explicit inactive projection.
+- `underworld.standing`: Underworld-owned recipient status (`Alive`, `Dead`, or
+  `Banished`), where banishment always takes precedence over a death session.
 - `election`: Government-owned aggregate lifecycle, never voter identities.
 - `chronicle`: append-only public Chronicle projections selected by the Core
   public-history category policy.
@@ -98,3 +115,8 @@ Addons publish through `api.system().webProjections()`. Initial contracts are:
 
 New projection kinds require an owning system, a bounded payload, explicit
 visibility, a stable entity key, and tests for restart/idempotency behavior.
+
+Citizen lifecycle persistence records the last world ID only on join, world
+transition, and disconnect. It is not sampled or rewritten per tick. The
+launcher resolves this exact key through `world.presentation`; unknown worlds
+remain `Unknown World` rather than exposing raw dimension identifiers.

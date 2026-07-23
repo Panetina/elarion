@@ -17,12 +17,13 @@ public record CatchSummary(
         Map<Identifier, Long> quantitiesBySource,
         Map<Identifier, Long> quantitiesByFishDefinition,
         Map<Identifier, Long> quantitiesByRarity,
+        Map<Identifier, CatchSpeciesSummary> speciesSummaries,
         long firstCatchAt,
         long latestCatchAt,
         CatchJournalCheckpoint checkpoint,
         List<AcceptedCatchRecord> recentCatches
 ) {
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
     public static final int MAX_RECENT_CATCHES = 32;
 
     public CatchSummary {
@@ -35,6 +36,7 @@ public record CatchSummary(
         quantitiesByFishDefinition = validatedCounts(
                 "quantitiesByFishDefinition", quantitiesByFishDefinition);
         quantitiesByRarity = validatedCounts("quantitiesByRarity", quantitiesByRarity);
+        speciesSummaries = validatedSpeciesSummaries(speciesSummaries, quantitiesByFishDefinition);
         validateTotal("quantitiesBySource", totalQuantity, quantitiesBySource);
         validateTotal("quantitiesByFishDefinition", totalQuantity, quantitiesByFishDefinition);
         validateTotal("quantitiesByRarity", totalQuantity, quantitiesByRarity);
@@ -73,11 +75,30 @@ public record CatchSummary(
         }
     }
 
+    /** Backward-compatible source constructor; count-only species projections are derived immediately. */
+    public CatchSummary(
+            int schemaVersion,
+            UUID actorId,
+            long totalQuantity,
+            Map<Identifier, Long> quantitiesBySource,
+            Map<Identifier, Long> quantitiesByFishDefinition,
+            Map<Identifier, Long> quantitiesByRarity,
+            long firstCatchAt,
+            long latestCatchAt,
+            CatchJournalCheckpoint checkpoint,
+            List<AcceptedCatchRecord> recentCatches
+    ) {
+        this(schemaVersion, actorId, totalQuantity, quantitiesBySource, quantitiesByFishDefinition,
+                quantitiesByRarity, countOnlySpecies(quantitiesByFishDefinition, firstCatchAt),
+                firstCatchAt, latestCatchAt, checkpoint, recentCatches);
+    }
+
     public static CatchSummary empty(UUID actorId) {
         return new CatchSummary(
                 CURRENT_SCHEMA_VERSION,
                 actorId,
                 0,
+                Map.of(),
                 Map.of(),
                 Map.of(),
                 Map.of(),
@@ -97,6 +118,10 @@ public record CatchSummary(
 
     public long quantityForRarity(Identifier rarityId) {
         return quantitiesByRarity.getOrDefault(rarityId, 0L);
+    }
+
+    public CatchSpeciesSummary speciesSummary(Identifier fishDefinitionId) {
+        return speciesSummaries.get(fishDefinitionId);
     }
 
     private static Map<Identifier, Long> validatedCounts(
@@ -127,5 +152,34 @@ public record CatchSummary(
         if (total != expected) {
             throw new IllegalArgumentException(field + " quantities must total " + expected);
         }
+    }
+
+    private static Map<Identifier, CatchSpeciesSummary> validatedSpeciesSummaries(
+            Map<Identifier, CatchSpeciesSummary> summaries,
+            Map<Identifier, Long> counts
+    ) {
+        Map<Identifier, CatchSpeciesSummary> copy = new LinkedHashMap<>();
+        if (summaries != null) copy.putAll(summaries);
+        if (!copy.keySet().equals(counts.keySet())) {
+            throw new IllegalArgumentException("speciesSummaries must contain exactly the counted fish definitions");
+        }
+        for (Map.Entry<Identifier, CatchSpeciesSummary> entry : copy.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null
+                    || entry.getValue().totalCount() != counts.get(entry.getKey())) {
+                throw new IllegalArgumentException("species summary count does not match fish quantity");
+            }
+        }
+        return Map.copyOf(copy);
+    }
+
+    private static Map<Identifier, CatchSpeciesSummary> countOnlySpecies(
+            Map<Identifier, Long> counts,
+            long firstCatchAt
+    ) {
+        Map<Identifier, CatchSpeciesSummary> summaries = new LinkedHashMap<>();
+        if (counts != null) {
+            counts.forEach((id, count) -> summaries.put(id, CatchSpeciesSummary.countOnly(count, firstCatchAt)));
+        }
+        return summaries;
     }
 }

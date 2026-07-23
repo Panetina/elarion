@@ -5,6 +5,17 @@
     "name":  "Elarion Realms",
     "icon": "assets/elarion_realms/icon.png",
     "description":  "Realm addon shell backed by Elarion Core realm state.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

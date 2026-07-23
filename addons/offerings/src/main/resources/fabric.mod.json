@@ -5,6 +5,17 @@
     "name":  "Elarion Offerings",
     "icon": "assets/elarion_offerings/icon.png",
     "description":  "Shrine and offering progression addon backed by Elarion Core reward actions.",
+    "contact": {
+        "homepage": "https://ashesofelarion.com",
+        "discord": "https://discord.gg/bSEHtMhqKa"
+    },
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+            }
+        }
+    },
     "authors":  [
                     "Panyel"
                 ],

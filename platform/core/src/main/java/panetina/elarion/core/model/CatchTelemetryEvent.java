@@ -19,7 +19,8 @@ public record CatchTelemetryEvent(
         Identifier worldId,
         Identifier dimensionId,
         Identifier biomeId,
-        Map<String, String> metadata
+        Map<String, String> metadata,
+        CatchTelemetryDetails details
 ) {
     public static final int MAX_METADATA_ENTRIES = 32;
     public static final int MAX_METADATA_KEY_LENGTH = 64;
@@ -55,5 +56,23 @@ public record CatchTelemetryEvent(
             }
         }
         metadata = Collections.unmodifiableMap(copied);
+    }
+
+    /** Backward-compatible constructor for telemetry sources without rich outcome details. */
+    public CatchTelemetryEvent(
+            UUID eventId,
+            long occurredAt,
+            UUID actorId,
+            Identifier sourceId,
+            Identifier fishDefinitionId,
+            Identifier rarityId,
+            long quantity,
+            Identifier worldId,
+            Identifier dimensionId,
+            Identifier biomeId,
+            Map<String, String> metadata
+    ) {
+        this(eventId, occurredAt, actorId, sourceId, fishDefinitionId, rarityId, quantity,
+                worldId, dimensionId, biomeId, metadata, null);
     }
 }

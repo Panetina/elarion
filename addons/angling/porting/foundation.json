@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "kind": "owner-authorized-local-port-source",
+    "minecraftVersion": "1.21.1",
+    "revision": "016161dfc2d556d20fa641cd275e18c539256d4d",
+    "silentlyUpdate": false,
+    "ownerAuthorizedForPort": true,
+    "ownerAuthorizedCodeContentAndResources": true
+  },
+  "identity": {
+    "modId": "elarion_angling",
+    "displayName": "Elarion Angling",
+    "javaPackage": "panetina.elarion.addons.angling"
+  },
+  "ownership": {
+    "angling": [
+      "catch-definitions",
+      "selection-rules",
+      "fishing-sessions",
+      "bobbers",
+      "minigame-runtime",
+      "equipment-and-blocks",
+      "active-tournaments",
+      "guide-presentation"
+    ],
+    "core": [
+      "accepted-catches",
+      "player-identity",
+      "rewards",
+      "titles",
+      "history",
+      "metrics",
+      "rankings",
+      "cross-addon-events"
+    ],
+    "economy": [
+      "pricing",
+      "balances",
+      "settlement",
+      "transactions"
+    ]
+  },
+  "rules": {
+    "coreOwnsCanonicalCatchTruth": true,
+    "serverAuthoritativeOutcomes": true,
+    "boundedHotPaths": true,
+    "atomicReloadSnapshots": true,
+    "noPerTickGlobalScans": true,
+    "noGameplayPathDiskIo": true,
+    "typedBoundedNetworking": true,
+    "optionalIntegrationsAreIsolated": true
+  },
+  "release": {
+    "releaseReady": false,
+    "excludedFromCanonicalExports": true,
+    "referenceCheckoutMayBePackaged": false,
+    "authorizedFilesMayBePortedIntoModules": true,
+    "assetReplacementRequired": false,
+    "additionalAssetLicenseGateRequired": false
+  }
+}

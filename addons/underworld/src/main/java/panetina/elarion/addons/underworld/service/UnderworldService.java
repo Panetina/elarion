@@ -31,17 +31,21 @@ import panetina.elarion.addons.underworld.block.UnderworldTombBlockEntity;
 import panetina.elarion.addons.underworld.config.UnderworldConfig;
 import panetina.elarion.addons.underworld.config.UnderworldConfigLoader;
 import panetina.elarion.addons.underworld.model.CombatTag;
+import panetina.elarion.addons.underworld.model.BanishmentRecord;
 import panetina.elarion.addons.underworld.model.CorpseRecord;
 import panetina.elarion.addons.underworld.model.ElarionDeathType;
 import panetina.elarion.addons.underworld.model.SoulState;
 import panetina.elarion.addons.underworld.model.StoredItemStack;
+import panetina.elarion.addons.underworld.model.InventorySnapshot;
 import panetina.elarion.addons.underworld.model.UnderworldSession;
 import panetina.elarion.addons.underworld.network.UnderworldStatusSyncPayload;
+import panetina.elarion.addons.underworld.network.BanishmentAppearanceSyncPayload;
 import panetina.elarion.addons.underworld.network.GraveOpenPayload;
 import panetina.elarion.addons.underworld.storage.UnderworldState;
 import panetina.elarion.addons.underworld.storage.UnderworldStorage;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.ElarionDomainEvent;
+import panetina.elarion.core.integration.minecraft.MinecraftProjectionProtocol.Visibility;
 import panetina.elarion.core.service.PlayerRestrictionService;
 
 import java.io.IOException;
@@ -71,7 +75,9 @@ public final class UnderworldService {
     private static final int MAIN_INVENTORY_SIZE = 36;
     private static final int MAX_TOMB_DISPLAY_UPDATES_PER_SECOND = 64;
     private static final int MAX_CORPSE_EXPIRATIONS_PER_SECOND = 64;
+    private static final int MAX_BANISHMENT_EXPIRATIONS_PER_SECOND = 64;
     private static final long PROTECTED_EXPIRY_RETRY_MILLIS = 1_000L;
+    private static volatile UnderworldService activeService;
 
     private final Logger logger;
     private final ElarionApi api;
@@ -80,6 +86,7 @@ public final class UnderworldService {
     private UnderworldState state = new UnderworldState();
     private final Map<UUID, CombatTag> combatTags = new LinkedHashMap<>();
     private final UnderworldExpiryQueue expiryQueue = new UnderworldExpiryQueue();
+    private final UnderworldExpiryQueue banishmentExpiryQueue = new UnderworldExpiryQueue();
     private final ArrayDeque<String> tombDisplayQueue = new ArrayDeque<>();
     private final Set<String> queuedTombDisplays = new HashSet<>();
     private final UnderworldTombService tombs;
@@ -97,27 +104,44 @@ public final class UnderworldService {
 
     public void registerEvents() {
         api.system().restrictions().register(this::restriction);
+        api.system().restrictions().registerAccountProvider(this::accountRestriction);
         ServerLivingEntityEvents.AFTER_DAMAGE.register(this::trackCombatTag);
         ServerLivingEntityEvents.ALLOW_DEATH.register(this::captureFatalDeath);
+        ServerLivingEntityEvents.ALLOW_DAMAGE.register(this::allowDamage);
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            if (activeSession(newPlayer.getUuid()).isPresent()) {
+            if (banishment(newPlayer.getUuid()).isPresent()) {
+                api.tasks().enqueueServer("underworld-banishment-respawn-" + newPlayer.getUuidAsString(),
+                        () -> sendBanishmentToUnderworld(newPlayer, false));
+            } else if (activeSession(newPlayer.getUuid()).isPresent()) {
                 api.tasks().enqueueServer("underworld-respawn-" + newPlayer.getUuidAsString(),
                         () -> sendToUnderworld(newPlayer, false));
             }
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             UUID id = handler.getPlayer().getUuid();
-            activeSession(id).ifPresent(session -> {
-                if (session.paused) {
-                    session.paused = false;
-                    session.pausedAt = 0L;
-                    dirty = true;
-                }
-                sendToUnderworld(handler.getPlayer(), false);
-            });
+            BanishmentRecord banishment = this.banishment(id).orElse(null);
+            if (banishment != null) {
+                preferPersistedAfterlifeInventory(handler.getPlayer());
+                sendBanishmentToUnderworld(handler.getPlayer(), true);
+            } else {
+                activeSession(id).ifPresent(session -> {
+                    if (session.paused) {
+                        session.paused = false;
+                        session.pausedAt = 0L;
+                        dirty = true;
+                    }
+                    preferPersistedAfterlifeInventory(handler.getPlayer());
+                    sendToUnderworld(handler.getPlayer(), false);
+                });
+            }
+            syncBanishmentAppearances(handler.getPlayer());
             syncStatus(handler.getPlayer());
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            if (activeSession(handler.getPlayer().getUuid()).isPresent()
+                    || banishment(handler.getPlayer().getUuid()).isPresent()) {
+                storeAfterlifeInventoryAndClear(handler.getPlayer());
+            }
             activeSession(handler.getPlayer().getUuid()).ifPresent(session -> {
                 if (config.pauseTimerOnLogout()) {
                     session.paused = true;
@@ -131,12 +155,15 @@ public final class UnderworldService {
 
     public void bind(MinecraftServer server) {
         this.server = server;
+        activeService = this;
         this.state = storage.load(server);
         if (state.recoveryVaults == null) state.recoveryVaults = new LinkedHashMap<>();
         api.characters().registerResetHandler("elarion_underworld", context -> resetCharacter(context.accountId()));
         migrateCorpseLifecycle();
         reconcileGraves();
         rebuildRuntimeIndexes();
+        state.sessions.keySet().forEach(this::publishStanding);
+        state.banishments.keySet().forEach(this::publishStanding);
         dirty = true;
         save();
     }
@@ -156,12 +183,21 @@ public final class UnderworldService {
             tickSessions();
             flushTombDisplays();
             expireDueCorpses();
+            expireDueBanishments();
         }
         if (dirty && ticks % 100 == 0) save();
     }
 
     public void shutdown() {
+        if (server != null) {
+            server.getPlayerManager().getPlayerList().forEach(player -> {
+                if (activeSession(player.getUuid()).isPresent() || banishment(player.getUuid()).isPresent()) {
+                    storeAfterlifeInventoryAndClear(player);
+                }
+            });
+        }
         save();
+        activeService = null;
     }
 
     public boolean handleTombInteraction(ServerPlayerEntity player, BlockPos pos, Hand hand) {
@@ -181,6 +217,20 @@ public final class UnderworldService {
 
     public Optional<UnderworldSession> activeSession(UUID playerId) {
         return Optional.ofNullable(state.sessions.get(playerId.toString()));
+    }
+
+    public Optional<BanishmentRecord> banishment(UUID playerId) {
+        if (playerId == null) return Optional.empty();
+        BanishmentRecord record = state.banishments.get(playerId.toString());
+        return record != null && record.activeAt(System.currentTimeMillis())
+                ? Optional.of(record) : Optional.empty();
+    }
+
+    public List<BanishmentRecord> banishments() {
+        long now = System.currentTimeMillis();
+        return state.banishments.values().stream()
+                .filter(record -> record != null && record.activeAt(now))
+                .toList();
     }
 
     public Optional<SoulState> soul(UUID playerId) {
@@ -246,6 +296,10 @@ public final class UnderworldService {
     }
 
     public void sendPlayerToUnderworld(ServerPlayerEntity player, int minutes, ElarionDeathType type) {
+        if (banishment(player.getUuid()).isPresent()) {
+            sendBanishmentToUnderworld(player, true);
+            return;
+        }
         UnderworldSession session = new UnderworldSession();
         session.playerId = player.getUuidAsString();
         session.corpseId = "";
@@ -253,10 +307,77 @@ public final class UnderworldService {
         session.remainingMillis = Math.max(1L, minutes) * 60_000L;
         session.deathType = type;
         state.sessions.put(session.playerId, session);
+        captureLivingInventory(player);
         dirty = true;
         sendToUnderworld(player, true);
         syncStatus(player);
         emit("player-sent-to-underworld", player.getUuid(), "", Map.of("deathType", type.name()));
+    }
+
+    public BanishmentRecord banish(
+            ServerPlayerEntity player,
+            long durationMillis,
+            boolean permanent,
+            String reason,
+            String issuedBy
+    ) {
+        long now = System.currentTimeMillis();
+        UnderworldSession replaced = state.sessions.remove(player.getUuidAsString());
+        if (replaced != null) {
+            markCorpsePublic(replaced.corpseId, now);
+            storeAfterlifeInventoryAndClear(player);
+        }
+
+        BanishmentRecord record = new BanishmentRecord();
+        record.playerId = player.getUuidAsString();
+        record.playerName = player.getGameProfile().getName();
+        record.issuedBy = issuedBy;
+        record.reason = reason;
+        record.issuedAt = now;
+        record.expiresAt = permanent ? 0L : now + Math.max(1L, durationMillis);
+        record.normalized();
+        state.banishments.put(record.playerId, record);
+        if (replaced == null) captureLivingInventory(player);
+        if (!record.permanent()) banishmentExpiryQueue.schedule(record.playerId, record.expiresAt);
+        dirty = true;
+        save();
+        sendBanishmentToUnderworld(player, true);
+        broadcastBanishmentAppearance(player.getUuid(), true);
+        emit("player-banished", player.getUuid(), player.getUuidAsString(), Map.of(
+                "permanent", Boolean.toString(record.permanent()),
+                "expiresAt", Long.toString(record.expiresAt)));
+        return record;
+    }
+
+    public Optional<BanishmentRecord> unbanish(String playerNameOrId) {
+        if (playerNameOrId == null || playerNameOrId.isBlank()) return Optional.empty();
+        String query = playerNameOrId.strip();
+        BanishmentRecord match = state.banishments.get(query);
+        if (match == null) {
+            match = state.banishments.values().stream()
+                    .filter(record -> record != null && record.playerName.equalsIgnoreCase(query))
+                    .findFirst().orElse(null);
+        }
+        if (match == null) return Optional.empty();
+        UUID playerId;
+        try {
+            playerId = UUID.fromString(match.playerId);
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
+        state.banishments.remove(match.playerId);
+        banishmentExpiryQueue.cancel(match.playerId);
+        dirty = true;
+        save();
+        ServerPlayerEntity online = server == null ? null : server.getPlayerManager().getPlayer(playerId);
+        if (online != null) {
+            returnFromBanishment(online, "Your banishment has been lifted.");
+        } else {
+            broadcastBanishmentAppearance(playerId, false);
+            syncStatus(playerId);
+        }
+        emit("player-unbanished", playerId, playerId.toString(), Map.of());
+        return Optional.of(match);
     }
 
     public boolean returnPlayer(ServerPlayerEntity player) {
@@ -267,6 +388,8 @@ public final class UnderworldService {
         }
         markCorpsePublic(removed.corpseId, System.currentTimeMillis());
         dirty = true;
+        storeAfterlifeInventoryAndClear(player);
+        restoreLivingInventory(player);
         returnToLivingWorld(player, removed);
         syncStatus(player);
         emit("player-returned-from-underworld", player.getUuid(), "", Map.of("corpseId", removed.corpseId));
@@ -274,13 +397,21 @@ public final class UnderworldService {
     }
 
     public void forceReturnPlayer(ServerPlayerEntity player) {
+        if (banishment(player.getUuid()).isPresent()) {
+            sendBanishmentToUnderworld(player, true);
+            return;
+        }
         UnderworldSession removed = state.sessions.remove(player.getUuidAsString());
         dirty = true;
         if (removed == null) {
+            storeAfterlifeInventoryAndClear(player);
+            restoreLivingInventory(player);
             api.realmSpawns().teleportAfterRealmAssignment(player);
             player.sendMessage(Text.literal("Returned to the living world.").formatted(Formatting.GREEN), false);
         } else {
             markCorpsePublic(removed.corpseId, System.currentTimeMillis());
+            storeAfterlifeInventoryAndClear(player);
+            restoreLivingInventory(player);
             returnToLivingWorld(player, removed);
             emit("player-returned-from-underworld", player.getUuid(), "", Map.of("corpseId", removed.corpseId));
         }
@@ -346,6 +477,8 @@ public final class UnderworldService {
     public void resetPlayer(UUID playerId) {
         state.sessions.remove(playerId.toString());
         state.souls.remove(playerId.toString());
+        state.afterlifeInventories.remove(playerId.toString());
+        state.livingInventories.remove(playerId.toString());
         state.corpses.values().removeIf(corpse -> {
             if (!playerId.toString().equals(corpse.victimId)) return false;
             discardTomb(corpse);
@@ -360,6 +493,8 @@ public final class UnderworldService {
     public void resetAll() {
         state.sessions.clear();
         state.souls.clear();
+        state.afterlifeInventories.clear();
+        state.livingInventories.clear();
         for (CorpseRecord corpse : state.corpses.values()) discardTomb(corpse);
         state.corpses.clear();
         expiryQueue.clear();
@@ -373,6 +508,13 @@ public final class UnderworldService {
         }
     }
 
+    public synchronized java.util.Map<String, Long> resetPreview() {
+        long players = java.util.stream.Stream.concat(state.sessions.keySet().stream(), state.souls.keySet().stream())
+                .distinct().count();
+        return java.util.Map.of("afterlifePlayers", players, "tombstones", (long) state.corpses.size(),
+                "limboWorlds", 0L);
+    }
+
     public void save() {
         if (server == null || !dirty) return;
         storage.save(server, state);
@@ -382,6 +524,13 @@ public final class UnderworldService {
     private Optional<PlayerRestrictionService.PlayerRestriction> restriction(
             ServerPlayerEntity player, String action
     ) {
+        if (banishment(player.getUuid()).isPresent()) {
+            if (isBanishmentRestrictedAction(action)) {
+                return Optional.of(new PlayerRestrictionService.PlayerRestriction(
+                        "elarion_underworld_banishment", "Banishment permits movement only."));
+            }
+            return Optional.empty();
+        }
         if (activeSession(player.getUuid()).isEmpty()) return Optional.empty();
         if (config.disableChat() && (PlayerRestrictionService.CHAT.equals(action)
                 || PlayerRestrictionService.PRIVATE_MESSAGE.equals(action)
@@ -399,6 +548,33 @@ public final class UnderworldService {
         return Optional.empty();
     }
 
+    static boolean isBanishmentRestrictedAction(String action) {
+        return PlayerRestrictionService.CHAT.equals(action)
+                || PlayerRestrictionService.PRIVATE_MESSAGE.equals(action)
+                || PlayerRestrictionService.GROUP_CHAT.equals(action)
+                || PlayerRestrictionService.PORTAL_TRAVEL.equals(action)
+                || PlayerRestrictionService.TELEPORT.equals(action)
+                || PlayerRestrictionService.BREAK_BLOCK.equals(action)
+                || PlayerRestrictionService.ATTACK_BLOCK.equals(action)
+                || PlayerRestrictionService.ATTACK_ENTITY.equals(action)
+                || PlayerRestrictionService.INTERACT_BLOCK.equals(action)
+                || PlayerRestrictionService.INTERACT_ENTITY.equals(action)
+                || PlayerRestrictionService.USE_ITEM.equals(action);
+    }
+
+    /** Server-only mixin hook for vanilla item and experience pickup. */
+    public static boolean blocksBanishmentProgression(ServerPlayerEntity player) {
+        UnderworldService service = activeService;
+        return service != null && player != null && service.banishment(player.getUuid()).isPresent();
+    }
+
+    private Optional<PlayerRestrictionService.PlayerRestriction> accountRestriction(UUID playerId, String action) {
+        if (!PlayerRestrictionService.QUEUED_ADMISSION.equals(action)) return Optional.empty();
+        return banishment(playerId).map(record -> new PlayerRestrictionService.PlayerRestriction(
+                "elarion_underworld_banishment",
+                "You are banished and may only join when the server has free capacity and no admission queue."));
+    }
+
     private void trackCombatTag(
             LivingEntity entity, DamageSource source, float baseDamageTaken, float damageTaken, boolean blocked
     ) {
@@ -409,8 +585,22 @@ public final class UnderworldService {
         }
     }
 
+    private boolean allowDamage(LivingEntity victim, DamageSource source, float amount) {
+        ServerPlayerEntity attacker = playerAttacker(source).orElse(null);
+        if (!(victim instanceof ServerPlayerEntity victimPlayer) || attacker == null
+                || attacker.getUuid().equals(victimPlayer.getUuid())) {
+            return true;
+        }
+        return !isUnderworld(attacker.getWorld()) && !isUnderworld(victimPlayer.getWorld());
+    }
+
     private boolean captureFatalDeath(LivingEntity entity, DamageSource source, float amount) {
         if (!config.enabled() || !(entity instanceof ServerPlayerEntity player)) return true;
+        if (banishment(player.getUuid()).isPresent()) {
+            player.setHealth(player.getMaxHealth());
+            sendBanishmentToUnderworld(player, false);
+            return false;
+        }
         if (!appliesTo(player.getWorld())) return true;
         if (activeSession(player.getUuid()).isPresent() || isUnderworld(player.getWorld())) {
             captureUnderworldDeath(player);
@@ -446,7 +636,7 @@ public final class UnderworldService {
     }
 
     private void captureUnderworldDeath(ServerPlayerEntity player) {
-        clearInventory(player);
+        storeAfterlifeInventoryAndClear(player);
         UnderworldSession session = activeSession(player.getUuid()).orElse(null);
         if (session != null) {
             session.remainingMillis += config.extraMinutesPerUnderworldDeath() * 60_000L;
@@ -578,6 +768,69 @@ public final class UnderworldService {
         for (EquipmentSlot slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
             player.equipStack(slot, ItemStack.EMPTY);
         }
+        player.getInventory().selectedSlot = 0;
+        player.setExperienceLevel(0);
+        player.setExperiencePoints(0);
+    }
+
+    private InventorySnapshot captureInventory(ServerPlayerEntity player) {
+        InventorySnapshot snapshot = new InventorySnapshot();
+        snapshot.stacks = captureStacks(player);
+        snapshot.selectedHotbarSlot = player.getInventory().selectedSlot;
+        snapshot.experienceLevel = player.experienceLevel;
+        snapshot.totalExperience = player.totalExperience;
+        snapshot.experienceProgress = player.experienceProgress;
+        return snapshot.normalized();
+    }
+
+    private void captureLivingInventory(ServerPlayerEntity player) {
+        String playerId = player.getUuidAsString();
+        if (state.livingInventories.containsKey(playerId)) return;
+        state.livingInventories.put(playerId, captureInventory(player));
+        clearInventory(player);
+        dirty = true;
+    }
+
+    private void storeAfterlifeInventoryAndClear(ServerPlayerEntity player) {
+        state.afterlifeInventories.put(player.getUuidAsString(), captureInventory(player));
+        clearInventory(player);
+        dirty = true;
+    }
+
+    private void restoreAfterlifeInventory(ServerPlayerEntity player) {
+        InventorySnapshot snapshot = state.afterlifeInventories.get(player.getUuidAsString());
+        clearInventory(player);
+        if (snapshot != null) restoreInventory(player, snapshot);
+    }
+
+    private void restoreLivingInventory(ServerPlayerEntity player) {
+        InventorySnapshot snapshot = state.livingInventories.remove(player.getUuidAsString());
+        clearInventory(player);
+        if (snapshot != null) restoreInventory(player, snapshot);
+        dirty = true;
+    }
+
+    private void preferPersistedAfterlifeInventory(ServerPlayerEntity player) {
+        InventorySnapshot persisted = captureInventory(player);
+        if (!persisted.empty()) {
+            state.afterlifeInventories.put(player.getUuidAsString(), persisted);
+            dirty = true;
+        }
+    }
+
+    private void restoreInventory(ServerPlayerEntity player, InventorySnapshot snapshot) {
+        for (StoredItemStack stored : snapshot.normalized().stacks) {
+            ItemStack stack = stored.toStack(server.getRegistryManager());
+            if (stack.isEmpty()) continue;
+            tryOriginalSlot(player, stored, stack);
+            if (!stack.isEmpty()) player.getInventory().insertStack(stack);
+        }
+        if (snapshot.selectedHotbarSlot >= 0 && snapshot.selectedHotbarSlot < 9) {
+            player.getInventory().selectedSlot = snapshot.selectedHotbarSlot;
+        }
+        player.setExperienceLevel(snapshot.experienceLevel);
+        player.setExperiencePoints(snapshot.totalExperience);
+        player.experienceProgress = snapshot.experienceProgress;
     }
 
     private void recoverOrLoot(ServerPlayerEntity player, CorpseRecord corpse) {
@@ -877,12 +1130,23 @@ public final class UnderworldService {
 
     private void rebuildRuntimeIndexes() {
         expiryQueue.clear();
+        banishmentExpiryQueue.clear();
         tombDisplayQueue.clear();
         queuedTombDisplays.clear();
         for (CorpseRecord corpse : state.corpses.values()) {
             queueTombDisplay(corpse.corpseId);
             if (!protectedByUnderworldSession(corpse) && corpse.decaysAt > 0L) {
                 expiryQueue.schedule(corpse.corpseId, corpse.decaysAt);
+            }
+        }
+        long now = System.currentTimeMillis();
+        if (state.banishments.entrySet().removeIf(entry -> entry.getValue() == null
+                || !entry.getValue().permanent() && entry.getValue().expiresAt <= now)) {
+            dirty = true;
+        }
+        for (BanishmentRecord record : state.banishments.values()) {
+            if (record != null && !record.permanent() && record.expiresAt > now) {
+                banishmentExpiryQueue.schedule(record.playerId, record.expiresAt);
             }
         }
     }
@@ -937,11 +1201,34 @@ public final class UnderworldService {
                     .formatted(Formatting.RED), false);
             return;
         }
+        restoreAfterlifeInventory(player);
         player.teleport(world, config.spawnX(), config.spawnY(), config.spawnZ(), Set.of(), player.getYaw(), player.getPitch());
         syncStatus(player);
         if (message) {
             player.sendMessage(Text.literal("Your soul descends into the Underworld.").formatted(Formatting.DARK_PURPLE), false);
         }
+    }
+
+    private void sendBanishmentToUnderworld(ServerPlayerEntity player, boolean message) {
+        BanishmentRecord record = banishment(player.getUuid()).orElse(null);
+        if (record == null) return;
+        if (isUnderworld(player.getWorld())) storeAfterlifeInventoryAndClear(player);
+        sendToUnderworld(player, false);
+        if (message) {
+            String duration = record.permanent() ? "permanently" : "until " + Instant.ofEpochMilli(record.expiresAt);
+            player.sendMessage(Text.literal("You have been banished to the Underworld " + duration + ".")
+                    .formatted(Formatting.DARK_RED), false);
+            player.sendMessage(Text.literal("Reason: " + record.reason).formatted(Formatting.RED), false);
+        }
+    }
+
+    private void returnFromBanishment(ServerPlayerEntity player, String message) {
+        storeAfterlifeInventoryAndClear(player);
+        restoreLivingInventory(player);
+        api.realmSpawns().teleportAfterRealmAssignment(player);
+        player.sendMessage(Text.literal(message).formatted(Formatting.GREEN), false);
+        broadcastBanishmentAppearance(player.getUuid(), false);
+        syncStatus(player);
     }
 
     private void returnToLivingWorld(ServerPlayerEntity player, UnderworldSession session) {
@@ -1010,6 +1297,30 @@ public final class UnderworldService {
         }
     }
 
+    private void expireDueBanishments() {
+        long now = System.currentTimeMillis();
+        for (String playerId : banishmentExpiryQueue.pollDue(now, MAX_BANISHMENT_EXPIRATIONS_PER_SECOND)) {
+            BanishmentRecord record = state.banishments.get(playerId);
+            if (record == null || record.permanent()) continue;
+            if (record.expiresAt > now) {
+                banishmentExpiryQueue.schedule(playerId, record.expiresAt);
+                continue;
+            }
+            state.banishments.remove(playerId);
+            dirty = true;
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(playerId);
+            } catch (IllegalArgumentException exception) {
+                continue;
+            }
+            ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+            if (player != null) returnFromBanishment(player, "Your banishment has ended.");
+            else broadcastBanishmentAppearance(uuid, false);
+            emit("banishment-expired", uuid, uuid.toString(), Map.of());
+        }
+    }
+
     public int recoverVault(ServerPlayerEntity player) {
         List<StoredItemStack> stored = state.recoveryVaults.get(player.getUuidAsString());
         if (stored == null || stored.isEmpty()) return 0;
@@ -1027,6 +1338,8 @@ public final class UnderworldService {
         state.sessions.remove(id);
         state.souls.remove(id);
         state.recoveryVaults.remove(id);
+        state.afterlifeInventories.remove(id);
+        state.livingInventories.remove(id);
         state.corpses.values().removeIf(corpse -> {
             if (!id.equals(corpse.victimId)) return false;
             discardTomb(corpse);
@@ -1192,21 +1505,62 @@ public final class UnderworldService {
     }
 
     private void syncStatus(UUID playerId) {
+        publishStanding(playerId == null ? "" : playerId.toString());
         if (server == null) return;
         ServerPlayerEntity player = server.getPlayerManager().getPlayer(playerId);
         if (player != null) syncStatus(player);
     }
 
     private void syncStatus(ServerPlayerEntity player) {
+        publishStanding(player.getUuidAsString());
         UnderworldSession session = activeSession(player.getUuid()).orElse(null);
+        BanishmentRecord banishment = banishment(player.getUuid()).orElse(null);
         SoulState soul = soul(player.getUuid()).orElse(null);
         UnderworldStatusSyncPayload payload = new UnderworldStatusSyncPayload(
-                session != null,
-                session == null ? 0L : session.remainingMillis,
+                session != null || banishment != null,
+                banishment != null ? banishment.remainingMillis(System.currentTimeMillis())
+                        : session == null ? 0L : session.remainingMillis,
                 session == null || session.deathType == null ? "" : session.deathType.name(),
                 soul == null ? 0 : soul.fractures,
                 config.maxFractures(),
-                soul != null && soul.trueDeath);
+                soul != null && soul.trueDeath,
+                banishment != null,
+                banishment == null ? 0L : banishment.expiresAt,
+                banishment == null ? "" : banishment.reason);
         ServerPlayNetworking.send(player, payload);
+    }
+
+    private void publishStanding(String playerId) {
+        if (playerId == null || playerId.isBlank()) return;
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(playerId);
+        } catch (IllegalArgumentException ignored) {
+            return;
+        }
+        String status = banishment(uuid).isPresent() ? "Banished"
+                : activeSession(uuid).isPresent() ? "Dead" : "Alive";
+        String realmId = api.citizens().find(uuid).map(citizen -> citizen.realmId()).orElse("");
+        api.system().webProjections().publishState("underworld.standing", playerId, realmId,
+                Visibility.WHITELISTED, Map.of("status", status));
+    }
+
+    private void syncBanishmentAppearances(ServerPlayerEntity recipient) {
+        if (server == null) return;
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            if (banishment(player.getUuid()).isPresent()) {
+                ServerPlayNetworking.send(recipient,
+                        new BanishmentAppearanceSyncPayload(player.getUuid(), true));
+            }
+        }
+        if (banishment(recipient.getUuid()).isPresent()) {
+            broadcastBanishmentAppearance(recipient.getUuid(), true);
+        }
+    }
+
+    private void broadcastBanishmentAppearance(UUID playerId, boolean banished) {
+        if (server == null) return;
+        BanishmentAppearanceSyncPayload payload = new BanishmentAppearanceSyncPayload(playerId, banished);
+        server.getPlayerManager().getPlayerList().forEach(player -> ServerPlayNetworking.send(player, payload));
     }
 }

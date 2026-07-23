@@ -17,6 +17,7 @@ public final class CitizenRecord {
     private CitizenStatus status;
     private long joinedAt;
     private long lastSeenAt;
+    private String lastWorldId;
     private final Set<String> flags;
     private final Set<String> grantedAbilities;
     private final Set<String> unlockedTitleIds;
@@ -45,6 +46,7 @@ public final class CitizenRecord {
     public CitizenStatus status() { return status; }
     public long joinedAt() { return joinedAt; }
     public long lastSeenAt() { return lastSeenAt; }
+    public String lastWorldId() { return lastWorldId == null ? "" : lastWorldId; }
     public Set<String> flags() { return flags; }
     public Set<String> grantedAbilities() { return grantedAbilities; }
     public Set<String> unlockedTitleIds() { return unlockedTitleIds; }
@@ -84,6 +86,7 @@ public final class CitizenRecord {
     public void setStatus(CitizenStatus value) { this.status = value; }
     public void setJoinedAt(long value) { this.joinedAt = value; }
     public void setLastSeenAt(long value) { this.lastSeenAt = value; }
+    public void setLastWorldId(String value) { this.lastWorldId = value == null ? "" : value.trim(); }
 
     private static String normalizeTitleId(String value) {
         return value == null ? "" : value.trim().toLowerCase(java.util.Locale.ROOT);

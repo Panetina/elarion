@@ -48,7 +48,7 @@ final class AcceptedCatchRecordTest {
         Identifier rarityId = Identifier.of("elarion_angling", "placeholder_common");
 
         assertThrows(IllegalArgumentException.class, () -> new AcceptedCatchRecord(
-                2, eventId, 1, actorId, sourceId, fishId, rarityId, 1,
+                AcceptedCatchRecord.CURRENT_SCHEMA_VERSION + 1, eventId, 1, actorId, sourceId, fishId, rarityId, 1,
                 null, null, null, Map.of()));
         assertThrows(IllegalArgumentException.class, () -> new AcceptedCatchRecord(
                 AcceptedCatchRecord.CURRENT_SCHEMA_VERSION, eventId, 0, actorId,

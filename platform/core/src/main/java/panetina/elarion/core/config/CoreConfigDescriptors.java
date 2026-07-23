@@ -301,6 +301,27 @@ public final class CoreConfigDescriptors {
             entries.add(ruleLongEntry(rule, "amount", "Amount",
                     "Amount credited per matching event.",
                     config, TitleUnlockRule::amount, 1));
+            if (rule.metric() != null) {
+                entries.add(ruleStringEntry(rule, "metric.id", "Metric ID",
+                        "Core metric ID evaluated by this title rule.", config,
+                        value -> value.metric() == null ? "" : value.metric().metricId().toString(), false));
+                entries.add(ruleStringEntry(rule, "metric.scope", "Metric Scope",
+                        "Metric scope: global, realm, realm:<id>, or event:<id>.", config,
+                        value -> value.metric() == null ? "" : metricScope(value.metric()), false));
+                entries.add(ruleStringEntry(rule, "metric.comparator", "Metric Comparator",
+                        "Metric comparison operator: gte, lte, or eq.", config,
+                        value -> value.metric() == null ? "" : value.metric().comparator().name()
+                                .toLowerCase(java.util.Locale.ROOT), false));
+                entries.add(ruleLongEntry(rule, "metric.threshold", "Metric Threshold",
+                        "Fixed-point metric threshold required by this title rule.", config,
+                        value -> value.metric() == null ? 0L : value.metric().threshold(), Long.MIN_VALUE));
+                entries.add(ruleStringEntry(rule, "metric.dimensions", "Metric Dimensions",
+                        "Bounded materialized dimension filters as key=identifier pairs.", config,
+                        value -> value.metric() == null ? "" : value.metric().dimensions().entrySet().stream()
+                                .sorted(Map.Entry.comparingByKey())
+                                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                                .collect(java.util.stream.Collectors.joining(",")), false));
+            }
             entries.add(ruleStringEntry(rule, "entities", "Entities",
                     "Entity registry IDs or tags matched by this rule.",
                     config, value -> matchers(value.entities()), false));
@@ -1165,6 +1186,11 @@ public final class CoreConfigDescriptors {
                 + ", required-status=" + joined(continuous.requiredStatusEffects())
                 + ", allowed-status=" + joined(continuous.allowedStatusEffects())
                 + ", required-metadata=" + joined(continuous.requiredMetadata());
+    }
+
+    private static String metricScope(TitleUnlockRule.MetricCondition metric) {
+        String type = metric.scopeType().name().toLowerCase(java.util.Locale.ROOT);
+        return metric.scopeId() == null ? type : type + ":" + metric.scopeId();
     }
 
     private static String matchers(Collection<TitleUnlockRule.RegistryMatcher> matchers) {

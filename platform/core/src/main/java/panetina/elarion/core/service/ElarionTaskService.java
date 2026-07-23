@@ -156,11 +156,13 @@ public final class ElarionTaskService {
 
     public void tickServerQueue() {
         long started = System.nanoTime();
+        long appliedNanos = 0L;
         int applied = 0;
         while (applied < maxServerAppliesPerTick && System.nanoTime() - started < maxServerApplyNanos) {
             ServerTask task = serverTasks.poll();
             if (task == null) break;
             queuedServerTasks.decrementAndGet();
+            long taskStarted = System.nanoTime();
             try {
                 task.runnable().run();
                 completedServerTasks.incrementAndGet();
@@ -169,11 +171,15 @@ public final class ElarionTaskService {
                 failedServerTasks.incrementAndGet();
                 increment(failedByFamily, task.family());
                 logger.error("Elarion server-thread task failed: {}", task.name(), exception);
+            } finally {
+                appliedNanos += System.nanoTime() - taskStarted;
             }
             applied++;
         }
         lastTickApplied = applied;
-        lastTickNanos = System.nanoTime() - started;
+        // Report queue-owned work only. Measuring the whole callback blamed an
+        // empty queue when the server thread was descheduled before polling.
+        lastTickNanos = appliedNanos;
         maxTickNanos = Math.max(maxTickNanos, lastTickNanos);
         double millis = lastTickNanos / 1_000_000.0D;
         rollingApplyMillis = rollingApplyMillis == 0.0D
@@ -182,7 +188,9 @@ public final class ElarionTaskService {
         if (lastTickNanos > maxServerApplyNanos) {
             slowServerApplyTicks.incrementAndGet();
         }
-        ElarionPerformanceMonitor.record("server-queue-apply", lastTickNanos);
+        if (applied > 0) {
+            ElarionPerformanceMonitor.record("server-queue-apply", lastTickNanos);
+        }
     }
 
     public Snapshot snapshot() {

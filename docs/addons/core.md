@@ -18,6 +18,7 @@ Team: Panetina Team
 - history and progression events
 - player stats
 - task queues
+- root-command extension registration and global player-interaction restriction gates
 - shared registries
 - read-only config descriptor registry
 - shared UI theme and notification HUD rail
@@ -69,6 +70,15 @@ detail text; and `underworld`, backed by the active Underworld service config
 snapshot; and `optimization`, backed by Core-owned task settings surfaced by
 the Optimization addon. Addons should register future domains through this
 registry instead of adding separate discovery systems.
+
+`ElarionApi.system().commands()` accepts both `/e` subcommands and intentionally
+rare top-level commands. Root suppliers remain Core-registered so addons do not
+install independent Fabric command callbacks. `ElarionApi.system().restrictions()`
+supports live-player restrictions plus UUID-only account restrictions for
+pre-entity admission decisions. Core's global block/entity/item/combat gates
+run before addon interaction callbacks; domain addons contribute policy but do
+not duplicate those gates. `queued_admission` is reserved for the future server
+admission queue.
 
 Core also owns config mutation-readiness contracts:
 `ElarionConfigChangeRequest`, `ElarionConfigChangeResult`,
@@ -202,7 +212,9 @@ world/elarion/addon-state/realms/
 website whitelist bridge. Core starts it only when the explicit configuration
 is valid and the server has both online mode and the whitelist enabled. The
 bridge performs bounded outbound HTTPS polling and applies mutations only on
-the server thread. See `docs/systems/MinecraftBridge.md`.
+the server thread. Its restart-safe state records only entries added by the
+bridge, so a manual console whitelist entry remains server-owned and cannot be
+removed by a stale website command. See `docs/systems/MinecraftBridge.md`.
 
 Character Lifecycle requires one preservation confirmation from existing
 citizens and fresh character creation from new accounts. Its mandatory client
@@ -284,6 +296,15 @@ validates every mutation. Destructive actions use a second click-confirm
 modal. `Reset Everything` is runtime-only: it invokes
 registered provider resets and must preserve configs, world files, placed
 blocks, NPC placements, portal endpoints, and player inventories.
+
+Core also owns the independent `/e reset players` coordinator. The command is
+OP level 4, preview-first, executor-bound, and expires its confirmation after
+60 seconds. It creates one timestamped backup before invoking domain-owned
+handlers. Core's Minecraft handler clears vanilla playerdata, statistics,
+advancements, `ops.json`, `whitelist.json`, and the persisted plus in-memory
+profile cache; registered Core/addon handlers remove only their player-owned
+records below `world/elarion`. Shared runtime/configuration state is never
+removed by scanning or deleting the entire Elarion tree.
 
 The Config tab shows read-only config descriptor rows from
 `ElarionApi.system().configs()`. It shows domain summary rows, per-category

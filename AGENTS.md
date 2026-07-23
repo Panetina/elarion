@@ -18,6 +18,13 @@ Do not read `docs/ai/archive/**`, `external/**`, or
 `addons/angling/reference/**` unless the user explicitly requests historical,
 upstream, or Angling-porting research.
 
+For explicitly requested Angling port work, the local reference is the
+owner-authorized source for code, content, edited artwork, models, sounds, and
+text. Port those files into proper Fabric/Elarion paths; do not package the raw
+checkout, NeoForge build metadata, or Git internals. No separate replacement-
+asset review is required for files supplied inside the authorized `Modding`
+tree.
+
 ## Ownership Map
 
 - `platform/core`: canonical shared truth and infrastructure, Worldheart,
@@ -31,7 +38,7 @@ upstream, or Angling-porting research.
 - `addons/offerings`: Shrines, Offering projects/progress/donations/milestones.
 - `addons/government`: civic blocks, forms, votes, offices, records, and
   authority presentation.
-- `addons/groups`: public groups, invites, tags, chat, Confederation hooks.
+- `addons/groups`: public groups, invites, tags, and group chat.
 - `addons/portals`: gates, routes, tickets, fields, and return entitlements.
 - `addons/worlds`: managed worlds, borders, abundance, and protection rules.
 - `addons/realms`: Realm protection behavior; Realm identity stays Core-owned.
@@ -39,11 +46,16 @@ upstream, or Angling-porting research.
   Fractures, and Core True Death handoff.
 - `addons/mounts`: native rideable mounts, Collection projection, input, and
   GeckoLib rendering.
+- `addons/atlas`: current client-only map shell; future Atlas rendering,
+  exploration projections, and personal tracking state.
 - `addons/names`, `addons/titles`: identity/title presentation.
 - `addons/optimization`, `addons/security`, `addons/angling`: diagnostics,
   evidence foundation, and fishing foundation.
-- Jail, Newspapers, Tablist, and Voice Chat Hooks remain shells unless current
+- Atlas, Jail, Newspapers, Tablist, and Voice Chat Hooks remain shells unless current
   source/docs say otherwise.
+- `distribution/mods.json` owns pinned third-party client/server artifacts;
+  `docs/systems/Distribution.md` owns export, launcher-manifest, config-update,
+  and managed-development synchronization contracts.
 
 ## Required Patterns
 
@@ -73,6 +85,13 @@ upstream, or Angling-porting research.
   expiry/action ownership for every addon behavior changed.
 - Run focused compile/tests during iteration. Run `gradlew build` only when the
   change crosses modules or before final handoff.
+- Export scope rule: when a mod, mod resource, or mod-owned config changes,
+  build that module and update only its corresponding artifact/config in the
+  export roots. Do not run the full `exportMods` task for a single-mod change;
+  it rewrites timestamps/metadata for unrelated files and makes upload review
+  ambiguous. Keep a changed-file list and verify hashes for the changed files.
+  Run the full export only when explicitly requested, when the distribution
+  manifest changes, or when a cross-module release requires it.
 - Apply the documentation matrix in `RULES.md`; do not create unindexed
   Markdown islands.
 

@@ -25,6 +25,8 @@ import panetina.elarion.addons.mounts.service.MountSessionService;
 import panetina.elarion.addons.mounts.service.MountProfileContributor;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
 import panetina.elarion.core.model.ElarionCollectionAction;
 import panetina.elarion.core.model.ElarionCollectionEntry;
 import panetina.elarion.core.model.ElarionCollectionTab;
@@ -71,6 +73,21 @@ public final class ElarionMountsAddon implements ElarionAddon {
         api.system().collections().registerTab(new MountCollectionTabProvider(api));
         api.system().profiles().registerContributor(new MountProfileContributor(COLLECTIONS));
         api.system().adminPanel().registerProvider(new MountAdminPanelProvider(COLLECTIONS, SESSIONS));
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_mounts"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return java.util.Map.of();
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                return java.util.List.of(panetina.elarion.core.storage.JsonStateStorage.addonStateRoot(server, "mounts"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                java.util.Map<String, Long> changed = new java.util.LinkedHashMap<>();
+                changed.put("mountSessions", (long) SESSIONS.resetAll());
+                changed.put("mountCollections", (long) COLLECTIONS.resetAll());
+                return new PlayerResetResult(changed);
+            }
+        });
         ServerTickEvents.END_SERVER_TICK.register(SESSIONS::tick);
         ServerLifecycleEvents.SERVER_STARTED.register(COLLECTIONS::bind);
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {

@@ -30,6 +30,10 @@ import panetina.elarion.addons.portals.service.PortalSelectionService;
 import panetina.elarion.addons.portals.storage.PortalStorage;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetHandler;
+import panetina.elarion.core.api.reset.PlayerResetResult;
+import panetina.elarion.core.api.reset.WorldResetHandler;
+import panetina.elarion.core.api.reset.WorldResetResult;
 
 public final class ElarionPortalsAddon implements ElarionAddon {
     private static final Logger LOGGER = LoggerFactory.getLogger("elarion_portals");
@@ -50,6 +54,31 @@ public final class ElarionPortalsAddon implements ElarionAddon {
         PortalRouteService routes = new PortalRouteService(
                 LOGGER, api, definitions, new PortalStorage(LOGGER));
         new ElarionPortalsApi(definitions, routes);
+        api.system().playerResets().register(new PlayerResetHandler() {
+            @Override public String id() { return "elarion_portals"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server) {
+                return java.util.Map.of();
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server) {
+                return java.util.List.of(panetina.elarion.core.storage.JsonStateStorage
+                        .addonStateRoot(server, "portals").resolve("state.json"));
+            }
+            @Override public PlayerResetResult reset(panetina.elarion.core.api.reset.PlayerResetContext context) {
+                return PlayerResetResult.of("portalPlayerRecords", routes.resetAllPlayerState());
+            }
+        });
+        api.system().worldResets().register(new WorldResetHandler() {
+            @Override public String id() { return "elarion_portals"; }
+            @Override public java.util.Map<String, Long> preview(net.minecraft.server.MinecraftServer server, String worldId) {
+                return java.util.Map.of();
+            }
+            @Override public java.util.List<java.nio.file.Path> backupTargets(net.minecraft.server.MinecraftServer server, String worldId) {
+                return java.util.List.of(panetina.elarion.core.storage.JsonStateStorage.addonStateRoot(server, "portals").resolve("state.json"));
+            }
+            @Override public WorldResetResult reset(panetina.elarion.core.api.reset.WorldResetContext context) {
+                return WorldResetResult.of("portalRoutes", routes.deleteWorldEndpoints(context.worldId()));
+            }
+        });
         api.publicHistory().registerRenderer(PortalChronicleText.INSTANCE);
         api.system().profiles().registerContributor(new PortalProfileContributor(api.playerStats()));
         PortalConfigDescriptors.register(api.system().configs(), definitions::all, definitions::ui);
