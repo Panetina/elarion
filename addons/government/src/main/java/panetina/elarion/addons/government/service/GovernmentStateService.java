@@ -23,12 +23,10 @@ import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.ElarionDomainEvent;
 import panetina.elarion.core.model.RealmDefinition;
 import panetina.elarion.core.model.RealmPresentation;
-import panetina.elarion.core.model.ElarionNotificationAction;
 import panetina.elarion.core.model.ElarionNotificationCategory;
 import panetina.elarion.core.model.PublicHistoryConsumer;
 import panetina.elarion.core.model.PublicHistoryEntry;
 import panetina.elarion.core.model.PublicHistoryQuery;
-import panetina.elarion.core.service.ElarionNotificationService;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -47,7 +45,6 @@ public final class GovernmentStateService {
     private static final Duration RUNOFF_VOTE_DURATION = Duration.ofHours(12);
     private static final int VOTE_RESOLUTION_INTERVAL_TICKS = 20;
     private static final String SOURCE_SYSTEM = "elarion_government";
-    private static final String OPEN_CIVIC_FORUM_ACTION = "elarion_government:open_civic_forum";
     private static final String NOTIFICATION_ICON = "realm";
     private static final Map<String, String> AUTHORITY_TITLE_IDS = Map.of(
             "monarch", "government_monarch",
@@ -1779,12 +1776,12 @@ public final class GovernmentStateService {
                 ElarionNotificationCategory.GOVERNMENT,
                 SOURCE_SYSTEM,
                 "vote-stage",
-                realmId + ":" + dedupe,
+                GovernmentNotificationPolicy.voteStageDedupe(realmId, dedupe),
                 title,
                 body,
                 "Civic Forum",
                 NOTIFICATION_ICON,
-                governmentNotificationActions(Map.of("realmId", realmId)),
+                GovernmentNotificationPolicy.actions(Map.of("realmId", realmId)),
                 Map.of("realmId", realmId),
                 expiresAt);
     }
@@ -1808,24 +1805,16 @@ public final class GovernmentStateService {
                 body,
                 "Government",
                 NOTIFICATION_ICON,
-                governmentNotificationActions(metadata),
+                GovernmentNotificationPolicy.actions(metadata),
                 metadata,
                 api.notifications().defaultExpiry());
-    }
-
-    private static List<ElarionNotificationAction> governmentNotificationActions(Map<String, String> metadata) {
-        if (metadata != null && !metadata.getOrDefault("realmId", "").isBlank()) {
-            return List.of(
-                    new ElarionNotificationAction(OPEN_CIVIC_FORUM_ACTION, "Open Forum", true),
-                    new ElarionNotificationAction(ElarionNotificationService.DISMISS, "Dismiss", true));
-        }
-        return List.of(new ElarionNotificationAction(ElarionNotificationService.DISMISS, "Dismiss", true));
     }
 
     private void notifyAuthority(String realmId, String title, String body, String dedupe, Map<String, String> metadata) {
         Set<UUID> holders = authorityHolders(realmId);
         for (UUID holder : holders) {
-            notifyPersonal(holder, "authority-review", realmId + ":" + dedupe + ":" + holder,
+            notifyPersonal(holder, "authority-review",
+                    GovernmentNotificationPolicy.authorityReviewDedupe(realmId, dedupe, holder),
                     title, body, metadata);
         }
     }
@@ -1841,14 +1830,13 @@ public final class GovernmentStateService {
         RealmGovernmentState government = realm(realmId);
         if (government.activeGovernmentFormId().isBlank()) return;
         GovernmentFormDefinition form = definitions.require(government.activeGovernmentFormId());
-        Set<UUID> recipients;
-        if ("republic".equals(form.id()) && "law".equals(category)) {
-            recipients = government.officeHolders().getOrDefault("president", Set.of());
-        } else {
-            recipients = proposalDecisionMakers(government, form);
-        }
+        Set<UUID> recipients = GovernmentNotificationPolicy.initialProposalReviewers(
+                form.id(), category,
+                government.officeHolders().getOrDefault("president", Set.of()),
+                proposalDecisionMakers(government, form));
         for (UUID holder : recipients) {
-            notifyPersonal(holder, "authority-review", realmId + ":" + dedupe + ":" + holder,
+            notifyPersonal(holder, "authority-review",
+                    GovernmentNotificationPolicy.authorityReviewDedupe(realmId, dedupe, holder),
                     title, body, metadata);
         }
     }

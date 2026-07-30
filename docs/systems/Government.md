@@ -20,6 +20,7 @@ or treasury spending.
 - `addons/government/.../GovernmentBlockInteractions.java`
 - `addons/government/.../service/GovernmentStateService.java`
 - `addons/government/.../service/GovernmentProposalDecisionPolicy.java`
+- `addons/government/.../service/GovernmentNotificationPolicy.java`
 - `addons/government/.../service/GovernmentDefinitionService.java`
 - `addons/government/.../service/GovernmentUiSessionService.java`
 - `addons/government/.../command/GovernmentCommands.java`
