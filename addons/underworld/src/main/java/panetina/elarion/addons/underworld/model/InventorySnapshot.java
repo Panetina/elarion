@@ -22,6 +22,7 @@ public final class InventorySnapshot {
 
     public InventorySnapshot normalized() {
         if (stacks == null) stacks = new ArrayList<>();
+        else stacks.removeIf(stack -> stack == null);
         if (selectedHotbarSlot < -1 || selectedHotbarSlot > 8) selectedHotbarSlot = -1;
         if (experienceLevel < 0) experienceLevel = 0;
         if (totalExperience < 0) totalExperience = 0;

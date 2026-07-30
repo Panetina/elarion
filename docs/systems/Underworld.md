@@ -49,6 +49,11 @@ migrate forward with empty inventory-boundary maps; unsupported versions fail cl
 and the shared storage layer quarantines
 the unreadable snapshot before fallback state can be saved.
 
+Supported snapshots normalize null collections, nested item lists, and nullable
+record fields before bind. Structurally unusable null/blank rows are discarded
+without losing valid corpse, session, soul, vault, banishment, or inventory
+state from the same parsed snapshot.
+
 ## Dependencies
 
 - Core: citizens, realm spawns, task queue, domain events, root command

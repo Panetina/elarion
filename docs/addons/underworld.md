@@ -68,6 +68,11 @@ precipitation visuals after their authoritative weather has been cleared.
 The archive folder retains minimal Underworld-side backup metadata. Canonical
 character archives and reset progress live in Core Character Lifecycle state.
 
+Supported snapshots normalize null collections, nested item lists, and nullable
+record fields before bind. Structurally unusable null/blank rows are discarded
+without losing valid corpse, session, soul, vault, banishment, or inventory
+state from the same parsed snapshot.
+
 Runtime state schema v3 adds separate bounded `afterlifeInventories` and
 `livingInventories` maps keyed by account UUID. Schema v2's bounded
 `banishments` map remains keyed by account UUID.

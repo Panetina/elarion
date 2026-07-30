@@ -1,10 +1,11 @@
 package panetina.elarion.addons.underworld.storage;
 
-import panetina.elarion.addons.underworld.model.CorpseRecord;
 import panetina.elarion.addons.underworld.model.BanishmentRecord;
+import panetina.elarion.addons.underworld.model.CorpseRecord;
+import panetina.elarion.addons.underworld.model.ElarionDeathType;
+import panetina.elarion.addons.underworld.model.InventorySnapshot;
 import panetina.elarion.addons.underworld.model.SoulState;
 import panetina.elarion.addons.underworld.model.StoredItemStack;
-import panetina.elarion.addons.underworld.model.InventorySnapshot;
 import panetina.elarion.addons.underworld.model.UnderworldSession;
 
 import java.util.ArrayList;
@@ -39,13 +40,59 @@ public final class UnderworldState {
         if (banishments == null) banishments = new LinkedHashMap<>();
         if (afterlifeInventories == null) afterlifeInventories = new LinkedHashMap<>();
         if (livingInventories == null) livingInventories = new LinkedHashMap<>();
-        afterlifeInventories.values().removeIf(snapshot -> snapshot == null);
-        livingInventories.values().removeIf(snapshot -> snapshot == null);
+        corpses.entrySet().removeIf(entry -> !validKey(entry.getKey()) || entry.getValue() == null);
+        corpses.forEach((corpseId, corpse) -> normalizeCorpse(corpseId, corpse));
+        sessions.entrySet().removeIf(entry -> !validKey(entry.getKey()) || entry.getValue() == null);
+        sessions.forEach((playerId, session) -> {
+            session.playerId = valueOrKey(session.playerId, playerId);
+            session.corpseId = clean(session.corpseId);
+            if (session.deathType == null) {
+                session.deathType = ElarionDeathType.UNKNOWN;
+            }
+        });
+        souls.entrySet().removeIf(entry -> !validKey(entry.getKey()) || entry.getValue() == null);
+        souls.forEach((playerId, soul) -> soul.playerId = valueOrKey(soul.playerId, playerId));
+        recoveryVaults.entrySet().removeIf(entry -> !validKey(entry.getKey()) || entry.getValue() == null);
+        recoveryVaults.values().forEach(items -> items.removeIf(item -> item == null));
+        banishments.entrySet().removeIf(entry -> !validKey(entry.getKey()) || entry.getValue() == null);
+        banishments.forEach((playerId, record) -> {
+            record.normalized();
+            record.playerId = valueOrKey(record.playerId, playerId);
+        });
+        afterlifeInventories.entrySet().removeIf(entry -> !validKey(entry.getKey()) || entry.getValue() == null);
+        livingInventories.entrySet().removeIf(entry -> !validKey(entry.getKey()) || entry.getValue() == null);
         afterlifeInventories.values().forEach(InventorySnapshot::normalized);
         livingInventories.values().forEach(InventorySnapshot::normalized);
-        banishments.values().forEach(record -> {
-            if (record != null) record.normalized();
-        });
         return this;
+    }
+
+    private static void normalizeCorpse(String corpseId, CorpseRecord corpse) {
+        corpse.corpseId = valueOrKey(corpse.corpseId, corpseId);
+        corpse.victimId = clean(corpse.victimId);
+        corpse.victimName = clean(corpse.victimName);
+        corpse.killerId = clean(corpse.killerId);
+        corpse.worldId = clean(corpse.worldId);
+        corpse.victimRealmId = clean(corpse.victimRealmId);
+        corpse.tombstoneVariant = clean(corpse.tombstoneVariant);
+        if (corpse.deathType == null) {
+            corpse.deathType = ElarionDeathType.UNKNOWN;
+        }
+        if (corpse.protectedVictimItems == null) corpse.protectedVictimItems = new ArrayList<>();
+        else corpse.protectedVictimItems.removeIf(item -> item == null);
+        if (corpse.pvpLootItems == null) corpse.pvpLootItems = new ArrayList<>();
+        else corpse.pvpLootItems.removeIf(item -> item == null);
+    }
+
+    private static String valueOrKey(String value, String key) {
+        String clean = clean(value);
+        return clean.isBlank() ? key : clean;
+    }
+
+    private static String clean(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static boolean validKey(String key) {
+        return key != null && !key.isBlank();
     }
 }

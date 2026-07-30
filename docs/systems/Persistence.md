@@ -66,6 +66,10 @@ Mount Collection state normalizes null player maps and nested mount ids before
 bind, discarding null player rows while retaining valid unlocks from the same
 successfully parsed snapshot.
 
+Underworld normalizes supported-schema null collections, nested item lists, and
+nullable record fields before bind, discarding unusable null/blank rows while
+retaining valid death/session state from the same parsed snapshot.
+
 Do not duplicate this system by creating: ad hoc file writers or gameplay code that parses config on interaction.
 
 ## Proposed NPC Trade State
