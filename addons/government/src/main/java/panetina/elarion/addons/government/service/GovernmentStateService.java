@@ -863,10 +863,6 @@ public final class GovernmentStateService {
                 : rejectProposal(player, realm, updated);
     }
 
-    static GovernmentProposalStatus initialProposalStatus(String formId, String category) {
-        return GovernmentProposalStatus.PENDING;
-    }
-
     public GovernmentProposalRecord ratifyProposal(
             ServerPlayerEntity player,
             String realmId,
@@ -2333,30 +2329,6 @@ public final class GovernmentStateService {
             }
         }
         return changed;
-    }
-
-    private boolean reconcileLegacyRepublicPetitions() {
-        boolean changed = false;
-        long now = System.currentTimeMillis();
-        for (GovernmentProposalRecord proposal : new ArrayList<>(state.proposals.values())) {
-            RealmGovernmentState government = state.realms.get(proposal.realmId());
-            if (!shouldMigrateLegacyRepublicPetition(government, proposal)) continue;
-            GovernmentProposalRecord migrated = proposal.withStatus(
-                    GovernmentProposalStatus.CITIZEN_RATIFICATION, null, now);
-            state.proposals.put(proposal.id(), migrated);
-            if (government != null && !government.pendingProposalIds().contains(proposal.id())) {
-                state.realms.put(proposal.realmId(), government.withPendingProposal(proposal.id()));
-            }
-            changed = true;
-        }
-        return changed;
-    }
-
-    static boolean shouldMigrateLegacyRepublicPetition(
-            RealmGovernmentState government,
-            GovernmentProposalRecord proposal
-    ) {
-        return false;
     }
 
     private boolean reconcileResolvedColorVotes() {
