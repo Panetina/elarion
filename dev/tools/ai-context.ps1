@@ -268,6 +268,25 @@ $catalog = Get-Content -Raw -LiteralPath $routePath | ConvertFrom-Json
 
 $crossModule = $false
 $taskLower = $Task.ToLowerInvariant()
+$broadScopeIndicators = @(
+    'cross-module', 'cross module', 'repository-wide', 'repository wide',
+    'project-wide', 'project wide', 'whole repository', 'all modules',
+    'toate modulele', 'build', 'gradle', 'compile', 'compilation',
+    'compilare', 'documenta', 'status', 'context routing', 'rutare context'
+)
+$matchedBroadScopeIndicators = @($broadScopeIndicators | Where-Object {
+    $taskLower.Contains($_)
+} | Select-Object -Unique)
+$explicitBroadScope = $taskLower.Contains('cross-module') -or
+        $taskLower.Contains('cross module') -or
+        $taskLower.Contains('repository-wide') -or
+        $taskLower.Contains('repository wide') -or
+        $taskLower.Contains('project-wide') -or
+        $taskLower.Contains('project wide') -or
+        $taskLower.Contains('whole repository') -or
+        $taskLower.Contains('all modules') -or
+        $taskLower.Contains('toate modulele')
+$requiresBroadCoverage = $explicitBroadScope -or $matchedBroadScopeIndicators.Count -ge 2
 $scoredRoutes = foreach ($route in $catalog.domains) {
     $score = 0
     foreach ($keyword in $route.keywords) {
@@ -300,9 +319,13 @@ $candidates = @{}
 $terms = Get-SearchTerms -Text $Task
 $rgPath = Get-ExistingCommand -Names @('rg')
 $omissions = New-Object System.Collections.Generic.List[string]
+$routeCoverageInsufficient = $requiresBroadCoverage -and $selectedRoutes.Count -lt 2
 
 if ($selectedRoutes.Count -eq 0) {
     $omissions.Add('No task domain matched docs/ai/routes.json; add a precise domain or identifier.')
+}
+if ($routeCoverageInsufficient) {
+    $omissions.Add('Broad or cross-module task matched fewer than two domains; use repository discovery or narrow the task before editing.')
 }
 
 if ($null -eq $rgPath) {
@@ -463,7 +486,7 @@ foreach ($candidate in $outlineCandidates) {
 }
 
 $confidence = 'high'
-if ($selectedRoutes.Count -eq 0 -or $null -eq $rgPath -or $docSections.Count -eq 0) {
+if ($selectedRoutes.Count -eq 0 -or $routeCoverageInsufficient -or $null -eq $rgPath -or $docSections.Count -eq 0) {
     $confidence = 'insufficient'
 } elseif ($pivots.Count -eq 0) {
     $confidence = if ($Mode -eq 'explore') { 'medium' } else { 'insufficient' }

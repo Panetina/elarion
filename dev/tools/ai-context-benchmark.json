@@ -108,6 +108,63 @@
       "expectedRoutes": ["core"],
       "requiredPaths": ["platform/core/src/main/java/panetina/elarion/core/api/ElarionApi.java"],
       "requiredDocs": ["docs/architecture/DEPENDENCY_GRAPH.md"]
+    },
+    {
+      "id": "romanian-npc-class",
+      "task": "investigheaza NpcStoryStateStorage pentru sistemul NPC dupa repornire",
+      "mode": "explore",
+      "budgetTokens": 6000,
+      "expectedRoutes": ["npcs"],
+      "requiredPaths": ["addons/npcs/src/main/java/panetina/elarion/addons/npcs/storage/NpcStoryStateStorage.java"],
+      "requiredDocs": ["docs/systems/NPCs.md"]
+    },
+    {
+      "id": "exact-government-class",
+      "task": "refactor GovernmentStateService government vote lifecycle",
+      "mode": "refactor",
+      "budgetTokens": 7000,
+      "expectedRoutes": ["government"],
+      "requiredPaths": ["addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentStateService.java"],
+      "requiredDocs": ["docs/systems/Government.md"]
+    },
+    {
+      "id": "cross-module-government-economy",
+      "task": "trace cross-module GovernmentStateService economy tax treasury ownership",
+      "mode": "explore",
+      "budgetTokens": 12000,
+      "expectedRoutes": ["government", "economy"],
+      "requiredPaths": ["addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentStateService.java"],
+      "requiredDocs": ["docs/systems/Government.md", "docs/addons/economy.md"]
+    },
+    {
+      "id": "broad-consolidation-refusal",
+      "task": "repair build tests ownership persistence documentation status context routing across Elarion modules",
+      "mode": "refactor",
+      "budgetTokens": 12000,
+      "expectedConfidence": "insufficient",
+      "expectedRoutes": ["persistence"],
+      "requiredPaths": [],
+      "requiredDocs": []
+    },
+    {
+      "id": "build-routing-refusal",
+      "task": "repair Gradle build compilation for all modules",
+      "mode": "change",
+      "budgetTokens": 6000,
+      "expectedConfidence": "insufficient",
+      "expectedRoutes": [],
+      "requiredPaths": [],
+      "requiredDocs": []
+    },
+    {
+      "id": "documentation-routing-refusal",
+      "task": "consolideaza documentatia si statusul proiectului",
+      "mode": "change",
+      "budgetTokens": 6000,
+      "expectedConfidence": "insufficient",
+      "expectedRoutes": [],
+      "requiredPaths": [],
+      "requiredDocs": []
     }
   ]
 }

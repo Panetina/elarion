@@ -109,14 +109,20 @@ $results = New-Object System.Collections.Generic.List[object]
 $aggregateCapsuleCharacters = 0
 
 foreach ($case in $benchmark.cases) {
+    $expectedConfidence = if ($case.PSObject.Properties.Name -contains 'expectedConfidence') {
+        [string]$case.expectedConfidence
+    } else {
+        'high'
+    }
+    $expectedExitCode = if ($expectedConfidence -eq 'insufficient') { 2 } else { 0 }
     $watch = [Diagnostics.Stopwatch]::StartNew()
     $output = & powershell -NoProfile -ExecutionPolicy Bypass -File $contextScript `
         -Task ([string]$case.task) -Mode ([string]$case.mode) `
         -BudgetTokens ([int]$case.budgetTokens) -Format json 2>$null
     $exitCode = $LASTEXITCODE
     $watch.Stop()
-    if ($exitCode -ne 0) {
-        Add-Failure "Benchmark $($case.id) returned exit code $exitCode"
+    if ($exitCode -ne $expectedExitCode) {
+        Add-Failure "Benchmark $($case.id) returned exit code $exitCode, expected $expectedExitCode"
         continue
     }
     try {
@@ -125,8 +131,8 @@ foreach ($case in $benchmark.cases) {
         Add-Failure "Benchmark $($case.id) returned invalid JSON"
         continue
     }
-    if ($capsule.confidence -ne 'high') {
-        Add-Failure "Benchmark $($case.id) confidence was $($capsule.confidence), expected high"
+    if ($capsule.confidence -ne $expectedConfidence) {
+        Add-Failure "Benchmark $($case.id) confidence was $($capsule.confidence), expected $expectedConfidence"
     }
     foreach ($route in $case.expectedRoutes) {
         if ($capsule.routes -notcontains $route) {
