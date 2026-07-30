@@ -11,8 +11,8 @@ bounded context command and `docs/ai/routes.json` to select task material.
 2. `AGENTS.md`
 3. `CODEX.md`
 4. `INDEX.md`
-5. `TODO.md`
-6. `PLAN.md`
+5. `PLAN.md`
+6. `TODO.md`
 7. `PLANS.md`
 8. `LORE.md`
 9. `OPTIMIZATION_TRACKER.md`
@@ -52,6 +52,7 @@ bounded context command and `docs/ai/routes.json` to select task material.
 - [PLANS.md](PLANS.md)
 - [LORE.md](LORE.md)
 - [OPTIMIZATION_TRACKER.md](OPTIMIZATION_TRACKER.md)
+- [Superseded implementation protocol redirect](docs/IMPLEMENTATION_PROTOCOL.md)
 
 ## Architecture
 
@@ -482,8 +483,10 @@ bounded context command and `docs/ai/routes.json` to select task material.
 
 ## Working Rule
 
-If a document conflicts with source, update the document instead of building on
-the stale text.
+Source and tests establish current behavior. `RULES.md` and accepted decisions
+establish approved behavior. When they conflict, determine whether the cause is
+a bug, regression, incomplete migration, partial implementation, stale
+documentation, or an unrecorded decision before changing either side.
 
 Every addon follows the Core domain-event and notification contract in
 `RULES.md` and `docs/addons/core.md`. Addon docs record meaningful emitted
