@@ -157,6 +157,9 @@ world/elarion/addon-state/offerings/
 
 `state.json` is the compact canonical addon snapshot. `projects.json` and
 `anchors.json` are operator-readable snapshots of the same runtime data.
+Supported snapshots normalize null collections and retain valid project,
+anchor, Realm-flag, counter, and donation rows while discarding structurally
+unusable rows before the runtime service binds.
 
 Donation history retains at most 50 records per instance. Shrine UI snapshots
 send at most the newest 20 records. Full long-term public meaning belongs in

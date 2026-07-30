@@ -20,17 +20,45 @@ public final class OfferingState {
 
     public OfferingState copy() {
         OfferingState copy = new OfferingState();
-        copy.instances = new LinkedHashMap<>(instances);
-        copy.anchors = new LinkedHashMap<>(anchors);
-        copy.realmFlags = new LinkedHashMap<>();
-        for (Map.Entry<String, Set<String>> entry : realmFlags.entrySet()) {
-            copy.realmFlags.put(entry.getKey(), new LinkedHashSet<>(entry.getValue()));
+        if (instances != null) {
+            instances.forEach((id, instance) -> {
+                if (validKey(id) && instance != null) copy.instances.put(id, instance);
+            });
         }
-        copy.projectCounters = new LinkedHashMap<>(projectCounters);
-        copy.donations = new LinkedHashMap<>();
-        for (Map.Entry<String, List<OfferingDonationRecord>> entry : donations.entrySet()) {
-            copy.donations.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        if (anchors != null) {
+            anchors.forEach((id, anchor) -> {
+                if (validKey(id) && anchor != null) copy.anchors.put(id, anchor);
+            });
+        }
+        if (realmFlags != null) {
+            realmFlags.forEach((realmId, flags) -> {
+                if (!validKey(realmId) || flags == null) return;
+                LinkedHashSet<String> validFlags = new LinkedHashSet<>();
+                flags.forEach(flag -> {
+                    if (validKey(flag)) validFlags.add(flag);
+                });
+                copy.realmFlags.put(realmId, validFlags);
+            });
+        }
+        if (projectCounters != null) {
+            projectCounters.forEach((projectId, counter) -> {
+                if (validKey(projectId) && counter != null) copy.projectCounters.put(projectId, counter);
+            });
+        }
+        if (donations != null) {
+            donations.forEach((instanceId, records) -> {
+                if (!validKey(instanceId) || records == null) return;
+                ArrayList<OfferingDonationRecord> validRecords = new ArrayList<>();
+                records.forEach(record -> {
+                    if (record != null) validRecords.add(record);
+                });
+                copy.donations.put(instanceId, validRecords);
+            });
         }
         return copy;
+    }
+
+    private static boolean validKey(String key) {
+        return key != null && !key.isBlank();
     }
 }

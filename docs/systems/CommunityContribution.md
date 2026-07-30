@@ -13,7 +13,10 @@ Network packets: `ShrineUiOpenPayload`, `ShrineContributionSubmitPayload`.
 GUI/screens: `ShrineOfFoundationScreen`, using the shared civic shell, selected
 tabs, compact rows, reward slots, numeric modal, and native item tooltips.
 
-Storage/persistence: `world/elarion/addon-state/offerings/state.json`, `projects.json`, `anchors.json`.
+Storage/persistence: `world/elarion/addon-state/offerings/state.json`,
+`projects.json`, `anchors.json`. Recoverable null collections/rows are
+normalized before bind so valid project progress from the same parsed snapshot
+remains available.
 
 Config reload safety: Offering project definitions and Shrine UI config are
 committed as one service snapshot. A failed second-stage UI load preserves the

@@ -58,6 +58,10 @@ Portals likewise normalizes null collections and discards unusable null/blank
 route, return-entitlement, and free-passage rows before bind, retaining valid
 rows from the same successfully parsed snapshot.
 
+Offerings normalizes null collections and discards unusable null/blank project,
+anchor, Realm-flag, counter, and donation rows before bind, retaining valid
+rows from the same successfully parsed snapshot.
+
 Do not duplicate this system by creating: ad hoc file writers or gameplay code that parses config on interaction.
 
 ## Proposed NPC Trade State
