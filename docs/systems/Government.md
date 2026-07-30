@@ -19,6 +19,7 @@ or treasury spending.
 - `addons/government/.../ElarionGovernmentAddon.java`
 - `addons/government/.../GovernmentBlockInteractions.java`
 - `addons/government/.../service/GovernmentStateService.java`
+- `addons/government/.../service/GovernmentAuthorityTitlePolicy.java`
 - `addons/government/.../service/GovernmentProposalDecisionPolicy.java`
 - `addons/government/.../service/GovernmentNotificationPolicy.java`
 - `addons/government/.../service/GovernmentDefinitionService.java`

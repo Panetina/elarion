@@ -46,14 +46,6 @@ public final class GovernmentStateService {
     private static final int VOTE_RESOLUTION_INTERVAL_TICKS = 20;
     private static final String SOURCE_SYSTEM = "elarion_government";
     private static final String NOTIFICATION_ICON = "realm";
-    private static final Map<String, String> AUTHORITY_TITLE_IDS = Map.of(
-            "monarch", "government_monarch",
-            "heir", "government_heir",
-            "president", "government_president",
-            "officer", "government_officer");
-    private static final List<String> AUTHORITY_TITLE_PRIORITY = List.of(
-            "monarch", "president", "heir", "officer");
-    private static final Set<String> AUTHORITY_TITLE_VALUES = Set.copyOf(AUTHORITY_TITLE_IDS.values());
     private final ElarionApi api;
     private final GovernmentDefinitionService definitions;
     private final GovernmentStorage storage;
@@ -583,10 +575,6 @@ public final class GovernmentStateService {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown Ember " + citizenId));
         if (!normalizedRealm.equals(citizen.realmId())) {
             throw new IllegalArgumentException("Office holder must belong to the Realm.");
-        }
-        String conflict = republicOfficeConflict(form.id(), officeId, realm(normalizedRealm), citizenId);
-        if (!conflict.isBlank()) {
-            throw new IllegalArgumentException(conflict);
         }
         Set<UUID> current = realm(normalizedRealm).officeHolders().getOrDefault(officeId, Set.of());
         if (!current.contains(citizenId) && current.size() >= office.maxHolders()) {
@@ -1279,13 +1267,13 @@ public final class GovernmentStateService {
     }
 
     private void applyAuthorityTitle(String realmId, Map<String, Set<UUID>> offices, UUID citizenId) {
-        String titleId = highestAuthorityTitleId(offices, citizenId);
+        String titleId = GovernmentAuthorityTitlePolicy.highestTitleId(offices, citizenId);
         if (titleId.isBlank() || api.titles().find(titleId).isEmpty()) return;
         api.citizens().find(citizenId).ifPresent(citizen -> {
             String restoreKey = authorityTitleRestoreKey(realmId, citizenId);
             String activeTitle = citizen.activeTitleId();
             if (!state.authorityTitleRestores.containsKey(restoreKey)
-                    && !AUTHORITY_TITLE_VALUES.contains(activeTitle)) {
+                    && !GovernmentAuthorityTitlePolicy.isTemporaryTitle(activeTitle)) {
                 state.authorityTitleRestores.put(restoreKey, activeTitle);
             }
             boolean changed = false;
@@ -1297,7 +1285,7 @@ public final class GovernmentStateService {
                 citizen.setActiveTitleId(titleId);
                 changed = true;
             }
-            if (removeAuthorityTitleUnlocks(citizen, titleId)) {
+            if (GovernmentAuthorityTitlePolicy.removeTemporaryUnlocks(citizen, titleId)) {
                 changed = true;
             }
             if (changed) api.citizens().save(citizen, "government-authority-title-set");
@@ -1309,7 +1297,7 @@ public final class GovernmentStateService {
     }
 
     private void restoreOrPromoteAuthorityTitle(String realmId, Map<String, Set<UUID>> offices, UUID citizenId) {
-        String remainingTitleId = highestAuthorityTitleId(offices, citizenId);
+        String remainingTitleId = GovernmentAuthorityTitlePolicy.highestTitleId(offices, citizenId);
         if (!remainingTitleId.isBlank()) {
             applyAuthorityTitle(realmId, offices, citizenId);
             return;
@@ -1317,9 +1305,9 @@ public final class GovernmentStateService {
         String restoreKey = authorityTitleRestoreKey(realmId, citizenId);
         String previousTitleId = state.authorityTitleRestores.remove(restoreKey);
         api.citizens().find(citizenId).ifPresent(citizen -> {
-            boolean changed = removeAuthorityTitleUnlocks(citizen, "");
+            boolean changed = GovernmentAuthorityTitlePolicy.removeTemporaryUnlocks(citizen, "");
             if (previousTitleId == null) {
-                if (AUTHORITY_TITLE_VALUES.contains(citizen.activeTitleId())) {
+                if (GovernmentAuthorityTitlePolicy.isTemporaryTitle(citizen.activeTitleId())) {
                     citizen.clearActiveTitle();
                     changed = true;
                 }
@@ -1377,31 +1365,6 @@ public final class GovernmentStateService {
 
     private void clearAuthorityTitleRestore(String realmId, UUID citizenId) {
         state.authorityTitleRestores.remove(authorityTitleRestoreKey(realmId, citizenId));
-    }
-
-    private String highestAuthorityTitleId(Map<String, Set<UUID>> offices, UUID citizenId) {
-        for (String officeId : AUTHORITY_TITLE_PRIORITY) {
-            if (offices.getOrDefault(officeId, Set.of()).contains(citizenId)) {
-                return AUTHORITY_TITLE_IDS.getOrDefault(officeId, "");
-            }
-        }
-        return offices.entrySet().stream()
-                .filter(entry -> entry.getValue().contains(citizenId))
-                .map(entry -> AUTHORITY_TITLE_IDS.getOrDefault(entry.getKey(), ""))
-                .filter(titleId -> !titleId.isBlank())
-                .findFirst()
-                .orElse("");
-    }
-
-    static boolean removeAuthorityTitleUnlocks(CitizenRecord citizen, String keepTitleId) {
-        String keep = keepTitleId == null ? "" : keepTitleId.trim().toLowerCase(java.util.Locale.ROOT);
-        boolean changed = false;
-        for (String titleId : List.copyOf(citizen.unlockedTitleIds())) {
-            if (!AUTHORITY_TITLE_VALUES.contains(titleId) || titleId.equals(keep)) continue;
-            citizen.revokeTitle(titleId);
-            changed = true;
-        }
-        return changed;
     }
 
     private static String authorityTitleRestoreKey(String realmId, UUID citizenId) {
@@ -1727,16 +1690,6 @@ public final class GovernmentStateService {
         Map<String, Set<UUID>> result = new LinkedHashMap<>();
         state.officeHolders().forEach((office, holders) -> result.put(office, new LinkedHashSet<>(holders)));
         return result;
-    }
-
-    static String republicOfficeConflict(
-            String formId,
-            String targetOfficeId,
-            RealmGovernmentState state,
-            UUID citizenId
-    ) {
-        if (!"republic".equals(formId) || state == null || citizenId == null) return "";
-        return "";
     }
 
     private void recordAuthorityRemoval(String realmId, String formId, String officeId, UUID citizenId) {

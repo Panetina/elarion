@@ -1,7 +1,6 @@
 package panetina.elarion.addons.government.service;
 
 import org.junit.jupiter.api.Test;
-import panetina.elarion.addons.government.model.RealmGovernmentState;
 import panetina.elarion.core.model.CitizenRecord;
 
 import java.util.Map;
@@ -21,7 +20,7 @@ final class GovernmentAuthorityTitleTest {
         citizen.unlockTitle("government_officer", 1L);
         citizen.setActiveTitleId("government_president");
 
-        boolean changed = GovernmentStateService.removeAuthorityTitleUnlocks(citizen, "government_officer");
+        boolean changed = GovernmentAuthorityTitlePolicy.removeTemporaryUnlocks(citizen, "government_officer");
 
         assertTrue(changed);
         assertFalse(citizen.hasUnlockedTitle("government_president"));
@@ -36,7 +35,7 @@ final class GovernmentAuthorityTitleTest {
         citizen.unlockTitle("government_monarch", 1L);
         citizen.setActiveTitleId("government_monarch");
 
-        boolean changed = GovernmentStateService.removeAuthorityTitleUnlocks(citizen, "");
+        boolean changed = GovernmentAuthorityTitlePolicy.removeTemporaryUnlocks(citizen, "");
 
         assertTrue(changed);
         assertFalse(citizen.hasUnlockedTitle("government_monarch"));
@@ -45,14 +44,11 @@ final class GovernmentAuthorityTitleTest {
     }
 
     @Test
-    void republicHasNoCouncilConflictRules() {
-        UUID president = UUID.randomUUID();
-        RealmGovernmentState state = new RealmGovernmentState(
-                "realm1", "republic", "", "", "",
-                Map.of("president", Set.of(president)), Set.of(), Set.of(),
-                0L, 0L, 0L, 0L);
+    void highestTitleUsesStableAuthorityPriority() {
+        UUID holder = UUID.randomUUID();
 
-        assertEquals("", GovernmentStateService.republicOfficeConflict(
-                "republic", "president", state, president));
+        assertEquals("government_monarch", GovernmentAuthorityTitlePolicy.highestTitleId(
+                Map.of("officer", Set.of(holder), "monarch", Set.of(holder)), holder));
+        assertEquals("", GovernmentAuthorityTitlePolicy.highestTitleId(Map.of(), holder));
     }
 }
