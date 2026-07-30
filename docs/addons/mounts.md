@@ -44,6 +44,10 @@ Runtime state:
 - `world/elarion/addon-state/mounts/sessions.json`
 - `world/elarion/addon-state/mounts/collection.json`
 
+Mount Collection load validation normalizes null player maps and nested mount
+ids before bind. Null player rows are discarded without losing valid unlocks
+from the same successfully parsed snapshot.
+
 ## Collection Menu And Active Mount
 
 Core owns the modular Collection menu shell. Mounts contributes the first tab,

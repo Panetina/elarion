@@ -45,10 +45,9 @@ public final class MountCollectionService {
                 GSON,
                 StoredState.class,
                 HashMap::new,
-                stored -> new HashMap<>(stored.players),
+                MountCollectionService::normalizeStoredPlayers,
                 logger,
                 "mount collection state"));
-        players.values().forEach(PlayerMountCollection::normalize);
         loaded = true;
         dirty = false;
     }
@@ -137,6 +136,17 @@ public final class MountCollectionService {
     private void markDirty() {
         dirty = true;
         save();
+    }
+
+    private static Map<UUID, PlayerMountCollection> normalizeStoredPlayers(StoredState stored) {
+        Map<UUID, PlayerMountCollection> normalized = new HashMap<>();
+        if (stored == null || stored.players == null) return normalized;
+        stored.players.forEach((playerId, collection) -> {
+            if (playerId == null || collection == null) return;
+            collection.normalize();
+            normalized.put(playerId, collection);
+        });
+        return normalized;
     }
 
     private Path file() {
