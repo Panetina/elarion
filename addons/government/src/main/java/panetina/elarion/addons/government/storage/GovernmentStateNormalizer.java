@@ -55,7 +55,6 @@ final class GovernmentStateNormalizer {
             option.tag = clean(option.tag);
             option.formId = clean(option.formId);
             option.officeId = clean(option.officeId);
-            option.guildId = clean(option.guildId);
             option.createdAt = Math.max(0L, option.createdAt);
             normalized.put(key, option);
         });
