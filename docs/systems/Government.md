@@ -19,6 +19,7 @@ or treasury spending.
 - `addons/government/.../ElarionGovernmentAddon.java`
 - `addons/government/.../GovernmentBlockInteractions.java`
 - `addons/government/.../service/GovernmentStateService.java`
+- `addons/government/.../service/GovernmentRealmRecordIndex.java`
 - `addons/government/.../service/GovernmentAuthorityTitlePolicy.java`
 - `addons/government/.../service/GovernmentProposalDecisionPolicy.java`
 - `addons/government/.../service/GovernmentNotificationPolicy.java`
@@ -96,6 +97,10 @@ requests, Republic law votes, typed civic records, archived records, founding-co
 timestamps, active/removed office term statistics, and previous active title
 restore pointers.
 
+The persisted proposal and civic-record maps remain canonical. A runtime-only
+per-Realm index is rebuilt after load and maintained on owned mutations so
+ordinary Realm views do not scan every Realm's records.
+
 ## Vote Lifecycle
 
 Implemented vote types:
@@ -150,6 +155,9 @@ Republic:
 - Vote expiration is currently checked from the existing server tick path.
   Replace with interval/deadline scheduling before many Realms have concurrent
   elections.
+- Proposal and civic-record views still return the full selected Realm history.
+  Add bounded pagination across API, network, and UI contracts before exposing
+  large archives; that player-facing contract remains an approval gate.
 - Command/GameTest coverage for full in-game Civic Forum and Seat actions is
   still needed.
 

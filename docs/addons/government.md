@@ -217,6 +217,7 @@ Primary services:
 
 - `GovernmentDefinitionService`
 - `GovernmentStateService`
+- `GovernmentRealmRecordIndex`
 - `GovernmentProposalDecisionPolicy`
 - `GovernmentCommands`
 - `GovernmentBlockInteractions`

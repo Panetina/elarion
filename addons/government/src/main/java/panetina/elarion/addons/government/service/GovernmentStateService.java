@@ -51,6 +51,7 @@ public final class GovernmentStateService {
     private final GovernmentStorage storage;
     private GovernmentState state = new GovernmentState();
     private final Map<UUID, List<GovernmentOfficeTermRecord>> officeTermsByHolder = new LinkedHashMap<>();
+    private final GovernmentRealmRecordIndex realmRecordIndex = new GovernmentRealmRecordIndex();
     private MinecraftServer server;
     private int voteResolutionTicks;
     private int authorityCleanupTicks;
@@ -75,6 +76,7 @@ public final class GovernmentStateService {
         boolean migratedForms = migrateRemovedForms();
         boolean migratedOffices = migrateRemovedOffices();
         boolean repairedFounding = reconcileFoundingCompletion();
+        realmRecordIndex.rebuild(state.proposals.values(), state.laws.values());
         officeTermsByHolder.clear();
         reconcileOfficeTerms();
         rebuildOfficeTermIndex();
@@ -140,6 +142,7 @@ public final class GovernmentStateService {
         state.votes.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId)));
         state.proposals.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
         state.laws.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
+        realmRecordIndex.removeRealm(normalizedRealm);
         state.officeTerms.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
         rebuildOfficeTermIndex();
         state.authorityTitleRestores.keySet().removeIf(key -> key.startsWith(normalizedRealm + "|"));
@@ -155,6 +158,7 @@ public final class GovernmentStateService {
         state.votes.clear();
         state.proposals.clear();
         state.laws.clear();
+        realmRecordIndex.clear();
         state.officeTerms.clear();
         officeTermsByHolder.clear();
         state.authorityTitleRestores.clear();
@@ -758,19 +762,13 @@ public final class GovernmentStateService {
     public List<GovernmentProposalRecord> proposals(String realmId) {
         String normalizedRealm = normalize(realmId);
         realm(normalizedRealm);
-        return state.proposals.values().stream()
-                .filter(proposal -> normalizedRealm.equals(proposal.realmId()))
-                .sorted(Comparator.comparingLong(GovernmentProposalRecord::createdAt).reversed())
-                .toList();
+        return realmRecordIndex.proposals(normalizedRealm);
     }
 
     public List<GovernmentLawRecord> laws(String realmId) {
         String normalizedRealm = normalize(realmId);
         realm(normalizedRealm);
-        return state.laws.values().stream()
-                .filter(law -> normalizedRealm.equals(law.realmId()))
-                .sorted(Comparator.comparingLong(GovernmentLawRecord::enactedAt).reversed())
-                .toList();
+        return realmRecordIndex.laws(normalizedRealm);
     }
 
     public GovernmentProposalRecord createProposal(
@@ -797,7 +795,7 @@ public final class GovernmentStateService {
         String id = nextProposalId(realm, cleanTitle);
         GovernmentProposalRecord proposal = GovernmentProposalRecord.create(
                 id, realm, player.getUuid(), cleanCategory, cleanTitle, cleanBody, System.currentTimeMillis());
-        state.proposals.put(id, proposal);
+        putProposal(proposal);
         state.realms.put(realm, government.withPendingProposal(id));
         save();
         api.history().recordChronicle("government", "audience-request-created", player.getUuid(), "audience_request", id,
@@ -848,7 +846,7 @@ public final class GovernmentStateService {
         GovernmentProposalRecord updated = proposal.withVote(player.getUuid(), approve);
         GovernmentProposalDecision decision = proposalDecision(government, updated);
         if (decision == GovernmentProposalDecision.WAITING) {
-            state.proposals.put(proposal.id(), updated);
+            putProposal(updated);
             save();
             notifyPersonal(player.getUuid(), "proposal-review-recorded", realm + ":proposal-review:" + proposal.id()
                             + ":" + player.getUuid(),
@@ -886,7 +884,7 @@ public final class GovernmentStateService {
             if (updated.finalTitle().isBlank()) {
                 GovernmentProposalRecord pendingReview = updated.withStatus(
                         GovernmentProposalStatus.PENDING, player.getUuid(), System.currentTimeMillis());
-                state.proposals.put(proposal.id(), pendingReview);
+                putProposal(pendingReview);
                 save();
                 notifyInitialProposalReviewers(realm, proposal.category(), "Ember Proposal Approved",
                         "\"" + proposal.title() + "\" reached Ember support and is ready for authority review.",
@@ -903,7 +901,7 @@ public final class GovernmentStateService {
                     finalBody(proposal), player.getUuid(), updated);
             GovernmentProposalRecord enacted = updated.withStatus(GovernmentProposalStatus.ENACTED, player.getUuid(),
                     record.enactedAt());
-            state.proposals.put(proposal.id(), enacted);
+            putProposal(enacted);
             state.realms.put(realm, realm(realm).withoutPendingProposal(proposal.id()));
             save();
             api.realmDeliveries().notifyRealm(realm, "Law Ratified",
@@ -921,7 +919,7 @@ public final class GovernmentStateService {
                     Map.of("status", "rejected", "category", proposal.category()));
             return rejectProposal(player, realm, updated);
         }
-        state.proposals.put(proposal.id(), updated);
+        putProposal(updated);
         save();
         notifyPersonal(player.getUuid(), "proposal-ratification-recorded", realm + ":proposal-ratification:"
                         + proposal.id() + ":" + player.getUuid(),
@@ -958,7 +956,7 @@ public final class GovernmentStateService {
         GovernmentLawRecord record = createRecord(realm, proposal.category(), title, body, player.getUuid(), proposal);
         GovernmentProposalRecord enacted = proposal.withStatus(GovernmentProposalStatus.ENACTED, player.getUuid(),
                 record.enactedAt());
-        state.proposals.put(proposal.id(), enacted);
+        putProposal(enacted);
         state.realms.put(realm, realm(realm).withoutPendingProposal(proposal.id()));
         save();
         notifyPersonal(proposal.authorId(), "proposal-finalized", realm + ":proposal-finalized:" + proposal.id(),
@@ -1002,7 +1000,7 @@ public final class GovernmentStateService {
                         id, realm, player.getUuid(), "law", cleanTitle, cleanBody, now)
                 .withFinalText(cleanTitle, cleanBody, player.getUuid(), now)
                 .withStatus(GovernmentProposalStatus.CITIZEN_RATIFICATION, player.getUuid(), now);
-        state.proposals.put(id, proposal);
+        putProposal(proposal);
         state.realms.put(realm, government.withPendingProposal(id));
         save();
         api.history().recordChronicle("government", "republic-law-vote-opened",
@@ -1091,7 +1089,7 @@ public final class GovernmentStateService {
         if (law == null || !realm.equals(law.realmId())) throw new IllegalArgumentException("Unknown record " + lawId + ".");
         if (!law.active()) throw new IllegalArgumentException("That record is already archived.");
         GovernmentLawRecord archived = law.archived(player.getUuid(), System.currentTimeMillis());
-        state.laws.put(lawId, archived);
+        putLaw(archived);
         state.realms.put(realm, realm(realm).withoutActiveLaw(lawId));
         save();
         api.realmDeliveries().notifyRealm(realm, GovernmentTextRules.recordTypeLabel(law.category()) + " Archived",
@@ -1114,7 +1112,7 @@ public final class GovernmentStateService {
         if (law == null || !realm.equals(law.realmId())) throw new IllegalArgumentException("Unknown record " + lawId + ".");
         if (law.active()) throw new IllegalArgumentException("That record is already active.");
         GovernmentLawRecord restored = law.restored();
-        state.laws.put(lawId, restored);
+        putLaw(restored);
         state.realms.put(realm, realm(realm).withActiveLaw(lawId));
         save();
         api.realmDeliveries().notifyRealm(realm, GovernmentTextRules.recordTypeLabel(law.category()) + " Restored",
@@ -1812,7 +1810,7 @@ public final class GovernmentStateService {
     ) {
         long now = System.currentTimeMillis();
         GovernmentProposalRecord accepted = proposal.withStatus(GovernmentProposalStatus.ENACTED, actor.getUuid(), now);
-        state.proposals.put(proposal.id(), accepted);
+        putProposal(accepted);
         state.realms.put(realm, realm(realm).withoutPendingProposal(proposal.id()));
         save();
         api.history().recordChronicle("government", "audience-request-accepted", actor.getUuid(),
@@ -1837,7 +1835,7 @@ public final class GovernmentStateService {
         long now = System.currentTimeMillis();
         GovernmentProposalRecord ratification = proposal.withStatus(
                 GovernmentProposalStatus.CITIZEN_RATIFICATION, actor.getUuid(), now);
-        state.proposals.put(proposal.id(), ratification);
+        putProposal(ratification);
         save();
         api.history().recordChronicle("government", "proposal-citizen-ratification-opened",
                 actor.getUuid(), "proposal", proposal.id(), realm,
@@ -1871,7 +1869,7 @@ public final class GovernmentStateService {
         long now = System.currentTimeMillis();
         GovernmentProposalRecord review = proposal.withFinalText(cleanTitle, cleanBody, actor.getUuid(), now)
                 .withStatusAndClearedReview(GovernmentProposalStatus.FINAL_TEXT_REVIEW, actor.getUuid(), now);
-        state.proposals.put(proposal.id(), review);
+        putProposal(review);
         save();
         api.history().recordChronicle("government", eventType, actor.getUuid(), "proposal", proposal.id(),
                 realm, Map.of("category", proposal.category(), "title", cleanTitle),
@@ -1899,7 +1897,7 @@ public final class GovernmentStateService {
         GovernmentProposalRecord updated = proposal.withVote(actor.getUuid(), approve);
         GovernmentProposalDecision decision = finalTextDecision(government, updated);
         if (decision == GovernmentProposalDecision.WAITING) {
-            state.proposals.put(proposal.id(), updated);
+            putProposal(updated);
             save();
             notifyPersonal(actor.getUuid(), "final-text-review-recorded", realm + ":final-text-review:"
                             + proposal.id() + ":" + actor.getUuid(),
@@ -1913,7 +1911,7 @@ public final class GovernmentStateService {
             long now = System.currentTimeMillis();
             GovernmentProposalRecord rewrite = updated.withStatusAndClearedReview(
                     GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION, actor.getUuid(), now);
-            state.proposals.put(proposal.id(), rewrite);
+            putProposal(rewrite);
             save();
             UUID wordingOwner = proposal.sponsorId() == null ? proposal.resolvedBy() : proposal.sponsorId();
             notifyPersonal(wordingOwner, "final-text-rejected", realm + ":final-text-rejected:"
@@ -1937,7 +1935,7 @@ public final class GovernmentStateService {
                 finalBody(updated), actor.getUuid(), updated);
         GovernmentProposalRecord enacted = updated.withStatus(GovernmentProposalStatus.ENACTED, actor.getUuid(),
                 record.enactedAt());
-        state.proposals.put(proposal.id(), enacted);
+        putProposal(enacted);
         state.realms.put(realm, realm(realm).withoutPendingProposal(proposal.id()));
         save();
         notifyPersonal(proposal.authorId(), "proposal-finalized", realm + ":proposal-finalized:" + proposal.id(),
@@ -1959,7 +1957,7 @@ public final class GovernmentStateService {
         long now = System.currentTimeMillis();
         GovernmentProposalRecord approved = proposal.withStatusAndSponsor(
                 GovernmentProposalStatus.APPROVED_PENDING_FINALIZATION, actor.getUuid(), actor.getUuid(), now);
-        state.proposals.put(proposal.id(), approved);
+        putProposal(approved);
         save();
         api.history().recordChronicle("government", "proposal-approved", actor.getUuid(), "proposal", proposal.id(),
                 realm, Map.of("category", proposal.category(), "title", proposal.title()),
@@ -1991,7 +1989,7 @@ public final class GovernmentStateService {
         GovernmentLawRecord record = sourceProposal == null
                 ? GovernmentLawRecord.direct(id, realm, cleanCategory, cleanTitle, cleanBody, actorId, now)
                 : GovernmentLawRecord.enact(id, sourceProposal, cleanTitle, cleanBody, actorId, now);
-        state.laws.put(record.id(), record);
+        putLaw(record);
         state.realms.put(realm, realm(realm).withActiveLaw(record.id()));
         save();
         api.history().recordChronicle("government", "civic-record-created", actorId, "civic_record", record.id(),
@@ -2014,7 +2012,7 @@ public final class GovernmentStateService {
     ) {
         long now = System.currentTimeMillis();
         GovernmentProposalRecord rejected = proposal.withStatus(GovernmentProposalStatus.REJECTED, actor.getUuid(), now);
-        state.proposals.put(proposal.id(), rejected);
+        putProposal(rejected);
         state.realms.put(realm, realm(realm).withoutPendingProposal(proposal.id()));
         save();
         api.history().recordChronicle("government", "proposal-rejected", actor.getUuid(), "proposal", proposal.id(),
@@ -2202,6 +2200,16 @@ public final class GovernmentStateService {
                 .filter(api.citizens()::isActiveCitizen)
                 .count();
         return Math.max(1, (int) active / 2 + 1);
+    }
+
+    private void putProposal(GovernmentProposalRecord proposal) {
+        state.proposals.put(proposal.id(), proposal);
+        realmRecordIndex.putProposal(proposal);
+    }
+
+    private void putLaw(GovernmentLawRecord law) {
+        state.laws.put(law.id(), law);
+        realmRecordIndex.putLaw(law);
     }
 
     private void requireDirectRecordAuthority(ServerPlayerEntity player, String realm) {
