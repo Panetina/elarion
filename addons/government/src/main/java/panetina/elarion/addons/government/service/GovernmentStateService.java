@@ -52,6 +52,7 @@ public final class GovernmentStateService {
     private GovernmentState state = new GovernmentState();
     private final Map<UUID, List<GovernmentOfficeTermRecord>> officeTermsByHolder = new LinkedHashMap<>();
     private final GovernmentRealmRecordIndex realmRecordIndex = new GovernmentRealmRecordIndex();
+    private final GovernmentVoteDeadlineIndex voteDeadlineIndex = new GovernmentVoteDeadlineIndex();
     private MinecraftServer server;
     private int voteResolutionTicks;
     private int authorityCleanupTicks;
@@ -77,6 +78,7 @@ public final class GovernmentStateService {
         boolean migratedOffices = migrateRemovedOffices();
         boolean repairedFounding = reconcileFoundingCompletion();
         realmRecordIndex.rebuild(state.proposals.values(), state.laws.values());
+        voteDeadlineIndex.rebuild(state.votes);
         officeTermsByHolder.clear();
         reconcileOfficeTerms();
         rebuildOfficeTermIndex();
@@ -139,7 +141,7 @@ public final class GovernmentStateService {
         }
         restoreAuthorityTitlesForRealm(normalizedRealm);
         state.realms.put(normalizedRealm, RealmGovernmentState.empty(normalizedRealm));
-        state.votes.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId)));
+        removeVotesForRealm(normalizedRealm);
         state.proposals.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
         state.laws.entrySet().removeIf(entry -> normalizedRealm.equals(normalize(entry.getValue().realmId())));
         realmRecordIndex.removeRealm(normalizedRealm);
@@ -155,7 +157,7 @@ public final class GovernmentStateService {
         restoreAllAuthorityTitles();
         state.realms.clear();
         api.realms().all().forEach(realm -> state.realms.put(realm.id(), RealmGovernmentState.empty(realm.id())));
-        state.votes.clear();
+        clearVotes();
         state.proposals.clear();
         state.laws.clear();
         realmRecordIndex.clear();
@@ -315,7 +317,11 @@ public final class GovernmentStateService {
 
     public GovernmentVoteState vote(String realmId, GovernmentVoteType type) {
         String key = voteKey(normalize(realmId), type);
-        return state.votes.computeIfAbsent(key, ignored -> new GovernmentVoteState(normalize(realmId), type));
+        GovernmentVoteState current = state.votes.get(key);
+        if (current != null) return current;
+        GovernmentVoteState created = new GovernmentVoteState(normalize(realmId), type);
+        putVote(key, created);
+        return created;
     }
 
     public Optional<GovernmentVoteState> existingVote(String realmId, GovernmentVoteType type) {
@@ -492,6 +498,7 @@ public final class GovernmentStateService {
         } else {
             vote.ballots.put(voter, List.of(optionId));
         }
+        voteDeadlineIndex.update(voteKey(realm, type), vote);
         save();
         api.history().recordChronicle("government", "vote-cast", player.getUuid(), "realm", realm, realm,
                 Map.of("type", type.name().toLowerCase(), "round", Integer.toString(vote.round)),
@@ -511,9 +518,15 @@ public final class GovernmentStateService {
 
     public int resolveExpiredVotes(long now) {
         int resolved = 0;
-        for (GovernmentVoteState vote : List.copyOf(state.votes.values())) {
-            if (!vote.ended(now)) continue;
+        for (GovernmentVoteDeadlineIndex.DueVote due : voteDeadlineIndex.expired(now)) {
+            String key = due.key();
+            GovernmentVoteState vote = due.vote();
+            if (!vote.ended(now)) {
+                voteDeadlineIndex.update(key, state.votes.get(key));
+                continue;
+            }
             resolveVote(vote, now);
+            voteDeadlineIndex.update(key, state.votes.get(key));
             resolved++;
         }
         if (resolved > 0) save();
@@ -539,6 +552,7 @@ public final class GovernmentStateService {
             }
             vote.proposalEndsAt = now - 1L;
             vote.startIfNeeded(now, FOUNDING_VOTE_DURATION);
+            voteDeadlineIndex.update(voteKey(realm, type), vote);
             save();
             notifyVoteStage(realm, GovernmentTextRules.voteTitle(type), GovernmentTextRules.voteBody(type),
                     type.name().toLowerCase(java.util.Locale.ROOT) + ":" + vote.round, vote.endsAt);
@@ -550,6 +564,7 @@ public final class GovernmentStateService {
             }
             vote.proposalEndsAt = now - 1L;
             vote.startIfNeeded(now, FOUNDING_VOTE_DURATION);
+            voteDeadlineIndex.update(voteKey(realm, type), vote);
             save();
             notifyVoteStage(realm, GovernmentTextRules.voteTitle(type), GovernmentTextRules.voteBody(type),
                     type.name().toLowerCase(java.util.Locale.ROOT) + ":" + vote.round, vote.endsAt);
@@ -559,6 +574,7 @@ public final class GovernmentStateService {
             throw new IllegalArgumentException("Cast at least one ballot before advancing this vote.");
         }
         vote.endsAt = now - 1L;
+        voteDeadlineIndex.update(voteKey(realm, type), vote);
         int resolved = resolveExpiredVotes(now);
         if (resolved == 0) {
             throw new IllegalStateException("The current civic vote could not be resolved.");
@@ -615,7 +631,7 @@ public final class GovernmentStateService {
                 && GovernmentFoundingPhasePolicy.shouldReopenLeadershipElection(current, updated, officeId);
         if (electionReopened) {
             updated = updated.withFoundingElectionReopened();
-            state.votes.put(voteKey(normalizedRealm, GovernmentVoteType.FOUNDING_ELECTION),
+            putVote(voteKey(normalizedRealm, GovernmentVoteType.FOUNDING_ELECTION),
                     new GovernmentVoteState(normalizedRealm, GovernmentVoteType.FOUNDING_ELECTION));
         }
         state.realms.put(normalizedRealm, updated);
@@ -1555,7 +1571,7 @@ public final class GovernmentStateService {
             vote.winnerIds = List.copyOf(winnerIds);
             vote.resultTotals = Map.copyOf(totals);
         } else {
-            state.votes.remove(voteKey(vote.realmId, vote.type));
+            removeVote(voteKey(vote.realmId, vote.type));
         }
         for (UUID citizenId : winnerCitizenIds) {
             applyAuthorityTitle(vote.realmId, updated, citizenId);
@@ -1620,7 +1636,7 @@ public final class GovernmentStateService {
     ) {
         GovernmentVoteState runoff = vote.runoff(optionIds, now, RUNOFF_VOTE_DURATION);
         runoff.resultTotals = Map.copyOf(totals);
-        state.votes.put(voteKey(vote.realmId, vote.type), runoff);
+        putVote(voteKey(vote.realmId, vote.type), runoff);
         notifyVoteStage(vote.realmId, title, body,
                 dedupePrefix + runoff.round, runoff.endsAt);
         emit("government-vote-runoff-opened", null, vote.realmId, "vote",
@@ -1678,6 +1694,27 @@ public final class GovernmentStateService {
 
     private static String voteKey(String realmId, GovernmentVoteType type) {
         return normalize(realmId) + ":" + type.name().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private void putVote(String key, GovernmentVoteState vote) {
+        state.votes.put(key, vote);
+        voteDeadlineIndex.update(key, vote);
+    }
+
+    private GovernmentVoteState removeVote(String key) {
+        GovernmentVoteState removed = state.votes.remove(key);
+        voteDeadlineIndex.remove(key);
+        return removed;
+    }
+
+    private void removeVotesForRealm(String realmId) {
+        state.votes.entrySet().removeIf(entry -> normalize(realmId).equals(normalize(entry.getValue().realmId)));
+        voteDeadlineIndex.removeRealm(realmId);
+    }
+
+    private void clearVotes() {
+        state.votes.clear();
+        voteDeadlineIndex.clear();
     }
 
     private static Map<String, Set<UUID>> mutableOffices(RealmGovernmentState state) {
@@ -2298,7 +2335,7 @@ public final class GovernmentStateService {
             String realmId = normalize(entry.getKey());
             restoreAuthorityTitlesForRealm(realmId);
             state.realms.put(realmId, RealmGovernmentState.empty(realmId));
-            state.votes.entrySet().removeIf(voteEntry -> realmId.equals(normalize(voteEntry.getValue().realmId)));
+            removeVotesForRealm(realmId);
             state.proposals.entrySet().removeIf(proposalEntry -> realmId.equals(normalize(proposalEntry.getValue().realmId())));
             state.laws.entrySet().removeIf(lawEntry -> realmId.equals(normalize(lawEntry.getValue().realmId())));
             state.officeTerms.entrySet().removeIf(termEntry -> realmId.equals(normalize(termEntry.getValue().realmId())));
@@ -2324,7 +2361,7 @@ public final class GovernmentStateService {
             if (GovernmentFoundingPhasePolicy.hasCompletedLeadershipVacancy(government)) {
                 government = government.withFoundingElectionReopened();
                 state.realms.put(entry.getKey(), government);
-                state.votes.put(voteKey,
+                putVote(voteKey,
                         new GovernmentVoteState(entry.getKey(), GovernmentVoteType.FOUNDING_ELECTION));
                 changed = true;
             } else if (GovernmentFoundingPhasePolicy.electionComplete(form, government)) {
@@ -2333,7 +2370,7 @@ public final class GovernmentStateService {
                     state.realms.put(entry.getKey(), government);
                     changed = true;
                 }
-                if (state.votes.remove(voteKey) != null) changed = true;
+                if (removeVote(voteKey) != null) changed = true;
             }
         }
         return changed;

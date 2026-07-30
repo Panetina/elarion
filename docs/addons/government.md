@@ -218,6 +218,7 @@ Primary services:
 - `GovernmentDefinitionService`
 - `GovernmentStateService`
 - `GovernmentRealmRecordIndex`
+- `GovernmentVoteDeadlineIndex`
 - `GovernmentProposalDecisionPolicy`
 - `GovernmentCommands`
 - `GovernmentBlockInteractions`

@@ -20,6 +20,7 @@ or treasury spending.
 - `addons/government/.../GovernmentBlockInteractions.java`
 - `addons/government/.../service/GovernmentStateService.java`
 - `addons/government/.../service/GovernmentRealmRecordIndex.java`
+- `addons/government/.../service/GovernmentVoteDeadlineIndex.java`
 - `addons/government/.../service/GovernmentAuthorityTitlePolicy.java`
 - `addons/government/.../service/GovernmentProposalDecisionPolicy.java`
 - `addons/government/.../service/GovernmentNotificationPolicy.java`
@@ -101,6 +102,11 @@ The persisted proposal and civic-record maps remain canonical. A runtime-only
 per-Realm index is rebuilt after load and maintained on owned mutations so
 ordinary Realm views do not scan every Realm's records.
 
+Persisted vote state also remains canonical. A runtime-only deadline index is
+rebuilt after load and updated on vote starts, runoffs, resolutions, and resets;
+the 20-tick expiry wake-up examines only due deadlines and preserves canonical
+vote-map order when multiple votes expire together.
+
 ## Vote Lifecycle
 
 Implemented vote types:
@@ -152,9 +158,8 @@ Republic:
   civic-record finalization, authority cleanup, identity presentation, and
   office assignment in one service. Split vote/civic-record services before
   adding reforms, enforcement, or many record effects.
-- Vote expiration is currently checked from the existing server tick path.
-  Replace with interval/deadline scheduling before many Realms have concurrent
-  elections.
+- Vote expiration keeps the existing 20-tick server wake-up, backed by a
+  deadline index rather than an all-vote scan.
 - Proposal and civic-record views still return the full selected Realm history.
   Add bounded pagination across API, network, and UI contracts before exposing
   large archives; that player-facing contract remains an approval gate.
