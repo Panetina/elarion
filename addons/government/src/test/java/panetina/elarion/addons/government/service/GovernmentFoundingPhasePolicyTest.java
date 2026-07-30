@@ -21,15 +21,14 @@ final class GovernmentFoundingPhasePolicyTest {
     @Test
     void votingPhaseDisablesFurtherNominations() {
         UUID citizen = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        RealmGovernmentState government = RealmGovernmentState.empty("realm1").withForm("republic");
         GovernmentVoteState vote = new GovernmentVoteState("realm1", GovernmentVoteType.FOUNDING_ELECTION);
         vote.proposalStartedAt = 1L;
         vote.proposalEndsAt = 5L;
         vote.startedAt = 5L;
         vote.endsAt = 100L;
 
-        GovernmentFoundingPhase phase = GovernmentStateService.foundingPhase(
-                republic(), government, Optional.of(vote), citizen,
+        GovernmentFoundingPhase phase = GovernmentFoundingPhasePolicy.phase(
+                republic(), Optional.of(vote), citizen,
                 true, true, "", 10L);
 
         assertEquals("president", phase.officeId());
@@ -47,8 +46,8 @@ final class GovernmentFoundingPhasePolicyTest {
                 .withFoundingElectionComplete();
         RealmGovernmentState updated = previous.withoutOfficeHolder("monarch", monarch);
 
-        assertTrue(GovernmentStateService.shouldReopenLeadershipElection(previous, updated, "monarch"));
-        assertFalse(GovernmentStateService.shouldReopenLeadershipElection(previous, updated, "heir"));
+        assertTrue(GovernmentFoundingPhasePolicy.shouldReopenLeadershipElection(previous, updated, "monarch"));
+        assertFalse(GovernmentFoundingPhasePolicy.shouldReopenLeadershipElection(previous, updated, "heir"));
     }
 
     @Test
@@ -60,7 +59,7 @@ final class GovernmentFoundingPhasePolicyTest {
                 .withFoundingElectionComplete();
         RealmGovernmentState updated = previous.withoutOfficeHolder("president", president);
 
-        assertTrue(GovernmentStateService.shouldReopenLeadershipElection(previous, updated, "president"));
+        assertTrue(GovernmentFoundingPhasePolicy.shouldReopenLeadershipElection(previous, updated, "president"));
     }
 
     @Test
@@ -69,9 +68,20 @@ final class GovernmentFoundingPhasePolicyTest {
                 .withForm("monarchy")
                 .withFoundingElectionComplete();
 
-        assertTrue(GovernmentStateService.hasCompletedLeadershipVacancy(vacant));
-        assertFalse(GovernmentStateService.hasCompletedLeadershipVacancy(
+        assertTrue(GovernmentFoundingPhasePolicy.hasCompletedLeadershipVacancy(vacant));
+        assertFalse(GovernmentFoundingPhasePolicy.hasCompletedLeadershipVacancy(
                 vacant.withOfficeHolder("monarch", UUID.fromString("00000000-0000-0000-0000-000000000001"))));
+    }
+
+    @Test
+    void republicElectionRequiresAndCompletesWithPresident() {
+        UUID president = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        RealmGovernmentState vacant = RealmGovernmentState.empty("realm1").withForm("republic");
+
+        assertEquals(List.of("president"), GovernmentFoundingPhasePolicy.electionOffices(republic()));
+        assertFalse(GovernmentFoundingPhasePolicy.electionComplete(republic(), vacant));
+        assertTrue(GovernmentFoundingPhasePolicy.electionComplete(
+                republic(), vacant.withOfficeHolder("president", president)));
     }
 
     private static GovernmentFormDefinition republic() {

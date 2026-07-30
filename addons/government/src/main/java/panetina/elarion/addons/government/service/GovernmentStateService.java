@@ -135,7 +135,7 @@ public final class GovernmentStateService {
                 .filter(entry -> entry.getValue().contains(citizenId))
                 .map(Map.Entry::getKey)
                 .sorted()
-                .map(officeId -> officeLabel(form, officeId))
+                .map(officeId -> GovernmentFoundingPhasePolicy.officeLabel(form, officeId))
                 .filter(label -> label != null && !label.isBlank())
                 .findFirst()
                 .orElse("");
@@ -399,8 +399,9 @@ public final class GovernmentStateService {
             if (vote.options.containsKey(id)) {
                 continue;
             }
-            String title = citizenName(api.citizens().getOrCreate(player)) + " - " + officeLabel(form, officeId);
-            String body = "Candidate for " + officeLabel(form, officeId);
+            String title = citizenName(api.citizens().getOrCreate(player)) + " - "
+                    + GovernmentFoundingPhasePolicy.officeLabel(form, officeId);
+            String body = "Candidate for " + GovernmentFoundingPhasePolicy.officeLabel(form, officeId);
             vote.options.put(id, GovernmentVoteOption.candidate(
                     id, title, body, officeId, player.getUuid(), ""));
             added = true;
@@ -441,48 +442,9 @@ public final class GovernmentStateService {
         Optional<GovernmentVoteState> vote = existingVote(realm, GovernmentVoteType.FOUNDING_ELECTION);
         UUID playerId = player == null ? null : player.getUuid();
         boolean activeCitizen = player != null && eligibleCitizen(player, realm);
-        return foundingPhase(form, government, vote, playerId, activeCitizen,
+        return GovernmentFoundingPhasePolicy.phase(form, vote, playerId, activeCitizen,
                 gates(realm).foundingElectionUnlocked(), gates(realm).foundingElectionLockMessage(),
                 System.currentTimeMillis());
-    }
-
-    static GovernmentFoundingPhase foundingPhase(
-            GovernmentFormDefinition form,
-            RealmGovernmentState government,
-            Optional<GovernmentVoteState> existingVote,
-            UUID playerId,
-            boolean activeCitizen,
-            boolean electionUnlocked,
-            String lockMessage,
-            long now
-    ) {
-        String officeId = foundingElectionOffices(form, government).stream().findFirst().orElse("");
-        String title = officeLabel(form, officeId) + " Election";
-        GovernmentVoteState vote = existingVote.orElse(null);
-        boolean nominationsOpen = vote == null || !vote.runoff && !vote.proposalEnded(now);
-        boolean votingOpen = vote != null && (vote.runoff || vote.proposalEnded(now));
-        boolean alreadyNominated = vote != null && playerId != null && vote.options.values().stream()
-                .anyMatch(option -> playerId.equals(option.proposedBy));
-        String reason = officeId.isBlank()
-                ? "No founding office is currently open."
-                : "Nominate yourself for " + officeLabel(form, officeId) + ".";
-        boolean canNominate = electionUnlocked && activeCitizen && nominationsOpen && !alreadyNominated;
-        if (!electionUnlocked) {
-            reason = lockMessage == null || lockMessage.isBlank() ? "Founding election is locked." : lockMessage;
-            canNominate = false;
-        } else if (!activeCitizen) {
-            reason = "Only active Embers of this Realm may enter the election.";
-            canNominate = false;
-        } else if (!nominationsOpen) {
-            reason = "Nominations are closed. Voting is now open.";
-            canNominate = false;
-        } else if (alreadyNominated) {
-            reason = "You are already nominated for " + officeLabel(form, officeId) + ".";
-            canNominate = false;
-        }
-        String phaseLabel = title + (votingOpen ? " voting" : " nominations");
-        return new GovernmentFoundingPhase(officeId, title, phaseLabel,
-                nominationsOpen, votingOpen, canNominate, reason);
     }
 
     public GovernmentVoteState castVote(
@@ -660,7 +622,8 @@ public final class GovernmentStateService {
         RealmGovernmentState current = realm(normalizedRealm);
         boolean heldOffice = current.officeHolders().getOrDefault(officeId, Set.of()).contains(citizenId);
         RealmGovernmentState updated = current.withoutOfficeHolder(officeId, citizenId);
-        boolean electionReopened = heldOffice && shouldReopenLeadershipElection(current, updated, officeId);
+        boolean electionReopened = heldOffice
+                && GovernmentFoundingPhasePolicy.shouldReopenLeadershipElection(current, updated, officeId);
         if (electionReopened) {
             updated = updated.withFoundingElectionReopened();
             state.votes.put(voteKey(normalizedRealm, GovernmentVoteType.FOUNDING_ELECTION),
@@ -686,7 +649,7 @@ public final class GovernmentStateService {
                 Map.of("office", officeId));
         if (electionReopened) {
             GovernmentFormDefinition form = definitions.require(current.activeGovernmentFormId());
-            String office = officeLabel(form, officeId);
+            String office = GovernmentFoundingPhasePolicy.officeLabel(form, officeId);
             api.history().recordChronicle("government", "leadership-election-reopened", citizenId,
                     "office", officeId, normalizedRealm,
                     Map.of("office", officeId, "form", form.id(), "reason", "vacancy"),
@@ -1577,7 +1540,7 @@ public final class GovernmentStateService {
         }
         Map<String, List<String>> winnersByOffice = new LinkedHashMap<>();
         List<String> tiedBoundary = new ArrayList<>();
-        for (String office : foundingElectionOffices(form, current)) {
+        for (String office : GovernmentFoundingPhasePolicy.electionOffices(form)) {
             int seats = maxApprovalCount(current, office);
             List<Map.Entry<String, Long>> officeTotals = totals.entrySet().stream()
                     .filter(entry -> {
@@ -1623,12 +1586,12 @@ public final class GovernmentStateService {
                 notifyPersonal(option.candidateId, "elected-to-office",
                         vote.realmId + ":elected:" + entry.getKey() + ":" + option.candidateId,
                         "Elected to Office",
-                        "You were elected as " + officeLabel(form, entry.getKey()) + " in "
+                        "You were elected as " + GovernmentFoundingPhasePolicy.officeLabel(form, entry.getKey()) + " in "
                                 + officialName(vote.realmId) + ".",
                         Map.of("realmId", vote.realmId, "office", entry.getKey(), "form", form.id()));
             }
         }
-        boolean complete = foundingElectionComplete(form, updated);
+        boolean complete = GovernmentFoundingPhasePolicy.electionComplete(form, updated);
         if (complete) {
             updated = updated.withFoundingElectionComplete();
         }
@@ -1713,24 +1676,6 @@ public final class GovernmentStateService {
                         "options", Integer.toString(runoff.options.size())));
     }
 
-    private static List<String> foundingElectionOffices(GovernmentFormDefinition form, RealmGovernmentState current) {
-        return switch (form.id()) {
-            case "monarchy" -> List.of("monarch");
-            case "republic" -> List.of("president");
-            default -> form.authorityOffices().stream().filter(office -> !"officer".equals(office)).toList();
-        };
-    }
-
-    private static boolean foundingElectionComplete(GovernmentFormDefinition form, RealmGovernmentState current) {
-        return switch (form.id()) {
-            case "monarchy" -> current.officeHolders().containsKey("monarch");
-            case "republic" -> current.officeHolders().containsKey("president");
-            default -> !foundingElectionOffices(form, current).isEmpty()
-                    && foundingElectionOffices(form, current).stream()
-                    .allMatch(office -> current.officeHolders().containsKey(office));
-        };
-    }
-
     private String nextFoundingPhaseMessage(GovernmentFormDefinition form, RealmGovernmentState current) {
         return switch (form.id()) {
             case "republic" -> "Embers may now nominate the President.";
@@ -1747,15 +1692,6 @@ public final class GovernmentStateService {
                 .orElse(1);
     }
 
-    private static String officeLabel(GovernmentFormDefinition form, String officeId) {
-        if (officeId == null || officeId.isBlank()) return "Leadership";
-        return form.offices().stream()
-                .filter(office -> office.id().equals(officeId))
-                .findFirst()
-                .map(office -> office.displayName().isBlank() ? office.id() : office.displayName())
-                .orElse(officeId);
-    }
-
     private static String citizenName(CitizenRecord citizen) {
         if (citizen.nickname() != null && !citizen.nickname().isBlank()) return citizen.nickname();
         if (citizen.lastKnownUsername() != null && !citizen.lastKnownUsername().isBlank()) {
@@ -1767,7 +1703,7 @@ public final class GovernmentStateService {
     private String authorityNoticeLabel(String realmId, UUID citizenId) {
         RealmGovernmentState government = realm(realmId);
         String formId = government.activeGovernmentFormId();
-        String officeId = primaryOffice(formId);
+        String officeId = GovernmentFoundingPhasePolicy.primaryOffice(formId);
         if (officeId.isBlank() || !government.officeHolders().getOrDefault(officeId, Set.of()).contains(citizenId)) {
             officeId = definitions.require(formId).authorityOffices().stream()
                     .filter(candidate -> government.officeHolders().getOrDefault(candidate, Set.of()).contains(citizenId))
@@ -1776,7 +1712,7 @@ public final class GovernmentStateService {
         }
         CitizenRecord citizen = api.citizens().find(citizenId).orElse(null);
         String name = citizen == null ? "Unknown Ember" : citizenName(citizen);
-        String office = officeLabel(definitions.require(formId), officeId);
+        String office = GovernmentFoundingPhasePolicy.officeLabel(definitions.require(formId), officeId);
         return office.isBlank() ? name : office + " " + name;
     }
 
@@ -2289,7 +2225,7 @@ public final class GovernmentStateService {
         }
         String formId = government.activeGovernmentFormId();
         UUID actorId = actor.getUuid();
-        if (primaryOffice(formId).equals(officeId)) {
+        if (GovernmentFoundingPhasePolicy.primaryOffice(formId).equals(officeId)) {
             throw new IllegalArgumentException("Primary elected offices are changed through elections, not appointments.");
         }
         boolean allowed = switch (formId) {
@@ -2302,26 +2238,6 @@ public final class GovernmentStateService {
         if (!allowed) {
             throw new IllegalArgumentException("Your office cannot " + (appoint ? "appoint" : "remove") + " that office.");
         }
-    }
-
-    private static String primaryOffice(String formId) {
-        return switch (formId == null ? "" : formId) {
-            case "monarchy" -> "monarch";
-            case "republic" -> "president";
-            default -> "";
-        };
-    }
-
-    static boolean shouldReopenLeadershipElection(
-            RealmGovernmentState previous,
-            RealmGovernmentState updated,
-            String removedOfficeId
-    ) {
-        if (previous == null || updated == null || previous.foundingElectionCompletedAt() <= 0L) return false;
-        String primary = primaryOffice(previous.activeGovernmentFormId());
-        return !primary.isBlank()
-                && primary.equals(removedOfficeId)
-                && updated.officeHolders().getOrDefault(primary, Set.of()).isEmpty();
     }
 
     private static void requireOffice(
@@ -2460,13 +2376,13 @@ public final class GovernmentStateService {
                 continue;
             }
             String voteKey = voteKey(entry.getKey(), GovernmentVoteType.FOUNDING_ELECTION);
-            if (hasCompletedLeadershipVacancy(government)) {
+            if (GovernmentFoundingPhasePolicy.hasCompletedLeadershipVacancy(government)) {
                 government = government.withFoundingElectionReopened();
                 state.realms.put(entry.getKey(), government);
                 state.votes.put(voteKey,
                         new GovernmentVoteState(entry.getKey(), GovernmentVoteType.FOUNDING_ELECTION));
                 changed = true;
-            } else if (foundingElectionComplete(form, government)) {
+            } else if (GovernmentFoundingPhasePolicy.electionComplete(form, government)) {
                 if (government.foundingElectionCompletedAt() <= 0L) {
                     government = government.withFoundingElectionComplete();
                     state.realms.put(entry.getKey(), government);
@@ -2476,13 +2392,6 @@ public final class GovernmentStateService {
             }
         }
         return changed;
-    }
-
-    static boolean hasCompletedLeadershipVacancy(RealmGovernmentState government) {
-        if (government == null || government.foundingElectionCompletedAt() <= 0L) return false;
-        String primary = primaryOffice(government.activeGovernmentFormId());
-        return !primary.isBlank()
-                && government.officeHolders().getOrDefault(primary, Set.of()).isEmpty();
     }
 
     private boolean reconcileLegacyRepublicPetitions() {
