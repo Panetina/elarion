@@ -141,12 +141,11 @@ public final class ElarionNotificationService {
             long expiresAt
     ) {
         int published = 0;
-        for (CitizenRecord citizen : citizens.all()) {
-            if (!realmId.equals(citizen.realmId())) continue;
-            String recipientKey = deduplicationKey.isBlank() ? "" : deduplicationKey + ":" + citizen.uuid();
-            publish(citizen.uuid(), category, sourceSystem, eventType, recipientKey,
+        for (UUID citizenId : citizens.citizenIdsInRealm(realmId)) {
+            String recipientKey = deduplicationKey.isBlank() ? "" : deduplicationKey + ":" + citizenId;
+            publish(citizenId, category, sourceSystem, eventType, recipientKey,
                     title, body, status, icon, actions, metadata, expiresAt);
-            syncOnline(citizen.uuid());
+            syncOnline(citizenId);
             published++;
         }
         return published;
@@ -165,12 +164,11 @@ public final class ElarionNotificationService {
             long expiresAt
     ) {
         int published = 0;
-        for (CitizenRecord citizen : citizens.all()) {
-            if (!worldEligible(citizen)) continue;
-            String recipientKey = deduplicationKey.isBlank() ? "" : deduplicationKey + ":" + citizen.uuid();
-            publish(citizen.uuid(), ElarionNotificationCategory.WORLD, sourceSystem, eventType, recipientKey,
+        for (UUID citizenId : citizens.citizenIdsInRealms(worldEligibleRealms)) {
+            String recipientKey = deduplicationKey.isBlank() ? "" : deduplicationKey + ":" + citizenId;
+            publish(citizenId, ElarionNotificationCategory.WORLD, sourceSystem, eventType, recipientKey,
                     title, body, status, icon, actions, metadata, expiresAt);
-            syncOnline(citizen.uuid());
+            syncOnline(citizenId);
             published++;
         }
         return published;
@@ -263,10 +261,7 @@ public final class ElarionNotificationService {
 
     public synchronized void syncRealm(String realmId) {
         if (server == null || realmId == null || realmId.isBlank()) return;
-        citizens.all().stream()
-                .filter(citizen -> realmId.equals(citizen.realmId()))
-                .map(CitizenRecord::uuid)
-                .forEach(this::syncOnline);
+        citizens.citizenIdsInRealm(realmId).forEach(this::syncOnline);
     }
 
     public synchronized void syncAll() {

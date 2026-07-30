@@ -29,6 +29,13 @@ Extension points: new addon config loaders, storage wrappers, validation tests.
 
 Risks: config-as-state, unbounded JSONL scans, and broad file parsing during gameplay.
 
+Core maintains a Realm-membership UUID index inside `CitizenService`. The
+index is built once from canonical citizen storage after each server bind and
+updated only after durable citizen saves. Realm and World notification fan-out
+and Realm reward delivery query this index, so ordinary delivery work is
+bounded by the target audience and does not repeatedly scan every citizen
+file.
+
 `JsonStateStorage` distinguishes missing input from unreadable input. Missing
 files use the owner-provided default. Malformed or otherwise unreadable files
 are moved to a timestamped `.corrupt-*` sibling before the default is returned;

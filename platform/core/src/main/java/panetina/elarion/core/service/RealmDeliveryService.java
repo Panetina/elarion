@@ -63,11 +63,10 @@ public final class RealmDeliveryService {
         List<RewardAction> actions = rewards.actions(rewardId);
         if (actions.isEmpty()) return false;
         int queued = 0;
-        for (CitizenRecord citizen : citizens.all()) {
-            if (!realmId.equals(citizen.realmId())) continue;
-            String grantId = "realm:" + realmId + ":reward:" + rewardId + ":" + citizen.uuid()
+        for (UUID citizenId : citizens.citizenIdsInRealm(realmId)) {
+            String grantId = "realm:" + realmId + ":reward:" + rewardId + ":" + citizenId
                     + ":" + System.currentTimeMillis();
-            if (deferredRewards.enqueue(grantId, citizen.uuid(), "elarion_realms", rewardId, actions)) queued++;
+            if (deferredRewards.enqueue(grantId, citizenId, "elarion_realms", rewardId, actions)) queued++;
         }
         save();
         history.record("realm", "realm-reward", actorId, "reward", rewardId, realmId,
@@ -80,12 +79,11 @@ public final class RealmDeliveryService {
         Identifier id = Identifier.tryParse(itemId);
         if (id == null || !Registries.ITEM.containsId(id) || count < 1) return false;
         int queued = 0;
-        for (CitizenRecord citizen : citizens.all()) {
-            if (!realmId.equals(citizen.realmId())) continue;
-            String grantId = "realm:" + realmId + ":item:" + id + ":" + count + ":" + citizen.uuid()
+        for (UUID citizenId : citizens.citizenIdsInRealm(realmId)) {
+            String grantId = "realm:" + realmId + ":item:" + id + ":" + count + ":" + citizenId
                     + ":" + System.currentTimeMillis();
             RewardAction action = new RewardAction("item", Map.of("id", id.toString(), "count", Integer.toString(count)));
-            if (deferredRewards.enqueue(grantId, citizen.uuid(), "elarion_realms", id.toString(), List.of(action))) queued++;
+            if (deferredRewards.enqueue(grantId, citizenId, "elarion_realms", id.toString(), List.of(action))) queued++;
         }
         save();
         history.record("realm", "realm-item-reward", actorId, "item", id.toString(), realmId,
