@@ -712,17 +712,7 @@ public final class GovernmentStateService {
     }
 
     public List<GovernmentOfficeTermRecord> officeTermsFor(UUID holderId, int limit) {
-        return boundedOfficeTerms(officeTermsByHolder, holderId, limit);
-    }
-
-    static List<GovernmentOfficeTermRecord> boundedOfficeTerms(
-            Map<UUID, List<GovernmentOfficeTermRecord>> index, UUID holderId, int limit) {
-        if (holderId == null || index == null) return List.of();
-        int boundedLimit = Math.max(1, Math.min(32, limit));
-        return index.getOrDefault(holderId, List.of()).stream()
-                .sorted(Comparator.comparingLong(GovernmentOfficeTermRecord::chosenAt).reversed())
-                .limit(boundedLimit)
-                .toList();
+        return GovernmentOfficeTermIndex.query(officeTermsByHolder, holderId, limit);
     }
 
     public List<PublicHistoryEntry> governmentHistory(String realmId, int limit) {
