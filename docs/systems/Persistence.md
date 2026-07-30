@@ -31,10 +31,10 @@ Risks: config-as-state, unbounded JSONL scans, and broad file parsing during gam
 
 Core maintains a Realm-membership UUID index inside `CitizenService`. The
 index is built once from canonical citizen storage after each server bind and
-updated only after durable citizen saves. Realm and World notification fan-out
-and Realm reward delivery query this index, so ordinary delivery work is
-bounded by the target audience and does not repeatedly scan every citizen
-file.
+updated only after durable citizen saves. Realm and World notification fan-out,
+Realm reward delivery, Government active-citizen thresholds, and starter-Realm
+population balancing query this index, so ordinary audience and population
+work is bounded and does not repeatedly scan every citizen file.
 
 `JsonStateStorage` distinguishes missing input from unreadable input. Missing
 files use the owner-provided default. Malformed or otherwise unreadable files

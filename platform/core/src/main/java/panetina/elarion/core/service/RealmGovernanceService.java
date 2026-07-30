@@ -259,10 +259,8 @@ public final class RealmGovernanceService {
     }
 
     private int affectedCitizenCount(RealmDecision decision) {
-        return (int) citizens.all().stream()
-                .filter(citizen -> citizen.realmId().equals(decision.declaringRealmId())
-                        || citizen.realmId().equals(decision.receivingRealmId()))
-                .count();
+        return citizens.citizenIdsInRealms(List.of(
+                decision.declaringRealmId(), decision.receivingRealmId())).size();
     }
 
     private boolean citizenAffected(RealmDecision decision, UUID citizenId) {

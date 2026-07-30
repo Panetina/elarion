@@ -418,10 +418,13 @@ public final class CharacterLifecycleService {
                 .toList();
         if (candidates.isEmpty()) return Optional.empty();
 
-        List<CitizenRecord> existingCitizens = new ArrayList<>(citizens.all());
-        Map<String, Integer> counts = CharacterRealmAssignmentPlanner.counts(candidates, existingCitizens);
+        Map<String, Integer> counts = candidates.stream().collect(java.util.stream.Collectors.toMap(
+                RealmDefinition::id,
+                realm -> citizens.citizenCountInRealm(realm.id()),
+                (first, ignored) -> first,
+                LinkedHashMap::new));
         RealmDefinition selected = CharacterRealmAssignmentPlanner
-                .selectStarterRealm(candidates, existingCitizens, ThreadLocalRandom.current())
+                .selectStarterRealm(candidates, counts, ThreadLocalRandom.current())
                 .orElse(null);
         if (selected == null) return Optional.empty();
         if (!realms.assign(player, selected.id())) return Optional.empty();

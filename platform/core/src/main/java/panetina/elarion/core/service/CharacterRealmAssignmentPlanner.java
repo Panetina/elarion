@@ -19,10 +19,21 @@ public final class CharacterRealmAssignmentPlanner {
             Collection<CitizenRecord> citizens,
             RandomGenerator random
     ) {
+        return selectStarterRealm(candidates, counts(candidates, citizens), random);
+    }
+
+    public static Optional<RealmDefinition> selectStarterRealm(
+            List<RealmDefinition> candidates,
+            Map<String, Integer> populationByRealm,
+            RandomGenerator random
+    ) {
         if (candidates == null || candidates.isEmpty()) return Optional.empty();
         RandomGenerator rng = random == null ? RandomGenerator.getDefault() : random;
-        Map<String, Integer> counts = counts(candidates, citizens);
-        int minimum = counts.values().stream().mapToInt(Integer::intValue).min().orElse(0);
+        Map<String, Integer> counts = populationByRealm == null ? Map.of() : populationByRealm;
+        int minimum = candidates.stream()
+                .mapToInt(realm -> counts.getOrDefault(realm.id(), 0))
+                .min()
+                .orElse(0);
         List<RealmDefinition> leastPopulated = candidates.stream()
                 .filter(realm -> counts.getOrDefault(realm.id(), 0) == minimum)
                 .toList();

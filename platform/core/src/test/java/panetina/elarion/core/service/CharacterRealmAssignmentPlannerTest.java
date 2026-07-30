@@ -7,6 +7,7 @@ import panetina.elarion.core.model.VisibilityScope;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +39,13 @@ final class CharacterRealmAssignmentPlannerTest {
 
         assertEquals("realm3", CharacterRealmAssignmentPlanner
                 .selectStarterRealm(realms, citizens, new Random(1L)).orElseThrow().id());
+    }
+
+    @Test
+    void selectsFromIndexedPopulationCounts() {
+        assertEquals("realm2", CharacterRealmAssignmentPlanner
+                .selectStarterRealm(realms(), Map.of("realm1", 4, "realm2", 1, "realm3", 3), new Random(1L))
+                .orElseThrow().id());
     }
 
     private static List<RealmDefinition> realms() {

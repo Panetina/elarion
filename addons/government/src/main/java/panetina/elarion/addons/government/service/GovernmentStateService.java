@@ -2204,8 +2204,9 @@ public final class GovernmentStateService {
             return api.citizens().find(id).filter(citizen -> normalize(realmId).equals(normalize(citizen.realmId())));
         } catch (IllegalArgumentException ignored) {
             String lower = clean.toLowerCase(java.util.Locale.ROOT);
-            return api.citizens().all().stream()
-                    .filter(citizen -> normalize(realmId).equals(normalize(citizen.realmId())))
+            return api.citizens().citizenIdsInRealm(normalize(realmId)).stream()
+                    .map(api.citizens()::find)
+                    .flatMap(Optional::stream)
                     .filter(citizen -> citizenName(citizen).toLowerCase(java.util.Locale.ROOT).equals(lower)
                             || citizen.lastKnownUsername() != null
                             && citizen.lastKnownUsername().toLowerCase(java.util.Locale.ROOT).equals(lower))
@@ -2260,8 +2261,7 @@ public final class GovernmentStateService {
     }
 
     public int activeCitizenThreshold(String realm) {
-        long active = api.citizens().all().stream()
-                .filter(citizen -> realm.equals(normalize(citizen.realmId())))
+        long active = api.citizens().citizenIdsInRealm(normalize(realm)).stream()
                 .filter(api.citizens()::isActiveCitizen)
                 .count();
         return Math.max(1, (int) active / 2 + 1);

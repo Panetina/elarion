@@ -103,6 +103,14 @@ public final class CitizenService {
         }
     }
 
+    /** Returns the indexed population without loading individual citizen files. */
+    public int citizenCountInRealm(String realmId) {
+        ensureRealmIndex();
+        synchronized (realmIndexLock) {
+            return realmIndex.citizenCount(realmId);
+        }
+    }
+
     /** Returns a de-duplicated snapshot for bounded multi-Realm fan-out. */
     public Set<UUID> citizenIdsInRealms(Collection<String> realmIds) {
         ensureRealmIndex();

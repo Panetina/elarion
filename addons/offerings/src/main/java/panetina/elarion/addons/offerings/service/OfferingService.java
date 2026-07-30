@@ -22,6 +22,7 @@ import panetina.elarion.addons.offerings.model.OfferingScope;
 import panetina.elarion.addons.offerings.storage.OfferingState;
 import panetina.elarion.addons.offerings.storage.OfferingStorage;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.ElarionDomainEvent;
 import panetina.elarion.core.registry.ActionContext;
 import panetina.elarion.core.registry.MilestoneContext;
@@ -784,19 +785,31 @@ public final class OfferingService {
         }
     }
 
-    private List<panetina.elarion.core.model.CitizenRecord> rewardRecipients(OfferingInstance instance) {
+    private List<CitizenRecord> rewardRecipients(OfferingInstance instance) {
         Set<String> contributors = instance.contributorTotals().entrySet().stream()
                 .filter(entry -> entry.getValue() > 0)
                 .map(Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toSet());
-        return api.citizens().all().stream()
+        java.util.stream.Stream<CitizenRecord> candidates = switch (instance.scope()) {
+            case REALM -> api.citizens().citizenIdsInRealm(instance.realmId()).stream()
+                    .map(api.citizens()::find)
+                    .flatMap(Optional::stream);
+            case GLOBAL -> api.citizens().all().stream();
+            case LOCATION -> contributors.stream()
+                    .map(this::findCitizen)
+                    .flatMap(Optional::stream);
+        };
+        return candidates
                 .filter(api.citizens()::isActiveCitizen)
-                .filter(citizen -> switch (instance.scope()) {
-                    case REALM -> instance.realmId().equals(citizen.realmId());
-                    case GLOBAL -> true;
-                    case LOCATION -> contributors.contains(citizen.uuid().toString());
-                })
                 .toList();
+    }
+
+    private Optional<CitizenRecord> findCitizen(String citizenId) {
+        try {
+            return api.citizens().find(UUID.fromString(citizenId));
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 
     private OfferingProjectLevel currentLevel(OfferingProjectDefinition project, OfferingInstance instance) {

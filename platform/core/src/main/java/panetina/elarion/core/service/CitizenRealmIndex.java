@@ -35,6 +35,11 @@ final class CitizenRealmIndex {
         return citizens == null ? Set.of() : Set.copyOf(citizens);
     }
 
+    int citizenCount(String realmId) {
+        Set<UUID> citizens = citizensByRealm.get(clean(realmId));
+        return citizens == null ? 0 : citizens.size();
+    }
+
     Set<UUID> citizensInAny(Collection<String> realmIds) {
         if (realmIds == null || realmIds.isEmpty()) return Set.of();
         LinkedHashSet<UUID> citizens = new LinkedHashSet<>();

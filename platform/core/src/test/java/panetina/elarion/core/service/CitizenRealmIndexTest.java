@@ -21,8 +21,10 @@ final class CitizenRealmIndexTest {
         index.replaceAll(List.of(citizen(first, "realm1"), citizen(second, "realm2"), citizen(third, "")));
 
         assertEquals(Set.of(first), index.citizensIn("realm1"));
+        assertEquals(1, index.citizenCount("realm1"));
         assertEquals(Set.of(first, second), index.citizensInAny(List.of("realm1", "realm2", "realm1")));
         assertTrue(index.citizensIn("").isEmpty());
+        assertEquals(0, index.citizenCount("missing"));
     }
 
     @Test
