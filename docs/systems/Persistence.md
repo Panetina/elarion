@@ -49,6 +49,11 @@ future versions fail loading and are quarantined by the shared storage
 contract. Each future format change requires an owner-specific migration and
 old-data round-trip tests.
 
+Government additionally normalizes recoverable supported-schema null rows and
+mutable vote collections before the runtime service binds. This preserves valid
+civic state and prevents a successfully parsed partial snapshot from failing
+after the quarantine boundary; unsupported schemas remain quarantined.
+
 Do not duplicate this system by creating: ad hoc file writers or gameplay code that parses config on interaction.
 
 ## Proposed NPC Trade State

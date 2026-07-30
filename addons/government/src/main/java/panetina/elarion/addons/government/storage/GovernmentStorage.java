@@ -48,6 +48,6 @@ public final class GovernmentStorage {
         if (state.schemaVersion != GovernmentState.CURRENT_SCHEMA_VERSION) {
             throw new IllegalStateException("Unsupported government state schema " + state.schemaVersion);
         }
-        return state.copy();
+        return GovernmentStateNormalizer.normalize(state).copy();
     }
 }

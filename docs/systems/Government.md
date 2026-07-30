@@ -21,6 +21,7 @@ or treasury spending.
 - `addons/government/.../service/GovernmentStateService.java`
 - `addons/government/.../service/GovernmentRealmRecordIndex.java`
 - `addons/government/.../service/GovernmentVoteDeadlineIndex.java`
+- `addons/government/.../storage/GovernmentStateNormalizer.java`
 - `addons/government/.../service/GovernmentAuthorityTitlePolicy.java`
 - `addons/government/.../service/GovernmentProposalDecisionPolicy.java`
 - `addons/government/.../service/GovernmentNotificationPolicy.java`
@@ -106,6 +107,11 @@ Persisted vote state also remains canonical. A runtime-only deadline index is
 rebuilt after load and updated on vote starts, runoffs, resolutions, and resets;
 the 20-tick expiry wake-up examines only due deadlines and preserves canonical
 vote-map order when multiple votes expire together.
+
+Supported-schema snapshots pass through an owner-side normalizer before bind.
+It removes null map rows and rebuilds mutable vote option, ballot, winner, and
+result collections, preventing recoverable partial state from failing later
+outside the shared storage quarantine boundary.
 
 ## Vote Lifecycle
 
