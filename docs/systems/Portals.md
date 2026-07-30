@@ -43,7 +43,11 @@ parsing requirement text. Client route-status icons render as notification-rail
 accessories through Core's `ElarionHudOverlayRegistry` and
 `ElarionNotificationHud.accessoryAnchor()`.
 
-Storage/persistence: `world/elarion/addon-state/portals/state.json`.
+Storage/persistence: `world/elarion/addon-state/portals/state.json`. Supported
+snapshots normalize null collections and discard structurally unusable route,
+return-entitlement, and free-passage rows before binding. Invalid persisted gate
+endpoints are cleared so the route becomes incomplete instead of crashing index
+rebuild, while valid rows from the same file remain intact.
 
 Lifecycle: route state binds on `SERVER_STARTED`, then field reconciliation is
 queued through Core's server task queue so managed worlds opened by other
