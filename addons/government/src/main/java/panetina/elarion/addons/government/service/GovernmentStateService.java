@@ -1536,12 +1536,12 @@ public final class GovernmentStateService {
             resolveFoundingElection(vote, now);
             return;
         }
-        Map<String, Long> totals = voteTotals(vote);
+        Map<String, Long> totals = GovernmentVoteResolutionPolicy.totals(vote);
         if (totals.isEmpty()) {
             reopenEmptyVote(vote, now);
             return;
         }
-        List<String> winners = topOptions(totals);
+        List<String> winners = GovernmentVoteResolutionPolicy.topOptions(totals);
         if (winners.size() > 1) {
             openRunoff(vote, winners, totals, now, "Government Runoff Open",
                     "There was a tie between the leading options. A 12-hour runoff is now open.",
@@ -1580,7 +1580,7 @@ public final class GovernmentStateService {
     private void resolveFoundingElection(GovernmentVoteState vote, long now) {
         RealmGovernmentState current = realm(vote.realmId);
         GovernmentFormDefinition form = definitions.require(current.activeGovernmentFormId());
-        Map<String, Long> totals = voteTotals(vote);
+        Map<String, Long> totals = GovernmentVoteResolutionPolicy.totals(vote);
         if (totals.isEmpty()) {
             reopenEmptyVote(vote, now);
             return;
@@ -1701,24 +1701,6 @@ public final class GovernmentStateService {
                         "round", Integer.toString(vote.round)));
     }
 
-    static Map<String, Long> voteTotals(GovernmentVoteState vote) {
-        Map<String, Long> totals = new LinkedHashMap<>();
-        for (List<String> selections : vote.ballots.values()) {
-            for (String selected : selections) {
-                if (vote.options.containsKey(selected)) totals.merge(selected, 1L, Long::sum);
-            }
-        }
-        return totals;
-    }
-
-    static List<String> topOptions(Map<String, Long> totals) {
-        long best = totals.values().stream().mapToLong(Long::longValue).max().orElse(0L);
-        return totals.entrySet().stream()
-                .filter(entry -> entry.getValue() == best)
-                .map(Map.Entry::getKey)
-                .sorted()
-                .toList();
-    }
 
     private void openRunoff(
             GovernmentVoteState vote,

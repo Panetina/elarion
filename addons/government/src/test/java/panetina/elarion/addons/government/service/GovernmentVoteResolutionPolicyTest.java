@@ -25,9 +25,9 @@ final class GovernmentVoteResolutionPolicyTest {
         vote.ballots.put("invalid", List.of("blue"));
 
         assertEquals(Map.of("dark_green", 3L, "dark_red", 1L, "red", 1L),
-                GovernmentStateService.voteTotals(vote));
+                GovernmentVoteResolutionPolicy.totals(vote));
         assertEquals(List.of("dark_green"),
-                GovernmentStateService.topOptions(GovernmentStateService.voteTotals(vote)));
+                GovernmentVoteResolutionPolicy.topOptions(GovernmentVoteResolutionPolicy.totals(vote)));
     }
 
     @Test
@@ -39,6 +39,6 @@ final class GovernmentVoteResolutionPolicyTest {
                 "d", 3L,
                 "e", 3L);
 
-        assertEquals(List.of("a", "b", "c"), GovernmentStateService.topOptions(totals));
+        assertEquals(List.of("a", "b", "c"), GovernmentVoteResolutionPolicy.topOptions(totals));
     }
 }
