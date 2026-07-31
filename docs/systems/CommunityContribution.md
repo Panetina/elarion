@@ -16,7 +16,9 @@ tabs, compact rows, reward slots, numeric modal, and native item tooltips.
 Storage/persistence: `world/elarion/addon-state/offerings/state.json`,
 `projects.json`, `anchors.json`. Recoverable null collections/rows are
 normalized before bind so valid project progress from the same parsed snapshot
-remains available.
+remains available. The persisted anchor map is canonical; a runtime-only
+world-and-block-position index is rebuilt on bind and maintained on anchor
+mutations so ordinary Shrine interaction does not scan all anchors.
 
 Config reload safety: Offering project definitions and Shrine UI config are
 committed as one service snapshot. A failed second-stage UI load preserves the

@@ -53,6 +53,7 @@ public final class OfferingService {
     private final ElarionApi api;
     private final OfferingDefinitionService definitions;
     private final OfferingStorage storage;
+    private final OfferingAnchorLocationIndex anchorLocations = new OfferingAnchorLocationIndex();
     private OfferingState state = new OfferingState();
     private MinecraftServer server;
     private boolean completionResumePending;
@@ -77,6 +78,7 @@ public final class OfferingService {
     public synchronized void bind(MinecraftServer server) {
         this.server = server;
         state = storage.load(server);
+        anchorLocations.rebuild(state.anchors.values());
         refreshGlobalAccessProjection();
         // Completion resume can emit history/reward events. Core binds history
         // after addon SERVER_STARTED handlers, so run it from the tick hook once
@@ -137,12 +139,7 @@ public final class OfferingService {
     }
 
     public synchronized Optional<OfferingAnchor> findAnchorAt(String worldId, BlockPos pos) {
-        return state.anchors.values().stream()
-                .filter(anchor -> anchor.worldId().equals(worldId)
-                        && anchor.x() == pos.getX()
-                        && anchor.y() == pos.getY()
-                        && anchor.z() == pos.getZ())
-                .findFirst();
+        return anchorLocations.find(worldId, pos);
     }
 
     public synchronized List<OfferingDonationRecord> recentDonations(String instanceId, int limit) {
@@ -202,12 +199,13 @@ public final class OfferingService {
             }
         });
         if (!instance.anchorId().isBlank()) {
-            state.anchors.remove(instance.anchorId());
+            removeStoredAnchor(instance.anchorId());
         }
         String id = nextId(instanceId + "_shrine", state.anchors.keySet());
         OfferingAnchor anchor = new OfferingAnchor(id, instanceId, worldId, pos.getX(), pos.getY(), pos.getZ(),
                 actorId(actor), System.currentTimeMillis());
         state.anchors.put(id, anchor);
+        anchorLocations.add(anchor);
         OfferingInstance linked = instance.withAnchor(id);
         state.instances.put(instance.id(), linked);
         save();
@@ -223,7 +221,7 @@ public final class OfferingService {
     }
 
     public synchronized void removeAnchor(String anchorId, ServerPlayerEntity actor) {
-        OfferingAnchor removed = state.anchors.remove(anchorId);
+        OfferingAnchor removed = removeStoredAnchor(anchorId);
         if (removed == null) throw new IllegalArgumentException("Unknown anchor " + anchorId);
         OfferingInstance instance = requireInstance(removed.instanceId());
         if (instance.anchorId().equals(anchorId)) {
@@ -240,9 +238,13 @@ public final class OfferingService {
         history("project-deleted", actorId(actor), instance,
                 instance.anchorId().isBlank() ? Map.of() : Map.of("anchor", instance.anchorId()));
         if (!instance.anchorId().isBlank()) {
-            state.anchors.remove(instance.anchorId());
+            removeStoredAnchor(instance.anchorId());
         }
-        state.anchors.values().removeIf(anchor -> anchor.instanceId().equals(instanceId));
+        state.anchors.values().stream()
+                .filter(anchor -> anchor.instanceId().equals(instanceId))
+                .map(OfferingAnchor::id)
+                .toList()
+                .forEach(this::removeStoredAnchor);
         state.donations.remove(instanceId);
         state.instances.remove(instanceId);
         save();
@@ -259,13 +261,19 @@ public final class OfferingService {
         if (anchor.isEmpty()) return Optional.empty();
         OfferingInstance instance = state.instances.get(anchor.get().instanceId());
         if (instance == null) {
-            state.anchors.remove(anchor.get().id());
+            removeStoredAnchor(anchor.get().id());
             save();
             logger.warn("Removed orphaned Shrine link {} for missing instance {}",
                     anchor.get().id(), anchor.get().instanceId());
             return Optional.empty();
         }
         return Optional.of(deleteInstance(instance.id(), actor));
+    }
+
+    private OfferingAnchor removeStoredAnchor(String anchorId) {
+        OfferingAnchor removed = state.anchors.remove(anchorId);
+        if (removed != null) anchorLocations.remove(removed);
+        return removed;
     }
 
     public synchronized OfferingInstance contributeEvent(

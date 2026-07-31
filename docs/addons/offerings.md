@@ -161,6 +161,11 @@ Supported snapshots normalize null collections and retain valid project,
 anchor, Realm-flag, counter, and donation rows while discarding structurally
 unusable rows before the runtime service binds.
 
+The persisted anchor map remains canonical. On bind, Offerings rebuilds a
+runtime-only world-and-block-position index and maintains it on link, unlink,
+or project deletion. Location collisions retain canonical map order, while an
+ordinary Shrine interaction performs no global anchor scan.
+
 Donation history retains at most 50 records per instance. Shrine UI snapshots
 send at most the newest 20 records. Full long-term public meaning belongs in
 Core history/Chronicle projections rather than unbounded Offering state.
@@ -347,6 +352,8 @@ These are intended for future NPCs, quests, rewards, and milestone pipelines.
   are supported for contribution rows.
 - Gameplay/admin actions do not parse YAML.
 - Runtime state uses atomic JSON writes.
+- Shrine location lookup uses the rebuilt runtime anchor index; persisted
+  anchors remain the sole source of truth.
 - Completed projects resume missing milestone processing after restart.
 - Reward grants use deterministic IDs. Non-reward milestone handlers should be
   idempotent before stronger automatic retry semantics are enabled.
