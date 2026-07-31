@@ -38,6 +38,7 @@ public final class CharacterLifecycleService {
     private final NicknameService nicknames;
     private final ElarionEventBus events;
     private final List<RegisteredResetHandler> resetHandlers = new CopyOnWriteArrayList<>();
+    private final CharacterLifecycleWorkIndex workIndex = new CharacterLifecycleWorkIndex();
     private CharacterLifecycleState state = new CharacterLifecycleState();
     private MinecraftServer server;
     private int ticks;
@@ -69,6 +70,7 @@ public final class CharacterLifecycleService {
             state.accounts.computeIfAbsent(citizen.uuid().toString(), ignored ->
                     CharacterLifecycleRecord.migration(citizen.uuid()));
         }
+        workIndex.rebuild(state.accounts.values());
         dirty = true;
         save();
     }
@@ -87,7 +89,10 @@ public final class CharacterLifecycleService {
             dirty = true;
             return CharacterLifecycleRecord.newAccount(player.getUuid());
         });
-        if (record.status == CharacterLifecycleStatus.RESETTING) resumeReset(record);
+        if (record.status == CharacterLifecycleStatus.RESETTING) {
+            resumeReset(record);
+            workIndex.update(record);
+        }
         refreshCooldown(record);
         sync(player, "");
         return record;
@@ -140,6 +145,7 @@ public final class CharacterLifecycleService {
         record.resetReason = clean(reason);
         record.completedResetSteps.clear();
         record.updatedAt = System.currentTimeMillis();
+        workIndex.update(record);
         dirty = true;
         save();
         resumeReset(record);
@@ -183,6 +189,7 @@ public final class CharacterLifecycleService {
         record.resetReason = "";
         record.completedResetSteps.clear();
         record.updatedAt = System.currentTimeMillis();
+        workIndex.update(record);
         citizens.update(player, migration ? "character-migration-completed" : "character-created",
                 citizen -> citizen.setNickname(validation.nickname()));
         dirty = true;
@@ -206,6 +213,7 @@ public final class CharacterLifecycleService {
             record.nonce = UUID.randomUUID().toString();
         }
         record.updatedAt = System.currentTimeMillis();
+        workIndex.update(record);
         dirty = true;
         save();
         sync(accountId, "");
@@ -222,6 +230,7 @@ public final class CharacterLifecycleService {
         record.resetReason = "";
         record.completedResetSteps.clear();
         record.updatedAt = System.currentTimeMillis();
+        workIndex.update(record);
         dirty = true;
         save();
         sync(player, "Character lifecycle marked active for testing.");
@@ -231,6 +240,7 @@ public final class CharacterLifecycleService {
     public synchronized void resetForTesting(ServerPlayerEntity player) {
         CharacterLifecycleRecord record = CharacterLifecycleRecord.newAccount(player.getUuid());
         state.accounts.put(player.getUuidAsString(), record);
+        workIndex.update(record);
         dirty = true;
         save();
         sync(player, "Character state reset for testing.");
@@ -239,6 +249,7 @@ public final class CharacterLifecycleService {
     public synchronized int resetAllPlayerState() {
         int count = state.accounts.size();
         state = new CharacterLifecycleState();
+        workIndex.clear();
         dirty = true;
         save();
         return count;
@@ -247,10 +258,13 @@ public final class CharacterLifecycleService {
     public void tick() {
         if (server == null || ++ticks % 20 != 0) return;
         boolean changed = false;
-        for (CharacterLifecycleRecord record : state.accounts.values()) {
+        List<CharacterLifecycleRecord> pending = new ArrayList<>(workIndex.pendingResets());
+        pending.addAll(workIndex.pollDueCooldowns(System.currentTimeMillis()));
+        for (CharacterLifecycleRecord record : pending) {
             CharacterLifecycleStatus before = record.status;
             if (before == CharacterLifecycleStatus.RESETTING) resumeReset(record);
             refreshCooldown(record);
+            workIndex.update(record);
             changed |= before != record.status;
             ServerPlayerEntity player = parseUuid(record.accountId)
                     .map(server.getPlayerManager()::getPlayer).orElse(null);
@@ -296,6 +310,7 @@ public final class CharacterLifecycleService {
             record.eligibleAt = System.currentTimeMillis() + DEFAULT_RECREATION_DELAY_MILLIS;
             record.nonce = UUID.randomUUID().toString();
             record.updatedAt = System.currentTimeMillis();
+            workIndex.update(record);
             dirty = true;
             save();
             emit("character-reset-completed", context.accountId(), record, Map.of(
@@ -372,6 +387,7 @@ public final class CharacterLifecycleService {
             record.status = CharacterLifecycleStatus.CREATION_REQUIRED;
             record.nonce = UUID.randomUUID().toString();
             record.updatedAt = System.currentTimeMillis();
+            workIndex.update(record);
             dirty = true;
             emit("character-creation-available", UUID.fromString(record.accountId), record, Map.of());
         }

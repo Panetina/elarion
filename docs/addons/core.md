@@ -214,7 +214,10 @@ same parsed snapshot.
 
 Character lifecycle storage canonicalizes UUID-keyed accounts and normalizes
 recoverable null collections, rows, strings, archive lists, and metadata before
-the lifecycle service binds. Unusable account/archive rows are discarded.
+the lifecycle service binds. Unusable account/archive rows are discarded. The
+persisted account map remains authoritative; a runtime-only pending-work index
+is rebuilt on bind and maintained on lifecycle mutations so periodic reset and
+cooldown processing does not scan every account.
 
 `config/elarion/core/minecraft-bridge.yml` controls the disabled-by-default
 website whitelist bridge. Core starts it only when the explicit configuration
