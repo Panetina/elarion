@@ -74,6 +74,9 @@ Underworld normalizes supported-schema null collections, nested item lists, and
 nullable record fields before bind, discarding unusable null/blank rows while
 retaining valid death/session state from the same parsed snapshot.
 
+Core Notification storage normalizes null lists and discards null rows before
+bind, retaining valid notifications from the same parsed snapshot.
+
 Do not duplicate this system by creating: ad hoc file writers or gameplay code that parses config on interaction.
 
 ## Proposed NPC Trade State

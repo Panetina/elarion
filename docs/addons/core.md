@@ -208,6 +208,9 @@ world/elarion/core/minecraft-bridge/state.json
 world/elarion/addon-state/realms/
 ```
 
+Notification storage normalizes null lists and discards null rows before the
+service binds, retaining valid notifications from the same parsed snapshot.
+
 `config/elarion/core/minecraft-bridge.yml` controls the disabled-by-default
 website whitelist bridge. Core starts it only when the explicit configuration
 is valid and the server has both online mode and the whitelist enabled. The

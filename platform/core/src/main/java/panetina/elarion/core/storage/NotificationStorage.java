@@ -30,8 +30,8 @@ public final class NotificationStorage {
 
     public List<ElarionStoredNotification> load(Path file) {
         StoredState state = JsonStateStorage.read(file, GSON, StoredState.class,
-                StoredState::new, value -> value, logger, "notifications");
-        return state.notifications == null ? List.of() : List.copyOf(state.notifications);
+                StoredState::new, NotificationStorage::normalize, logger, "notifications");
+        return List.copyOf(state.notifications);
     }
 
     public void save(MinecraftServer server, List<ElarionStoredNotification> notifications) {
@@ -48,6 +48,12 @@ public final class NotificationStorage {
         return explicitFile != null
                 ? explicitFile
                 : JsonStateStorage.elarionRoot(server).resolve("notifications").resolve("notifications.json");
+    }
+
+    private static StoredState normalize(StoredState state) {
+        if (state.notifications == null) state.notifications = new ArrayList<>();
+        else state.notifications.removeIf(notification -> notification == null);
+        return state;
     }
 
     private static final class StoredState {
