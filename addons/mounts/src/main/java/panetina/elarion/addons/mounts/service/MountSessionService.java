@@ -44,16 +44,20 @@ public final class MountSessionService {
         }
         this.server = server;
         sessions.clear();
-        sessions.putAll(JsonStateStorage.read(
-                file(server),
+        sessions.putAll(loadSessions(file(server)));
+        loaded = true;
+        dirty = false;
+    }
+
+    Map<UUID, StoredSession> loadSessions(Path path) {
+        return JsonStateStorage.read(
+                path,
                 GSON,
                 StoredState.class,
                 HashMap::new,
-                stored -> new HashMap<>(stored.sessions),
+                MountSessionService::normalizeStoredSessions,
                 logger,
-                "mount sessions"));
-        loaded = true;
-        dirty = false;
+                "mount sessions");
     }
 
     public void tick(MinecraftServer server) {
@@ -297,6 +301,17 @@ public final class MountSessionService {
         return JsonStateStorage.addonStateRoot(server, "mounts").resolve("sessions.json");
     }
 
+    private static Map<UUID, StoredSession> normalizeStoredSessions(StoredState stored) {
+        Map<UUID, StoredSession> normalized = new HashMap<>();
+        if (stored == null || stored.sessions == null) return normalized;
+        stored.sessions.forEach((playerId, session) -> {
+            if (playerId == null || session == null) return;
+            session.normalize();
+            normalized.put(playerId, session);
+        });
+        return normalized;
+    }
+
     public static final class StoredState {
         public Map<UUID, StoredSession> sessions = new HashMap<>();
 
@@ -319,6 +334,22 @@ public final class MountSessionService {
         public long updatedAt;
 
         public StoredSession() {
+        }
+
+        void normalize() {
+            String type = mountType == null ? "" : mountType.trim();
+            mountType = type.isEmpty()
+                    ? ElarionMountType.CHINESE_DRAGON.id()
+                    : ElarionMountType.byId(type).id();
+            String world = worldId == null ? "" : worldId.trim();
+            worldId = world.isEmpty() || Identifier.tryParse(world) == null
+                    ? "minecraft:overworld"
+                    : world;
+            if (!Double.isFinite(x)) x = 0.0D;
+            if (!Double.isFinite(y)) y = 0.0D;
+            if (!Double.isFinite(z)) z = 0.0D;
+            if (!Float.isFinite(yaw)) yaw = 0.0F;
+            updatedAt = Math.max(0L, updatedAt);
         }
 
         static StoredSession from(ServerPlayerEntity owner, ElarionMountEntity mount) {

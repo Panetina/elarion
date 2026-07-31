@@ -48,6 +48,10 @@ Mount Collection load validation normalizes null player maps and nested mount
 ids before bind. Null player rows are discarded without losing valid unlocks
 from the same successfully parsed snapshot.
 
+Transient Mount session load validation likewise normalizes null session maps,
+rows, mount ids, world ids, positions, and timestamps before restore scheduling.
+Valid ride-recovery sessions from the same parsed snapshot remain available.
+
 ## Collection Menu And Active Mount
 
 Core owns the modular Collection menu shell. Mounts contributes the first tab,

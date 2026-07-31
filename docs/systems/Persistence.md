@@ -66,6 +66,10 @@ Mount Collection state normalizes null player maps and nested mount ids before
 bind, discarding null player rows while retaining valid unlocks from the same
 successfully parsed snapshot.
 
+Transient Mount session state normalizes null maps/rows and persisted mount,
+world, position, rotation, and timestamp fields before restore scheduling,
+retaining valid sessions from the same successfully parsed snapshot.
+
 Underworld normalizes supported-schema null collections, nested item lists, and
 nullable record fields before bind, discarding unusable null/blank rows while
 retaining valid death/session state from the same parsed snapshot.
