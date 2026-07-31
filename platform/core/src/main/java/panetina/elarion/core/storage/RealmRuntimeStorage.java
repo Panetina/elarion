@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -33,7 +34,10 @@ public final class RealmRuntimeStorage {
     }
 
     public RealmRuntimeState load(MinecraftServer server) {
-        Path file = file(server);
+        return load(file(server));
+    }
+
+    RealmRuntimeState load(Path file) {
         if (Files.notExists(file)) return new RealmRuntimeState();
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             StoredState stored = GSON.fromJson(reader, StoredState.class);
@@ -45,7 +49,11 @@ public final class RealmRuntimeStorage {
     }
 
     public void save(MinecraftServer server, RealmRuntimeState state) {
-        JsonStateStorage.writeAtomic(file(server), GSON, StoredState.from(state), logger, "realm runtime state");
+        save(file(server), state);
+    }
+
+    void save(Path file, RealmRuntimeState state) {
+        JsonStateStorage.writeAtomic(file, GSON, StoredState.from(state), logger, "realm runtime state");
     }
 
     private static Path file(MinecraftServer server) {
@@ -81,6 +89,7 @@ public final class RealmRuntimeStorage {
             RealmRuntimeState state = new RealmRuntimeState();
             if (relationships != null) {
                 relationships.forEach((pair, relationship) -> {
+                    if (pair == null || pair.isBlank() || relationship == null || relationship.isBlank()) return;
                     try {
                         RealmRelationship parsed = RealmRelationship.valueOf(relationship);
                         if (parsed != RealmRelationship.HIDDEN) {
@@ -90,9 +99,15 @@ public final class RealmRuntimeStorage {
                     }
                 });
             }
-            if (hiddenRealms != null) state.hiddenRealms().addAll(hiddenRealms);
+            if (hiddenRealms != null) {
+                hiddenRealms.stream()
+                        .map(RealmRuntimeStorage::normalize)
+                        .filter(realmId -> !realmId.isBlank())
+                        .forEach(state.hiddenRealms()::add);
+            }
             if (decisions != null) {
                 for (StoredDecision stored : decisions) {
+                    if (stored == null) continue;
                     RealmDecision decision = stored.toDecision();
                     if (decision != null) state.decisions().put(decision.id(), decision);
                 }
@@ -133,11 +148,15 @@ public final class RealmRuntimeStorage {
                         : GSON.fromJson(GSON.toJson(votes), STRING_BOOLEAN_MAP);
                 Map<UUID, Boolean> parsedVotes = new LinkedHashMap<>();
                 rawVotes.forEach((uuid, vote) -> {
+                    if (vote == null) return;
                     try {
                         parsedVotes.put(UUID.fromString(uuid), Boolean.TRUE.equals(vote));
-                    } catch (IllegalArgumentException ignored) {
+                    } catch (IllegalArgumentException | NullPointerException ignored) {
                     }
                 });
+                RealmDecisionStatus parsedStatus = status == null || status.isBlank()
+                        ? RealmDecisionStatus.PENDING
+                        : RealmDecisionStatus.valueOf(status);
                 return new RealmDecision(
                         UUID.fromString(id),
                         RealmDecisionType.valueOf(type),
@@ -146,12 +165,16 @@ public final class RealmRuntimeStorage {
                         leaderId == null || leaderId.isBlank() ? null : UUID.fromString(leaderId),
                         createdAt,
                         expiresAt,
-                        RealmDecisionStatus.valueOf(status),
+                        parsedStatus,
                         parsedVotes
                 );
             } catch (IllegalArgumentException | NullPointerException exception) {
                 return null;
             }
         }
+    }
+
+    private static String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 }

@@ -85,6 +85,11 @@ normalizes recoverable null collections, rows, strings, archive lists, and
 metadata before bind. Unusable account/archive rows are discarded while valid
 lifecycle and archive state from the same snapshot is retained.
 
+Core Realm runtime storage normalizes null collections and recoverable
+relationship, hidden-Realm, decision, and nested vote rows before governance
+binds. Unusable rows are discarded while valid adjacent Realm runtime state is
+retained from the same parsed snapshot.
+
 Core's advancement leaderboard index discards null entries and invalid citizen
 UUIDs during its bounded load projection, retaining valid adjacent rows.
 

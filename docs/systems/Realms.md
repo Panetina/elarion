@@ -12,7 +12,12 @@ Network packets: identity sync payloads.
 
 GUI/screens: none central yet; future Government/Ledger/Atlas views should consume Core Realm APIs.
 
-Storage/persistence: `config/elarion/core/realms.yml`, `world/elarion/citizens`, Realm runtime/delivery storage.
+Storage/persistence: `config/elarion/core/realms.yml`, `world/elarion/citizens`,
+`world/elarion/addon-state/realms/realm-state.json`, and Realm delivery storage.
+Realm runtime loading treats null collections as empty, removes unusable
+relationship/decision/vote rows, normalizes hidden Realm IDs, and retains valid
+adjacent relationships, visibility state, decisions, and votes. The JSON shape
+and Core ownership remain unchanged.
 
 Realm spawn defaults:
 

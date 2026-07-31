@@ -219,6 +219,11 @@ persisted account map remains authoritative; a runtime-only pending-work index
 is rebuilt on bind and maintained on lifecycle mutations so periodic reset and
 cooldown processing does not scan every account.
 
+Core Realm runtime storage normalizes null relationship, hidden-Realm,
+decision, and nested vote rows before governance binds. Structurally unusable
+rows are discarded without losing valid adjacent Realm relationships,
+visibility, decisions, or votes from the same parsed snapshot.
+
 `config/elarion/core/minecraft-bridge.yml` controls the disabled-by-default
 website whitelist bridge. Core starts it only when the explicit configuration
 is valid and the server has both online mode and the whitelist enabled. The
