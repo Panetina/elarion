@@ -16,12 +16,21 @@ public final class CharacterLifecycleStorage {
     }
 
     public CharacterLifecycleState load(MinecraftServer server) {
-        return JsonStateStorage.read(file(server), gson, CharacterLifecycleState.class,
-                CharacterLifecycleState::new, state -> state, logger, "character lifecycle state");
+        return load(file(server));
     }
 
     public void save(MinecraftServer server, CharacterLifecycleState state) {
-        JsonStateStorage.writeAtomic(file(server), gson, state, logger, "character lifecycle state");
+        save(file(server), state);
+    }
+
+    public CharacterLifecycleState load(Path file) {
+        return JsonStateStorage.read(file, gson, CharacterLifecycleState.class,
+                CharacterLifecycleState::new, CharacterLifecycleState::normalized,
+                logger, "character lifecycle state");
+    }
+
+    public void save(Path file, CharacterLifecycleState state) {
+        JsonStateStorage.writeAtomic(file, gson, state, logger, "character lifecycle state");
     }
 
     private Path file(MinecraftServer server) {

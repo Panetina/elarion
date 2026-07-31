@@ -80,6 +80,11 @@ bind, retaining valid notifications from the same parsed snapshot.
 Core deferred reward-grant storage likewise normalizes null maps and discards
 null rows before bind, retaining valid grants from the same parsed snapshot.
 
+Core character lifecycle storage canonicalizes UUID-keyed accounts and
+normalizes recoverable null collections, rows, strings, archive lists, and
+metadata before bind. Unusable account/archive rows are discarded while valid
+lifecycle and archive state from the same snapshot is retained.
+
 Do not duplicate this system by creating: ad hoc file writers or gameplay code that parses config on interaction.
 
 ## Proposed NPC Trade State

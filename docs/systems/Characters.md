@@ -30,6 +30,10 @@ available after a 24-hour real-time cooldown.
 - C2S: `CharacterCreationSubmitPayload`
 - C2S: `CharacterRealmAssignmentConfirmPayload`
 
+Lifecycle state is normalized before service bind. Account keys are canonical
+UUIDs; null collections, rows, strings, archive lists, and metadata entries are
+recovered or discarded without losing valid adjacent account/archive records.
+
 On client join, Core requests the current character-creation status once the
 client world/player are available. The client queues the mandatory screen and
 opens it immediately when no other screen is active. It never replaces another

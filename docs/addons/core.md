@@ -212,6 +212,10 @@ Notification and deferred reward-grant storage normalize null collections and
 discard null rows before their services bind, retaining valid records from the
 same parsed snapshot.
 
+Character lifecycle storage canonicalizes UUID-keyed accounts and normalizes
+recoverable null collections, rows, strings, archive lists, and metadata before
+the lifecycle service binds. Unusable account/archive rows are discarded.
+
 `config/elarion/core/minecraft-bridge.yml` controls the disabled-by-default
 website whitelist bridge. Core starts it only when the explicit configuration
 is valid and the server has both online mode and the whitelist enabled. The
