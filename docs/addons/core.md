@@ -208,8 +208,9 @@ world/elarion/core/minecraft-bridge/state.json
 world/elarion/addon-state/realms/
 ```
 
-Notification storage normalizes null lists and discards null rows before the
-service binds, retaining valid notifications from the same parsed snapshot.
+Notification and deferred reward-grant storage normalize null collections and
+discard null rows before their services bind, retaining valid records from the
+same parsed snapshot.
 
 `config/elarion/core/minecraft-bridge.yml` controls the disabled-by-default
 website whitelist bridge. Core starts it only when the explicit configuration

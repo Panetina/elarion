@@ -26,8 +26,8 @@ public final class DeferredRewardGrantStorage {
 
     public Map<String, DeferredRewardGrant> load(MinecraftServer server) {
         StoredState state = JsonStateStorage.read(file(server), GSON, StoredState.class,
-                StoredState::new, value -> value, logger, "deferred reward grants");
-        return state.grants == null ? new LinkedHashMap<>() : new LinkedHashMap<>(state.grants);
+                StoredState::new, DeferredRewardGrantStorage::normalize, logger, "deferred reward grants");
+        return new LinkedHashMap<>(state.grants);
     }
 
     public void save(MinecraftServer server, Map<String, DeferredRewardGrant> grants) {
@@ -36,8 +36,8 @@ public final class DeferredRewardGrantStorage {
 
     public Map<String, DeferredRewardGrant> load(Path file) {
         StoredState state = JsonStateStorage.read(file, GSON, StoredState.class,
-                StoredState::new, value -> value, logger, "deferred reward grants test");
-        return state.grants == null ? new LinkedHashMap<>() : new LinkedHashMap<>(state.grants);
+                StoredState::new, DeferredRewardGrantStorage::normalize, logger, "deferred reward grants test");
+        return new LinkedHashMap<>(state.grants);
     }
 
     public void save(Path file, Map<String, DeferredRewardGrant> grants) {
@@ -50,6 +50,12 @@ public final class DeferredRewardGrantStorage {
         return explicitFile != null
                 ? explicitFile
                 : JsonStateStorage.elarionRoot(server).resolve("reward-grants.json");
+    }
+
+    private static StoredState normalize(StoredState state) {
+        if (state.grants == null) state.grants = new LinkedHashMap<>();
+        else state.grants.values().removeIf(grant -> grant == null);
+        return state;
     }
 
     private static final class StoredState {
