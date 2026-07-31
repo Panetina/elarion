@@ -150,8 +150,10 @@ scope do not add another count.
 - Definitions are parsed once into immutable maps on load/reload.
 - Gameplay actions do not parse YAML.
 - Runtime state uses atomic JSON writes.
-- Scheduled consequences are processed from the server tick path only once per
-  second and are capped to 16 due actions per interval.
+- Scheduled consequences remain canonical in persisted list order. A
+  runtime-only deadline index is rebuilt on bind and maintained on schedule or
+  reset, so the once-per-second tick polls at most 16 due actions without
+  filtering or sorting the full scheduled list.
 - Character Menu completed quest count reads `quests_completed`; profile
   snapshot creation must not scan quest runtime state.
 - Player-facing future views must use dedicated summaries or indexes before

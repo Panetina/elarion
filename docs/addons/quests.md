@@ -66,6 +66,9 @@ world/elarion/addon-state/quests/state.json
 Runtime state stores shared questline state, player quest state, actor
 bindings, and scheduled consequences. Actor bindings map
 `quest + scope-key + actor alias` to a placed NPC UUID plus a handle snapshot.
+Scheduled consequences remain canonical in the persisted list; a runtime-only
+deadline index is rebuilt on bind and maintained on schedule/reset so each
+once-per-second poll examines only the bounded due prefix of at most 16 actions.
 Quests does not copy NPC dialogue trees, NPC placement ownership, Offering
 project templates, Government state, Core title/citizen data, or Chronicle
 history.

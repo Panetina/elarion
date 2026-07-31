@@ -46,6 +46,7 @@ public final class QuestStateService {
     private final ElarionApi api;
     private final QuestDefinitionService definitions;
     private final QuestStorage storage;
+    private final QuestConsequenceDeadlineIndex consequenceDeadlines = new QuestConsequenceDeadlineIndex();
     private QuestRuntimeState state = new QuestRuntimeState();
     private MinecraftServer server;
     private int ticks;
@@ -65,6 +66,7 @@ public final class QuestStateService {
     public synchronized void bind(MinecraftServer server) {
         this.server = server;
         state = storage.load(server);
+        consequenceDeadlines.rebuild(state.scheduled);
     }
 
     public synchronized void tick(MinecraftServer server) {
@@ -82,6 +84,7 @@ public final class QuestStateService {
         int changed = state.players.size() + state.questlines.size()
                 + state.actorBindings.size() + state.scheduled.size();
         state = new QuestRuntimeState();
+        consequenceDeadlines.clear();
         ticks = 0;
         save();
         return changed;
@@ -109,6 +112,7 @@ public final class QuestStateService {
         });
         if (state.actorBindings.remove(lineKey(questId, scopeKey)) != null) removed++;
         state.scheduled.removeIf(entry -> questId.equals(entry.questId) && scopeKey.equals(entry.scopeKey));
+        consequenceDeadlines.rebuild(state.scheduled);
         save();
         return removed;
     }
@@ -274,14 +278,16 @@ public final class QuestStateService {
         });
         parameters.putIfAbsent("quest", quest.id());
         parameters.putIfAbsent("scope-key", scopeKey);
-        state.scheduled.add(new QuestScheduledConsequence(
+        QuestScheduledConsequence consequence = new QuestScheduledConsequence(
                 "quest_" + Long.toUnsignedString(System.nanoTime(), 36),
                 quest.id(),
                 scopeKey,
                 context.execution().actorId(),
                 dueAt,
                 action,
-                parameters));
+                parameters);
+        state.scheduled.add(consequence);
+        consequenceDeadlines.add(consequence);
         save();
         emit("consequence-scheduled", context.execution().actorId(), quest.id(), scopeKey,
                 Map.of("action", action, "dueAt", Long.toString(dueAt)));
@@ -411,11 +417,8 @@ public final class QuestStateService {
     }
 
     private void processConsequences(long now) {
-        List<QuestScheduledConsequence> due = state.scheduled.stream()
-                .filter(entry -> entry.dueAt <= now)
-                .sorted(Comparator.comparingLong(entry -> entry.dueAt))
-                .limit(MAX_CONSEQUENCES_PER_INTERVAL)
-                .toList();
+        List<QuestScheduledConsequence> due =
+                consequenceDeadlines.pollDue(now, MAX_CONSEQUENCES_PER_INTERVAL);
         if (due.isEmpty()) return;
         state.scheduled.removeAll(due);
         save();
