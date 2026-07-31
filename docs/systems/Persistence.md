@@ -85,6 +85,9 @@ normalizes recoverable null collections, rows, strings, archive lists, and
 metadata before bind. Unusable account/archive rows are discarded while valid
 lifecycle and archive state from the same snapshot is retained.
 
+Core's advancement leaderboard index discards null entries and invalid citizen
+UUIDs during its bounded load projection, retaining valid adjacent rows.
+
 Do not duplicate this system by creating: ad hoc file writers or gameplay code that parses config on interaction.
 
 ## Proposed NPC Trade State

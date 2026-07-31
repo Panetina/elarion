@@ -107,7 +107,8 @@ Addons publish through `api.system().webProjections()`. Initial contracts are:
   public-history category policy.
 - `metric.advancement-leaderboard`: Core's persisted owner-maintained top-10
   advancement index. It updates on join/advancement synchronization and never
-  scans all player-stat files for an ordinary request.
+  scans all player-stat files for an ordinary request. Reload normalization
+  discards null entries and invalid citizen UUIDs while retaining valid rows.
 - `metric.shrine-contribution`: Offerings-owned per-instance aggregate without
   contributor identities.
 - `map.marker.*`: typed bounded map markers validated by Core; inactive state

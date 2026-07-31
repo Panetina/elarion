@@ -19,11 +19,18 @@ final class AdvancementLeaderboardStorage {
     }
 
     Map<UUID, AdvancementLeaderboardProjection.Entry> load(Path root) {
-        Stored stored = JsonStateStorage.read(path(root), GSON, Stored.class, Stored::empty,
-                value -> value, logger, "advancement leaderboard index");
+        return JsonStateStorage.read(path(root), GSON, Stored.class, LinkedHashMap::new,
+                this::normalize, logger, "advancement leaderboard index");
+    }
+
+    private Map<UUID, AdvancementLeaderboardProjection.Entry> normalize(Stored stored) {
         Map<UUID, AdvancementLeaderboardProjection.Entry> entries = new LinkedHashMap<>();
         if (stored.entries != null) {
             stored.entries.forEach((id, entry) -> {
+                if (id == null || entry == null) {
+                    logger.warn("Ignored null row in advancement leaderboard index");
+                    return;
+                }
                 try {
                     entries.put(UUID.fromString(id), entry.normalized());
                 } catch (IllegalArgumentException ignored) {
@@ -46,8 +53,5 @@ final class AdvancementLeaderboardStorage {
     }
 
     private record Stored(Map<String, AdvancementLeaderboardProjection.Entry> entries) {
-        static Stored empty() {
-            return new Stored(Map.of());
-        }
     }
 }
