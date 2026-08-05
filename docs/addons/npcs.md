@@ -485,8 +485,9 @@ PREPARED/PAID/COMPLETE/FAILED purchase state before responding.
   `elarion_npcs:relationship_at_least`. Durable story flags, one-time choices,
   endings, opt-in re-entry, and structured `npc/story-outcome` Chronicle
   records are complete under the contract in
-  `docs/reports/NPC_STORY_STATE_DESIGN.md`. Relationship UI/profile summaries
-  remain deferred.
+  `docs/systems/NPCs.md`. Per-NPC relationship UI remains deferred; the
+  Character Menu faction-reputation summary is already an NPC-owned bounded
+  projection.
 - Add richer idle animation and explicit skin validation only if the static
   presentation needs them.
 - Add NPC action handlers for market entry, portal tickets, quest boards,
