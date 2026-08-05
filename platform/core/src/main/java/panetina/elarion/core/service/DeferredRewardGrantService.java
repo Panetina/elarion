@@ -27,6 +27,7 @@ public final class DeferredRewardGrantService {
     private final RewardActionService rewards;
     private final HistoryService history;
     private final Map<String, DeferredRewardGrant> grants = new LinkedHashMap<>();
+    private final DeferredRewardGrantRuntimeIndex pendingIndex = new DeferredRewardGrantRuntimeIndex();
     private Consumer<ServerPlayerEntity> notificationSync = ignored -> {};
     private MinecraftServer server;
 
@@ -43,7 +44,11 @@ public final class DeferredRewardGrantService {
     public synchronized void bind(MinecraftServer server) {
         this.server = server;
         grants.clear();
-        grants.putAll(storage.load(server));
+        pendingIndex.clear();
+        for (Map.Entry<String, DeferredRewardGrant> entry : storage.load(server).entrySet()) {
+            grants.put(entry.getKey(), entry.getValue());
+            pendingIndex.add(entry.getValue());
+        }
     }
 
     public synchronized boolean enqueue(
@@ -77,9 +82,11 @@ public final class DeferredRewardGrantService {
                     ? EnqueueResult.EXACT_RETRY
                     : EnqueueResult.CONFLICT;
         }
-        grants.put(grantId, new DeferredRewardGrant(
+        DeferredRewardGrant grant = new DeferredRewardGrant(
                 grantId, recipientId, sourceSystem, sourceId, actions, java.util.Set.of(),
-                System.currentTimeMillis(), 0L));
+                System.currentTimeMillis(), 0L);
+        grants.put(grantId, grant);
+        pendingIndex.add(grant);
         save();
         MinecraftServer boundServer = server;
         if (boundServer != null) {
@@ -122,8 +129,10 @@ public final class DeferredRewardGrantService {
             changed = true;
         }
         if (current.complete()) {
+            DeferredRewardGrant pending = current;
             current = current.markDelivered(System.currentTimeMillis());
             grants.put(current.id(), current);
+            pendingIndex.update(pending, current);
             history.record("reward", "deferred-grant-delivered", player.getUuid(),
                     "reward_grant", current.id(), "",
                     Map.of("sourceSystem", current.sourceSystem(), "sourceId", current.sourceId()));
@@ -146,8 +155,9 @@ public final class DeferredRewardGrantService {
     public synchronized ElarionNotificationSnapshot snapshot(UUID recipientId) {
         if (recipientId == null) return ElarionNotificationSnapshot.EMPTY;
         List<ElarionNotificationEntry> entries = new ArrayList<>();
-        for (DeferredRewardGrant grant : grants.values()) {
-            if (grant.delivered() || !recipientId.equals(grant.recipientId())) continue;
+        for (String grantId : pendingIndex.pendingIds(recipientId)) {
+            DeferredRewardGrant grant = grants.get(grantId);
+            if (grant == null || grant.delivered()) continue;
             entries.add(new ElarionNotificationEntry(
                     grant.id(),
                     ElarionNotificationCategory.REWARD,
@@ -168,10 +178,7 @@ public final class DeferredRewardGrantService {
     }
 
     public synchronized int pendingCount(UUID recipientId) {
-        return (int) grants.values().stream()
-                .filter(grant -> !grant.delivered())
-                .filter(grant -> recipientId == null || recipientId.equals(grant.recipientId()))
-                .count();
+        return pendingIndex.pendingCount(recipientId);
     }
 
     public synchronized boolean isClaimable(String grantId, UUID recipientId) {
@@ -186,6 +193,7 @@ public final class DeferredRewardGrantService {
     public synchronized int resetAllPlayerState() {
         int count = grants.size();
         grants.clear();
+        pendingIndex.clear();
         save();
         return count;
     }

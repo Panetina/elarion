@@ -82,6 +82,9 @@ retention trimming, and expiry cleanup do not scan unrelated notification histor
 
 Core deferred reward-grant storage likewise normalizes null maps and discards
 null rows before bind, retaining valid grants from the same parsed snapshot.
+Persistent grant rows remain canonical; Core rebuilds a pending-grant
+recipient projection on bind and updates it only on enqueue/delivery, so reward
+drawer reads and pending counts do not scan unrelated grant history.
 
 Core character lifecycle storage canonicalizes UUID-keyed accounts and
 normalizes recoverable null collections, rows, strings, archive lists, and

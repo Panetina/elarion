@@ -216,6 +216,11 @@ The persisted notification map remains authoritative. Core rebuilds runtime-only
 recipient, recipient-category, and expiry projections on bind, so inbox reads,
 retention trimming, and expiry cleanup avoid unrelated notification history.
 
+The persisted deferred-reward map remains authoritative. Core rebuilds a
+runtime-only pending-grant recipient projection on bind and maintains it at
+enqueue/delivery, so reward drawer reads and pending counts avoid unrelated
+grant history.
+
 Character lifecycle storage canonicalizes UUID-keyed accounts and normalizes
 recoverable null collections, rows, strings, archive lists, and metadata before
 the lifecycle service binds. Unusable account/archive rows are discarded. The
