@@ -7,7 +7,8 @@
     "environment":  "*",
     "entrypoints":  {
                         "fabric-gametest":  [
-                                                "panetina.elarion.tests.ElarionCoreGameTest"
+                                                "panetina.elarion.tests.ElarionCoreGameTest",
+                                                "panetina.elarion.addons.angling.fishing.AnglingBaitDebitGameTest"
                                             ]
                     },
     "depends":  {
@@ -16,7 +17,8 @@
                     "fabric-api":  "*",
                     "elarion_core":  "*",
                     "elarion_realms":  "*",
-                    "elarion_worlds":  "*"
+                    "elarion_worlds":  "*",
+                    "elarion_angling": "*"
                 },
     "contributors":  [
                          "Panetina Team"

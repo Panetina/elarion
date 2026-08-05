@@ -51,7 +51,9 @@ reset may not contain dimension deletion or regeneration logic.
   their implementation slices. Do not enable catch selection before its full
   native registry and server-authority dependencies validate together.
 - Add live kill/restart GameTests for the append-first bait debit projection,
-  player-file cursor reconciliation, missing bait, and completed-action replay.
+  player-file cursor reconciliation, and completed-action replay. The current
+  mock-player GameTest covers atomic rod debit, cursor advancement, exact retry,
+  and missing bait.
 - Use the owner-authorized local reference as the direct port source; do not
   create a duplicate placeholder roster or schedule a replacement-art phase.
 

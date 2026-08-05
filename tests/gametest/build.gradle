@@ -29,6 +29,9 @@ dependencies {
     implementation(project(path: ':addons:underworld', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
+    implementation(project(path: ':addons:angling', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
     modRuntimeOnly 'xyz.nucleoid:fantasy:0.6.3+1.21'
     runtimeOnly 'org.yaml:snakeyaml:2.2'
 }

@@ -194,7 +194,9 @@ checkpoints only that player's bounded state. Fabric stores the applied cursor
 with the same player file as vanilla inventory and copies it across death.
 Join reconciliation reapplies only the difference, closing crash windows
 without synchronous gameplay-thread disk I/O. Runtime kill/restart GameTests
-remain a release gate.
+remain a release gate. The headless mock-player GameTest already verifies atomic
+rod debit, the persisted player cursor, exact retry, and missing-bait refusal;
+it does not claim restart coverage.
 
 The last regenerated master inventory records 1,518 ported files, 1,083 pending
 files, and two dependency-unavailable files. The mod is not release-ready:
