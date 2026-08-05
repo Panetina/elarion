@@ -162,6 +162,11 @@ receiver derives the viewer from the connection, builds snapshots through
 returns only bounded presentation data. `CitizenProfileClientState` caches the
 latest client snapshot for the Character Menu Profile tab. Profile clients
 remain read-only; no client mutation packet exists.
+Linked profiles carry a typed target UUID; the server resolves the citizen and
+applies public/self/admin filtering before returning the opening payload.
+Consumers must pass server-authored UUIDs and never parse display text into an
+identity. Sections, fields, cards, and packet strings are capped; profile
+opening performs no filesystem, world, history, or owner-storage scan.
 
 Character Menu renders the Profile tab from that cached snapshot. The tab
 presents server-visible identity, Realm, active title, citizenship, active
@@ -171,9 +176,9 @@ Portal journey count, and Underworld lifetime death count when contributed,
 Core-owned title/ability counts, and the bounded Collection mount count as one
 portrait-led civic dossier, not as nested section buttons. The live player-list
 skin supplies the head portrait, with a neutral fallback when no player-list
-entry is available. NPC reputation and Chronicle summaries remain explicit
-empty states until their owners expose bounded summary APIs and visibility
-rules.
+entry is available. NPC faction reputation is a self-only NPC-owned bounded
+projection; Chronicle summaries remain an explicit empty state until their
+owner exposes a visibility-safe bounded summary API.
 
 Character Menu unlockable tabs use the same Option A civic shell. Core renders
 icon tabs, unlocked/total completion, six-row hidden scrolling, explicit

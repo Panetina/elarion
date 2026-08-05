@@ -68,7 +68,6 @@ bounded context command and `docs/ai/routes.json` to select task material.
 - [Core system docs](docs/systems/README.md)
 - [Extension and maintenance guide](docs/systems/EXTENSION_GUIDE.md)
 - [Placeholder system](docs/systems/PLACEHOLDERS.md)
-- [Profile aggregation completion](docs/reports/PROFILE_AGGREGATION_COMPLETION.md)
 - `docs/systems/NPCs.md`
   - Current NPCs are data-driven and server-authoritative for definitions, placement,
     dialogue, bank/trade service screens, registry-backed actions/conditions,
