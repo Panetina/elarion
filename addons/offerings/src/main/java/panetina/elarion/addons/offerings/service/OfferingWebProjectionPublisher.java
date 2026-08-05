@@ -2,7 +2,6 @@ package panetina.elarion.addons.offerings.service;
 
 import panetina.elarion.addons.offerings.model.OfferingAnchor;
 import panetina.elarion.addons.offerings.model.OfferingInstance;
-import panetina.elarion.addons.offerings.model.OfferingProgress;
 import panetina.elarion.addons.offerings.model.OfferingProjectDefinition;
 import panetina.elarion.addons.offerings.model.OfferingProjectLevel;
 import panetina.elarion.core.integration.minecraft.MinecraftProjectionProtocol.Visibility;
@@ -69,16 +68,20 @@ public final class OfferingWebProjectionPublisher {
         }
     }
 
-    private Map<String, String> progressPayload(
+    static Map<String, String> progressPayload(
             OfferingInstance instance,
             OfferingProjectDefinition project,
             OfferingProjectLevel level,
             String label
     ) {
-        OfferingProgress progress = service.progress(instance.id());
-        long current = progress.rows().stream().mapToLong(row -> Math.min(row.current(), row.required())).sum();
-        long required = progress.rows().stream().mapToLong(OfferingProgress.Row::required).sum();
-        long percent = required <= 0 ? (progress.complete() ? 100 : 0) : Math.min(100, current * 100 / required);
+        long required = level.requirements().stream().mapToLong(requirement -> requirement.count()).sum();
+        long current = instance.completed()
+                ? required
+                : level.requirements().stream()
+                        .mapToLong(requirement -> Math.min(requirement.count(),
+                                instance.progress().getOrDefault(requirement.key(), 0L)))
+                        .sum();
+        long percent = required <= 0 ? (instance.completed() ? 100 : 0) : Math.min(100, current * 100 / required);
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("label", label);
         payload.put("projectId", project.id());
@@ -86,9 +89,9 @@ public final class OfferingWebProjectionPublisher {
         payload.put("value", Long.toString(current));
         payload.put("required", Long.toString(required));
         payload.put("percent", Long.toString(percent));
-        payload.put("displayValue", progress.complete() ? "Complete" : percent + "% funded");
+        payload.put("displayValue", instance.completed() ? "Complete" : percent + "% funded");
         payload.put("description", level.description());
-        payload.put("status", progress.complete() ? "complete" : "active");
+        payload.put("status", instance.completed() ? "complete" : "active");
         return Map.copyOf(payload);
     }
 

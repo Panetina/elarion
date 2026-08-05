@@ -133,7 +133,3 @@ reset may not contain dimension deletion or regeneration logic.
 - Add source line references only when the associated subsystem is next
   changed.
 - Keep historical completion logs out of current status, plan, and TODO files.
-
-## Needs Investigation
-
-- Shrine completed-state snapshots that show zero projected requirements.

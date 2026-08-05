@@ -120,6 +120,9 @@ When an instance is already completed, the Shrine UI projects requirement rows
 and totals as visually complete even if completion was forced/admin-triggered
 and the persisted progress map was not filled. This is a presentation-only
 projection; stored progress remains the audit trail of actual contributions.
+The public `metric.shrine-contribution` projection follows the same rule: it
+derives its required total from the configured active level and presents a
+completed instance as fully funded instead of publishing a misleading zero.
 
 Offering instances may carry an optional display-name override. The Shrine UI
 uses that override as the title when present. Without an override, the title is
