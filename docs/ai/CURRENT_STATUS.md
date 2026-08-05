@@ -87,10 +87,8 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 
 ## Verification Snapshot
 
-- Post-review verification passed the full 189-task build, all required
-  GameTests, all 18 AI context cases, focused persistence/schema/profile/queue
-  tests, and SHA-256 resource-pack synchronization. See
-  `docs/reports/POST_REVAMP_FINDINGS_COMPLETION.md`.
+- Post-review persistence, request-budget, runtime-queue, and resource-pack
+  hardening is reflected in the current source and focused tests.
 - Phase 14 passed GameTests, dedicated startup/shutdown, controlled restart
   persistence, jar parity, onboarding, Realm teleport authority, `/e`
   rejection, and title resync. Detailed evidence remains in the indexed Phase
@@ -129,9 +127,6 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 
 ## Known Risks
 
-- The final post-revamp review and its completed remediation are indexed at
-  `docs/reports/POST_REVAMP_PROJECT_REVIEW.md` and
-  `docs/reports/POST_REVAMP_FINDINGS_COMPLETION.md`.
 - Custom faction metadata beyond stable id/title-case display remains future
   work; Worldheart, Underworld, and Realm factions are available now.
 - Grave/Underworld edge-flow QA remains post-revamp hardening work.

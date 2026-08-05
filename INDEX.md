@@ -272,7 +272,6 @@ bounded context command and `docs/ai/routes.json` to select task material.
   - [Representative UI and resource QA](docs/reports/PHASE_14_UI_RESOURCE_QA.md)
   - [Deployment dry run and maintenance QA](docs/reports/PHASE_14_DEPLOYMENT_MAINTENANCE_QA.md)
   - [Phase 14 and revamp completion](docs/reports/PHASE_14_COMPLETION.md)
-  - [Final post-revamp project review](docs/reports/POST_REVAMP_PROJECT_REVIEW.md)
   - Executable matrix and evidence status:
     `docs/reports/PHASE_14_VERIFICATION_MATRIX.md`.
 - [Optimization](docs/addons/optimization.md)
