@@ -477,9 +477,8 @@ PREPARED/PAID/COMPLETE/FAILED purchase state before responding.
 
 ## Future Work
 
-- Phase 9 narrative-readiness audit is recorded in
-  `docs/reports/NPC_NARRATIVE_READINESS_AUDIT.md`. Dialogue graph validation V1
-  now runs during config validation. NPC relationship V1 is persisted in
+- Dialogue graph validation V1 runs during config validation. NPC relationship
+  V1 is persisted in
   NPC-owned state and exposed through `elarion_npcs:set_relationship`,
   `elarion_npcs:add_relationship`, and
   `elarion_npcs:relationship_at_least`. Durable story flags, one-time choices,
@@ -488,6 +487,10 @@ PREPARED/PAID/COMPLETE/FAILED purchase state before responding.
   `docs/systems/NPCs.md`. Per-NPC relationship UI remains deferred; the
   Character Menu faction-reputation summary is already an NPC-owned bounded
   projection.
+- Keep the remaining narrative work as separate owner slices: localization-key
+  validation, graph visualization/developer tooling, server-authored per-NPC
+  relationship labels, Quest-specific action/condition parameter validation,
+  and durable conversation resume after disconnect/restart.
 - Add richer idle animation and explicit skin validation only if the static
   presentation needs them.
 - Add NPC action handlers for market entry, portal tickets, quest boards,

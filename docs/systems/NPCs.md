@@ -122,9 +122,8 @@ the trader.
 
 ## Narrative Readiness
 
-Phase 9 Slice 1 audited the NPC narrative architecture in
-`docs/reports/NPC_NARRATIVE_READINESS_AUDIT.md`. Phase 9 is now complete: the
-data-driven graph has NPC-owned relationship and durable story-state services.
+The completed narrative foundation is data-driven and has NPC-owned
+relationship and durable story-state services.
 
 Graph validation V1 rejects missing roots, broken `next` targets, unreachable
 nodes, duplicate option ids, duplicate text-variant ids, blank structural ids,

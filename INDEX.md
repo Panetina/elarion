@@ -71,9 +71,7 @@ bounded context command and `docs/ai/routes.json` to select task material.
 - [Placeholder consolidation audit](docs/reports/PLACEHOLDER_CONSOLIDATION_AUDIT.md)
 - [Profile aggregation completion](docs/reports/PROFILE_AGGREGATION_COMPLETION.md)
 - `docs/systems/NPCs.md`
-  - Phase 9 narrative readiness audit:
-    `docs/reports/NPC_NARRATIVE_READINESS_AUDIT.md`. Current NPCs are
-    data-driven and server-authoritative for definitions, placement,
+  - Current NPCs are data-driven and server-authoritative for definitions, placement,
     dialogue, bank/trade service screens, registry-backed actions/conditions,
     graph validation, bounded relationship state, durable story flags,
     one-time choices, endings/re-entry, and explicit structured story outcomes.
