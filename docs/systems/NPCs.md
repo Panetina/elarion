@@ -165,6 +165,11 @@ UUID and placed NPC UUID. Options may declare `one-time: true`; successful use
 is persisted under the stable `dialogue/node/option` key. Available story
 handlers are `elarion_npcs:set_story_flag`, `clear_story_flag`,
 `story_flag_set`, `set_ending`, `ending_is`, and `set_reentry_node`.
+Unsupported schemas fail without discarding state. A stored missing re-entry
+node falls back to the dialogue root; `close: true` closes the successful
+conversation server-side. Interrupted conversation resume, per-NPC
+relationship labels/tiers, graph visualization, localization-key validation,
+and relationship-milestone Chronicle families remain future owner slices.
 
 `history-worthy: true` requires `history-outcome`. After every option action
 succeeds, NPCs records one structured `npc/story-outcome` event with a
