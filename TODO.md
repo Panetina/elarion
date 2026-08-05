@@ -13,8 +13,6 @@ Active incomplete work only. Detailed superseded lists are archived at
    evacuate and unload the selected world, recreate it from its configured seed
    and current world-generation stack, validate it, and restore on failure.
    Regeneration deliberately removes everything physically inside that world.
-2. `W-01` Wiki editor simplification.
-
 `ADM-01` and `WORLD-01` must remain separate implementation slices. The player
 reset may not contain dimension deletion or regeneration logic.
 
