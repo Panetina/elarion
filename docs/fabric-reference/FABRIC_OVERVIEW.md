@@ -66,4 +66,5 @@ Fabric is Elarion's primary platform. Use the local checkouts in `external/` as 
 - Yarn mappings: `external/yarn`
 - Example mod: `external/example-mods/fabric-example-mod`
 
-The local reference branches may not exactly match Minecraft 1.21.1. Check `docs/REFERENCE_SETUP_REPORT.md` before copying patterns.
+The local reference branches may not exactly match Minecraft 1.21.1. Inspect
+the checkout branch/tag directly before copying patterns.

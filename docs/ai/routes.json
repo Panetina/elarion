@@ -18,7 +18,7 @@
       "id": "placeholders",
       "keywords": ["placeholder", "token", "substitution", "formatter", "template", "compatibility alias"],
       "owner": "platform/core contracts; each addon owns its domain values",
-      "docs": ["docs/architecture/REVAMP_REMAINING_ROADMAP.md", "docs/config.md", "docs/systems/Chronicles.md"],
+      "docs": ["docs/config.md", "docs/systems/Chronicles.md"],
       "sourceGlobs": ["platform/core/src/main/java/**/*.java", "addons/*/src/main/java/**/*.java"],
       "testGlobs": ["platform/core/src/test/java/**/*.java", "addons/*/src/test/java/**/*.java"],
       "commands": [".\\gradlew.bat :platform:core:test"],

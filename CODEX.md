@@ -10,7 +10,6 @@ routing lives in `docs/ai/routes.json`.
 - GameTests: `tests/gametest`.
 - Technical contracts: `docs/systems`, `docs/addons`, and `docs/architecture`.
 - Current handoff: `docs/ai/CURRENT_STATUS.md`.
-- Remaining revamp roadmap: `docs/architecture/REVAMP_REMAINING_ROADMAP.md`.
 - AI context command: `dev/tools/ai-context.ps1`.
 - Config definitions: `config/elarion`; runtime state: `world/elarion`.
 - Third-party distribution pins: `distribution/mods.json`; export/launcher
@@ -59,9 +58,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\dev\tools\deploy-live-serv
 See `docs/systems/LiveDeployment.md`; actual promotion still requires the
 stopped-server Gradle guard and explicit owner approval.
 
-Phase 14 evidence and ordered runtime checks are tracked in
-`docs/reports/PHASE_14_VERIFICATION_MATRIX.md`. Do not treat `build` as proof of
-GameTest, dedicated startup, restart, optional-addon, multiplayer, or UI status.
+Do not treat `build` as proof of GameTest, dedicated startup, restart,
+optional-addon, multiplayer, or UI status; run the focused checks for the
+changed behavior and record their result in the relevant system/addon document.
 
 ## Live UI QA
 

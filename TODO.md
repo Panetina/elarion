@@ -56,15 +56,6 @@ reset may not contain dimension deletion or regeneration logic.
 - Use the owner-authorized local reference as the direct port source; do not
   create a duplicate placeholder roster or schedule a replacement-art phase.
 
-## Remaining Revamp Sequence
-
-- Complete. Final evidence: `docs/reports/PHASE_14_COMPLETION.md`.
-
-Full acceptance criteria and slice boundaries:
-`docs/architecture/REVAMP_REMAINING_ROADMAP.md`.
-Executable Phase 14 evidence matrix:
-`docs/reports/PHASE_14_VERIFICATION_MATRIX.md`.
-
 ## High Priority Backlog
 
 - Add a character-life path choice during the three-stage creation flow (name,

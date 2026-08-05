@@ -32,7 +32,6 @@ system notes.
 ## Future / Partly Speculative Docs
 
 - `Atlas.md` (authoritative; only its placeholder shell is implemented)
-- `Maps.md` (compatibility pointer to `Atlas.md`)
 - `Teams.md`
 
 ## Reference Exclusion
