@@ -108,7 +108,6 @@ Current promoted families:
 - Underworld `death-pve`, `death-pvp`, `death-suicide`, `death-void`, and
   `true-death`.
 
-Current proposal: `docs/reports/CHRONICLE_VARIANT_FRAMEWORK_PROPOSAL.md`.
 The in-game library query boundary is `ElarionPublicHistoryApi` and its
 `chronicleLibrary(realmId, limit)` helper. Future UI must request bounded
 `PublicHistoryResult` snapshots and project each row through
@@ -150,3 +149,11 @@ missing metadata is derived from event id plus family id. Future event emitters
 may stamp `chronicle.variant` at emission time once their owning family is
 registered and stable. Do not rewrite old history/archive files or perform
 first-render write-back without a separate persistence migration proposal.
+
+## Verification Contract
+
+Every promoted family needs selector and rendering coverage for deterministic
+choice, required/optional metadata, and its missing-context fallback. Public
+views need bounded-query and archive metadata round-trip coverage. A physical
+library additionally needs permission/range, restart, missing-archive,
+pagination, and no-block-entity-history-duplication tests before release.

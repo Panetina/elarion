@@ -115,10 +115,9 @@ bounded context command and `docs/ai/routes.json` to select task material.
     , and
     `addons/underworld/src/main/java/panetina/elarion/addons/underworld/UnderworldChronicleText.java`
     for their first library-ready Chronicle families.
-  - Phase 8 Chronicle variant proposal:
-    `docs/reports/CHRONICLE_VARIANT_FRAMEWORK_PROPOSAL.md`. Future
-    library-ready event families require at least 10 authored stable variants
-    each, selected by `chronicle.variant` or deterministic event/family id.
+  - Future library-ready event families require at least 10 authored stable
+    variants each, selected by `chronicle.variant` or deterministic
+    event/family id.
 - `docs/systems/Teams.md`
 - [Atlas system](docs/systems/Atlas.md)
   - Typed website marker contract:
