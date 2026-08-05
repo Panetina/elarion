@@ -40,7 +40,7 @@ public final class OfferingWebProjectionPublisher {
         OfferingProjectLevel level = project.level(instance.activeLevelId()).orElse(project.firstLevel());
         String label = instance.displayNameOverride().isBlank() ? level.displayName() : instance.displayNameOverride();
         Map<String, String> payload = active
-                ? progressPayload(instance, project, level, label)
+                ? progressPayload(instance, project.id(), level, label)
                 : Map.of(
                         "label", label,
                         "projectId", project.id(),
@@ -70,7 +70,7 @@ public final class OfferingWebProjectionPublisher {
 
     static Map<String, String> progressPayload(
             OfferingInstance instance,
-            OfferingProjectDefinition project,
+            String projectId,
             OfferingProjectLevel level,
             String label
     ) {
@@ -84,7 +84,7 @@ public final class OfferingWebProjectionPublisher {
         long percent = required <= 0 ? (instance.completed() ? 100 : 0) : Math.min(100, current * 100 / required);
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("label", label);
-        payload.put("projectId", project.id());
+        payload.put("projectId", projectId);
         payload.put("levelId", level.id());
         payload.put("value", Long.toString(current));
         payload.put("required", Long.toString(required));
