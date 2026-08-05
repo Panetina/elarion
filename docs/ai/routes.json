@@ -28,7 +28,7 @@
       "id": "core",
       "keywords": ["core", "citizen", "ember", "realm", "identity", "title", "reward", "permission", "profile", "character menu"],
       "owner": "platform/core",
-      "docs": ["docs/addons/core.md", "docs/architecture/DEPENDENCY_GRAPH.md"],
+      "docs": ["docs/architecture/DEPENDENCY_GRAPH.md", "docs/addons/core.md"],
       "sourceGlobs": ["platform/core/src/main/java/**/*.java"],
       "testGlobs": ["platform/core/src/test/java/**/*.java"],
       "commands": [".\\gradlew.bat :platform:core:test"],
