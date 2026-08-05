@@ -9,6 +9,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
 public final class AdvancementLeaderboardProjection {
@@ -16,6 +18,10 @@ public final class AdvancementLeaderboardProjection {
     private final MinecraftProjectionPublisher projections;
     private final AdvancementLeaderboardStorage storage;
     private final Map<UUID, Entry> entries = new LinkedHashMap<>();
+    private final NavigableSet<RankedEntry> ranked = new TreeSet<>(Comparator
+            .comparingLong((RankedEntry value) -> value.entry().completed()).reversed()
+            .thenComparing(value -> value.entry().name(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(RankedEntry::citizenId));
     private Path root;
 
     public AdvancementLeaderboardProjection(Logger logger, MinecraftProjectionPublisher projections) {
@@ -27,23 +33,22 @@ public final class AdvancementLeaderboardProjection {
         root = elarionRoot;
         entries.clear();
         entries.putAll(storage.load(elarionRoot));
+        rebuildRanking();
         publish();
     }
 
     public synchronized void update(CitizenRecord citizen, long completed) {
         if (citizen == null || root == null) return;
-        entries.put(citizen.uuid(), new Entry(displayName(citizen), citizen.realmId(), Math.max(0L, completed)));
+        Entry next = new Entry(displayName(citizen), citizen.realmId(), Math.max(0L, completed));
+        Entry previous = entries.put(citizen.uuid(), next);
+        if (previous != null) ranked.remove(new RankedEntry(citizen.uuid(), previous));
+        if (next.completed() > 0L) ranked.add(new RankedEntry(citizen.uuid(), next));
         storage.save(root, entries);
         publish();
     }
 
     List<Entry> leaders() {
-        return entries.values().stream()
-                .filter(entry -> entry.completed() > 0)
-                .sorted(Comparator.comparingLong(Entry::completed).reversed()
-                        .thenComparing(Entry::name, String.CASE_INSENSITIVE_ORDER))
-                .limit(MAX_ENTRIES)
-                .toList();
+        return ranked.stream().limit(MAX_ENTRIES).map(RankedEntry::entry).toList();
     }
 
     private void publish() {
@@ -69,6 +74,15 @@ public final class AdvancementLeaderboardProjection {
         String nickname = citizen.nickname();
         return nickname == null || nickname.isBlank() ? citizen.lastKnownUsername() : nickname;
     }
+
+    private void rebuildRanking() {
+        ranked.clear();
+        entries.forEach((citizenId, entry) -> {
+            if (entry.completed() > 0L) ranked.add(new RankedEntry(citizenId, entry));
+        });
+    }
+
+    private record RankedEntry(UUID citizenId, Entry entry) {}
 
     public record Entry(String name, String realmId, long completed) {
         public Entry {

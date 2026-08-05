@@ -105,9 +105,10 @@ Addons publish through `api.system().webProjections()`. Initial contracts are:
 - `election`: Government-owned aggregate lifecycle, never voter identities.
 - `chronicle`: append-only public Chronicle projections selected by the Core
   public-history category policy.
-- `metric.advancement-leaderboard`: Core's persisted owner-maintained top-10
-  advancement index. It updates on join/advancement synchronization and never
-  scans all player-stat files for an ordinary request. Reload normalization
+- `metric.advancement-leaderboard`: Core's persisted owner-maintained
+  advancement index with a runtime-maintained top-10 ordering. It updates on
+  join/advancement synchronization and never scans all player-stat files or
+  re-sorts all persisted rows for an ordinary projection. Reload normalization
   discards null entries and invalid citizen UUIDs while retaining valid rows.
 - `metric.shrine-contribution`: Offerings-owned per-instance aggregate without
   contributor identities.
