@@ -120,9 +120,8 @@ reset may not contain dimension deletion or regeneration logic.
 ## Architecture and Performance
 
 - Split oversized services/screens only on existing ownership boundaries.
-- Phase 13 structural cleanup is complete. Portal responsibilities are
-  extracted behind one canonical facade, and no additional safe duplicate or
-  dead deletion was proven. See `docs/reports/PHASE_13_COMPLETION.md`.
+- Portal responsibilities are extracted behind one canonical facade. Split
+  additional services only when an existing ownership boundary proves it.
 - Add GameTests for persistence mutations where focused unit coverage is not
   sufficient.
 - Keep shell addons clearly marked until they own real behavior.

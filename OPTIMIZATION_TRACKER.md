@@ -103,8 +103,8 @@ passed with 189 actionable tasks after post-revamp hardening.
   YAML instead of crashing addon initialization.
 - Mounts Collection text config startup fallback now has focused malformed YAML
   coverage and keeps unlock/session state untouched.
-- Phase 12 persistence/performance corrections are closed for the approved
-  revamp scope. See `docs/reports/PHASE_12_COMPLETION.md`.
+- Approved persistence/performance corrections are closed for the completed
+  revamp scope.
 - Citizen Profile requests are limited per player before server-thread
   aggregation. Contributor failures have one-warning-per-failure-episode
   diagnostics and recover without disabling the contributor.

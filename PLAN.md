@@ -10,9 +10,9 @@ slices. Core remains the canonical owner of shared truth and infrastructure.
 Addons extend behavior through stable APIs, registries, domain events, and
 bounded owner-maintained summaries.
 
-The project-wide revamp is complete through Phase 14. Its final evidence is in
-`docs/reports/PHASE_14_COMPLETION.md`; future work begins as a new bounded
-feature or hardening slice using `docs/systems/EXTENSION_GUIDE.md`.
+The project-wide revamp is complete through Phase 14. Future work begins as a
+new bounded feature or hardening slice using
+`docs/systems/EXTENSION_GUIDE.md`.
 
 ## Active Approved Work
 
