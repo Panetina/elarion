@@ -188,6 +188,21 @@ in `docs/systems/Atlas.md`. Economy is not an Atlas dependency.
 - Build Chronicle archive and library screens on dedicated bounded indexes or
   archive summaries. Support browsing and search without scanning raw JSONL or
   loading all historical records during ordinary player actions.
+- Keep the implemented Chronicle category/type eligibility policy as the sole
+  promotion boundary for game and website projections. Add a physical custom
+  library only as a Core-owned presentation/query consumer: it must never make
+  book NBT, copied library blocks, or website rows a second history store.
+- Replace the current long-lived launcher passage receipt with a short-lived,
+  single-use website authorization code backed by website-side session state.
+  Fabric verifies only the signed passage and never forwards Mojang/Microsoft
+  credentials to the website.
+
+### Documentation And Handoffs
+
+- Keep one source-backed system/addon document per active domain. Put active
+  implementation work in `TODO.md`, design direction in this file, and
+  historical audit/completion evidence in Git history or `docs/ai/archive/`;
+  do not create parallel TODOs, roadmap logs, or report-only contracts.
 
 ### Marketplace
 
