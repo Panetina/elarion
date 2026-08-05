@@ -523,9 +523,8 @@ not already have one.
 self/admin viewers through the Core player-stat key `portal_journeys`,
 incremented only after successful server-authoritative portal travel.
 
-The source-backed migration audit is
-`docs/reports/CITIZEN_LEDGER_AUDIT.md`. The shell uses `Character Menu` as its
-player-facing name while preserving the existing Collection API, packets,
+The shell uses `Character Menu` as its player-facing name while preserving the
+existing Collection API, packets,
 config/runtime filenames, and provider contracts as the internal Unlockables
 subsystem. Profile uses separate read-only model records, contributor
 contracts, server-side visibility, and bounded section/field/card caps.
