@@ -104,34 +104,11 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
   One, and a 25-jar development server.
 - Excalibured CIT is release-clean: `verifyExcaliburedCit` validates 267 active
   definitions, and a fresh ordinary-player resource load had zero CIT errors.
-- The 2026-08-05 consolidation checkpoint through `1c57c9c6c4a` passes the
-  217-task Java 21 build, all 18 AI-context cases, and all 267 active CIT
-  definitions in the protected worktree. Earlier slices separate bounded
-  Government policies/indexes, add Core's Realm-membership UUID/count index,
-  remove dead migration code, and normalize supported Government state.
-  Commits `2c88f3d18f`, `725886fe6b`, `030ea7753a`, `211c3823d6`, and
-  `3e88be622e` harden Portal, Offering, durable Mount Collection, Underworld,
-  and transient Mount session reloads respectively. Commits `716777b363` and
-  `e82b4f806a` harden Core Notification and reward-grant reloads against null
-  collections and rows. Commit `8fe8570301` canonicalizes UUID-keyed character
-  lifecycle accounts and normalizes recoverable archive state before bind;
-  `c8eea3955d` filters invalid advancement leaderboard rows inside its bounded
-  load projection. Commit `f5efa30f0c` adds a runtime-only Quest consequence
-  deadline index with a bounded 16-action due poll while retaining canonical
-  persisted order. Commit `684ee54685` adds a runtime-only Offering anchor
-  location index, rebuilt on bind and maintained on every anchor mutation,
-  while persisted anchors remain canonical. Commit `fcdd94d214` indexes only
-  pending character resets and cooldown deadlines, removing the one-second
-  scan across all lifecycle accounts while keeping the persisted map canonical.
-  Commit `7bac0288a9` normalizes Realm runtime collections and recoverable
-  relationship, hidden-Realm, decision, and vote rows so valid adjacent state
-  survives restart. Commit `ac11d8aacf` adds bounded pending/deadline Realm
-  decision projections without changing canonical persistence. Commit
-  `9e9a1dcb9c` adds bounded Core notification recipient/category/expiry
-  projections. Commit `9d0b3ef9abc` indexes pending deferred rewards by
-  recipient. Commit `1c57c9c6c4a` maintains the advancement leaderboard top-10
-  ordering incrementally. Protected totals are 61 Portal, 40 Offering, 45
-  Underworld, 54 Mount, 487 Core, and 15 Quests tests.
+- The 2026-08-06 full Java 21 gateway rebuilt all modules and produced 332
+  JUnit result files with no failures or errors. `verifyAiContext` passed all
+  18 cases; `verifyExcaliburedCit` remains clean with 267 active definitions.
+  Detailed historical slice evidence belongs in the indexed reports and Git,
+  not in this bounded handoff.
 - Bobby's fresh-install cache-root error and Sodium Extra's Reese's Sodium
   Options recommendation remain corrected in source.
 - Performance validation passed the two-hour soak, managed-world travel,
