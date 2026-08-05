@@ -78,7 +78,7 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "realm",
                 realmId,
                 realmId,
-                Map.of(),
+                Map.of(HistoryEvent.CHRONICLE_INTENT_METADATA_KEY, "true"),
                 "The Realm " + realmId + " entered the Chronicle during a server test."));
         api.publicHistory().generateChronicles();
         context.assertTrue(api.publicHistory().recentChronicles(1).stream()
@@ -94,8 +94,8 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "Expected public history search to include live indexed events");
 
         ElarionWorldsApi worlds = ElarionWorldsApi.get();
-        context.assertEquals(worlds.definitions().size(), 4,
-                "Expected the lobby and three default managed world definitions");
+        context.assertEquals(worlds.definitions().size(), 6,
+                "Expected the lobby, three Realm worlds, Worldheart, and Underworld managed worlds");
         context.assertTrue(worlds.resolve("lobby") != null,
                 "lobby destination should resolve");
         context.assertTrue(worlds.resolve("realm_world_1") != null,
@@ -104,6 +104,10 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "realm_world_2 should be loaded");
         context.assertTrue(worlds.resolve("realm_world_3") != null,
                 "realm_world_3 should be loaded");
+        context.assertTrue(worlds.resolve("worldheart") != null,
+                "worldheart should be loaded");
+        context.assertTrue(worlds.resolve("underworld") != null,
+                "underworld should be loaded");
 
         var server = context.getWorld().getServer();
         var commands = new CommandGameTestSupport(context);

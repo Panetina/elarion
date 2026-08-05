@@ -427,7 +427,7 @@ public final class NpcConfigDefaults {
                     player-text: "What does a charter mean?"
                     next: charter
               charter:
-                    text: "A charter records your Guild's name and leadership. Secret Guilds remain hidden from public projections."
+                text: "A charter records your Guild's name and leadership. Secret Guilds remain hidden from public projections."
                 sound: "minecraft:entity.villager.ambient"
                 voice: ""
                 options:

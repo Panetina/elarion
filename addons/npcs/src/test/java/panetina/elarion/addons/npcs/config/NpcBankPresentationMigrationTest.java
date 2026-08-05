@@ -1,5 +1,8 @@
 package panetina.elarion.addons.npcs.config;
 
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.junit.jupiter.api.Test;
 import panetina.elarion.addons.npcs.model.DialogueNode;
 import panetina.elarion.addons.npcs.model.DialogueOption;
@@ -37,6 +40,17 @@ final class NpcBankPresentationMigrationTest {
         assertTrue(NpcConfigDefaults.BANKER_DIALOGUE.contains("presentation-role: \"open_bank\""));
         assertTrue(NpcConfigDefaults.BANKER_DIALOGUE.contains("button-text: \"Open Bank\""));
         assertTrue(NpcConfigDefaults.BANKER_DIALOGUE.contains("button-text: \"Back to Conversation\""));
+    }
+
+    @Test
+    void generatedGuildmasterDialogueRemainsParseable() {
+        Object decoded = new Yaml(new SafeConstructor(new LoaderOptions()))
+                .load(NpcConfigDefaults.GUILDMASTER_DIALOGUE);
+
+        assertTrue(decoded instanceof Map<?, ?>, "Guildmaster dialogue must be valid YAML mapping");
+        Map<?, ?> root = (Map<?, ?>) decoded;
+        assertEquals("welcome", root.get("root"));
+        assertTrue(((Map<?, ?>) root.get("nodes")).containsKey("charter"));
     }
 
     @Test
