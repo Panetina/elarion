@@ -1,6 +1,7 @@
 package panetina.elarion.core.config;
 
 import panetina.elarion.core.model.HistoryRecordingPolicy;
+import panetina.elarion.core.model.HistoryChroniclePolicy;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,6 +44,11 @@ final class CoreConfigHistorySupport {
         if (chronicleCategories.isEmpty()) {
             chronicleCategories = fallbackChronicleCategories;
         }
+        HistoryChroniclePolicy chroniclePolicy = new HistoryChroniclePolicy(
+                chronicleCategories,
+                bool(archive.get("default-chronicle-type-enabled"), true),
+                stringSet(archive.get("enabled-chronicle-types")),
+                stringSet(archive.get("disabled-chronicle-types")));
 
         Map<String, Object> publicQuery = map(history.get("public-query"));
         int publicDefaultWeeks = Math.max(1, number(publicQuery.get("default-weeks"), 8).intValue());
@@ -51,7 +57,7 @@ final class CoreConfigHistorySupport {
                 number(publicQuery.get("default-limit"), 50).intValue(), publicMaxLimit));
 
         return new Settings(policy, queryMaxMonths, commandLimitMax, archiveEnabled,
-                archiveMaxCompletedWeeks, chronicleCategories, publicDefaultWeeks,
+                archiveMaxCompletedWeeks, chroniclePolicy, publicDefaultWeeks,
                 publicDefaultLimit, publicMaxLimit);
     }
 
@@ -85,6 +91,12 @@ final class CoreConfigHistorySupport {
                         - "world"
                         - "administration"
                         - "security"
+                      # Types can be plain ("proposal-approved") or scoped
+                      # ("government:proposal-approved"). Deny-list known
+                      # noisy events without disabling their audit recording.
+                      default-chronicle-type-enabled: true
+                      enabled-chronicle-types: []
+                      disabled-chronicle-types: []
                     """);
         }
         if (content.lines().noneMatch(line -> line.trim().equals("public-query:"))) {
@@ -99,6 +111,24 @@ final class CoreConfigHistorySupport {
         if (!addition.isEmpty()) {
             Files.writeString(path, addition.toString(), StandardCharsets.UTF_8,
                     java.nio.file.StandardOpenOption.APPEND);
+            return;
+        }
+
+        if (content.lines().anyMatch(line -> line.trim().equals("archive:"))
+                && content.lines().noneMatch(line -> line.trim().startsWith("default-chronicle-type-enabled:"))) {
+            String chronicleTypeDefaults = """
+                      # Types can be plain (\"proposal-approved\") or scoped
+                      # (\"government:proposal-approved\"). Deny-list known
+                      # noisy events without disabling their audit recording.
+                      default-chronicle-type-enabled: true
+                      enabled-chronicle-types: []
+                      disabled-chronicle-types: []
+
+                    """;
+            String migrated = content.replaceFirst("(?m)^public-query:", chronicleTypeDefaults + "public-query:");
+            if (!migrated.equals(content)) {
+                Files.writeString(path, migrated, StandardCharsets.UTF_8);
+            }
         }
     }
 
@@ -129,12 +159,20 @@ final class CoreConfigHistorySupport {
 
         Map<String, Object> archive = requiredMap("history.yml.archive", history.get("archive"), errors);
         checkKeys("history.yml.archive", archive,
-                Set.of("enabled", "max-completed-weeks-per-generation", "chronicle-categories"), errors);
+                Set.of("enabled", "max-completed-weeks-per-generation", "chronicle-categories",
+                        "default-chronicle-type-enabled", "enabled-chronicle-types",
+                        "disabled-chronicle-types"), errors);
         requireBoolean("history.yml.archive.enabled", archive.get("enabled"), errors);
         requireNumber("history.yml.archive.max-completed-weeks-per-generation",
                 archive.get("max-completed-weeks-per-generation"), errors);
         requireStringCollection("history.yml.archive.chronicle-categories",
                 archive.get("chronicle-categories"), errors);
+        requireBoolean("history.yml.archive.default-chronicle-type-enabled",
+                archive.get("default-chronicle-type-enabled"), errors);
+        requireStringCollection("history.yml.archive.enabled-chronicle-types",
+                archive.get("enabled-chronicle-types"), errors);
+        requireStringCollection("history.yml.archive.disabled-chronicle-types",
+                archive.get("disabled-chronicle-types"), errors);
 
         Map<String, Object> publicQuery = requiredMap("history.yml.public-query", history.get("public-query"), errors);
         checkKeys("history.yml.public-query", publicQuery,
@@ -209,7 +247,7 @@ final class CoreConfigHistorySupport {
             int commandLimitMax,
             boolean archiveEnabled,
             int archiveMaxCompletedWeeks,
-            Set<String> chronicleCategories,
+            HistoryChroniclePolicy chroniclePolicy,
             int publicDefaultWeeks,
             int publicDefaultLimit,
             int publicMaxLimit

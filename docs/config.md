@@ -669,6 +669,11 @@ archive:
     - administration
     - security
     - npc
+  # Type rules can be "proposal-approved" or
+  # "government:proposal-approved".
+  default-chronicle-type-enabled: true
+  enabled-chronicle-types: []
+  disabled-chronicle-types: []
 ```
 
 `npc` includes only explicitly `history-worthy` meaningful story outcomes;

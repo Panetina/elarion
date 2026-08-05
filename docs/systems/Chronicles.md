@@ -23,6 +23,10 @@ GUI/screens: future Chronicle bookshelf, newspaper, Ledger, NPC rumor, and searc
 
 Storage/persistence: `world/elarion/history`, `history-index`, `chronicles/weekly`.
 
+Each monthly index has a compact `.summary.json` routing sidecar. Category,
+Realm, and player public filters use it to skip known-nonmatching monthly entry
+files; a missing or invalid sidecar falls back to the full index.
+
 Dependencies: Core task service, config recording policy, addon event emissions.
 
 Related systems: Newspapers, Ledger, NPC rumors, Offerings, Government, Economy.
@@ -31,6 +35,12 @@ Extension points: `api.history()`, `api.publicHistory()`, category/type
 filters, Chronicle text, and registered `ChronicleRenderer` providers.
 
 Risks: raw JSONL scans for player-facing views; noisy event spam; missing chronicle text for major events.
+
+The `history.yml.archive` Chronicle policy is the single eligibility boundary
+for weekly archive books, `chronicleLibrary(...)`, and website `chronicle`
+projections. It first selects categories, then applies `enabled-chronicle-types`
+and `disabled-chronicle-types` (plain `type` or scoped `category:type`). This
+filters public Chronicle spam without suppressing the durable audit event.
 
 Do not duplicate this system by creating: addon-local history logs, separate newspaper event storage, or unbounded GUI searches.
 
@@ -103,6 +113,36 @@ The in-game library query boundary is `ElarionPublicHistoryApi` and its
 `chronicleLibrary(realmId, limit)` helper. Future UI must request bounded
 `PublicHistoryResult` snapshots and project each row through
 `api.publicHistory().project(...)`; it must not read raw history JSONL files.
+
+## In-Game Library Status And Delivery Boundary
+
+Not implemented: custom library blocks, copied/placed library structures,
+book-item generation, shelves that receive Chronicle volumes, formatted book
+pages, and a player-facing library screen. Existing Chronicle archives,
+projections, renderers, and `chronicleLibrary(...)` are the server-side source
+boundary only; they are not a physical-library feature.
+
+When the library slice is scheduled, it must keep this ownership split:
+
+- Core History remains the only owner of Chronicle eligibility, archives,
+  library query results, and formatted `ChronicleProjection` data.
+- The library addon or Core presentation slice may own block definitions,
+  structure placement, page layout, navigation, and client assets. It must not
+  copy history into block entities, item NBT, or a second archive store.
+- A shelf/volume stores only stable references such as archive week or event
+  IDs. Opening a volume resolves a fresh bounded Core snapshot and degrades to
+  a visible "record unavailable" state if archival retention removed it.
+- The same configured Chronicle policy controls archive books, the in-game
+  library, and website projections. A type excluded as spam is not published
+  by any of those surfaces, while its audit event remains durable.
+
+The first implementation slice should be deliberately narrow: one server-owned
+library block, one bounded archive list, one immutable weekly volume format,
+and no global scans on interaction. It needs tests for permission/range,
+restart and missing-archive behavior, policy filtering, formatted pagination,
+and no block-entity history duplication. Website and launcher work stays on
+the bridge boundary in `MinecraftBridge.md`; it must not become an alternate
+Chronicle store.
 
 Variant persistence strategy: current records are live-safe and deterministic
 without write-back. Existing `chronicle.variant` metadata remains authoritative;

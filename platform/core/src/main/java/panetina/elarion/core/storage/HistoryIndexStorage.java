@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import panetina.elarion.core.model.HistoryEvent;
 import panetina.elarion.core.model.HistoryIndexEntry;
 import panetina.elarion.core.model.HistoryMonthIndex;
+import panetina.elarion.core.model.HistoryMonthSummary;
 import panetina.elarion.core.service.ElarionPerformanceMonitor;
 import panetina.elarion.core.service.ElarionTaskService;
 
@@ -159,12 +160,44 @@ public final class HistoryIndexStorage {
         int safeMaxMonthlyFiles = Math.max(1, maxMonthlyFiles);
         List<HistoryMonthIndex> indexes = new ArrayList<>();
         try (Stream<Path> files = Files.list(directory)) {
-            for (Path path : files
-                    .filter(value -> value.getFileName().toString().endsWith(".json"))
-                    .sorted(Comparator.reverseOrder())
-                    .limit(safeMaxMonthlyFiles)
-                    .toList()) {
+            for (Path path : recentMonthPaths(files, safeMaxMonthlyFiles)) {
                 indexes.add(readIndex(path));
+            }
+        } catch (IOException exception) {
+            logger.error("Failed to list Elarion history indexes", exception);
+        }
+        return List.copyOf(indexes);
+    }
+
+    /** Uses compact sidecars to skip known-nonmatching months before full index deserialization. */
+    public List<HistoryMonthIndex> loadRecentMonthsMatching(
+            MinecraftServer server,
+            int maxMonthlyFiles,
+            Predicate<HistoryMonthSummary> summaryFilter
+    ) {
+        return loadRecentMonthsMatching(indexDir(server), maxMonthlyFiles, summaryFilter);
+    }
+
+    /** Uses compact sidecars to skip known-nonmatching months before full index deserialization. */
+    public List<HistoryMonthIndex> loadRecentMonthsMatching(
+            Path directory,
+            int maxMonthlyFiles,
+            Predicate<HistoryMonthSummary> summaryFilter
+    ) {
+        flushBlocking();
+        if (Files.notExists(directory)) return List.of();
+        int safeMaxMonthlyFiles = Math.max(1, maxMonthlyFiles);
+        Predicate<HistoryMonthSummary> filter = summaryFilter == null ? ignored -> true : summaryFilter;
+        List<HistoryMonthIndex> indexes = new ArrayList<>();
+        try (Stream<Path> files = Files.list(directory)) {
+            for (Path path : recentMonthPaths(files, safeMaxMonthlyFiles)) {
+                HistoryMonthSummary summary = readSummary(path);
+                if (summary == null) {
+                    HistoryMonthIndex index = readIndex(path);
+                    if (filter.test(HistoryMonthSummary.from(index))) indexes.add(index);
+                } else if (filter.test(summary)) {
+                    indexes.add(readIndex(path));
+                }
             }
         } catch (IOException exception) {
             logger.error("Failed to list Elarion history indexes", exception);
@@ -195,6 +228,7 @@ public final class HistoryIndexStorage {
                 StoredMonthIndex stored = readStoredIndex(entry.getKey());
                 merge(stored, monthName(entry.getKey()), entry.getValue());
                 Files.writeString(entry.getKey(), GSON.toJson(stored), StandardCharsets.UTF_8);
+                Files.writeString(summaryPath(entry.getKey()), GSON.toJson(summary(stored)), StandardCharsets.UTF_8);
             }
         } catch (IOException | RuntimeException exception) {
             ElarionPerformanceMonitor.record("history-index-flush-failed", System.nanoTime() - started);
@@ -216,6 +250,18 @@ public final class HistoryIndexStorage {
                 stored.realmCounts,
                 stored.playerCounts,
                 stored.entries);
+    }
+
+    private HistoryMonthSummary readSummary(Path monthPath) {
+        Path path = summaryPath(monthPath);
+        if (Files.notExists(path)) return null;
+        try {
+            StoredMonthSummary stored = GSON.fromJson(Files.readString(path, StandardCharsets.UTF_8), StoredMonthSummary.class);
+            return stored == null ? null : stored.toSummary(monthName(monthPath));
+        } catch (IOException | RuntimeException exception) {
+            logger.warn("Failed to read Elarion history summary {}; using full index fallback", path, exception);
+            return null;
+        }
     }
 
     private StoredMonthIndex readStoredIndex(Path path) {
@@ -270,6 +316,25 @@ public final class HistoryIndexStorage {
         return server.getSavePath(WorldSavePath.ROOT).resolve("elarion/history-index");
     }
 
+    private static List<Path> recentMonthPaths(Stream<Path> files, int maxMonthlyFiles) {
+        return files
+                .filter(value -> value.getFileName().toString().matches("\\d{4}-\\d{2}\\.json"))
+                .sorted(Comparator.reverseOrder())
+                .limit(maxMonthlyFiles)
+                .toList();
+    }
+
+    private static Path summaryPath(Path monthPath) {
+        String fileName = monthPath.getFileName().toString();
+        String month = fileName.endsWith(".json") ? fileName.substring(0, fileName.length() - 5) : fileName;
+        return monthPath.resolveSibling(month + ".summary.json");
+    }
+
+    private static StoredMonthSummary summary(StoredMonthIndex stored) {
+        return new StoredMonthSummary(stored.month, stored.firstTimestamp, stored.lastTimestamp, stored.totalEvents,
+                stored.categoryCounts, stored.typeCounts, stored.realmCounts, stored.playerCounts);
+    }
+
     private static String monthName(Path path) {
         String fileName = path.getFileName().toString();
         return fileName.endsWith(".json") ? fileName.substring(0, fileName.length() - 5) : fileName;
@@ -306,6 +371,22 @@ public final class HistoryIndexStorage {
             if (playerCounts == null) playerCounts = new LinkedHashMap<>();
             if (entries == null) entries = new ArrayList<>();
             return this;
+        }
+    }
+
+    private record StoredMonthSummary(
+            String month,
+            long firstTimestamp,
+            long lastTimestamp,
+            int totalEvents,
+            Map<String, Integer> categoryCounts,
+            Map<String, Integer> typeCounts,
+            Map<String, Integer> realmCounts,
+            Map<String, Integer> playerCounts
+    ) {
+        private HistoryMonthSummary toSummary(String fallbackMonth) {
+            return new HistoryMonthSummary(month == null || month.isBlank() ? fallbackMonth : month,
+                    firstTimestamp, lastTimestamp, totalEvents, categoryCounts, typeCounts, realmCounts, playerCounts);
         }
     }
 }

@@ -40,6 +40,7 @@ Core also writes a compact monthly index for public-memory systems:
 
 ```text
 world/elarion/history-index/<yyyy-MM>.json
+world/elarion/history-index/<yyyy-MM>.summary.json
 ```
 
 The index is a projection, not the audit log. It contains:
@@ -52,6 +53,11 @@ The index is a projection, not the audit log. It contains:
 - player counts
 - lightweight event references with `eventId`, `timestamp`, category, type,
   actor, subject, Realm, and `chronicleText`
+
+The paired `.summary.json` sidecar contains only month routing metadata.
+Category, Realm, and player public filters consult it before deserializing the
+full monthly index, so known-nonmatching months do not add entry IO. Missing or
+invalid sidecars fall back to the full index to preserve results.
 
 It intentionally does not copy full event metadata. Full detail remains in the
 raw JSONL history files.
@@ -107,6 +113,14 @@ archive:
 ```
 
 `chronicle-categories` decides which categories can enter weekly archives.
+It is the same eligibility boundary used by Chronicle library reads and
+website `chronicle` projections. `default-chronicle-type-enabled`,
+`enabled-chronicle-types`, and `disabled-chronicle-types` provide the next,
+more precise filter. Type rules may be `type` or `category:type`; use the
+disabled list to suppress spam from public Chronicle outputs while leaving the
+audit event recorded. When the default is false, only the explicit allow-list
+can enter a Chronicle.
+
 Major systems should emit short, immersive `chronicleText` for events that are
 expected to appear in Chronicles, newspapers, NPC rumors, ledgers, or public
 search.
@@ -191,6 +205,9 @@ commands from reading every historical file forever.
 
 Public views should use `api.publicHistory()` first. That path reads Chronicle
 archives and monthly index projections instead of full JSONL event metadata.
+Its category, Realm, and player filters use monthly summary sidecars to skip
+known-nonmatching full index files. Text search remains conservative and reads
+the selected bounded indexes.
 
 Editable query controls live in `history.yml`:
 
@@ -225,6 +242,12 @@ Avoid:
 
 When emitting major events, include reader-friendly `chronicleText` when the
 event is likely to appear in a weekly Chronicle. Keep prose immersive but short.
+
+Physical Chronicle libraries, custom shelves, copied library structures, and
+formatted in-game books are not implemented yet. They must resolve bounded
+Core archive/projection data at read time rather than copying history into
+block entities, book NBT, or addon-local files. The delivery boundary and
+required tests are maintained in `docs/systems/Chronicles.md`.
 
 Good Chronicle source events include:
 

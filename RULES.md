@@ -86,6 +86,11 @@ authoritative docs selected through `docs/ai/routes.json`.
 
 ## Verification
 
+- GitHub is the recoverable repository backup. After each verified thematic
+  slice, push its commit; before ending a working session, push every intended
+  tracked/source/documentation change currently in the worktree. Review for
+  secrets, local world/player data, credentials, and generated output first;
+  never bypass `.gitignore` or commit bridge secrets merely to make a backup.
 - Run the narrowest meaningful module tests first; run the full build for
   cross-module changes or final handoff.
 - Export only the changed scope: after editing one mod, build that mod and copy

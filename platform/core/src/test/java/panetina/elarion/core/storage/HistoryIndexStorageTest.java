@@ -5,12 +5,14 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.core.model.HistoryEvent;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class HistoryIndexStorageTest {
     @TempDir
@@ -35,6 +37,7 @@ final class HistoryIndexStorageTest {
         assertEquals(2, month.realmCounts().get("oak"));
         assertEquals(2, month.playerCounts().get(actor.toString()));
         assertEquals("title", month.entries().getFirst().category());
+        assertTrue(Files.exists(tempDir.resolve("2026-06.summary.json")));
     }
 
     @Test
@@ -65,6 +68,24 @@ final class HistoryIndexStorageTest {
         var month = storage.loadRecentMonths(tempDir, 1).getFirst();
         assertEquals(1, month.totalEvents());
         assertEquals(1, month.categoryCounts().get("realm"));
+    }
+
+    @Test
+    void matchingReadsSkipKnownNonmatchingMonthlyIndexes() throws Exception {
+        HistoryIndexStorage storage = new HistoryIndexStorage(LoggerFactory.getLogger("history-index-test"));
+        storage.append(tempDir, eventAt("realm", "older-match", null, "realm",
+                "oak", "oak", "2026-04-10T12:00:00Z"));
+        storage.append(tempDir, eventAt("realm", "newer-other", null, "realm",
+                "stone", "stone", "2026-06-10T12:00:00Z"));
+        storage.flushBlocking();
+
+        Files.writeString(tempDir.resolve("2026-06.json"), "{ invalid json");
+
+        var months = storage.loadRecentMonthsMatching(tempDir, 3,
+                summary -> summary.realmCounts().containsKey("oak"));
+
+        assertEquals(1, months.size());
+        assertEquals("2026-04", months.getFirst().month());
     }
 
     private static HistoryEvent eventAt(

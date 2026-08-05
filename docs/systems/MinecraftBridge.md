@@ -40,6 +40,31 @@ Main package:
   a website-to-Minecraft-Services verification call; the receipt contains no
   game data and Core does not persist it.
 
+## Launcher To Website Passage
+
+The launcher may use the `launcher-passage` receipt to start a website session
+for the UUID that successfully joined an online-mode server. It is a local
+Elarion bridge assertion, not a Mojang/Microsoft website OAuth credential:
+Mojang authorization for the launcher must not be represented as approval for
+the website, and neither Minecraft access tokens nor refresh tokens may be
+sent to the website.
+
+Current implementation: Core signs a receipt with audience `launcher-passage`,
+server ID, player UUID, and expiration; the client hands the opaque value to
+the managed launcher, and the website verifies it with the bridge HMAC secret.
+The website must validate the signature, audience, server ID, expiry, and
+format before issuing its own secure, HttpOnly, same-site website session. It
+must expose only that player's permission-filtered read model.
+
+Current limitation: the implemented receipt is a seven-day bearer receipt and
+is therefore replayable until expiry. Before using it as a general browser
+login, replace the passage with a short-lived, single-use authorization code
+stored server-side by the website: launcher opens the website with the code,
+the website atomically consumes it, creates its own session, and rejects reuse.
+Bind the code to the expected website origin and UUID; do not put it in logs,
+analytics, referrers, or page HTML after redemption. This hardening is required
+for account-changing website actions.
+
 Requests and responses use HMAC-SHA256 over five newline-delimited fields:
 
 ```text

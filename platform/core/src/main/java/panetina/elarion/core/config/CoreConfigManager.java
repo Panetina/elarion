@@ -9,6 +9,7 @@ import panetina.elarion.core.model.TitleDefinition;
 import panetina.elarion.core.model.TitleUnlockRule;
 import panetina.elarion.core.model.ProgressionRegion;
 import panetina.elarion.core.model.HistoryRecordingPolicy;
+import panetina.elarion.core.model.HistoryChroniclePolicy;
 import panetina.elarion.core.model.ServerIdentityConfig;
 import panetina.elarion.core.model.ElarionUiTheme;
 import panetina.elarion.core.model.ElarionUiThemeVariant;
@@ -143,7 +144,8 @@ public final class CoreConfigManager {
     private int historyCommandLimitMax = 100;
     private boolean historyArchiveEnabled = true;
     private int historyArchiveMaxCompletedWeeks = 8;
-    private Set<String> historyChronicleCategories = CoreConfigHistorySupport.DEFAULT_CHRONICLE_CATEGORIES;
+    private HistoryChroniclePolicy historyChroniclePolicy = new HistoryChroniclePolicy(
+            CoreConfigHistorySupport.DEFAULT_CHRONICLE_CATEGORIES, true, Set.of(), Set.of());
     private int publicHistoryDefaultWeeks = 8;
     private int publicHistoryDefaultLimit = 50;
     private int publicHistoryMaxLimit = 200;
@@ -217,7 +219,7 @@ public final class CoreConfigManager {
         boolean loadedNicknameRejectContainingProtectedName =
                 bool(nicknameProtection.get("reject-containing-protected-name"), true);
         CoreConfigHistorySupport.Settings loadedHistory = CoreConfigHistorySupport.load(
-                loadMap("history.yml"), historyChronicleCategories);
+                loadMap("history.yml"), historyChroniclePolicy.categories());
         int loadedCitizenInactivityDays = Math.max(1,
                 number(map(loadMap("activity.yml").get("citizens")).get("inactivity-days"), 14).intValue());
 
@@ -258,7 +260,7 @@ public final class CoreConfigManager {
         historyCommandLimitMax = loadedHistory.commandLimitMax();
         historyArchiveEnabled = loadedHistory.archiveEnabled();
         historyArchiveMaxCompletedWeeks = loadedHistory.archiveMaxCompletedWeeks();
-        historyChronicleCategories = loadedHistory.chronicleCategories();
+        historyChroniclePolicy = loadedHistory.chroniclePolicy();
         publicHistoryDefaultWeeks = loadedHistory.publicDefaultWeeks();
         publicHistoryDefaultLimit = loadedHistory.publicDefaultLimit();
         publicHistoryMaxLimit = loadedHistory.publicMaxLimit();
@@ -304,7 +306,8 @@ public final class CoreConfigManager {
     public int historyCommandLimitMax() { return historyCommandLimitMax; }
     public boolean historyArchiveEnabled() { return historyArchiveEnabled; }
     public int historyArchiveMaxCompletedWeeks() { return historyArchiveMaxCompletedWeeks; }
-    public Set<String> historyChronicleCategories() { return historyChronicleCategories; }
+    public Set<String> historyChronicleCategories() { return historyChroniclePolicy.categories(); }
+    public HistoryChroniclePolicy historyChroniclePolicy() { return historyChroniclePolicy; }
     public int publicHistoryDefaultWeeks() { return publicHistoryDefaultWeeks; }
     public int publicHistoryDefaultLimit() { return publicHistoryDefaultLimit; }
     public int publicHistoryMaxLimit() { return publicHistoryMaxLimit; }

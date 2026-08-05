@@ -12,6 +12,8 @@ import panetina.elarion.core.model.ChronicleRenderer;
 import panetina.elarion.core.model.HistoryEvent;
 import panetina.elarion.core.model.HistoryIndexEntry;
 import panetina.elarion.core.model.HistoryMonthIndex;
+import panetina.elarion.core.model.HistoryMonthSummary;
+import panetina.elarion.core.model.HistoryChroniclePolicy;
 import panetina.elarion.core.model.PublicHistoryConsumer;
 import panetina.elarion.core.model.PublicHistoryEntry;
 import panetina.elarion.core.model.PublicHistoryQuery;
@@ -127,7 +129,11 @@ public final class HistoryService {
             ChronicleRenderContext context
     ) {
         if (event == null || consumer == null) return java.util.Optional.empty();
-        if (!defaultPublicCategories(consumer).contains(normalize(event.category()))) {
+        if (consumer == PublicHistoryConsumer.CHRONICLE && !isChronicleEligible(event)) {
+            return java.util.Optional.empty();
+        }
+        if (consumer != PublicHistoryConsumer.CHRONICLE
+                && !defaultPublicCategories(consumer).contains(normalize(event.category()))) {
             return java.util.Optional.empty();
         }
         HistoryIndexEntry index = HistoryIndexEntry.from(event);
@@ -220,12 +226,12 @@ public final class HistoryService {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate currentWeekStart = LocalDate.now(zone)
                 .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        Set<String> categories = normalizeSet(config.historyChronicleCategories());
+        HistoryChroniclePolicy chroniclePolicy = config.historyChroniclePolicy();
         List<ChronicleArchive> generated = new ArrayList<>();
         for (int offset = 1; offset <= weeks; offset++) {
             LocalDate weekStart = currentWeekStart.minusWeeks(offset);
             LocalDate weekEnd = weekStart.plusWeeks(1);
-            ChronicleArchive archive = buildArchive(entries, weekStart, weekEnd, zone, categories);
+            ChronicleArchive archive = buildArchive(entries, weekStart, weekEnd, zone, chroniclePolicy);
             if (archive.entries().isEmpty()) continue;
             archives.saveIfAbsent(server, archive).ifPresent(generated::add);
         }
@@ -249,8 +255,11 @@ public final class HistoryService {
                 ? config.publicHistoryDefaultLimit()
                 : Math.min(safeQuery.limit(), config.publicHistoryMaxLimit());
         int weeks = safeQuery.weeks() <= 0 ? config.publicHistoryDefaultWeeks() : safeQuery.weeks();
+        HistoryChroniclePolicy chroniclePolicy = config.historyChroniclePolicy();
         Set<String> categories = safeQuery.categories().isEmpty()
-                ? defaultPublicCategories(safeQuery.consumer())
+                ? safeQuery.consumer() == PublicHistoryConsumer.CHRONICLE
+                        ? chroniclePolicy.categories()
+                        : defaultPublicCategories(safeQuery.consumer())
                 : normalizeSet(safeQuery.categories());
 
         List<PublicHistoryEntry> results = new ArrayList<>(limit);
@@ -263,7 +272,8 @@ public final class HistoryService {
             archivesScanned = recentArchives.size();
             for (ChronicleArchive archive : recentArchives) {
                 for (ChronicleEntry entry : archive.entries()) {
-                    addIfMatches(results, seen, PublicHistoryEntry.fromArchive(entry), safeQuery, categories, limit);
+                    addIfMatches(results, seen, PublicHistoryEntry.fromArchive(entry), safeQuery, categories,
+                            chroniclePolicy, limit);
                 }
                 if (results.size() >= limit) break;
             }
@@ -271,11 +281,16 @@ public final class HistoryService {
 
         if (results.size() < limit && safeQuery.includeLiveIndex()) {
             int indexMonths = Math.max(config.historyQueryMaxMonths(), weeks / 4 + 2);
-            List<HistoryMonthIndex> recentIndexes = indexes.loadRecentMonths(server, indexMonths);
+            List<HistoryMonthIndex> recentIndexes = indexes.loadRecentMonthsMatching(
+                    server,
+                    indexMonths,
+                    summary -> mayContainPublicHistory(summary, safeQuery, categories, chroniclePolicy)
+            );
             liveIndexesScanned = recentIndexes.size();
             for (HistoryMonthIndex month : recentIndexes) {
                 for (HistoryIndexEntry entry : month.entries()) {
-                    addIfMatches(results, seen, PublicHistoryEntry.fromIndex(entry), safeQuery, categories, limit);
+                    addIfMatches(results, seen, PublicHistoryEntry.fromIndex(entry), safeQuery, categories,
+                            chroniclePolicy, limit);
                 }
                 if (results.size() >= limit) break;
             }
@@ -291,6 +306,10 @@ public final class HistoryService {
 
     public ChronicleProjection projectPublicHistory(PublicHistoryEntry entry, ChronicleRenderContext context) {
         return chronicleRenderers.project(entry, context);
+    }
+
+    public boolean isChronicleEligible(HistoryEvent event) {
+        return event != null && config.historyChroniclePolicy().allows(event.category(), event.type());
     }
 
     private void recordCitizenChange(ElarionEventBus.CitizenChanged event) {
@@ -324,13 +343,13 @@ public final class HistoryService {
             LocalDate weekStart,
             LocalDate weekEnd,
             ZoneId zone,
-            Set<String> categories
+            HistoryChroniclePolicy chroniclePolicy
     ) {
         long start = weekStart.atStartOfDay(zone).toInstant().toEpochMilli();
         long end = weekEnd.atStartOfDay(zone).toInstant().toEpochMilli();
         List<ChronicleEntry> entries = source.stream()
                 .filter(entry -> entry.timestamp() >= start && entry.timestamp() < end)
-                .filter(entry -> categories.isEmpty() || categories.contains(normalize(entry.category())))
+                .filter(entry -> chroniclePolicy.allows(entry.category(), entry.type()))
                 .sorted(Comparator.comparingLong(HistoryIndexEntry::timestamp).reversed())
                 .map(ChronicleEntry::from)
                 .toList();
@@ -358,9 +377,12 @@ public final class HistoryService {
             PublicHistoryEntry entry,
             PublicHistoryQuery query,
             Set<String> categories,
+            HistoryChroniclePolicy chroniclePolicy,
             int limit
     ) {
         if (results.size() >= limit || seen.contains(entry.eventId())) return;
+        if (query.consumer() == PublicHistoryConsumer.CHRONICLE
+                && !chroniclePolicy.allows(entry.category(), entry.type())) return;
         if (!matches(entry, query, categories)) return;
         seen.add(entry.eventId());
         results.add(entry);
@@ -378,6 +400,38 @@ public final class HistoryService {
             return haystack.contains(needle);
         }
         return true;
+    }
+
+    private static boolean mayContainPublicHistory(
+            HistoryMonthSummary summary,
+            PublicHistoryQuery query,
+            Set<String> categories,
+            HistoryChroniclePolicy chroniclePolicy
+    ) {
+        if (summary.totalEvents() <= 0) return false;
+        if (!categories.isEmpty() && !containsAny(summary.categoryCounts(), categories)) return false;
+        if (query.consumer() == PublicHistoryConsumer.CHRONICLE
+                && !chroniclePolicy.mayContain(summary.categoryCounts(), summary.typeCounts())) return false;
+        if (!query.realmId().isBlank() && !containsIgnoreCase(summary.realmCounts(), query.realmId())) return false;
+        return query.playerId() == null || contains(summary.playerCounts(), query.playerId().toString());
+    }
+
+    private static boolean containsAny(Map<String, Integer> counts, Set<String> keys) {
+        if (counts.isEmpty()) return true;
+        return keys.stream().anyMatch(key -> contains(counts, key));
+    }
+
+    private static boolean containsIgnoreCase(Map<String, Integer> counts, String key) {
+        if (counts.isEmpty()) return true;
+        return counts.entrySet().stream()
+                .anyMatch(entry -> entry.getKey().equalsIgnoreCase(key)
+                        && entry.getValue() != null && entry.getValue() > 0);
+    }
+
+    private static boolean contains(Map<String, Integer> counts, String key) {
+        if (counts.isEmpty()) return true;
+        Integer count = counts.get(key);
+        return count != null && count > 0;
     }
 
     private static Set<String> defaultPublicCategories(PublicHistoryConsumer consumer) {

@@ -52,6 +52,8 @@ final class CoreConfigManagerTest {
         assertTrue(config.historyArchiveEnabled());
         assertEquals(8, config.historyArchiveMaxCompletedWeeks());
         assertTrue(config.historyChronicleCategories().contains("realm"));
+        assertTrue(config.historyChroniclePolicy().allows("realm", "leader-set"));
+        assertTrue(!config.historyChroniclePolicy().allows("citizen", "realm-assigned"));
         assertEquals(8, config.publicHistoryDefaultWeeks());
         assertEquals(50, config.publicHistoryDefaultLimit());
         assertEquals(200, config.publicHistoryMaxLimit());
@@ -87,6 +89,27 @@ final class CoreConfigManagerTest {
         ConfigValidationException exception = assertThrows(ConfigValidationException.class, config::load);
         assertTrue(exception.errors().stream().anyMatch(error -> error.contains("font-scale-percent")));
         assertEquals(125, config.uiTheme().fontScalePercent());
+    }
+
+    @Test
+    void migratesChronicleTypeFilteringAndReloadsItSafely() throws Exception {
+        CoreConfigManager config = new CoreConfigManager(LoggerFactory.getLogger("config-test"), tempDir);
+        config.load();
+        Path history = tempDir.resolve("history.yml");
+        String oldShape = Files.readString(history, StandardCharsets.UTF_8)
+                .replace("                      default-chronicle-type-enabled: true\n                      enabled-chronicle-types: []\n                      disabled-chronicle-types: []\n", "");
+        Files.writeString(history, oldShape, StandardCharsets.UTF_8);
+
+        config.load();
+        assertTrue(config.historyChroniclePolicy().allows("realm", "leader-set"));
+        assertTrue(Files.readString(history, StandardCharsets.UTF_8).contains("disabled-chronicle-types: []"));
+
+        Files.writeString(history, Files.readString(history, StandardCharsets.UTF_8)
+                .replace("disabled-chronicle-types: []", "disabled-chronicle-types:\n    - \"realm:leader-set\""),
+                StandardCharsets.UTF_8);
+        config.load();
+        assertTrue(!config.historyChroniclePolicy().allows("realm", "leader-set"));
+        assertTrue(config.historyRecordingPolicy().allows("realm", "leader-set"));
     }
 
     @Test

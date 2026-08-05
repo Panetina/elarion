@@ -495,6 +495,12 @@ final class CoreConfigDefaultFiles {
                         - "administration"
                         - "security"
                         - "npc"
+                      # Types can be plain ("proposal-approved") or scoped
+                      # ("government:proposal-approved"). Disable noisy
+                      # events here without disabling their audit recording.
+                      default-chronicle-type-enabled: true
+                      enabled-chronicle-types: []
+                      disabled-chronicle-types: []
 
                     public-query:
                       default-weeks: 8
