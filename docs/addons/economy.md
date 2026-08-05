@@ -191,8 +191,7 @@ physical-currency services only; bank balances remain unavailable for NPC shop,
 Shrine, and Portal service spending unless a future approved policy changes it.
 
 NPC Sell/buyback and inflation work must use the Economy-owned trade price and
-payout API tracked in
-`docs/reports/ECONOMY_TRADE_PRICE_PAYOUT_API_PROPOSAL.md`.
+payout API.
 `ElarionEconomyApi.quoteTradePrice(...)` currently resolves fixed fallbacks or
 known service-price `price-key` values, then applies Economy tax/fee policy.
 Future dynamic inflation/scarcity counters must be added behind this API.

@@ -309,8 +309,6 @@ a public treasury through an idempotent Economy operation receipt. It checks for
 an existing receipt before removing inventory items. It is the approved boundary
 for NPC shop purchases and other physical-only public-revenue services.
 
-NPC Sell/buyback and dynamic-price work is specified in
-`docs/reports/ECONOMY_TRADE_PRICE_PAYOUT_API_PROPOSAL.md`.
 `ElarionEconomyApi.quoteTradePrice(...)` is the Economy-owned trade price quote
 boundary. It currently supports fixed fallbacks, known service-price
 `price-key` values, checked arithmetic, BUY total cost, and SELL net payout.

@@ -213,6 +213,10 @@ in `docs/systems/Atlas.md`. Economy is not an Atlas dependency.
   balances, tax authority, settlement, and transactions; Marketplace blocks,
   NPCs, barriers, or stalls contribute only their explicit presentation,
   access, and inventory contracts.
+- Keep dynamic inflation/scarcity behind `ElarionEconomyApi.quoteTradePrice(...)`.
+  Physical NPC Sell payout remains deferred until a claimable/deferred delivery
+  path closes the persisted-receipt-to-inventory crash gap; V1 seller settlement
+  may use the restart-safe bank-wallet payout boundary instead.
 
 ## Monthly Supporter Membership
 
