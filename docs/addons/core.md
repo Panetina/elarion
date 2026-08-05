@@ -212,6 +212,10 @@ Notification and deferred reward-grant storage normalize null collections and
 discard null rows before their services bind, retaining valid records from the
 same parsed snapshot.
 
+The persisted notification map remains authoritative. Core rebuilds runtime-only
+recipient, recipient-category, and expiry projections on bind, so inbox reads,
+retention trimming, and expiry cleanup avoid unrelated notification history.
+
 Character lifecycle storage canonicalizes UUID-keyed accounts and normalizes
 recoverable null collections, rows, strings, archive lists, and metadata before
 the lifecycle service binds. Unusable account/archive rows are discarded. The

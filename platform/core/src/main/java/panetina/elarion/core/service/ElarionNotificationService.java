@@ -42,7 +42,7 @@ public final class ElarionNotificationService {
     private final CitizenService citizens;
     private final MinecraftProjectionPublisher webProjections;
     private final Map<String, ElarionStoredNotification> notifications = new LinkedHashMap<>();
-    private final Map<UUID, LinkedHashSet<String>> notificationIdsByRecipient = new LinkedHashMap<>();
+    private final ElarionNotificationRuntimeIndex notificationIndex = new ElarionNotificationRuntimeIndex();
     private final Map<String, NotificationActionHandler> actionHandlers = new LinkedHashMap<>();
     private final List<Function<UUID, List<ElarionNotificationEntry>>> providers = new CopyOnWriteArrayList<>();
     private final Set<String> worldEligibleRealms = new LinkedHashSet<>();
@@ -58,14 +58,21 @@ public final class ElarionNotificationService {
     public synchronized void bind(MinecraftServer server) {
         this.server = server;
         notifications.clear();
-        notificationIdsByRecipient.clear();
+        notificationIndex.clear();
+        long now = System.currentTimeMillis();
+        boolean pruned = false;
         for (ElarionStoredNotification notification : storage.load(server)) {
             if (notification != null && !notification.id().isBlank()) {
-                notifications.put(notification.id(), notification);
-                index(notification);
+                if (notification.resolved() || notification.expired(now)) {
+                    pruned = true;
+                    continue;
+                }
+                ElarionStoredNotification previous = notifications.put(notification.id(), notification);
+                notificationIndex.remove(previous);
+                notificationIndex.add(notification);
             }
         }
-        prune(System.currentTimeMillis());
+        if (pruned) save();
         publishLauncherSnapshots();
     }
 
@@ -183,7 +190,7 @@ public final class ElarionNotificationService {
         }
         long now = System.currentTimeMillis();
         if (notification.expired(now)) {
-            notifications.put(notification.id(), notification.resolve());
+            remove(notification.id());
             save();
             sync(player);
             return ActionResult.failure("Notification expired.");
@@ -196,7 +203,7 @@ public final class ElarionNotificationService {
             return ActionResult.success("", false);
         }
         if (DISMISS.equals(normalizedAction)) {
-            notifications.put(notification.id(), notification.resolve());
+            remove(notification.id());
             save();
             sync(player);
             return ActionResult.success("Dismissed.", true);
@@ -208,9 +215,8 @@ public final class ElarionNotificationService {
         ActionResult result = handler.handle(new ActionContext(player, notification, normalizedAction));
         ElarionStoredNotification current = notifications.get(notification.id());
         if (current != null) {
-            if (result.resolve()) current = current.resolve();
-            else current = current.read().withStatus(result.message());
-            notifications.put(current.id(), current);
+            if (result.resolve()) remove(current.id());
+            else notifications.put(current.id(), current.read().withStatus(result.message()));
             save();
         }
         sync(player);
@@ -222,7 +228,7 @@ public final class ElarionNotificationService {
         long now = System.currentTimeMillis();
         prune(now);
         List<ElarionNotificationEntry> entries = new ArrayList<>();
-        notificationIdsByRecipient.getOrDefault(recipientId, new LinkedHashSet<>()).stream()
+        notificationIndex.recipientIds(recipientId).stream()
                 .map(notifications::get)
                 .filter(java.util.Objects::nonNull)
                 .filter(notification -> !notification.resolved() && !notification.expired(now))
@@ -254,7 +260,7 @@ public final class ElarionNotificationService {
     public synchronized int resetAllPlayerState() {
         int count = notifications.size();
         notifications.clear();
-        notificationIdsByRecipient.clear();
+        notificationIndex.clear();
         save();
         return count;
     }
@@ -277,7 +283,7 @@ public final class ElarionNotificationService {
             if (!clean(sourceSystem).equals(notification.sourceSystem())) continue;
             if (!clean(value).equals(notification.metadata().getOrDefault(key, ""))) continue;
             if (notification.resolved()) continue;
-            notifications.put(entry.getKey(), notification.resolve());
+            remove(entry.getKey());
             recipients.add(notification.recipientId());
             resolved++;
         }
@@ -319,10 +325,12 @@ public final class ElarionNotificationService {
         if (effectiveExpiry == 0L && safeActions.stream().allMatch(action -> DISMISS.equals(action.id()))) {
             effectiveExpiry = System.currentTimeMillis() + DEFAULT_EXPIRY_MILLIS;
         }
-        notifications.put(id, new ElarionStoredNotification(
+        ElarionStoredNotification published = new ElarionStoredNotification(
                 id, recipientId, category, source, eventType, dedupe, title, body, status, icon,
-                true, false, System.currentTimeMillis(), effectiveExpiry, safeActions, metadata));
-        index(notifications.get(id));
+                true, false, System.currentTimeMillis(), effectiveExpiry, safeActions, metadata);
+        ElarionStoredNotification previous = notifications.put(id, published);
+        notificationIndex.remove(previous);
+        notificationIndex.add(published);
         trim(recipientId, category);
         save();
         return id;
@@ -336,9 +344,9 @@ public final class ElarionNotificationService {
     }
 
     private void trim(UUID recipientId, ElarionNotificationCategory category) {
-        List<ElarionStoredNotification> matches = notifications.values().stream()
-                .filter(notification -> recipientId.equals(notification.recipientId()))
-                .filter(notification -> category == notification.category())
+        List<ElarionStoredNotification> matches = notificationIndex.recipientCategoryIds(recipientId, category).stream()
+                .map(notifications::get)
+                .filter(java.util.Objects::nonNull)
                 .sorted(Comparator.comparingLong(ElarionStoredNotification::createdAt))
                 .toList();
         int remove = matches.size() - MAX_PER_CATEGORY;
@@ -346,10 +354,11 @@ public final class ElarionNotificationService {
     }
 
     private void prune(long now) {
-        List<String> removed = notifications.values().stream()
-                .filter(notification -> notification.resolved() || notification.expired(now))
-                .map(ElarionStoredNotification::id)
-                .toList();
+        List<String> removed = notificationIndex.expired(now).stream()
+                .filter(id -> {
+                    ElarionStoredNotification notification = notifications.get(id);
+                    return notification != null && notification.expired(now);
+                }).toList();
         removed.forEach(this::remove);
         boolean changed = !removed.isEmpty();
         if (changed) save();
@@ -394,22 +403,13 @@ public final class ElarionNotificationService {
 
     /** Startup/config recovery publishes only each recipient's bounded local inbox. */
     private void publishLauncherSnapshots() {
-        new ArrayList<>(notificationIdsByRecipient.keySet()).forEach(this::publishLauncherSnapshot);
-    }
-
-    private void index(ElarionStoredNotification notification) {
-        if (notification == null || notification.recipientId() == null) return;
-        notificationIdsByRecipient.computeIfAbsent(notification.recipientId(), ignored -> new LinkedHashSet<>())
-                .add(notification.id());
+        notificationIndex.recipients().forEach(this::publishLauncherSnapshot);
     }
 
     private void remove(String notificationId) {
         ElarionStoredNotification removed = notifications.remove(notificationId);
         if (removed == null) return;
-        LinkedHashSet<String> ids = notificationIdsByRecipient.get(removed.recipientId());
-        if (ids == null) return;
-        ids.remove(notificationId);
-        if (ids.isEmpty()) notificationIdsByRecipient.remove(removed.recipientId());
+        notificationIndex.remove(removed);
     }
 
     private static String truncate(String value) {

@@ -76,6 +76,9 @@ retaining valid death/session state from the same parsed snapshot.
 
 Core Notification storage normalizes null lists and discards null rows before
 bind, retaining valid notifications from the same parsed snapshot.
+The persisted notification rows remain canonical; Core rebuilds recipient,
+recipient-category, and expiry projections on bind so ordinary inbox snapshots,
+retention trimming, and expiry cleanup do not scan unrelated notification history.
 
 Core deferred reward-grant storage likewise normalizes null maps and discards
 null rows before bind, retaining valid grants from the same parsed snapshot.
