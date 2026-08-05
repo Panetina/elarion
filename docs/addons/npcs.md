@@ -220,9 +220,8 @@ portrait library assets
   escrow before payout, pays the seller's Economy wallet through an idempotent
   receipt, restores escrowed items on payout failure when possible, and can
   idempotently route sold quantity into a configured placed-NPC BUY stock target.
-  Sell/buyback follows `docs/reports/NPC_SELL_BUYBACK_PROPOSAL.md`: exact sold
-  stacks go into durable NPC escrow before any payout, and Economy owns dynamic
-  price/inflation/payout policy.
+  Exact sold stacks go into durable NPC escrow before any payout, and Economy
+  owns dynamic price/inflation/payout policy.
 - `worldheart_trader` is the default test trader route for this shell. It opens
   through normal NPC conversation first and then transitions through `Trade`
   into the trade presentation.
