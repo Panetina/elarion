@@ -224,6 +224,11 @@ decision, and nested vote rows before governance binds. Structurally unusable
 rows are discarded without losing valid adjacent Realm relationships,
 visibility, decisions, or votes from the same parsed snapshot.
 
+The persisted Realm-decision map remains authoritative. Governance rebuilds a
+runtime-only pending/deadline projection on bind and maintains it on each owned
+decision mutation, so pending Realm reads and expiry processing do not scan
+resolved decision history.
+
 `config/elarion/core/minecraft-bridge.yml` controls the disabled-by-default
 website whitelist bridge. Core starts it only when the explicit configuration
 is valid and the server has both online mode and the whitelist enabled. The

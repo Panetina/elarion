@@ -14,7 +14,6 @@ import panetina.elarion.core.model.ElarionNotificationCategory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,6 +27,7 @@ public final class RealmGovernanceService {
     private final RealmService realms;
     private final CitizenService citizens;
     private final HistoryService history;
+    private final RealmDecisionRuntimeIndex decisionIndex = new RealmDecisionRuntimeIndex();
     private MinecraftServer server;
     private RealmRuntimeState state = new RealmRuntimeState();
     private ElarionNotificationService notifications;
@@ -47,6 +47,7 @@ public final class RealmGovernanceService {
     public void bind(MinecraftServer server) {
         this.server = server;
         this.state = storage.load(server);
+        decisionIndex.rebuild(state.decisions().values());
         expirePendingDecisions();
     }
 
@@ -158,6 +159,7 @@ public final class RealmGovernanceService {
         RealmDecision decision = RealmDecision.create(type, declaring,
                 receiving, leaderId, DEFAULT_VOTE_DURATION_MILLIS);
         state.decisions().put(decision.id(), decision);
+        decisionIndex.update(decision);
         save();
         history.record("realm-decision", "declared", leaderId, "decision",
                 decision.id().toString(), decision.declaringRealmId(), decisionMetadata(decision));
@@ -170,6 +172,7 @@ public final class RealmGovernanceService {
         if (decision == null || !decision.isPending() || !citizenAffected(decision, citizenId)) return false;
         decision.votes().put(citizenId, approve);
         evaluateDecision(decision);
+        decisionIndex.update(decision);
         save();
         history.record("realm-decision", approve ? "vote-approve" : "vote-reject",
                 citizenId, "decision", decision.id().toString(), decision.declaringRealmId(),
@@ -181,38 +184,29 @@ public final class RealmGovernanceService {
         expirePendingDecisions();
         String realmId = citizen.realmId();
         if (realmId.isBlank()) return List.of();
-        return state.decisions().values().stream()
-                .filter(RealmDecision::isPending)
-                .filter(decision -> realmId.equals(decision.declaringRealmId())
-                        || realmId.equals(decision.receivingRealmId()))
-                .sorted(Comparator.comparingLong(RealmDecision::createdAt))
-                .toList();
+        return decisionIndex.pendingFor(realmId);
     }
 
     public List<RealmDecision> pending() {
         expirePendingDecisions();
-        return state.decisions().values().stream()
-                .filter(RealmDecision::isPending)
-                .sorted(Comparator.comparingLong(RealmDecision::createdAt))
-                .toList();
+        return decisionIndex.pending();
     }
 
     public void expirePendingDecisions() {
         long now = Instant.now().toEpochMilli();
         boolean changed = false;
-        for (RealmDecision decision : state.decisions().values()) {
-            if (decision.isExpired(now)) {
-                decision.setStatus(RealmDecisionStatus.EXPIRED);
-                changed = true;
-                if (server != null) {
-                    history.record("realm-decision", "expired", null, "decision",
-                            decision.id().toString(), decision.declaringRealmId(), decisionMetadata(decision));
-                }
-                resolveDecisionNotifications(decision);
-                publishDecisionResult(decision, "Realm Decision Expired",
-                        "The " + decision.type().name().toLowerCase(Locale.ROOT).replace('_', ' ')
-                                + " decision expired without passing.");
+        for (RealmDecision decision : decisionIndex.expired(now)) {
+            decision.setStatus(RealmDecisionStatus.EXPIRED);
+            decisionIndex.update(decision);
+            changed = true;
+            if (server != null) {
+                history.record("realm-decision", "expired", null, "decision",
+                        decision.id().toString(), decision.declaringRealmId(), decisionMetadata(decision));
             }
+            resolveDecisionNotifications(decision);
+            publishDecisionResult(decision, "Realm Decision Expired",
+                    "The " + decision.type().name().toLowerCase(Locale.ROOT).replace('_', ' ')
+                            + " decision expired without passing.");
         }
         if (changed) save();
     }

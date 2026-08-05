@@ -19,6 +19,12 @@ relationship/decision/vote rows, normalizes hidden Realm IDs, and retains valid
 adjacent relationships, visibility state, decisions, and votes. The JSON shape
 and Core ownership remain unchanged.
 
+Persisted Realm decisions remain canonical. Core rebuilds a runtime-only
+pending-decision projection on bind, maintained on propose, vote, and expiry.
+Pending Realm queries use the relevant Realm subset; deadline expiry visits only
+due decisions, preserving existing `createdAt` presentation ordering and
+canonical order for simultaneous expirations.
+
 Realm spawn defaults:
 
 | Realm | Spawn world | Spawn |
