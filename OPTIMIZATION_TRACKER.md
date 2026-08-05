@@ -93,8 +93,6 @@ Configuration/Admin Panel audit. See
 - Portal legacy route migration moved out of `PortalRouteService`.
 - Government text, category, color, and ID validation moved out of
   `GovernmentStateService`.
-- Dirty worktree classification is recorded in
-  `docs/reports/WORKTREE_CLEANUP_AUDIT.md`.
 - Placeholder resolution and Citizen Profile aggregation are bounded,
   side-effect-free owner projections with server-side visibility filtering.
 - Economy reload is a two-stage prepare/commit operation; invalid pricing can
