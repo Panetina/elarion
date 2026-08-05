@@ -16,6 +16,7 @@ public record HistoryEvent(
         Map<String, String> metadata,
         String chronicleText
 ) {
+    public static final String CHRONICLE_INTENT_METADATA_KEY = "chronicle.intent";
     public HistoryEvent {
         id = id == null ? UUID.randomUUID() : id;
         timestamp = timestamp <= 0 ? Instant.now().toEpochMilli() : timestamp;
@@ -53,6 +54,28 @@ public record HistoryEvent(
     ) {
         return new HistoryEvent(null, 0, category, type, actorId, subjectType,
                 subjectId, realmId, metadata, chronicleText);
+    }
+
+    /** Creates a durable event deliberately eligible for Chronicle consumers. */
+    public static HistoryEvent createChronicle(
+            String category,
+            String type,
+            UUID actorId,
+            String subjectType,
+            String subjectId,
+            String realmId,
+            Map<String, String> metadata,
+            String chronicleText
+    ) {
+        Map<String, String> marked = new java.util.LinkedHashMap<>();
+        if (metadata != null) marked.putAll(metadata);
+        marked.put(CHRONICLE_INTENT_METADATA_KEY, "true");
+        return new HistoryEvent(null, 0, category, type, actorId, subjectType,
+                subjectId, realmId, marked, chronicleText);
+    }
+
+    public boolean isChronicleIntentional() {
+        return "true".equalsIgnoreCase(metadata.get(CHRONICLE_INTENT_METADATA_KEY));
     }
 
     private static String clean(String value, String fallback) {

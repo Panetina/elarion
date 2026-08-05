@@ -495,6 +495,11 @@ final class CoreConfigDefaultFiles {
                         - "administration"
                         - "security"
                         - "npc"
+                        - "economy"
+                        - "government"
+                        - "offering"
+                        - "portal"
+                        - "underworld"
                       # Types can be plain ("proposal-approved") or scoped
                       # ("government:proposal-approved"). Disable noisy
                       # events here without disabling their audit recording.

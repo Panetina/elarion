@@ -182,7 +182,7 @@ public final class HistoryService {
             String chronicleText
     ) {
         if (server == null) throw new IllegalStateException("HistoryService is not bound to a server");
-        HistoryEvent event = HistoryEvent.create(
+        HistoryEvent event = HistoryEvent.createChronicle(
                 category, type, actorId, subjectType, subjectId, realmId, metadata, chronicleText);
         if (recordIfAllowed(event)) {
             for (Consumer<HistoryEvent> listener : chronicleRecordedListeners) {
@@ -338,7 +338,8 @@ public final class HistoryService {
     }
 
     public boolean isChronicleEligible(HistoryEvent event) {
-        return event != null && config.historyChroniclePolicy().allows(event.category(), event.type());
+        return event != null && event.isChronicleIntentional()
+                && config.historyChroniclePolicy().allows(event.category(), event.type());
     }
 
     private void recordCitizenChange(ElarionEventBus.CitizenChanged event) {
@@ -378,7 +379,7 @@ public final class HistoryService {
         long end = weekEnd.atStartOfDay(zone).toInstant().toEpochMilli();
         List<ChronicleEntry> entries = source.stream()
                 .filter(entry -> entry.timestamp() >= start && entry.timestamp() < end)
-                .filter(entry -> chroniclePolicy.allows(entry.category(), entry.type()))
+                .filter(entry -> isChronicleEligible(entry.metadata(), entry.category(), entry.type(), chroniclePolicy))
                 .sorted(Comparator.comparingLong(HistoryIndexEntry::timestamp).reversed())
                 .map(ChronicleEntry::from)
                 .toList();
@@ -411,7 +412,7 @@ public final class HistoryService {
     ) {
         if (results.size() >= limit || seen.contains(entry.eventId())) return;
         if (query.consumer() == PublicHistoryConsumer.CHRONICLE
-                && !chroniclePolicy.allows(entry.category(), entry.type())) return;
+                && !isChronicleEligible(entry.metadata(), entry.category(), entry.type(), chroniclePolicy)) return;
         if (!matches(entry, query, categories)) return;
         seen.add(entry.eventId());
         results.add(entry);
@@ -443,6 +444,16 @@ public final class HistoryService {
                 && !chroniclePolicy.mayContain(summary.categoryCounts(), summary.typeCounts())) return false;
         if (!query.realmId().isBlank() && !containsIgnoreCase(summary.realmCounts(), query.realmId())) return false;
         return query.playerId() == null || contains(summary.playerCounts(), query.playerId().toString());
+    }
+
+    private static boolean isChronicleEligible(
+            Map<String, String> metadata,
+            String category,
+            String type,
+            HistoryChroniclePolicy policy
+    ) {
+        return metadata != null && "true".equalsIgnoreCase(metadata.get(HistoryEvent.CHRONICLE_INTENT_METADATA_KEY))
+                && policy.allows(category, type);
     }
 
     private static boolean containsAny(Map<String, Integer> counts, Set<String> keys) {

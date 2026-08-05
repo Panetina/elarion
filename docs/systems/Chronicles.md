@@ -45,7 +45,9 @@ and `disabled-chronicle-types` (plain `type` or scoped `category:type`). This
 filters public Chronicle spam without suppressing the durable audit event.
 For live website projection there is an additional deliberate-emission boundary:
 an event must have been recorded with `recordChronicle`; raw audit `record`
-events are never projected.
+events are never projected. `recordChronicle` persists the reserved
+`chronicle.intent=true` metadata marker, so the same boundary also applies to
+weekly archives and the in-game library after restart.
 
 Do not duplicate this system by creating: addon-local history logs, separate newspaper event storage, or unbounded GUI searches.
 

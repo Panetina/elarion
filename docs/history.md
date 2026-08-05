@@ -121,7 +121,9 @@ disabled list to suppress spam from public Chronicle outputs while leaving the
 underlying audit event intact. The live website bridge has a second intentional
 boundary: it only projects events emitted with `recordChronicle`; ordinary
 `record` calls are audit-only and cannot turn operational activity into public
-Chronicle news.
+Chronicle news. `recordChronicle` persists `chronicle.intent=true`; archive and
+library reads require that marker too, so restart-safe book volumes follow the
+same anti-spam rule.
 When the default is false, only the explicit allow-list can enter a Chronicle.
 
 Major systems should emit short, immersive `chronicleText` for events that are
