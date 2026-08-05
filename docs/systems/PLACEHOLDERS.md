@@ -21,3 +21,18 @@ Use `resolveSchema` for bounded event/request-local templates such as Chronicle
 metadata. Do not register one global resolver per event instance. Unknown
 tokens are preserved; diagnostics are bounded and returned to the caller
 instead of logged for every player render.
+
+## Contract
+
+Canonical identifiers are lower-case and namespaced. A descriptor declares its
+owner, value type, allowed contexts, required context, visibility, and
+missing/unauthorized behavior. Compatibility aliases normalize to that
+canonical id and may apply only their declared case transform. Resolution
+bounds token count, output length, nesting, cycles, diagnostics, and
+request-local memoization.
+
+`ServerIdentityConfig.replace` is bootstrap-only because identity config loads
+before the service exists. Government's case-sensitive `%REALM%` remains a
+local compatibility adapter until a tested alias migration preserves authored
+configuration exactly; Chat retains its component-aware message adapter so
+styled text is not flattened.
