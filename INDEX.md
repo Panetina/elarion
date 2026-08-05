@@ -264,11 +264,6 @@ bounded context command and `docs/ai/routes.json` to select task material.
   - Classified internal helpers: `PortalRouteAdminMutator`,
     `PortalScheduleReconciler`, `PortalPlayerPromptDetector`,
     `PortalTravelExecutor`, and `PortalWorldTravelGuard`.
-  - Phase 13 extraction record:
-    `docs/reports/PHASE_13_PORTAL_EXTRACTIONS.md`.
-  - Phase 13 completion and project-wide classification:
-    `docs/reports/PHASE_13_COMPLETION.md`.
-
 - Phase 14 final verification:
   - [Runtime baseline](docs/reports/PHASE_14_RUNTIME_BASELINE.md)
   - [Restart and persistence smoke](docs/reports/PHASE_14_RESTART_PERSISTENCE_SMOKE.md)

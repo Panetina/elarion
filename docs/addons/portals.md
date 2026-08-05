@@ -250,4 +250,4 @@ now isolated in `PortalRouteAdminMutator`, schedule and field lifecycle in
 ticket/payment rollback and successful-only state/history/stat changes, while
 `PortalWorldTravelGuard` owns transient setup and movement authorization. All
 remain behind public `PortalRouteService` facades and none owns a second copy
-of `PortalState`. See `docs/reports/PHASE_13_PORTAL_EXTRACTIONS.md`.
+of `PortalState`.

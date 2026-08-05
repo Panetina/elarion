@@ -13,17 +13,13 @@ Main classes: `PortalRouteService`, `PortalDefinitionService`,
 `PortalScheduleReconciler`, `PortalPlayerPromptDetector`,
 `PortalTravelExecutor`, `PortalWorldTravelGuard`.
 
-Phase 13 classification: `PortalRouteService` remains the canonical live route
-state owner, but admin mutation, schedule reconciliation, player prompt
-detection, travel execution, and setup/world-guard behavior are documented
-extraction candidates. Do not split them without preserving the public service
-facade and focused portal tests. See
-`docs/reports/PHASE_13_PORTAL_ROUTE_SERVICE_CLASSIFICATION.md`.
+`PortalRouteService` remains the canonical live route state owner. Admin
+mutation, schedule reconciliation, player prompts, travel execution, and
+setup/world guards stay behind its public facade and focused portal tests.
 
 Phase 13 completed all five classified extractions. `PortalRouteService` still
 owns canonical state and the stable public facade; travel and movement helpers
-operate only through narrow effects and transient guards. See
-`docs/reports/PHASE_13_PORTAL_EXTRACTIONS.md`.
+operate only through narrow effects and transient guards.
 
 Entry point: `ElarionPortalsAddon`.
 
