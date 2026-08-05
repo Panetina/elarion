@@ -8,7 +8,7 @@ public final class CitizenProfileSummaryFields {
     public static final String SOURCE_OFFERINGS = "offerings";
     public static final String SOURCE_QUESTS = "quests";
     public static final String SOURCE_NPCS = "npcs";
-    public static final String SOURCE_GROUPS = "groups";
+    public static final String SOURCE_GUILDS = "guilds";
     public static final String SOURCE_GOVERNMENT = "government";
     public static final String SOURCE_UNDERWORLD = "underworld";
     public static final String SOURCE_PORTALS = "portals";
@@ -33,7 +33,7 @@ public final class CitizenProfileSummaryFields {
             SOURCE_OFFERINGS, Set.of(FIELD_OFFERING_SCORE),
             SOURCE_QUESTS, Set.of(FIELD_QUESTS_COMPLETED),
             SOURCE_NPCS, Set.of(FIELD_REPUTATION),
-            SOURCE_GROUPS, Set.of(FIELD_MEMBERSHIPS),
+            SOURCE_GUILDS, Set.of(FIELD_MEMBERSHIPS),
             SOURCE_GOVERNMENT, Set.of(FIELD_ACTIVE_OFFICE, FIELD_OFFICE_HISTORY),
             SOURCE_UNDERWORLD, Set.of(FIELD_DEATHS),
             SOURCE_PORTALS, Set.of(FIELD_PORTAL_JOURNEYS),

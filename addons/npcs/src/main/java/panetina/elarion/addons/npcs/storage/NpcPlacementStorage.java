@@ -42,8 +42,14 @@ public final class NpcPlacementStorage {
             UnaryOperator<PlacedNpcRecord> migrator
     ) {
         Path stateFile = file(server);
-        if (Files.notExists(stateFile)) return new LinkedHashMap<>();
-        StoredState stored = read(stateFile);
+        StoredState stored = JsonStateStorage.read(
+                stateFile,
+                GSON,
+                StoredState.class,
+                StoredState::new,
+                state -> state,
+                logger,
+                "NPC placement state");
         if (stored.schemaVersion < 1 || stored.schemaVersion > SCHEMA_VERSION) {
             throw new IllegalStateException("Unsupported NPC placement schema " + stored.schemaVersion);
         }
@@ -69,16 +75,6 @@ public final class NpcPlacementStorage {
         StoredState stored = new StoredState();
         stored.placed = new ArrayList<>(records.values());
         JsonStateStorage.writeAtomic(file(server), GSON, stored, logger, "NPC placement state");
-    }
-
-    private StoredState read(Path stateFile) {
-        try (java.io.Reader reader = Files.newBufferedReader(stateFile, java.nio.charset.StandardCharsets.UTF_8)) {
-            StoredState stored = GSON.fromJson(reader, StoredState.class);
-            if (stored == null) throw new IllegalStateException("NPC placement state is empty");
-            return stored;
-        } catch (IOException | RuntimeException exception) {
-            throw new IllegalStateException("Unable to load NPC placement state " + stateFile, exception);
-        }
     }
 
     private void backup(Path stateFile, int schemaVersion) {

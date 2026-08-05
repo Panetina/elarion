@@ -107,6 +107,20 @@ def enableSharedResourcePacks = { File optionsFile, List<String> packNames ->
     optionsFile.setText(updated.join(System.lineSeparator()) + System.lineSeparator(), 'UTF-8')
 }
 
+def enforceDevOfflineAuthentication = { File serverProperties ->
+    def source = serverProperties.isFile() ? serverProperties.getText('UTF-8') : ''
+    def lines = source.indexOf('\u0000') >= 0
+            ? ['# Rebuilt by Elarion local development synchronization.']
+            : source.readLines()
+    def updated = lines.findAll { line ->
+        !line.startsWith('online-mode=') && !line.startsWith('enforce-secure-profile=')
+    }
+    updated.add('online-mode=false')
+    updated.add('enforce-secure-profile=false')
+    serverProperties.parentFile.mkdirs()
+    serverProperties.setText(updated.join(System.lineSeparator()) + System.lineSeparator(), 'UTF-8')
+}
+
 configurations {
     distributionBoth
     distributionServer
@@ -496,6 +510,7 @@ tasks.register('syncDevRuntimeMods') {
         def serverRoot = layout.projectDirectory.dir('dev/run').asFile
         def serverMods = new File(serverRoot, 'mods')
         def serverConfig = new File(serverRoot, 'config')
+        enforceDevOfflineAuthentication(new File(serverRoot, 'server.properties'))
         def clientModDirs = [
                 layout.projectDirectory.dir('dev/run/client-generic/mods').asFile,
                 layout.projectDirectory.dir('dev/run/client-one/mods').asFile,
@@ -512,14 +527,26 @@ tasks.register('syncDevRuntimeMods') {
                 'modmenu-11.0.3.jar',
                 'iris-fabric-1.8.8+mc1.21.1.jar'
         ]) as Set
+        def readManagedMarker = { File marker ->
+            if (!marker.isFile()) return [] as Set
+            try {
+                def parsed = new groovy.json.JsonSlurper().parse(marker)
+                if (!(parsed instanceof List) || !parsed.every { it instanceof String }) {
+                    throw new GradleException('Expected a JSON array of artifact filenames')
+                }
+                return parsed as Set
+            } catch (Exception exception) {
+                logger.warn("Ignoring unreadable local managed-mod marker {} ({})", marker,
+                        exception.class.simpleName)
+                return [] as Set
+            }
+        }
         def serverArtifactNames = distributionArtifacts.findAll {
             it.side in ['both', 'server', 'admin']
         }*.filename as Set
         serverMods.mkdirs()
         def serverMarker = new File(serverMods, '.elarion-managed-mods.json')
-        def previousServer = serverMarker.isFile()
-                ? (new groovy.json.JsonSlurper().parse(serverMarker) as List<String>) as Set
-                : [] as Set
+        def previousServer = readManagedMarker(serverMarker)
         (previousServer + legacyManaged).each { name ->
             def candidate = new File(serverMods, name)
             if (candidate.isFile()) candidate.delete()
@@ -546,9 +573,7 @@ tasks.register('syncDevRuntimeMods') {
         clientModDirs.each { clientModDir ->
             def expected = distributionArtifacts.findAll { it.side in ['both', 'client'] }*.filename as Set
             def marker = new File(clientModDir, '.elarion-managed-mods.json')
-            def previous = marker.isFile()
-                    ? (new groovy.json.JsonSlurper().parse(marker) as List<String>) as Set
-                    : [] as Set
+            def previous = readManagedMarker(marker)
             (previous + legacyManaged).each { name ->
                 def candidate = new File(clientModDir, name)
                 if (candidate.isFile()) candidate.delete()
@@ -616,6 +641,18 @@ tasks.register('syncDevClientMods') {
     group = 'fabric'
     description = 'Compatibility alias for syncDevRuntimeMods.'
     dependsOn 'syncDevRuntimeMods'
+}
+
+// The root launch wrappers have both tasks as dependencies. Dependencies have
+// no implicit sibling order, so Loom could otherwise start scanning a client
+// directory while syncDevRuntimeMods is replacing its managed jars.
+gradle.projectsEvaluated {
+    def runtimeSync = tasks.named('syncDevRuntimeMods')
+    ['runClient', 'runClientOne', 'runClientTwo', 'runServer'].each { taskName ->
+        project(':dev').tasks.named(taskName).configure {
+            mustRunAfter(runtimeSync)
+        }
+    }
 }
 
 tasks.register('cleanDevRunLocks', Delete) {

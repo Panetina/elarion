@@ -125,6 +125,18 @@ Each generated mods directory has `.elarion-managed-mods.json`. Subsequent
 syncs remove only files recorded by that marker plus the explicit bootstrap
 set from the prior build contract. Unrelated local jars are not wildcard
 deleted. The marker makes version replacement and removal deterministic.
+If a local marker is unreadable, synchronization ignores it, removes the same
+canonical bootstrap set, and writes a fresh marker; a damaged local marker
+cannot block a dev-client launch or leave stale managed artifacts authoritative.
+
+The same dev-only synchronization enforces `online-mode=false` and
+`enforce-secure-profile=false` in `dev/run/server.properties`, because the
+three Loom clients use deterministic offline test identities. This never alters
+the distribution server configuration or a published server.
+
+The root `runServer`, `runClient`, `runClientOne`, and `runClientTwo` wrappers
+also order the corresponding Loom run strictly after this synchronization.
+This prevents Fabric from scanning a JAR while it is being replaced.
 
 ## Verification
 

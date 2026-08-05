@@ -9,6 +9,7 @@ import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import panetina.elarion.core.client.ui.ElarionCivicColors;
 import panetina.elarion.core.client.ui.ElarionCivicUi;
+import panetina.elarion.core.client.ui.ElarionPixelCanvas32;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
 import panetina.elarion.core.client.ui.ElarionScreen;
 import panetina.elarion.core.client.ui.ElarionUiIcons;
@@ -541,6 +542,10 @@ public final class ElarionCollectionScreen extends ElarionScreen {
         int realmX = innerX + 302;
         context.fill(realmX - 14, innerY + 11, realmX - 13, innerY + 65, ElarionCivicColors.DIVIDER);
         ElarionUiTypography.draw(context, textRenderer, "REALM", realmX, innerY + 13, style.mutedColor(), false);
+        var heraldry = ElarionHeraldryClientRegistry.realm(value(realm, "realm-id", ""));
+        if (!heraldry.empty()) {
+            ElarionPixelCanvas32.renderPreview(context, realmX + 164, innerY + 19, 1, heraldry.paletteIndices());
+        }
         ElarionUiTypography.draw(context, textRenderer,
                 ElarionUiTypography.ellipsize(textRenderer, value(realm, "realm-name", "Unassigned"), 155),
                 realmX, innerY + 31, ACTIVE_BORDER, false);
@@ -596,7 +601,7 @@ public final class ElarionCollectionScreen extends ElarionScreen {
         int lowerY = bodyY + 112;
         drawProfilePanel(context, innerX, lowerY, columnWidth, 100, "AFFILIATIONS", style);
         drawProfileEmptyLine(context, innerX + 10, lowerY + 28, columnWidth - 20,
-                "Groups and guilds", contributedField(profile, CitizenProfileSummaryFields.SOURCE_GROUPS,
+                "Guilds", contributedField(profile, CitizenProfileSummaryFields.SOURCE_GUILDS,
                         CitizenProfileSummaryFields.FIELD_MEMBERSHIPS, "No records contributed"), style);
         drawProfileEmptyLine(context, innerX + 10, lowerY + 57, columnWidth - 20,
                 "Government offices", contributedField(profile, CitizenProfileSummaryFields.SOURCE_GOVERNMENT,

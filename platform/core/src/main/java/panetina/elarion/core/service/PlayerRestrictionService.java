@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class PlayerRestrictionService {
     public static final String CHAT = "chat";
     public static final String PRIVATE_MESSAGE = "private_message";
-    public static final String GROUP_CHAT = "group_chat";
+    public static final String GUILD_CHAT = "guild_chat";
     public static final String PORTAL_TRAVEL = "portal_travel";
     public static final String TELEPORT = "teleport";
     public static final String NAMEPLATE = "nameplate";

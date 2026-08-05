@@ -361,7 +361,7 @@ public final class CharacterLifecycleService {
         if (record == null || record.status == CharacterLifecycleStatus.ACTIVE) return Optional.empty();
         if (PlayerRestrictionService.CHAT.equals(action)
                 || PlayerRestrictionService.PRIVATE_MESSAGE.equals(action)
-                || PlayerRestrictionService.GROUP_CHAT.equals(action)
+                || PlayerRestrictionService.GUILD_CHAT.equals(action)
                 || PlayerRestrictionService.PORTAL_TRAVEL.equals(action)
                 || PlayerRestrictionService.TELEPORT.equals(action)) {
             return Optional.of(new PlayerRestrictionService.PlayerRestriction(

@@ -534,7 +534,7 @@ public final class UnderworldService {
         if (activeSession(player.getUuid()).isEmpty()) return Optional.empty();
         if (config.disableChat() && (PlayerRestrictionService.CHAT.equals(action)
                 || PlayerRestrictionService.PRIVATE_MESSAGE.equals(action)
-                || PlayerRestrictionService.GROUP_CHAT.equals(action))) {
+                || PlayerRestrictionService.GUILD_CHAT.equals(action))) {
             return Optional.of(new PlayerRestrictionService.PlayerRestriction(
                     "elarion_underworld", "Your soul cannot speak to the living from the Underworld."));
         }
@@ -551,7 +551,7 @@ public final class UnderworldService {
     static boolean isBanishmentRestrictedAction(String action) {
         return PlayerRestrictionService.CHAT.equals(action)
                 || PlayerRestrictionService.PRIVATE_MESSAGE.equals(action)
-                || PlayerRestrictionService.GROUP_CHAT.equals(action)
+                || PlayerRestrictionService.GUILD_CHAT.equals(action)
                 || PlayerRestrictionService.PORTAL_TRAVEL.equals(action)
                 || PlayerRestrictionService.TELEPORT.equals(action)
                 || PlayerRestrictionService.BREAK_BLOCK.equals(action)

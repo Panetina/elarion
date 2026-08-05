@@ -225,10 +225,10 @@ bounded context command and `docs/ai/routes.json` to select task material.
     `EconomyTaxDestinationResolver`, and Economy state schema v3.
 - [Offerings](docs/addons/offerings.md)
 - [Government](docs/addons/government.md)
-- [Groups](docs/addons/groups.md)
-  - Groups owns canonical leadership and publishes the current leader through
-    the bounded authenticated `authority.group.lore` state projection. Website
-    roles and Discord roles never become group ownership truth.
+- [Guilds](docs/addons/guilds.md)
+  - Guilds owns canonical leadership and publishes the current leader through
+    the bounded authenticated `authority.guild.lore` state projection. Website
+    roles and Discord roles never become guild ownership truth.
 - [NPCs](docs/addons/npcs.md)
   - Conversation and service presentation contracts live under
     `addons/npcs/src/main/java/panetina/elarion/addons/npcs/model/` and
@@ -334,7 +334,7 @@ bounded context command and `docs/ai/routes.json` to select task material.
   - `addons/economy`
   - `addons/offerings`
   - `addons/government`
-  - `addons/groups`
+  - `addons/guilds`
   - `addons/npcs`
   - `addons/quests`
   - `addons/portals`

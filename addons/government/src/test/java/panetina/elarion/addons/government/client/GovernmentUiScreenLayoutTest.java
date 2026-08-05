@@ -51,7 +51,7 @@ final class GovernmentUiScreenLayoutTest {
 
         assertEquals(760, layout.logicalWidth());
         assertEquals(500, layout.logicalHeight());
-        assertEquals(5, layout.tabCount());
+        assertEquals(7, layout.tabCount());
         assertTrue(layout.headerHeight() <= 50);
         assertEquals(layout.headerHeight() - 1, layout.bodyY());
         assertTrue(layout.bodyY() < layout.tabY());

@@ -5,12 +5,14 @@ import panetina.elarion.addons.government.model.GovernmentLawRecord;
 import panetina.elarion.addons.government.model.GovernmentOfficeTermRecord;
 import panetina.elarion.addons.government.model.GovernmentProposalRecord;
 import panetina.elarion.addons.government.model.GovernmentVoteState;
+import panetina.elarion.addons.government.model.RealmHeraldry;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class GovernmentState {
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    /** Schema 2 adds the realm-keyed heraldry projection. */
+    public static final int CURRENT_SCHEMA_VERSION = 2;
 
     public int schemaVersion = CURRENT_SCHEMA_VERSION;
     public Map<String, RealmGovernmentState> realms = new LinkedHashMap<>();
@@ -19,6 +21,7 @@ public final class GovernmentState {
     public Map<String, GovernmentLawRecord> laws = new LinkedHashMap<>();
     public Map<String, GovernmentOfficeTermRecord> officeTerms = new LinkedHashMap<>();
     public Map<String, String> authorityTitleRestores = new LinkedHashMap<>();
+    public Map<String, RealmHeraldry> heraldry = new LinkedHashMap<>();
 
     public GovernmentState copy() {
         GovernmentState copy = new GovernmentState();
@@ -31,6 +34,7 @@ public final class GovernmentState {
         copy.authorityTitleRestores = authorityTitleRestores == null
                 ? new LinkedHashMap<>()
                 : new LinkedHashMap<>(authorityTitleRestores);
+        copy.heraldry = heraldry == null ? new LinkedHashMap<>() : new LinkedHashMap<>(heraldry);
         return copy;
     }
 }

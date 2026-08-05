@@ -7,7 +7,7 @@ This slice did not modify production Java, resources, config formats, packets,
 or persistence.
 
 Follow-up slices completed: Phase 0, Slice 2 Configuration/Admin Panel audit,
-Phase 2 read-only config descriptors for Core, Groups, Economy, Worlds,
+Phase 2 read-only config descriptors for Core, Guilds, Economy, Worlds,
 Portals, Offerings, Government, NPCs, Quests, Realms, Mounts, and Underworld,
 plus Core-owned Optimization settings, and Phase 3, Slice 1 read-only Admin
 Panel config browser. See
@@ -69,7 +69,7 @@ Gradle/Loom cache directories where practical.
   lifecycle, permissions/abilities, task queues, networking examples, shared UI,
   Collection, and Admin Panel.
 - Addons are still domain owners. Verified docs and source show separate addon
-  services/config/storage for Economy, Offerings, Government, Groups, NPCs,
+  services/config/storage for Economy, Offerings, Government, Guilds, NPCs,
   Quests, Portals, Worlds, Realms, Security, Optimization, Angling, Underworld,
   Mounts, Names, Titles, and shell modules.
 - The existing documentation map is usable. `INDEX.md`,
@@ -86,7 +86,7 @@ Gradle/Loom cache directories where practical.
 - Shared addon default helper: `platform/core/src/main/java/panetina/elarion/core/api/AddonConfigFiles.java`.
 - Existing addon config loaders are module-owned. Examples found:
   `GovernmentConfigLoader`, `NpcConfigLoader`, `QuestConfigLoader`,
-  `PortalConfigLoader`, `WorldsConfigManager`, `GroupConfigLoader`,
+  `PortalConfigLoader`, `WorldsConfigManager`, `GuildConfigLoader`,
   `OfferingConfigLoader`, `UnderworldConfigLoader`, and Economy/Mount config
   records/helpers.
 - Current strategy already matches the confirmed plan decision: keep physical
@@ -177,7 +177,7 @@ Gradle/Loom cache directories where practical.
   section/field/card caps.
 - Remaining target capability: no addon profile contributors, profile network
   packets, Character Menu Profile UI, or owner-maintained summaries for quests,
-  Offerings, NPC reputation, deaths, economy, groups, or other addon data.
+  Offerings, NPC reputation, deaths, economy, guilds, or other addon data.
 
 ### NPC Dialogue
 
@@ -206,7 +206,7 @@ Verified test locations include:
 
 - Core config, storage, network, UI layout, typography, Admin Panel, Collection,
   notifications, events, registries, character lifecycle, and history tests.
-- Addon tests for Economy, Government, Groups, Mounts, NPCs, Offerings,
+- Addon tests for Economy, Government, Guilds, Mounts, NPCs, Offerings,
   Portals, Quests, Realms, Underworld, Worlds, Optimization, and Angling.
 - Fabric GameTest support under `tests/gametest`.
 
@@ -264,7 +264,7 @@ No broad build or expensive GameTest run was performed in this audit slice.
 After Phase 0, implement in this dependency order:
 
 1. Phase 1 architecture contracts for any verified high-risk coupling.
-2. Phase 2 typed config descriptor registry is started; Core, Groups,
+2. Phase 2 typed config descriptor registry is started; Core, Guilds,
    Economy, Worlds, Portals, Offerings, Government, NPCs, Quests, and Realms
    are registered, along with Mounts Collection text, Underworld settings, and
    Core-owned Optimization settings. Addon runtime config coverage is complete;

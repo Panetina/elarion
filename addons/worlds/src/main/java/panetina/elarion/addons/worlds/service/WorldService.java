@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Difficulty;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class WorldService {
     private static final int PLAYER_ROUTING_SWEEP_INTERVAL_TICKS = 20;
@@ -45,6 +47,7 @@ public final class WorldService {
     private final ElarionApi api;
     private final WorldsConfigManager config;
     private final Map<String, RuntimeWorldHandle> handles = new LinkedHashMap<>();
+    private final Map<String, PendingRegeneration> regenerations = new LinkedHashMap<>();
     private final Map<UUID, RegistryKey<World>> playerWorlds = new LinkedHashMap<>();
     private final Set<WorldBorder> listeningBorders = Collections.newSetFromMap(new IdentityHashMap<>());
     private final List<PendingHistory> pendingHistory = new ArrayList<>();
@@ -62,6 +65,9 @@ public final class WorldService {
         ServerLifecycleEvents.SERVER_STARTED.register(this::start);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             handles.clear();
+            regenerations.values().forEach(pending -> pending.completion().completeExceptionally(
+                    new IllegalStateException("Server stopped during world regeneration.")));
+            regenerations.clear();
             playerWorlds.clear();
             listeningBorders.clear();
             this.server = null;
@@ -217,11 +223,16 @@ public final class WorldService {
         return findDefinition(worldId) != null;
     }
 
-    /** Recreates a managed runtime world while retaining its editable definition/config entry. */
-    public void regenerate(String worldId) {
+    /**
+     * Recreates a persistent runtime world after Fantasy has actually completed
+     * its queued deletion. Reopening immediately would cancel that deletion.
+     */
+    public CompletableFuture<Void> regenerate(String worldId) {
         requireServer();
         ManagedWorldDefinition definition = findDefinition(worldId);
         if (definition == null) throw new IllegalArgumentException("Unknown managed world: " + worldId);
+        PendingRegeneration existing = regenerations.get(definition.id());
+        if (existing != null) return existing.completion();
         ServerWorld fallback = resolveWorld("lobby");
         ServerWorld current = getWorld(definition.id());
         if (current != null && fallback != null && current != fallback) {
@@ -232,8 +243,9 @@ public final class WorldService {
             listeningBorders.remove(handle.asWorld().getWorldBorder());
             handle.delete();
         }
-        open(definition);
-        recordHistory("regenerated", definition, Map.of());
+        CompletableFuture<Void> completion = new CompletableFuture<>();
+        regenerations.put(definition.id(), new PendingRegeneration(definition, completion));
+        return completion;
     }
 
     public Map<String, ManagedWorldDefinition> definitions() {
@@ -242,6 +254,16 @@ public final class WorldService {
 
     public Set<String> destinationNames() {
         return Set.copyOf(config.worlds().keySet());
+    }
+
+    /** The Fantasy persistent-dimension directory for a configured world. */
+    public List<java.nio.file.Path> persistentWorldBackupTargets(String worldId) {
+        ManagedWorldDefinition definition = findDefinition(worldId);
+        if (definition == null || server == null) return List.of();
+        Identifier id = Identifier.tryParse(definition.id());
+        if (id == null) return List.of();
+        return List.of(server.getSavePath(WorldSavePath.ROOT)
+                .resolve("dimensions").resolve(id.getNamespace()).resolve(id.getPath()));
     }
 
     public ServerWorld resolveWorld(String name) {
@@ -347,6 +369,7 @@ public final class WorldService {
 
     private void tick(MinecraftServer server) {
         ticks++;
+        completeRegenerations();
         flushHistory();
         if (ticks % PLAYER_ROUTING_SWEEP_INTERVAL_TICKS != 0) return;
         ServerWorld lobby = config.enforceLobby() ? resolveWorld(config.lobbyDestination()) : null;
@@ -365,6 +388,22 @@ public final class WorldService {
             if (!current.equals(previous)) sendBorder(player, player.getServerWorld());
         }
         playerWorlds.keySet().removeIf(uuid -> server.getPlayerManager().getPlayer(uuid) == null);
+    }
+
+    private void completeRegenerations() {
+        if (regenerations.isEmpty()) return;
+        for (PendingRegeneration pending : List.copyOf(regenerations.values())) {
+            if (getWorld(pending.definition().id()) != null) continue;
+            try {
+                open(pending.definition());
+                recordHistory("regenerated", pending.definition(), Map.of());
+                pending.completion().complete(null);
+            } catch (RuntimeException exception) {
+                pending.completion().completeExceptionally(exception);
+            } finally {
+                regenerations.remove(pending.definition().id());
+            }
+        }
     }
 
     private void routePlayerLocation(ServerPlayerEntity player) {
@@ -442,5 +481,8 @@ public final class WorldService {
     }
 
     private record PendingHistory(String type, String worldId, Map<String, String> metadata) {
+    }
+
+    private record PendingRegeneration(ManagedWorldDefinition definition, CompletableFuture<Void> completion) {
     }
 }

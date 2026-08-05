@@ -15,18 +15,10 @@ Future ideas and design direction. This file is not current implementation work.
 - Custom client main-menu and pause-menu shell for Ashes of Elarion branding,
   direct server entry, credits, news, donation status, and local branding
   overrides.
-- Notification-rail art refresh using the curated Core icon library and one
-  consistent unread indicator across Personal, Realm, Quest, and World.
-- Server-authored per-player quest-availability markers above placed NPCs.
-- Ruler's Seat tax management menu backed by Economy-owned tax and treasury
-  contracts.
-- Realm and Guild 32x32 heraldry using one reusable validated pixel editor.
-- Rename the complete player-organization domain from Group/Groups to
-  Guild/Guilds, then add the Guild management UI and NPC creation flow.
 - Underworld activity progression, Obol escape routes, and persistent personal
   Limbo islands.
-- World of Warcraft-style chat channel selector for available public, Realm,
-  authority, alliance, Guild, private-message, and future channels.
+- Extend the shipped chat selector only when a new channel has a server-owned
+  eligibility predicate, typed routing contract, and bounded recipient model.
 - Jail gameplay built from the existing addon shell.
 - Chronicle archive and library surfaces backed by bounded indexes.
 - Realm diplomacy presentation and enforcement built on Core's existing war,
@@ -59,38 +51,11 @@ in `docs/systems/Atlas.md`. Economy is not an Atlas dependency.
 
 ## Future Gameplay And Social Systems
 
-### Notification And Quest Feedback
-
-- Replace the Personal Mail and Realm Mail rail textures with suitable icons
-  selected from Core's curated art library through `ElarionUiIcons`. Quest and
-  World keep distinct semantic icons; screens must not reference arbitrary
-  library filenames directly.
-- Render the same small outlined unread indicator on all four category icons.
-  Use both shape and color so unread state does not depend on red alone, and
-  derive it exclusively from the synchronized notification snapshot.
-- Add a compact exclamation marker above an NPC when that NPC has an available
-  quest for the viewing player. Quest ownership and eligibility remain in
-  Quests; NPCs owns placed-entity presentation.
-- Reuse the existing overhead label/marker layering convention used by the
-  leader crown, generalized through a small reusable marker renderer rather
-  than adding a second full NPC renderer or screen-space polling loop.
-- Publish bounded per-viewer marker deltas on quest/placement/tracking changes
-  instead of checking every quest against every NPC every render tick. The
-  client renders only the server-authorized entity UUIDs currently in range and
-  clears stale markers on unload, completion, disconnect, and definition
-  reload.
-
 ### Government And Realm Politics
 
-- Add a `Taxes` tab to the Seat of Rule. Government owns the block session,
-  authority presentation, and permission check; Economy remains the canonical
-  owner of tax authorities, categories, policy revisions, treasury accounts,
-  quotes, settlement, and mutation.
-- Show one validated slider plus exact numeric value for each Economy-owned tax
-  category, initially NPC trade, Portal service, Marketplace, and general
-  service. Rate bounds and steps come from Economy policy descriptors rather
-  than hard-coded screen constants. Show a server-authored example subtotal,
-  tax, total, and destination before confirmation.
+- Extend the implemented Economy-authored Seat Taxes tab with a server-authored
+  example subtotal/tax/total preview before confirmation. Keep future bounds
+  and step metadata in Economy-owned descriptors rather than screen constants.
 - Resolve whether a transaction belongs to a Realm or Worldheart from its
   server-owned location/service authority. A Realm ruler may edit only that
   Realm's rates and cannot redirect Worldheart revenue. Worldheart policy uses
@@ -115,27 +80,14 @@ in `docs/systems/Atlas.md`. Economy is not an Atlas dependency.
 
 ### Guilds
 
-- Execute one explicit `GUILD-01` migration that renames the player-facing and
-  technical organization domain from Group/Groups to Guild/Guilds: UI text,
-  commands, help, config descriptors, Java types/APIs, events, placeholders,
-  docs, tests, module/package/mod identifiers where safe, and website/Discord
-  projections. `/gc` remains the short command and means Guild Chat; `/group`
-  becomes `/guild`.
-- Preserve existing worlds through versioned migration of Group records,
-  invites, memberships, config, projection keys, and storage paths. If a
-  command compatibility alias is required, keep it for one documented release
-  only; do not maintain two organization managers or two canonical stores.
 - Use one Guild model with no Guild types. Creation asks only whether the Guild
   is `Secret`. Religious, criminal, cult, revolutionary, trade, military, and
   other themes remain player-authored RP expressed through the name,
   description, icon, roles, announcements, and behavior rather than type
   enums.
-- A designated Guild Registrar NPC opens the creation flow, but Guilds owns
-  validation, membership, persistence, roles, permissions, icon, and
-  progression. Economy handles the creation fee and later upgrade charges
-  through its retry-safe transaction API; NPCs stores no Guild truth.
-- Add a Guild UI with Overview, Announcements, Members, Roles, and Invitations
-  sections. Secret Guilds must not appear in public listings or unauthorized
+- Extend the implemented Guild UI with editing/removal of existing custom roles,
+  member removal, and leadership-transfer controls. Secret Guilds must not
+  appear in public listings or unauthorized
   profile/search projections; direct invitations and server-authorized access
   remain possible.
 - Announcements are bounded, persisted Guild records. Authorized publishers
@@ -147,10 +99,9 @@ in `docs/systems/Atlas.md`. Economy is not an Atlas dependency.
   eligible roles, edit Guild details, redraw icon, and manage roles. The owner
   can rename the owner role but cannot remove its invariant authority or grant
   Core/admin/Government permissions.
-- Add a 32x32 Guild icon editable by the owner or a role with `redraw_icon`.
-  Reuse the same validated pixel editor as Realm heraldry while Guilds owns the
-  bytes and revision. The icon may prefix Guild Chat and later appear in Guild
-  UI, Character Menu, and authorized projections.
+- Keep future Guild emblem presentation limited to Guild UI, Character Menu,
+  maps, and authorized projections; Guild and Realm emblems must not render in
+  chat.
 
 ### Underworld And Limbo
 
@@ -222,31 +173,15 @@ in `docs/systems/Atlas.md`. Economy is not an Atlas dependency.
 
 ### Chat And Communication
 
-- Add a compact World of Warcraft-inspired channel pill on the left side of the
-  `T` chat edit box. Clicking it opens a short colored list of only the channels
-  currently available to the player: Local, Realm, Guild, Alliance, and PM.
-  Local is selected whenever a new `T` chat box opens.
-- Preserve fast keyboard use: focus remains in the edit box, Escape closes,
-  Enter sends, and Tab/Shift+Tab may cycle the server-provided eligible channel
-  list without inserting slash commands. Keep each channel visually distinct
-  and keep the selected PM target visible beside the channel label.
-- PM opens a bounded searchable dropdown of eligible online citizen nicknames,
-  respecting the existing local/global/Realm visibility policy. Display only
-  the chosen nickname, send the stable UUID in a typed request, and let the
-  server resolve current identity; never parse display text or autocomplete an
-  account username into a client-authored command.
-- Channel selection is presentation only. Core/Guild/Government services still
-  validate membership, alliance, Underworld/Jail restrictions, ignore state,
-  rate limits, distance, and recipients for every message. Existing `/rc`,
-  `/ac`, `/gc`, `/pm`, `/w`, `/yell`, and `/r` paths may remain as validated
-  keyboard fallbacks where policy permits.
+- Add filtering/search to the implemented bounded PM recipient list only if the
+  eligible online audience grows beyond the current compact surface. Continue
+  sending stable UUIDs and keep all delivery authority on the server.
 - Remove vanilla `/say` from the command dispatcher and cover registration,
   help, permission, and execution/bypass tests. Normal typed Local chat and all
   fallback commands must route through Core so `/say` cannot bypass proximity,
   Underworld, banishment, or Jail restrictions.
-- Chat rendering may prepend the viewer-authorized 32x32 Realm or Guild icon at
-  a compact scale before the nickname. The message payload carries stable asset
-  identity/revision, not raw image bytes per message.
+- Do not render Realm or Guild emblems in chat. Chat remains text-only; asset
+  presentation belongs to maps and character-facing UI.
 
 ### Chronicles, Archive, And Library
 
@@ -475,6 +410,5 @@ Recommended dependency order:
 
 - Some older "Contribution" wording has already been replaced by Shrine /
   Offering terminology in the implemented systems.
-- Government, Guilds (currently implemented under the Group domain pending
-  `GUILD-01`), and Portals should continue to grow as modular systems, not as
+- Government, Guilds, and Portals should continue to grow as modular systems, not as
   one monolithic civic package.

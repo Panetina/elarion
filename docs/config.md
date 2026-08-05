@@ -97,8 +97,8 @@ The first registered domains are:
   always win. When a custom definition omits `color`, known title families use
   the shared rank palette, globally unique titles fall back to Legendary, and
   otherwise the title uses simple white.
-- `groups`, backed by `GroupConfigDescriptors`. It exposes read-only
-  `groups.yml` values from the current validated `GroupService.config()`
+- `guilds`, backed by `GuildConfigDescriptors`. It exposes read-only
+  `guilds.yml` values from the current validated `GuildService.config()`
   snapshot.
 - `economy`, backed by `EconomyConfigDescriptors`. It exposes read-only
   `economy.yml` values from `EconomyTransactionService.config()` and
@@ -136,7 +136,7 @@ The first registered domains are:
 - `government`, backed by `GovernmentConfigDescriptors`. It exposes read-only
   Government settings and form metadata from `GovernmentDefinitionService`:
   authority cleanup timing, form IDs, display fields, authority offices,
-  office counts/holder limits, configured action groups, and transitions.
+  office counts/holder limits, configured action guilds, and transitions.
   Dynamic form entries are descriptor rows for the forms present when the
   domain is registered; values continue to read the active definition snapshot.
 - `npcs`, backed by `NpcConfigDescriptors`. It exposes read-only NPC
@@ -444,7 +444,7 @@ New addon config loaders should follow the same sequence:
 4. Build immutable definition records only after local schema is valid enough
    to avoid misleading follow-up errors.
 5. Validate references against the owning source of truth:
-   - Core-owned references through `ElarionApi` or grouped facades.
+   - Core-owned references through `ElarionApi` or guilded facades.
    - Shared executable references through registered action, condition,
      requirement, and milestone registries.
    - Minecraft content through registry IDs, tags, or explicit config lists.

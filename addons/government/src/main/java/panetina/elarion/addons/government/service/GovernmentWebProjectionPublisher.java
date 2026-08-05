@@ -39,6 +39,9 @@ public final class GovernmentWebProjectionPublisher {
             identity.put("shortName", api.realms().shortName(realm));
             identity.put("tag", api.realms().prefix(realm));
             identity.put("colorName", api.realms().color(realm));
+            var heraldry = states.heraldry(realm.id());
+            identity.put("heraldryRevision", Long.toString(heraldry.revision()));
+            identity.put("heraldryPaletteBase64", java.util.Base64.getEncoder().encodeToString(heraldry.paletteIndices()));
             api.system().webProjections().publishState("realm.identity", realm.id(), realm.id(),
                     Visibility.PUBLIC, identity);
             if (realm.spawn() != null && !realm.spawn().worldId().isBlank()) {

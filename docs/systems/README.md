@@ -19,7 +19,7 @@ system notes.
 - `Persistence.md`
 - `CatchTelemetry.md`
 - `Metrics.md`
-- `Groups.md`
+- `Guilds.md`
 - `Government.md`
 - `Underworld.md`
 - `Characters.md`

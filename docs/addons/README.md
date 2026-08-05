@@ -32,7 +32,7 @@ notifications, or status changes.
 - `economy.md`
 - `offerings.md`
 - `government.md`
-- `groups.md`
+- `guilds.md`
 - `npcs.md`
 - `quests.md`
 - `portals.md`

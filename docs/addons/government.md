@@ -108,6 +108,20 @@ full Seat is opened by the active ruler:
 Officers keep `/lc` access only and do not approve or finalize civic records in
 V1.
 
+The Seat also hosts the Realm-heraldry editor. Government owns the revisioned
+32x32 palette bytes in its schema-v2 runtime state; the save request is valid
+only for a live Seat session and current Realm authority, and is rate-limited.
+Core supplies the reusable client pixel surface but never stores Government
+truth. Economy owns the category policy, quote, revision, and treasury
+settlement contract. Each
+Seat tax edit carries the displayed policy revision and Economy rejects stale
+writes before changing its atomic policy snapshot. The Seat presents the
+bounded 0–25% category control as a slider; it never calculates tax or chooses
+the treasury destination locally. The implemented UI receives a typed, bounded
+snapshot of category IDs, labels, basis-point rates, revision, and treasury
+destination. Controls use 0.25% steps and remain in the Taxes module when a
+mutation fails; formatted presentation rows are never parsed as authority.
+
 ## Commands
 
 OP level 4:

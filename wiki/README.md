@@ -32,7 +32,7 @@ Status labels:
 - [Portals](admin/portals.md)
 - [Offerings And Shrines](admin/offerings.md)
 - [Government](admin/government.md)
-- [Groups](admin/groups.md)
+- [Guilds](admin/guilds.md)
 - [NPCs](admin/npcs.md)
 - [Economy](admin/economy.md)
 - [Worlds](admin/worlds.md)

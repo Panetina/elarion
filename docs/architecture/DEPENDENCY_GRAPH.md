@@ -71,9 +71,9 @@ addons/offerings
   -> Core UI primitives/theme
   -> Economy for banked-currency offerings
 
-addons/groups
+addons/guilds
   -> Core citizens/identity/history
-  -> Economy for group creation fee sinks
+  -> Economy for guild creation fee sinks
 
 addons/government
   -> Core Realm/citizen/history
@@ -187,7 +187,7 @@ Avoid:
 ```text
 NPCs <-> Economy
 NPCs <-> Offerings
-Government <-> Groups
+Government <-> Guilds
 Government <-> Economy
 Ledger <-> History
 Atlas <-> NPCs/Offerings/Portals
@@ -241,7 +241,7 @@ Core bootstrap.
 
 - Core citizens vs Ledger reputation.
 - Core Realm membership vs Government offices/laws.
-- Groups membership vs Government offices.
+- Guilds membership vs Government offices.
 - Economy balances vs Offering progress.
 - NPC dialogue sessions vs Quest/Economy/Government state.
 - Quest state vs NPC placements, Offering progress, Government offices, and

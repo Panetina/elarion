@@ -16,47 +16,112 @@ feature or hardening slice using `docs/systems/EXTENSION_GUIDE.md`.
 
 ## Active Approved Work
 
-### F-01 Afterlife Inventory And Protection
+### Repository Consolidation
 
-- Complete this boundary before `ADM-01`. Persist separate Living and Afterlife
-  inventory snapshots for every player regardless of rank or game mode; never
-  let Underworld entry, death, return, logout, restart, or admin mode merge the
-  two inventories.
-- Living-world death items remain in the existing corpse/grave flow. Obols and
-  approved Underworld/Limbo resources remain in the Afterlife inventory across
-  visits and cannot enter living worlds without a future explicit allowlisted
-  transfer contract.
-- Disable PvP in Underworld/Limbo and close the reported banishment pickup gap.
-  Movement-only banished accounts cannot acquire items, XP, rewards, or
-  progression through operator/game-mode bypasses.
-- Add round-trip, repeated-death, return, restart, disconnect, game-mode,
-  banishment, and corpse-recovery tests before destructive reset tooling uses
-  this ownership boundary.
+Owner-approved consolidation is active as recoverable vertical slices. The
+2026-07-30 baseline is HEAD `e6ed78e79b8ff59a4dee49e2f7c8abdcec53d428`
+plus a protected dirty worktree: 112 tracked changes, 24 staged paths, and 72
+untracked paths. The staged/untracked `groups -> guilds` migration is
+user-owned and must not be restaged, reverted, or absorbed into consolidation
+commits.
 
-### ADM-01 Complete Player-Data Reset
+1. **Baseline — complete:** Java 21 discovery, changed-module compilation, and
+   focused Core/addon suites pass; no tracked credential or direct cross-addon
+   storage/service dependency was confirmed.
+2. **Context routing — complete:** `410d0ef8` rejects incomplete broad-task
+   capsules while bounded Romanian/English class/domain routing passes 18/18.
+3. **Document truth — complete:** `9b581280` establishes authority precedence
+   and requires investigation before reconciling source and contracts.
+4. **Government characterization — active:** commits `eeb87335`, `a75a56a08`,
+   `ec116deb0`, `3d1e7da31`, `ee6829b97`, and `698f8ad826` extract the
+   deterministic vote-resolution policy, capped newest-first office-term
+   index, active founding-election lifecycle policy, notification
+   audience/action/deduplication policy, and authority-title policy, then
+   remove an unreachable legacy proposal migration. Focused Government tests
+   and GameTest compilation pass. Persistence uses the existing
+   atomic/quarantine contract. Realm proposal/law listing remains an approval
+   gate because a scalable fix requires indexed pagination across API,
+   networking, and UI contracts.
+5. **Government Realm record indexing — complete:** commit `dbb33e135` keeps
+   persisted proposal/law maps canonical while rebuilding a runtime-only
+   per-Realm index after load and maintaining it on every owned write/reset.
+   Existing newest-first ordering and full-list APIs are unchanged; clean-tree
+   Government tests and the protected GameTest compilation pass. Bounded
+   pagination across API, network, and UI remains an approval gate.
+6. **Government vote deadline indexing — complete:** commit `3aab69509`
+   keeps persisted votes canonical and rebuilds a runtime-only deadline index
+   after load. Vote starts, runoffs, resolutions, and resets maintain the
+   projection; the existing 20-tick wake-up now examines only due votes while
+   preserving canonical map order for simultaneous expirations. Clean-tree
+   Government tests and protected GameTest compilation pass.
+7. **Government reload hardening — complete:** commits `3e71e42475` and
+   `0a28f50398` add owner-side supported-schema normalization before bind.
+   Null canonical-map rows are removed and mutable vote collections are
+   rebuilt while valid civic state and the shared unsupported-schema
+   quarantine contract are preserved. The clean committed baseline and the
+   protected schema-v2 worktree both pass Government tests.
+8. **Bounded Realm population work — complete:** commits `9ba24789` and
+   `000c1bc90` add a Core-owned Realm membership UUID/count index and route
+   Realm/World notifications, Realm rewards, Government threshold/name lookup,
+   Realm decision counts, non-global Offering rewards, and starter-Realm
+   balancing through indexed target populations instead of repeated
+   all-citizen file scans.
+9. **Reload hardening — complete:** commits `2c88f3d18f`, `725886fe6b`,
+   `030ea7753a`, `211c3823d6`, `3e88be622e`, `716777b363`, `e82b4f806a`,
+   `8fe8570301`, and `c8eea3955d` normalize recoverable Portal, Offering,
+   Mount, Underworld, Notification, reward-grant, character-lifecycle, and
+   leaderboard snapshots before bind while preserving canonical valid state
+   and future-schema quarantine. Exact clean-tree suites and module totals pass.
+10. **Quest consequence deadline indexing — complete:** commit `f5efa30f0c`
+   keeps the persisted list canonical while polling at most 16 due actions from
+   a runtime-only deadline index. Equal-deadline order is stable; the exact
+   clean-tree index suite and all 15 protected Quests tests pass.
+11. **Offering anchor location indexing — complete:** commit `684ee54685`
+   keeps persisted anchors canonical while rebuilding and maintaining a
+   runtime-only world/block index. Collision order matches the canonical map;
+   exact clean-tree tests and all 40 protected Offerings tests pass.
+12. **Character lifecycle work indexing — complete:** commit `fcdd94d214`
+   keeps the account map canonical while indexing only pending reset retries
+   and cooldown deadlines. The one-second pass no longer scans historical
+   active accounts; exact clean-tree tests and all 480 Core tests pass.
+13. **Realm runtime reload hardening — complete:** commit `7bac0288a9`
+   retains valid relationships, hidden Realms, decisions, and nested votes when
+   adjacent rows or collections are recoverably null/malformed. Exact
+   clean-tree storage tests and all 483 Core tests pass.
+14. **Realm decision runtime indexing — complete:** commit `ac11d8aacf` keeps
+   the persisted decision map canonical while projecting pending Realm and
+   deadline views, so ordinary pending/expiry work excludes historical rows.
+   Exact clean-tree tests and all 485 Core tests pass.
+15. **Notification runtime indexing — complete:** commit `9e9a1dcb9c` keeps
+   persisted notification rows canonical while projecting recipient, category,
+   and expiry lookups; ordinary inbox reads and expiry work exclude unrelated
+   history. Exact clean-tree tests and all 486 Core tests pass.
+16. **Deferred reward runtime indexing — complete:** commit `9d0b3ef9abc`
+   projects pending grants by recipient while retaining persisted grant rows as
+   canonical, removing unrelated history scans from reward drawer reads/counts.
+   Exact clean-tree tests and all 487 Core tests pass.
+17. **Advancement leaderboard ranking — complete:** commit `1c57c9c6c4a`
+   maintains a runtime top-10 ordering over Core's persisted leaderboard rows,
+   avoiding a full re-sort for each join/advancement projection. Exact
+   clean-tree tests and all 487 Core tests pass.
+18. **Integration checkpoint — complete:** the protected current worktree at
+   `1c57c9c6c4a` passed the 217-task Java 21 build, all 18 AI-context cases, and
+   all 267 active CIT definitions on 2026-08-05.
 
-- Implement only `/e reset players` in this slice. The first invocation shows
-  affected counts and clickable confirm/cancel controls; confirmation is tied
-  to the executor and expires after 60 seconds.
-- Core owns one reset coordinator, backup manifest, audit summary, and handler
-  registry. Each addon resets and backs up only its own state through a
-  registered handler.
-- Reset UUID-keyed vanilla and Elarion player progression, Shrine progression,
-  tombstones, and Underworld/Afterlife state. Back up and clear operator,
-  whitelist, and persisted/in-memory profile-cache state together with vanilla
-  playerdata/stats/advancements; recovery requires console access or a fresh
-  signed bridge access operation. Preserve all worlds, terrain,
-  buildings, placed Shrine blocks, configured NPCs, portals, Seats of Rule,
-  definitions, configuration, and map infrastructure.
-- `WORLD-01` managed-world regeneration follows in a separate run and must not
-  share destructive execution logic with this slice.
+Public gameplay, commands, permissions, save compatibility, network protocols,
+major dependency versions, and canonical ownership changes remain approval
+gates. Each completed slice records its focused verification and thematic
+commit here; no consolidation commit may include unrelated user changes.
 
 ### WORLD-01 Managed World Reset
 
-`/e reset world <world>` previews and confirms a managed-world regeneration,
-backs up world-scoped addon state, removes placed NPCs, Shrine/offering records,
-and portal endpoints tied to that world, then recreates the world from its
-existing definition. Definitions and config remain intact.
+`/e reset world <world>` is the active separate slice. It previews and confirms
+a managed-world regeneration, backs up world-scoped addon state with a recovery
+manifest, removes placed NPCs, Shrine/offering records, and portal endpoints
+tied to that world, then recreates the world from its existing definition.
+Definitions and config remain intact. Finish complete terrain recovery,
+post-regeneration validation, and failure restoration before treating this
+destructive command as release-ready.
 
 ### Underworld Moderation Banishment
 
@@ -90,13 +155,11 @@ existing definition. Definitions and config remain intact.
 2. Port blocks, block entities, screen handlers, and entity renderers before
    enabling the server-authoritative fishing pipeline. The three particle
    factories are complete and isolated behind the client entrypoint.
-3. `CHAT-01`: remove vanilla `/say` and prove that Local, Underworld,
-   banishment, and future Jail restrictions cannot be bypassed through vanilla
-   command routing.
-4. Promote the detailed SMP features in `PLANS.md` one bounded slice at a time.
-   `GUILD-01` must migrate the current Group domain and persisted data to the
-   single Guild/Guilds vocabulary before Guild UI, roles, announcements,
-   secrecy, heraldry, or NPC creation expands the system.
+3. Extend the completed server-authoritative chat selector only when a new
+   channel has a bounded eligibility and routing contract.
+4. Promote the detailed SMP features in `PLANS.md` one bounded slice at a time;
+   the Guild Registrar, six-tab management UI, invitations, roles, and emblem
+   editor now operate on canonical Guild state.
 
 ## Required Work Style
 

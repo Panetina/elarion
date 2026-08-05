@@ -38,7 +38,7 @@ tree.
 - `addons/offerings`: Shrines, Offering projects/progress/donations/milestones.
 - `addons/government`: civic blocks, forms, votes, offices, records, and
   authority presentation.
-- `addons/groups`: public groups, invites, tags, and group chat.
+- `addons/guilds`: public guilds, invites, tags, and guild chat.
 - `addons/portals`: gates, routes, tickets, fields, and return entitlements.
 - `addons/worlds`: managed worlds, borders, abundance, and protection rules.
 - `addons/realms`: Realm protection behavior; Realm identity stays Core-owned.

@@ -21,6 +21,6 @@ class GovernmentVoteOptionTest {
 
         assertEquals("president", option.officeId());
         assertEquals(candidate, option.candidateId());
-        assertEquals("", option.groupId());
+        assertEquals("", option.guildId());
     }
 }

@@ -44,6 +44,21 @@ public final class NpcConfigDefaults {
                 required-ability: ""
                 interaction-range-blocks: 0
                 enabled: true
+              guildmaster:
+                display-name: "Guildmaster"
+                description: "The Worldheart registrar for new Guild charters."
+                skin: guildmaster
+                portrait: guildmaster_portrait
+                dialogue: guildmaster
+                faction: worldheart
+                tax-jurisdiction: "world:elarion:worldheart"
+                tags:
+                  - guild
+                  - service
+                  - worldheart
+                required-ability: ""
+                interaction-range-blocks: 0
+                enabled: true
             """;
 
     public static final String TRADES = """
@@ -156,6 +171,14 @@ public final class NpcConfigDefaults {
                 fallback-type: "placeholder"
                 fallback-texture: ""
                 adapter: ""
+              guildmaster:
+                display-name: "Guildmaster"
+                type: "texture"
+                texture: "elarion_npcs:textures/entity/npc/guildmaster.png"
+                player-name: ""
+                fallback-type: "placeholder"
+                fallback-texture: ""
+                adapter: ""
               configured_player_body:
                 display-name: "Configured Player Body"
                 type: "player_body"
@@ -212,6 +235,13 @@ public final class NpcConfigDefaults {
                 display-name: "Worldheart Trader Portrait"
                 type: "texture"
                 texture: "elarion_core:textures/gui/library/portraits/32x32/portrait_character_portrait_icons_27_icons_27.png"
+                player-name: ""
+                fallback-type: "placeholder"
+                fallback-texture: ""
+              guildmaster_portrait:
+                display-name: "Guildmaster Portrait"
+                type: "texture"
+                texture: "elarion_npcs:textures/gui/portraits/guildmaster.png"
                 player-name: ""
                 fallback-type: "placeholder"
                 fallback-texture: ""
@@ -374,5 +404,36 @@ public final class NpcConfigDefaults {
                     button-text: "Back."
                     player-text: "Back to the start."
                     next: intro
+            """;
+
+    public static final String GUILDMASTER_DIALOGUE = """
+            config-version: 1
+            id: guildmaster
+            root: welcome
+            nodes:
+              welcome:
+                text: "I can register a public or secret Guild, or open your existing Guild records. The Registrar will show the current charter fee before you confirm."
+                sound: "minecraft:entity.villager.yes"
+                voice: ""
+                options:
+                  - id: open_registrar
+                    button-text: "Register or manage my Guild"
+                    player-text: "I want to register or manage a Guild."
+                    actions:
+                      - type: "elarion_guilds:open_registrar"
+                    close: true
+                  - id: charter
+                    button-text: "What is a Guild charter?"
+                    player-text: "What does a charter mean?"
+                    next: charter
+              charter:
+                    text: "A charter records your Guild's name and leadership. Secret Guilds remain hidden from public projections."
+                sound: "minecraft:entity.villager.ambient"
+                voice: ""
+                options:
+                  - id: back
+                    button-text: "Back"
+                    player-text: "I understand."
+                    next: welcome
             """;
 }

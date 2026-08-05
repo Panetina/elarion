@@ -81,7 +81,7 @@ transfers or leaving partial authority state.
 
 - Core clears character-scoped identity, titles, abilities, progression, and stats.
 - Economy transfers bank balance to the former Realm treasury or burns neutral estates.
-- Groups removes membership and disbands a group led by the dead character.
+- Guilds removes membership and disbands a Guild led by the dead character.
 - Government vacates offices and promotes a monarchy heir when present.
 - Underworld clears sessions, Soul state, graves, and recovery-vault state.
 

@@ -1,6 +1,7 @@
 package panetina.elarion.core.api.reset;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -29,5 +30,9 @@ public final class WorldResetRegistry {
 
     public synchronized WorldResetOperator operator() {
         return operator;
+    }
+
+    public synchronized Collection<String> worldIds() {
+        return operator == null ? List.of() : List.copyOf(operator.worldIds());
     }
 }

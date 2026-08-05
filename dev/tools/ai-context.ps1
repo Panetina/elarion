@@ -400,6 +400,11 @@ foreach ($policyPath in @('RULES.md', 'AGENTS.md')) {
 
 $docPaths = New-Object System.Collections.Generic.List[string]
 foreach ($route in $selectedRoutes) {
+    if ($route.docs.Count -gt 0 -and -not $docPaths.Contains([string]$route.docs[0])) {
+        $docPaths.Add([string]$route.docs[0])
+    }
+}
+foreach ($route in $selectedRoutes) {
     foreach ($doc in $route.docs) {
         if (-not $docPaths.Contains([string]$doc)) {
             $docPaths.Add([string]$doc)
@@ -418,13 +423,48 @@ foreach ($route in $selectedRoutes) {
     }
 }
 
+$pivotLimit = if ($Mode -eq 'explore') { 2 } else { 3 }
+$primaryCandidate = if ($rankedCandidates.Count -gt 0) { $rankedCandidates[0] } else { $null }
+foreach ($candidate in $rankedCandidates) {
+    $absolute = Join-Path $repoRoot $candidate.path
+    $content = Get-Content -Raw -LiteralPath $absolute
+    $cost = $content.Length + $candidate.path.Length + 100
+    if ($usedCharacters + $cost -le $contentBudgetCharacters) {
+        $pivots.Add([pscustomobject]@{
+            path = $candidate.path
+            reason = ($candidate.reasons -join '; ')
+            dirty = [bool]$candidate.dirty
+            content = $content.TrimEnd()
+        })
+        $usedCharacters += $cost
+        break
+    } elseif ($null -ne $primaryCandidate -and
+            $candidate.path -eq $primaryCandidate.path -and
+            -not ($supportingOutlines | Where-Object { $_.path -eq $candidate.path })) {
+        $outline = Get-Outline -RelativePath $candidate.path
+        if ($outline.Length -gt 1600) {
+            $outline = $outline.Substring(0, 1600) + "`n[outline truncated]"
+        }
+        $outlineCost = $outline.Length + $candidate.path.Length + 100
+        if ($usedCharacters + $outlineCost -le $contentBudgetCharacters) {
+            $supportingOutlines.Add([pscustomobject]@{
+                path = $candidate.path
+                reason = ($candidate.reasons -join '; ')
+                dirty = [bool]$candidate.dirty
+                content = $outline
+            })
+            $usedCharacters += $outlineCost
+        }
+    }
+}
+
 $sectionKeywords = @($terms + ($selectedRoutes | ForEach-Object { $_.keywords } | Select-Object -Unique))
 foreach ($docPath in $docPaths | Select-Object -First 4) {
     if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $docPath) -PathType Leaf)) {
         $omissions.Add("Route authority document is missing: $docPath")
         continue
     }
-    $section = Get-MarkdownSection -RelativePath $docPath -Keywords $sectionKeywords -MaximumCharacters 1800
+    $section = Get-MarkdownSection -RelativePath $docPath -Keywords $sectionKeywords -MaximumCharacters 800
     if ($null -eq $section) {
         continue
     }
@@ -437,11 +477,13 @@ foreach ($docPath in $docPaths | Select-Object -First 4) {
     }
 }
 
-$pivotLimit = if ($Mode -eq 'explore') { 2 } else { 3 }
 $outlineReserveCharacters = 0
 foreach ($candidate in $rankedCandidates) {
     if ($pivots.Count -ge $pivotLimit) {
         break
+    }
+    if ($pivots | Where-Object { $_.path -eq $candidate.path }) {
+        continue
     }
     $absolute = Join-Path $repoRoot $candidate.path
     $content = Get-Content -Raw -LiteralPath $absolute
@@ -464,7 +506,8 @@ foreach ($candidate in $rankedCandidates) {
 
 $outlineCandidates = @($rankedCandidates | Where-Object {
     $path = $_.path
-    -not ($pivots | Where-Object { $_.path -eq $path })
+    -not ($pivots | Where-Object { $_.path -eq $path }) -and
+    -not ($supportingOutlines | Where-Object { $_.path -eq $path })
 } | Select-Object -First 8)
 foreach ($candidate in $outlineCandidates) {
     $outline = Get-Outline -RelativePath $candidate.path

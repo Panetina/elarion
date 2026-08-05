@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletionStage;
 
 public final class WorldResetService {
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("uuuuMMdd-HHmmss")
@@ -42,7 +43,8 @@ public final class WorldResetService {
         return new Preview(token, Map.copyOf(counts));
     }
 
-    public Execution execute(MinecraftServer server, String executor, String name, String token) throws Exception {
+    public CompletionStage<Execution> execute(MinecraftServer server, String executor, String name, String token)
+            throws Exception {
         Pending confirmation = pending.remove(executor);
         if (confirmation == null || confirmation.expiresAt < System.currentTimeMillis() || !confirmation.token.equals(token))
             throw new IllegalArgumentException("That reset confirmation expired or belongs to another executor.");
@@ -50,19 +52,29 @@ public final class WorldResetService {
         Path root = server.getSavePath(WorldSavePath.ROOT).toAbsolutePath().normalize();
         Path backup = root.resolve("elarion/backups/world-reset/" + safe(worldId) + "-" + TIME.format(Instant.now()) + "-" + System.currentTimeMillis());
         Files.createDirectories(backup);
-        for (WorldResetHandler handler : registry.handlers()) backup(handler, server, worldId, root, backup);
-        Map<String, Long> changed = new LinkedHashMap<>();
-        WorldResetContext context = new WorldResetContext(server, worldId, name, backup);
-        for (WorldResetHandler handler : registry.handlers()) handler.reset(context).changed()
-                .forEach((key, value) -> changed.merge(key, value, Long::sum));
-        registry.operator().regenerate(server, worldId);
-        Path audit = root.resolve("elarion/audit/world-reset.log");
-        Files.createDirectories(audit.getParent());
-        Files.writeString(audit, Instant.now() + " executor=" + name + " world=" + worldId + " backup=" + backup
-                + " changed=" + changed + System.lineSeparator(), StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        logger.warn("World reset completed by {} for {}: backup={}, changed={}", name, worldId, backup, changed);
-        return new Execution(worldId, backup, Map.copyOf(changed));
+        Map<String, List<String>> backedUpTargets = new LinkedHashMap<>();
+        backedUpTargets.put("managed-world", backupOperatorTargets(registry.operator(), server, worldId, root, backup));
+        for (WorldResetHandler handler : registry.handlers()) {
+            backedUpTargets.put(handler.id(), backup(handler, server, worldId, root, backup));
+        }
+        PlayerResetFiles.writeBackupManifestAtomic(backup, backedUpTargets);
+        return registry.operator().regenerate(server, worldId).thenApply(ignored -> {
+            try {
+                Map<String, Long> changed = new LinkedHashMap<>();
+                WorldResetContext context = new WorldResetContext(server, worldId, name, backup);
+                for (WorldResetHandler handler : registry.handlers()) handler.reset(context).changed()
+                        .forEach((key, value) -> changed.merge(key, value, Long::sum));
+                Path audit = root.resolve("elarion/audit/world-reset.log");
+                Files.createDirectories(audit.getParent());
+                Files.writeString(audit, Instant.now() + " executor=" + name + " world=" + worldId + " backup=" + backup
+                        + " changed=" + changed + System.lineSeparator(), StandardCharsets.UTF_8,
+                        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                logger.warn("World reset completed by {} for {}: backup={}, changed={}", name, worldId, backup, changed);
+                return new Execution(worldId, backup, Map.copyOf(changed));
+            } catch (Exception exception) {
+                throw new java.util.concurrent.CompletionException(exception);
+            }
+        });
     }
 
     public boolean cancel(String executor, String token) {
@@ -70,14 +82,32 @@ public final class WorldResetService {
         return value != null && value.token.equals(token) && pending.remove(executor, value);
     }
 
-    private void backup(WorldResetHandler handler, MinecraftServer server, String worldId, Path root, Path backup) throws IOException {
+    private List<String> backup(WorldResetHandler handler, MinecraftServer server, String worldId, Path root, Path backup)
+            throws IOException {
+        java.util.ArrayList<String> copied = new java.util.ArrayList<>();
         Path destination = backup.resolve(handler.id());
         for (Path raw : handler.backupTargets(server, worldId)) {
             if (raw == null || Files.notExists(raw)) continue;
             Path source = raw.toAbsolutePath().normalize();
             String relative = source.startsWith(root) ? root.relativize(source).toString() : source.getFileName().toString();
             PlayerResetFiles.copyTree(source, destination.resolve(relative));
+            copied.add(handler.id() + "/" + relative.replace('\\', '/'));
         }
+        return List.copyOf(copied);
+    }
+
+    private List<String> backupOperatorTargets(WorldResetOperator operator, MinecraftServer server, String worldId,
+                                                Path root, Path backup) throws IOException {
+        java.util.ArrayList<String> copied = new java.util.ArrayList<>();
+        Path destination = backup.resolve("managed-world");
+        for (Path raw : operator.backupTargets(server, worldId)) {
+            if (raw == null || Files.notExists(raw)) continue;
+            Path source = raw.toAbsolutePath().normalize();
+            String relative = source.startsWith(root) ? root.relativize(source).toString() : source.getFileName().toString();
+            PlayerResetFiles.copyTree(source, destination.resolve(relative));
+            copied.add("managed-world/" + relative.replace('\\', '/'));
+        }
+        return List.copyOf(copied);
     }
 
     private static String safe(String value) { return value.replaceAll("[^a-zA-Z0-9._-]", "_"); }

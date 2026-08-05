@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public final class QuestStateService {
     public static final String COMPLETED_QUESTS_STAT = "quests_completed";
@@ -49,6 +50,8 @@ public final class QuestStateService {
     private final QuestConsequenceDeadlineIndex consequenceDeadlines = new QuestConsequenceDeadlineIndex();
     private QuestRuntimeState state = new QuestRuntimeState();
     private MinecraftServer server;
+    private Consumer<UUID> markerRefresh = ignored -> { };
+    private Runnable markerRefreshAll = () -> { };
     private int ticks;
 
     public QuestStateService(
@@ -80,6 +83,15 @@ public final class QuestStateService {
         if (server != null) storage.save(server, state);
     }
 
+    /** Registers the bounded per-player marker projection owned by the quest/NPC integration. */
+    public void setMarkerRefresh(Consumer<UUID> markerRefresh) {
+        this.markerRefresh = markerRefresh == null ? ignored -> { } : markerRefresh;
+    }
+
+    public void setMarkerRefreshAll(Runnable markerRefreshAll) {
+        this.markerRefreshAll = markerRefreshAll == null ? () -> { } : markerRefreshAll;
+    }
+
     public synchronized int resetAllRuntimeState() {
         int changed = state.players.size() + state.questlines.size()
                 + state.actorBindings.size() + state.scheduled.size();
@@ -87,6 +99,7 @@ public final class QuestStateService {
         consequenceDeadlines.clear();
         ticks = 0;
         save();
+        markerRefreshAll.run();
         return changed;
     }
 
@@ -114,6 +127,7 @@ public final class QuestStateService {
         state.scheduled.removeIf(entry -> questId.equals(entry.questId) && scopeKey.equals(entry.scopeKey));
         consequenceDeadlines.rebuild(state.scheduled);
         save();
+        markerRefreshAll.run();
         return removed;
     }
 
@@ -171,6 +185,7 @@ public final class QuestStateService {
         }
         save();
         emit("started", context.execution().actorId(), quest.id(), scopeKey, Map.of());
+        refreshMarkers(context.execution().actorId());
         return RegistryExecutionResult.ok("Questline started: " + quest.displayName());
     }
 
@@ -256,11 +271,16 @@ public final class QuestStateService {
             incrementCompletedQuests(context.execution().actorId());
         }
         emit("ending-locked", context.execution().actorId(), quest.id(), scopeKey, Map.of("ending", ending));
+        refreshMarkers(context.execution().actorId());
         return RegistryExecutionResult.ok("Quest ending locked: " + quest.endings().get(ending).displayName());
     }
 
     private void incrementCompletedQuests(UUID playerId) {
         api.playerStats().increment(playerId, COMPLETED_QUESTS_STAT, 1L);
+    }
+
+    private void refreshMarkers(UUID playerId) {
+        if (playerId != null) markerRefresh.accept(playerId);
     }
 
     public synchronized RegistryExecutionResult scheduleConsequence(ActionContext context) {
@@ -344,6 +364,19 @@ public final class QuestStateService {
 
     public synchronized boolean stageIs(String questId, String scopeKey, String stage) {
         return findLine(questId, scopeKey).map(line -> stage.equals(line.stageId)).orElse(false);
+    }
+
+    /** Marker availability is a read-only state check; it must not create quest records. */
+    public synchronized boolean markerAvailable(QuestDefinition quest, ServerPlayerEntity player, String npcWorldId) {
+        if (quest == null || player == null) return false;
+        String scopeKey = switch (quest.scope().toLowerCase(Locale.ROOT)) {
+            case "global" -> "global";
+            case "player" -> "player:" + player.getUuid();
+            case "world" -> "world:" + (npcWorldId == null ? "" : npcWorldId);
+            default -> "realm:" + api.citizens().getOrCreate(player).realmId();
+        };
+        if (scopeKey.endsWith(":")) return false;
+        return !state.questlines.containsKey(lineKey(quest.id(), scopeKey));
     }
 
     public synchronized boolean hasFlag(String questId, String scopeKey, UUID playerId, String flag, boolean playerTarget) {

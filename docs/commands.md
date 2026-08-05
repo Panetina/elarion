@@ -35,13 +35,7 @@ Government, Offerings, Portal, Ledger, and Chronicle commands.
 /r <message>
 /w <message>
 /yell <message>
-/group create <id> <tag> <display-name...>
-/group invite <player>
-/group accept <group>
-/group kick <player>
-/group leave
-/group transfer <player>
-/group info [group]
+/guild
 /gc <message>
 /lc <message>
 ```
@@ -50,7 +44,7 @@ Rules:
 
 - `/help` lists player-facing commands and descriptions.
 - `/rc` sends Realm Chat to the sender's Realm.
-- `/ac` sends alliance chat to the sender's connected alliance group.
+- `/ac` sends alliance chat to the sender's connected alliance guild.
 - `/pm` and `/r` follow Realm/relationship visibility rules.
 - `/w` is local whisper chat, not private messaging.
 - `/yell` is local yell chat and uses its configured cooldown.
@@ -59,8 +53,17 @@ Rules:
   not registered in the server command tree, `/help`, or slash recommendations.
   Core clears vanilla's default Save Hotbar Activator binding when it still
   owns `C`, so fresh clients do not shadow the Character Menu keybind.
-- `/group ...` manages the player's public group.
-- `/gc` sends group chat to current group members.
+- `/guild` opens the player's Guild management screen. Guild creation is only
+  available through a configured Guild Registrar NPC action. Invitations,
+  announcements, role assignment, and emblem editing use typed server-checked
+  UI actions; the existing Guild commands remain limited keyboard fallbacks.
+- Vanilla `/say` is intentionally unavailable. Typed Local chat and every
+  available channel route through Core's restriction checks.
+- The `T` chat selector lists only server-authored eligible channels. Its
+  selected channel persists for the connection and resets only on join or
+  disconnect; Tab/Shift+Tab cycle that eligible list without entering a slash
+  command, and PM choices are stable UUID requests behind displayed nicknames.
+- `/gc` sends guild chat to current guild members.
 - `/lc` sends Government authority chat to same-Realm authority holders.
 - `/ac` remains alliance chat; it is not used for Government authority chat.
 - OP level 4 does not bypass local chat distances by default.
@@ -149,11 +152,11 @@ Rules:
 /e government block remove
 /e government office assign <realm> <office> <player>
 /e government office remove <realm> <office> <player>
-/e groups reload
-/e groups list
-/e groups inspect <group>
-/e groups delete <group>
-/e groups transfer <group> <player>
+/e guilds reload
+/e guilds list
+/e guilds inspect <guild>
+/e guilds delete <guild>
+/e guilds transfer <guild> <player>
 /e portal reload
 /e portal wand
 /e portal list
@@ -249,11 +252,24 @@ invokes each registered Core/addon handler for player-owned Elarion state.
 Worlds, terrain, buildings, configured NPCs, placed Shrines, portals, Realm
 and world definitions, and other shared infrastructure are preserved.
 
+Each backup includes an atomic `manifest.json` listing the handler-owned,
+backup-relative targets copied before deletion. Keep the complete timestamped
+directory intact for recovery; the manifest is an inventory, not an automated
+restore command.
+
 After confirmation, no player remains whitelisted or operator. Re-establish
 access from the server console or submit fresh approved access through the
 signed website/bridge flow; the command does not replay historical bridge
 commands. Do not run it from an in-game operator unless console or bridge
 recovery is available.
+
+`/e reset world <world>` is a separate OP-only managed-world reset. Its world
+argument is completed from server-authored managed-world IDs; confirmation is
+executor-bound. It first copies the Fantasy persistent-dimension directory and
+world-scoped addon state into a timestamped backup with `manifest.json`, then
+waits for Fantasy to delete the old runtime dimension before opening the new
+one. The command reports completion only after the replacement world is open.
+Definitions and configuration are preserved.
 
 `/random` is Minecraft's vanilla random-number and named random-sequence
 command. The bare `/random` root is incomplete; examples are
@@ -346,8 +362,8 @@ It currently covers:
 
 Future command tests should cover:
 
-- non-OP rejection for every OP command group
-- OP level 4 acceptance for every OP command group
+- non-OP rejection for every OP command guild
+- OP level 4 acceptance for every OP command guild
 - player command availability for non-OP players
 - `/help` entries for every player-facing command
 - tab suggestions for players, Realms, titles, abilities, reward IDs, world IDs,

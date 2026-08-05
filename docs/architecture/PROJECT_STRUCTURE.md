@@ -33,8 +33,8 @@ Elarion is a Fabric 1.21.1 multi-module project. Core owns canonical server trut
 - `addons/security`: security evidence/status foundation.
 - `addons/angling`: fishing definitions, bounded condition/candidate selection,
   ephemeral player sessions, and catch-result telemetry foundation.
-- `addons/groups`: public player groups, tags, invites, one-public-group
-  membership, and group chat.
+- `addons/guilds`: public player guilds, tags, invites, one-public-guild
+  membership, and guild chat.
 - `addons/names`: client and identity presentation mixins.
 - `addons/titles`: title rendering client hooks.
 - `addons/tablist`: tablist integration shell.
@@ -151,14 +151,14 @@ Future GUI work should extend these primitives before introducing a new UI frame
 - Realm protection extends behavior through `addons/realms` without becoming the owner of Realm identity.
 - Realm-specific commands and history are Core-facing and should not read addon state directly unless the addon owns that feature.
 
-## Group Systems
+## Guild Systems
 
-- `addons/groups` owns public player groups, leaders, invites, membership, and
-  group chat.
-- Groups consumes Core citizen/identity/history truth and Economy creation-fee
+- `addons/guilds` owns public player guilds, leaders, invites, membership, and
+  guild chat.
+- Guilds consumes Core citizen/identity/history truth and Economy creation-fee
   sinks.
-- Future political-party or faction logic must consume `ElarionGroupsApi`
-  instead of reading group runtime files directly.
+- Future political-party or faction logic must consume `ElarionGuildsApi`
+  instead of reading guild runtime files directly.
 
 ## Contribution / Offering Systems
 

@@ -12,7 +12,7 @@ import panetina.elarion.addons.economy.model.EconomyAccount;
 import panetina.elarion.addons.npcs.api.ElarionNpcApi;
 import panetina.elarion.addons.government.api.ElarionGovernmentApi;
 import panetina.elarion.addons.government.GovernmentBlocks;
-import panetina.elarion.addons.groups.api.ElarionGroupsApi;
+import panetina.elarion.addons.guilds.api.ElarionGuildsApi;
 import net.minecraft.registry.Registries;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.HistoryEvent;
@@ -115,7 +115,7 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertRegistered("r");
         commands.assertRegistered("yell");
         commands.assertRegistered("help");
-        commands.assertRegistered("group");
+        commands.assertRegistered("guild");
         commands.assertRegistered("gc");
         commands.assertRegistered("lc");
         commands.assertRegistered("banish");
@@ -189,13 +189,13 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertFails("e portal endpoint set nether a_gate", 4);
         commands.assertFails("e portal guide missing_route", 4);
 
-        ElarionGroupsApi groups = ElarionGroupsApi.get();
-        context.assertTrue(groups.all() != null, "Groups API should be available");
-        commands.assertExecutes("e groups reload", 4);
-        commands.assertExecutes("e groups list", 4);
-        commands.assertFails("e groups list", 0);
-        commands.assertFails("e groups inspect missing_group", 4);
-        commands.assertFails("group info", 4);
+        ElarionGuildsApi guilds = ElarionGuildsApi.get();
+        context.assertTrue(guilds.all() != null, "Guilds API should be available");
+        commands.assertExecutes("e guilds reload", 4);
+        commands.assertExecutes("e guilds list", 4);
+        commands.assertFails("e guilds list", 0);
+        commands.assertFails("e guilds inspect missing_guild", 4);
+        commands.assertFails("guild info", 4);
         commands.assertFails("gc hello", 4);
         commands.assertFails("lc hello", 4);
 

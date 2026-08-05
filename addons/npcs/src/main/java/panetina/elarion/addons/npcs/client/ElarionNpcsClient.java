@@ -3,11 +3,13 @@ package panetina.elarion.addons.npcs.client;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import panetina.elarion.addons.npcs.entity.ElarionNpcEntities;
 import panetina.elarion.addons.npcs.network.NpcDialogueClosePayload;
 import panetina.elarion.addons.npcs.network.NpcDialogueOpenPayload;
 import panetina.elarion.addons.npcs.network.NpcBankQuotePayload;
 import panetina.elarion.addons.npcs.network.NpcVisualSyncPayload;
+import panetina.elarion.addons.npcs.network.NpcQuestMarkerSyncPayload;
 import panetina.elarion.addons.npcs.network.NpcTradeSnapshotPayload;
 import panetina.elarion.addons.npcs.network.NpcTradeQuotePayload;
 import panetina.elarion.addons.npcs.network.NpcTradePurchaseResultPayload;
@@ -77,5 +79,9 @@ public final class ElarionNpcsClient implements ClientModInitializer {
                 }));
         ClientPlayNetworking.registerGlobalReceiver(NpcVisualSyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> NpcClientVisuals.replace(payload)));
+        ClientPlayNetworking.registerGlobalReceiver(NpcQuestMarkerSyncPayload.ID, (payload, context) ->
+                context.client().execute(() -> NpcClientQuestMarkers.replace(payload)));
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> NpcClientQuestMarkers.clear());
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> NpcClientQuestMarkers.clear());
     }
 }

@@ -45,6 +45,12 @@ public final class GovernmentStorage {
 
     private static GovernmentState normalize(GovernmentState state) {
         if (state.schemaVersion <= 0) state.schemaVersion = GovernmentState.CURRENT_SCHEMA_VERSION;
+        if (state.schemaVersion == 1) {
+            // v1 did not persist heraldry. Preserve civic state and materialize
+            // the new optional map before saving it back as v2.
+            state.heraldry = state.heraldry == null ? new java.util.LinkedHashMap<>() : state.heraldry;
+            state.schemaVersion = GovernmentState.CURRENT_SCHEMA_VERSION;
+        }
         if (state.schemaVersion != GovernmentState.CURRENT_SCHEMA_VERSION) {
             throw new IllegalStateException("Unsupported government state schema " + state.schemaVersion);
         }

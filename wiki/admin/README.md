@@ -21,7 +21,7 @@ Admin-facing guide index for configuring and testing Elarion systems.
 - [Portals](portals.md): linked gates, tickets, Ancient Gates, neutral gates.
 - [Offerings](offerings.md): Shrine setup, project instances, rewards.
 - [Government](government.md): form definitions and Realm government state.
-- [Groups](groups.md): public groups, tags, invites, and group chat.
+- [Guilds](guilds.md): Guild identity, invites, roles, announcements, and Guild chat.
 - [NPCs](npcs.md): placement, skins, portraits, repair.
 - [Quests](quests.md): questline definitions, state inspection, and reset.
 - [Economy](economy.md): Sigils, service prices, transactions.

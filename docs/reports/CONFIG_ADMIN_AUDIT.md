@@ -8,7 +8,7 @@ formats were changed.
 
 Implementation follow-up: Phase 2, Slice 1 added the Core read-only descriptor
 registry and a `core` reference domain. Phase 2, Slice 2 added the first addon
-domain, `groups`. Phase 3, Slice 1 added an OP-only Admin Panel read-only
+domain, `guilds`. Phase 3, Slice 1 added an OP-only Admin Panel read-only
 browser using the existing row/detail model. Phase 2, Slice 3 added the
 `economy` domain. Phase 2, Slice 4 added the `worlds` domain. Phase 2, Slice 5
 added the `portals` domain. Phase 2, Slice 6 added the `offerings` domain.
@@ -47,9 +47,9 @@ Addon configuration representatives:
 - `addons/economy/src/main/java/panetina/elarion/addons/economy/command/EconomyCommands.java`
 - `addons/economy/src/main/java/panetina/elarion/addons/economy/service/EconomyPricingService.java`
 - `addons/economy/src/main/java/panetina/elarion/addons/economy/service/EconomyTransactionService.java`
-- `addons/groups/src/main/java/panetina/elarion/addons/groups/config/GroupConfigLoader.java`
-- `addons/groups/src/main/java/panetina/elarion/addons/groups/command/GroupCommands.java`
-- `addons/groups/src/main/java/panetina/elarion/addons/groups/service/GroupService.java`
+- `addons/guilds/src/main/java/panetina/elarion/addons/guilds/config/GuildConfigLoader.java`
+- `addons/guilds/src/main/java/panetina/elarion/addons/guilds/command/GuildCommands.java`
+- `addons/guilds/src/main/java/panetina/elarion/addons/guilds/service/GuildService.java`
 - `addons/worlds/src/main/java/panetina/elarion/addons/worlds/config/WorldsConfigManager.java`
 - `addons/worlds/src/main/java/panetina/elarion/addons/worlds/service/WorldService.java`
 - `addons/government/src/main/java/panetina/elarion/addons/government/service/GovernmentDefinitionService.java`
@@ -118,7 +118,7 @@ Docs and test inventory:
 | --- | --- | --- | --- |
 | Core | `config/elarion/core/*.yml` | `CoreConfigManager.load()`, `/e reload` | Best current validation and rollback model. |
 | Economy | `economy.yml`, `service_prices.yml` | Loaded on addon init; `/e economy reload` reloads transaction config then pricing | Reload is not atomic across both files if pricing reload fails after transaction config was already applied. |
-| Groups | `groups.yml` | Loaded on init; `/e groups reload` passes a newly loaded config into `GroupService.reload()` | Failed load preserves old service config because assignment happens after loading. |
+| Guilds | `guilds.yml` | Loaded on init; `/e guilds reload` passes a newly loaded config into `GuildService.reload()` | Failed load preserves old service config because assignment happens after loading. |
 | Worlds | `worlds.yml` | `WorldsConfigManager.load()`, `WorldService.reload()` | Reload snapshots old values and restores them on failure. Has config tests. |
 | Government | `government.yml`, `forms/<form-id>/form.yml` | `GovernmentDefinitionService.load()` | Settings assignment happens before form assignment; a form-load failure can leave new settings with old forms. |
 | Offerings | `society.yml`, `ui.yml`, project definitions | `OfferingDefinitionService.load()` | Definitions assignment happens before UI assignment; a UI-load failure can leave new definitions with old UI. |
@@ -164,7 +164,7 @@ High priority:
   registry needs to describe reload behavior without forcing every addon into
   one physical file format.
 - Addon reload safety is inconsistent. Core and Worlds preserve previous valid
-  snapshots; Groups, NPCs, Quests, and Portals mostly assign after successful
+  snapshots; Guilds, NPCs, Quests, and Portals mostly assign after successful
   load; Economy, Government, and Offerings have partial-apply risks; Underworld
   and Mounts fall back to defaults on bad config.
 - The current Admin Panel row/action model is not expressive enough for typed
@@ -263,13 +263,13 @@ Objective:
 
 Recommended addon:
 
-- Groups, because its editable surface is a single `groups.yml`, its runtime
-  service already accepts a parsed `GroupConfig`, and the descriptor can stay
+- Guilds, because its editable surface is a single `guilds.yml`, its runtime
+  service already accepts a parsed `GuildConfig`, and the descriptor can stay
   read-only without changing reload behavior.
 
 Approved boundaries:
 
-- Add read-only Groups descriptors and focused tests.
+- Add read-only Guilds descriptors and focused tests.
 - Do not add Admin Panel UI, config writes, reload orchestration, packet
   changes, or persistence changes.
 
@@ -279,8 +279,8 @@ Scope classification:
 
 Verification:
 
-- Passed `.\gradlew.bat :addons:groups:test --tests panetina.elarion.addons.groups.config.GroupConfigDescriptorsTest`.
-- Passed `.\gradlew.bat :addons:groups:test`.
+- Passed `.\gradlew.bat :addons:guilds:test --tests panetina.elarion.addons.guilds.config.GuildConfigDescriptorsTest`.
+- Passed `.\gradlew.bat :addons:guilds:test`.
 - Passed `.\gradlew.bat :platform:core:test`.
 
 ## Completed Phase 3 Slice 1
@@ -316,7 +316,7 @@ Implementation:
 Verification:
 
 - Passed `.\gradlew.bat :platform:core:test --tests panetina.elarion.core.service.ElarionAdminPanelServiceTest`.
-- Passed `.\gradlew.bat :platform:core:test :addons:groups:test`.
+- Passed `.\gradlew.bat :platform:core:test :addons:guilds:test`.
 
 Deferred:
 
@@ -526,7 +526,7 @@ Implementation:
 - Descriptors read current values from `GovernmentDefinitionService` settings
   and form snapshots.
 - The domain covers authority cleanup timing, form IDs, display metadata,
-  authority offices, office counts/holder limits, action groups, and
+  authority offices, office counts/holder limits, action guilds, and
   transitions.
 
 Verification:
@@ -3191,7 +3191,7 @@ Decision:
   - `ElarionConfigApplyContext`
   - `ElarionConfigApplyResult` or an apply-plan/result pair
 - Each editable domain must explicitly register an applier for a domain,
-  category, entry, or declared entry group. Entries without an applier remain
+  category, entry, or declared entry guild. Entries without an applier remain
   validate-only even when their descriptor has operator write permission.
 - `Apply` must re-run server-side validation immediately before writing, using
   the same expected-current stale check as preview validation.
@@ -3206,7 +3206,7 @@ Apply readiness requirements:
   descriptor's write permission. Future finer-grained permissions must be
   enforced server-side before validation and before write.
 - Stale/concurrency safety: apply must reject stale expected-current values and
-  should serialize mutation per target domain or file group so concurrent Admin
+  should serialize mutation per target domain or file guild so concurrent Admin
   Panel edits and `/e reload` do not race.
 - Reload policy: restart-required entries must not be apply-enabled until their
   owner defines a safe non-runtime behavior. Runtime-reloadable entries can be
@@ -3533,7 +3533,7 @@ Verified coordinator requirements:
   server registry immediately before owner code runs.
 - A conservative global config-mutation lock is acceptable initially. Admin
   config writes are rare, and a global lock avoids incorrect overlapping-file
-  lock groups. Narrower keyed locks require demonstrated need and overlap tests.
+  lock guilds. Narrower keyed locks require demonstrated need and overlap tests.
 - The coordinator must reject null, thrown, `VALIDATED`, mismatched-request,
   mismatched-value, or mismatched-audit results from an owner applier.
 - Successful applied results must preserve the validator's reload/restart flags
@@ -4443,7 +4443,7 @@ Why this target comes first:
 Targets explicitly deferred:
 
 - Realm spawn coordinates: multi-field, gameplay-affecting, and should be
-  edited as one grouped location transaction later.
+  edited as one guilded location transaction later.
 - Server identity names/terms: broad text substitutions across many systems and
   identity sync behavior.
 - Dynamic Realm/title/reward definition rows: generated from IDs present at

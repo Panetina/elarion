@@ -267,7 +267,7 @@ public final class ElarionNotificationHud {
         int iconY = y + (DISPLAY_SIZE - ICON_DRAW_SIZE) / 2;
         drawRailGlyph(context, icon, iconX, iconY);
         if (unread) {
-            drawUnreadMarker(context, RAIL_WIDTH - 11, y + 3);
+            drawUnreadMarker(context, iconX + ICON_DRAW_SIZE - 5, iconY - 1);
         }
     }
 
@@ -299,9 +299,11 @@ public final class ElarionNotificationHud {
     }
 
     private static void drawUnreadMarker(DrawContext context, int x, int y) {
-        context.fill(x, y + 1, x + 4, y + 5, CIVIC_GOLD_DARK);
-        context.fill(x + 1, y, x + 3, y + 6, CIVIC_GOLD_DARK);
-        context.fill(x + 1, y + 1, x + 3, y + 5, CIVIC_RED);
+        context.fill(x, y + 1, x + 6, y + 6, CIVIC_GOLD_DARK);
+        context.fill(x + 1, y, x + 5, y + 7, CIVIC_GOLD_DARK);
+        context.fill(x + 1, y + 1, x + 5, y + 6, CIVIC_RED);
+        context.fill(x + 2, y + 2, x + 4, y + 4, 0xFFFFFFFF);
+        context.fill(x + 2, y + 5, x + 4, y + 6, 0xFFFFFFFF);
     }
 
     private static void drawDrawer(DrawContext context, TextRenderer renderer, Layout layout) {

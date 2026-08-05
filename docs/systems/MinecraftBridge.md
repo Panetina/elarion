@@ -122,7 +122,7 @@ Addons publish through `api.system().webProjections()`. Initial contracts are:
 - `government.office`: Government-owned resolved office display label keyed by
   the office holder UUID. It prevents launcher clients from interpreting
   internal office/title IDs.
-- `group.membership`: Groups-owned recipient-scoped active group identity keyed
+- `guild.membership`: Guilds-owned recipient-scoped active Guild identity keyed
   by member UUID. It exposes only the member's group display name, tag, and
   resolved member role; membership removal is an explicit inactive projection.
 - `underworld.standing`: Underworld-owned recipient status (`Alive`, `Dead`, or

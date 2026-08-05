@@ -38,6 +38,11 @@ import panetina.elarion.core.network.LauncherPassageTicketPayload;
 import panetina.elarion.core.model.ElarionNotificationSnapshot;
 import panetina.elarion.core.client.ui.ElarionUiThemes;
 import panetina.elarion.core.client.LauncherPassageTicketStore;
+import panetina.elarion.core.client.ElarionChatRecipientClientState;
+import panetina.elarion.core.client.ElarionChatChannelClientState;
+import panetina.elarion.core.client.ElarionHeraldryClientRegistry;
+import panetina.elarion.core.network.ChatRecipientSnapshotPayload;
+import panetina.elarion.core.network.ChatChannelAvailabilityPayload;
 
 public final class ElarionCoreClient implements ClientModInitializer {
     private static KeyBinding collectionKey;
@@ -56,6 +61,10 @@ public final class ElarionCoreClient implements ClientModInitializer {
         registerUiGalleryCommandAlias();
         ClientPlayNetworking.registerGlobalReceiver(IdentitySyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> ClientIdentityCache.update(payload)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatRecipientSnapshotPayload.ID, (payload, context) ->
+                context.client().execute(() -> ElarionChatRecipientClientState.update(payload)));
+        ClientPlayNetworking.registerGlobalReceiver(ChatChannelAvailabilityPayload.ID, (payload, context) ->
+                context.client().execute(() -> ElarionChatChannelClientState.updateAvailable(payload.channels())));
         ClientPlayNetworking.registerGlobalReceiver(UiThemeSyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> ElarionUiThemes.update(payload.theme())));
         ClientPlayNetworking.registerGlobalReceiver(NotificationSnapshotPayload.ID, (payload, context) ->
@@ -109,7 +118,10 @@ public final class ElarionCoreClient implements ClientModInitializer {
             ElarionNotificationHud.update(ElarionNotificationSnapshot.EMPTY);
             CharacterCreationFlow.clear();
             CitizenProfileClientState.clear();
+            ElarionHeraldryClientRegistry.clear();
             ElarionConfigEditClientState.clear();
+            ElarionChatRecipientClientState.clear();
+            ElarionChatChannelClientState.reset();
             ClientPlayNetworking.send(IdentitySyncRequestPayload.INSTANCE);
             ClientPlayNetworking.send(CharacterCreationStatusRequestPayload.INSTANCE);
             CharacterCreationFlow.requestStatusWhenReady();
@@ -120,7 +132,10 @@ public final class ElarionCoreClient implements ClientModInitializer {
             ElarionNotificationHud.update(ElarionNotificationSnapshot.EMPTY);
             CharacterCreationFlow.clear();
             CitizenProfileClientState.clear();
+            ElarionHeraldryClientRegistry.clear();
             ElarionConfigEditClientState.clear();
+            ElarionChatRecipientClientState.clear();
+            ElarionChatChannelClientState.reset();
         });
     }
 

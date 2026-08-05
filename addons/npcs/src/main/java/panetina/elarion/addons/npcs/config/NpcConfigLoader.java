@@ -37,7 +37,8 @@ import java.util.Set;
 public final class NpcConfigLoader {
     private static final Set<String> OPTIONAL_PROVIDER_ACTIONS = Set.of(
             "elarion:economy_deposit_currency_amount",
-            "elarion:economy_withdraw_currency_amount");
+            "elarion:economy_withdraw_currency_amount",
+            "elarion_quests:start");
 
     private final Logger logger;
     private final Path rootOverride;
@@ -105,6 +106,8 @@ public final class NpcConfigLoader {
                     NpcConfigDefaults.BANKER_DIALOGUE);
             writeIfMissing(root.resolve("dialogues").resolve("worldheart_trader.yml"),
                     NpcConfigDefaults.TRADER_DIALOGUE);
+            writeIfMissing(root.resolve("dialogues").resolve("guildmaster.yml"),
+                    NpcConfigDefaults.GUILDMASTER_DIALOGUE);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to create NPC config defaults", exception);
         }

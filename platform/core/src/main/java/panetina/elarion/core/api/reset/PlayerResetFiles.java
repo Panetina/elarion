@@ -1,6 +1,8 @@
 package panetina.elarion.core.api.reset;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.IOException;
@@ -12,6 +14,8 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public final class PlayerResetFiles {
@@ -45,6 +49,48 @@ public final class PlayerResetFiles {
         Path temporary = Files.createTempFile(parent, absolute.getFileName().toString(), ".tmp");
         try {
             Files.writeString(temporary, "[]\n", StandardCharsets.UTF_8,
+                    StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+            try {
+                Files.move(temporary, absolute, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temporary, absolute, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
+
+    /**
+     * Writes the recovery inventory before a destructive reset begins. The
+     * manifest records backup-relative paths only, so moving the backup does
+     * not invalidate it or reveal host filesystem paths.
+     */
+    public static void writeBackupManifestAtomic(Path backupRoot, Map<String, List<String>> targets)
+            throws IOException {
+        if (backupRoot == null) throw new IllegalArgumentException("backupRoot");
+        JsonObject manifest = new JsonObject();
+        manifest.addProperty("schemaVersion", 1);
+        JsonArray handlers = new JsonArray();
+        targets.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            JsonObject handler = new JsonObject();
+            handler.addProperty("id", entry.getKey());
+            JsonArray paths = new JsonArray();
+            entry.getValue().stream().sorted().forEach(paths::add);
+            handler.add("targets", paths);
+            handlers.add(handler);
+        });
+        manifest.add("handlers", handlers);
+        writeStringAtomic(backupRoot.resolve("manifest.json"), manifest + "\n");
+    }
+
+    private static void writeStringAtomic(Path path, String contents) throws IOException {
+        Path absolute = path.toAbsolutePath().normalize();
+        Path parent = absolute.getParent();
+        if (parent == null) throw new IOException("File has no parent directory: " + absolute);
+        Files.createDirectories(parent);
+        Path temporary = Files.createTempFile(parent, absolute.getFileName().toString(), ".tmp");
+        try {
+            Files.writeString(temporary, contents, StandardCharsets.UTF_8,
                     StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
             try {
                 Files.move(temporary, absolute, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

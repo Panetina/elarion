@@ -175,6 +175,10 @@ config. Schema v1 is strict and atomically written. Malformed or unsupported
 state fails startup instead of resetting live policy. Updates persist a
 candidate snapshot before replacing the in-memory O(1) map.
 
+Government runtime schema v2 adds Realm-keyed heraldry. Schema-v1 civic state
+migrates in place with an empty heraldry map, preserving all prior Realm,
+office, vote, proposal, and law records.
+
 ## Worldheart Authority
 
 Core persists Worldheart governing authority at

@@ -16,7 +16,7 @@ The current setting keeps:
 - NPCs as presentation and interaction surfaces
 - Portals as scheduled, ticketed travel infrastructure
 - Government as a gated civic authority system
-- Groups as reusable faction / delegate identity
+- Guilds as reusable faction / delegate identity
 
 ## Quest Story Direction
 

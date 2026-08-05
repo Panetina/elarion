@@ -5,6 +5,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,5 +41,22 @@ final class PlayerResetFilesTest {
     @Test
     void missingAccessListCountsAsEmpty() throws Exception {
         assertEquals(0L, PlayerResetFiles.countJsonArrayEntries(temporaryDirectory.resolve("ops.json")));
+    }
+
+    @Test
+    void backupManifestIsAtomicAndContainsOnlyBackupRelativeTargets() throws Exception {
+        Path backup = temporaryDirectory.resolve("backup");
+        PlayerResetFiles.writeBackupManifestAtomic(backup, Map.of(
+                "z_addon", List.of("z_addon/state.json"),
+                "minecraft", List.of("minecraft/playerdata", "minecraft/ops.json")
+        ));
+
+        String manifest = Files.readString(backup.resolve("manifest.json"));
+        assertTrue(manifest.contains("\"schemaVersion\":1"));
+        assertTrue(manifest.contains("minecraft/playerdata"));
+        assertTrue(manifest.indexOf("minecraft") < manifest.indexOf("z_addon"));
+        try (var siblings = Files.list(backup)) {
+            assertTrue(siblings.noneMatch(path -> path.getFileName().toString().endsWith(".tmp")));
+        }
     }
 }

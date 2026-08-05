@@ -65,7 +65,7 @@ state from the same parsed snapshot.
 - Economy: not directly owned; only physical currency item/tag selection is used
   for PvP loot.
 - Portals: consumes Core restrictions so souls cannot travel through portals.
-- Groups/Core chat/private messages: consume Core restrictions so souls cannot
+- Guilds/Core chat/private messages: consume Core restrictions so souls cannot
   chat.
 
 ## Extension Points

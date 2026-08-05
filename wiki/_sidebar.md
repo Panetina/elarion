@@ -8,7 +8,7 @@
 - [Portals](admin/portals.md)
 - [Offerings](admin/offerings.md)
 - [Government](admin/government.md)
-- [Groups](admin/groups.md)
+- [Guilds](admin/guilds.md)
 - [NPCs](admin/npcs.md)
 - [Quests](admin/quests.md)
 - [Economy](admin/economy.md)

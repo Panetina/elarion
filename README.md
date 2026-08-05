@@ -11,7 +11,7 @@ infrastructure; addons extend behavior without duplicating Core state.
 Use `TODO.md` for current work, `PLANS.md` for future ideas, and
 `docs/architecture/PROJECT_STRUCTURE.md` for the source map.
 
-Active foundations include Core, Economy, Offerings, Government, Groups, NPCs,
+Active foundations include Core, Economy, Offerings, Government, Guilds, NPCs,
 Quests, Portals, Worlds, Realms, Underworld, Mounts, and shared presentation
 addons.
 

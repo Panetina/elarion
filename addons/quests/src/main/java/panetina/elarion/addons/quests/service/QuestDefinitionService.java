@@ -7,11 +7,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class QuestDefinitionService {
     private final QuestConfigLoader loader;
     private final AtomicReference<Map<String, QuestDefinition>> definitions = new AtomicReference<>(Map.of());
+    private final List<Runnable> reloadListeners = new CopyOnWriteArrayList<>();
 
     public QuestDefinitionService(QuestConfigLoader loader) {
         this.loader = loader;
@@ -19,6 +22,12 @@ public final class QuestDefinitionService {
 
     public void load() {
         definitions.set(loader.load());
+        reloadListeners.forEach(Runnable::run);
+    }
+
+    /** Registers a lightweight projection invalidation hook; definitions remain owned here. */
+    public void onReload(Runnable listener) {
+        if (listener != null) reloadListeners.add(listener);
     }
 
     public Collection<QuestDefinition> all() {

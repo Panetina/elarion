@@ -77,7 +77,11 @@ public final class PlayerResetService {
         Path backup = worldRoot.resolve("elarion/backups/player-reset/"
                 + BACKUP_TIME.format(Instant.now()) + "-" + System.currentTimeMillis());
         Files.createDirectories(backup);
-        for (PlayerResetHandler handler : registry.handlers()) backup(handler, server, worldRoot, backup);
+        Map<String, List<String>> backedUpTargets = new LinkedHashMap<>();
+        for (PlayerResetHandler handler : registry.handlers()) {
+            backedUpTargets.put(handler.id(), backup(handler, server, worldRoot, backup));
+        }
+        PlayerResetFiles.writeBackupManifestAtomic(backup, backedUpTargets);
 
         Map<String, Long> changed = new LinkedHashMap<>();
         PlayerResetContext context = new PlayerResetContext(server, executorName, backup);
@@ -98,8 +102,9 @@ public final class PlayerResetService {
         if (playerId != null) resettingPlayers.remove(playerId);
     }
 
-    private void backup(PlayerResetHandler handler, MinecraftServer server, Path worldRoot, Path backupRoot)
+    private List<String> backup(PlayerResetHandler handler, MinecraftServer server, Path worldRoot, Path backupRoot)
             throws IOException {
+        java.util.ArrayList<String> copied = new java.util.ArrayList<>();
         Path handlerRoot = backupRoot.resolve(handler.id());
         for (Path raw : handler.backupTargets(server)) {
             if (raw == null || Files.notExists(raw)) continue;
@@ -108,7 +113,9 @@ public final class PlayerResetService {
                     ? worldRoot.relativize(source).toString()
                     : source.getFileName().toString();
             PlayerResetFiles.copyTree(source, handlerRoot.resolve(relative));
+            copied.add(handler.id() + "/" + relative.replace('\\', '/'));
         }
+        return List.copyOf(copied);
     }
 
     private void audit(Path worldRoot, String executor, Path backup, Map<String, Long> changed, int kicked)

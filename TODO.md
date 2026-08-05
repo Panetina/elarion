@@ -7,35 +7,14 @@ Active incomplete work only. Detailed superseded lists are archived at
 
 ### First Execution Roadmap
 
-1. `F-01` Afterlife inventory and protection: persist separate Living and
-   Afterlife inventory state for every rank and game mode before destructive
-   administration tooling relies on that ownership boundary. Living death
-   items stay in corpse/grave recovery; Obols and approved Underworld/Limbo
-   resources stay in the Afterlife inventory across visits and cannot enter
-   living worlds. Disable Underworld/Limbo PvP, prevent banished movement-only
-   players from picking up items/XP or receiving progression, and cover entry,
-   return, repeated death, logout, restart, game-mode, banishment, and grave
-   recovery round trips.
-2. `ADM-01` Complete player-data reset: add `/e reset players` as a preview-
-   first, executor-bound, expiring confirmation flow. Back up affected state,
-   kick affected online players, and invoke registered domain-owned reset
-   handlers for vanilla UUID state, Core citizen/character state, Realm
-   membership and progression, notifications, Shrine progression, tombstones,
-   and Underworld/Afterlife state. The confirmed reset also clears backed-up
-   `ops.json`, `whitelist.json`, the persisted/in-memory profile cache, and
-   vanilla playerdata/stats/advancements so stale offline UUIDs cannot survive.
-   Preserve terrain, dimensions, buildings,
-   placed Shrine blocks, configured NPCs, portals, Seats of Rule, Realm/world
-   definitions, configuration, and map infrastructure. This is the active
-   implementation slice.
-3. `WORLD-01` Managed world regeneration: add `/e reset world <world>` in a
+1. `WORLD-01` Managed world regeneration: complete `/e reset world <world>` in a
    separate run. Reuse managed-world validation and suggestions, require an
    executor-bound preview/confirmation, stream a complete world backup,
    evacuate and unload the selected world, recreate it from its configured seed
    and current world-generation stack, validate it, and restore on failure.
    Regeneration deliberately removes everything physically inside that world.
-4. `L-01` Launcher obsolete-file cleanup.
-5. `W-01` Wiki editor simplification.
+2. `L-01` Launcher obsolete-file cleanup.
+3. `W-01` Wiki editor simplification.
 
 `ADM-01` and `WORLD-01` must remain separate implementation slices. The player
 reset may not contain dimension deletion or regeneration logic.
@@ -101,9 +80,6 @@ Executable Phase 14 evidence matrix:
   characters visibly use the `Ashen` identity title instead of `Ember`, and
   official civic titles gain the same prefix (for example `Ashen Monarch` and
   `Ashen President`).
-- Remove vanilla `/say` from registration and verify it cannot bypass Core
-  proximity chat, Underworld/banishment restrictions, or future Jail gates.
-  Update command help/policy tests in the same slice.
 - When the real Core admission queue is implemented, consume
   `PlayerRestrictionService.QUEUED_ADMISSION` before admitting queued accounts
   and immediately disconnect any already-admitted banished account when queue
@@ -125,8 +101,7 @@ Executable Phase 14 evidence matrix:
   Minecraft Usage Guidelines review before launch. Do not grant gameplay,
   Economy, Realm-politics, moderation, or rule-bypass advantages.
 - Add future owner-specific website projection adapters only with concrete
-  player-facing pages. The current Group lore authority projection (planned to
-  migrate to Guild naming in `GUILD-01`), Shrine aggregates, the persisted
+  player-facing pages. The current Guild lore authority projection, Shrine aggregates, the persisted
   advancement top-10, and typed bounded map markers are implemented; new
   adapters must not scan canonical storage or duplicate owner state. Religion
   authority waits for a standalone canonical religion owner contract.

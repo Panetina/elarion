@@ -15,7 +15,7 @@ Tracked addon overview for admins and future wiki expansion.
 | Quests | `Implemented foundation`, `Authoring needed` | [Quests](../admin/quests.md) |
 | Portals | `Implemented` | [Portals](../admin/portals.md) |
 | Government | `Implemented foundation` | [Government](../admin/government.md) |
-| Groups | `Implemented foundation` | [Groups](../admin/groups.md) |
+| Guilds | `Implemented foundation` | [Guilds](../admin/guilds.md) |
 | Worlds | `Implemented` | [Worlds](../admin/worlds.md) |
 | Realms | `Implemented` | [Commands](../admin/commands.md) |
 | Optimization | `Implemented` | [Performance](../admin/performance.md) |

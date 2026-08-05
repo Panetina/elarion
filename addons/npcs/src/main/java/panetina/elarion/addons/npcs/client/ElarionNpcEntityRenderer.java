@@ -7,6 +7,8 @@ import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.util.SkinTextures;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import panetina.elarion.addons.npcs.entity.ElarionNpcEntity;
 import panetina.elarion.addons.npcs.network.NpcVisualSyncPayload;
 
@@ -36,6 +38,13 @@ public final class ElarionNpcEntityRenderer
         SkinTextures skin = resolvedPlayerSkin(entity);
         this.model = skin != null && skin.model() == SkinTextures.Model.SLIM ? slimModel : normalModel;
         super.render(entity, yaw, tickDelta, matrices, vertices, light);
+        entity.placedNpcId().filter(NpcClientQuestMarkers::marked).ifPresent(ignored -> {
+            matrices.push();
+            matrices.translate(0.0D, 0.55D, 0.0D);
+            renderLabelIfPresent(entity, Text.literal("!").formatted(Formatting.GOLD, Formatting.BOLD),
+                    matrices, vertices, light, tickDelta);
+            matrices.pop();
+        });
     }
 
     @Override
