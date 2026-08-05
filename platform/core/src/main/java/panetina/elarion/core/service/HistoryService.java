@@ -49,6 +49,7 @@ public final class HistoryService {
     private final ChronicleRendererRegistry chronicleRenderers = new ChronicleRendererRegistry();
     private final AtomicBoolean archiveGenerationQueued = new AtomicBoolean();
     private final CopyOnWriteArrayList<Consumer<HistoryEvent>> recordedListeners = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<Consumer<HistoryEvent>> chronicleRecordedListeners = new CopyOnWriteArrayList<>();
     private ElarionTaskService tasks;
     private MinecraftServer server;
     private long nextArchiveCheckAt;
@@ -103,6 +104,11 @@ public final class HistoryService {
 
     public HistoryEvent record(HistoryEvent event) {
         if (server == null) throw new IllegalStateException("HistoryService is not bound to a server");
+        recordIfAllowed(event);
+        return event;
+    }
+
+    private boolean recordIfAllowed(HistoryEvent event) {
         if (config.historyRecordingPolicy().allows(event.category(), event.type())) {
             storage.append(server, event);
             indexes.append(server, event);
@@ -113,14 +119,26 @@ public final class HistoryService {
                     // Read-model integrations must never interrupt canonical history recording.
                 }
             }
+            return true;
         }
-        return event;
+        return false;
     }
 
     public AutoCloseable onRecorded(Consumer<HistoryEvent> listener) {
         if (listener == null) return () -> { };
         recordedListeners.add(listener);
         return () -> recordedListeners.remove(listener);
+    }
+
+    /**
+     * Observes only events deliberately authored through {@link #recordChronicle}.
+     * Use this for public Chronicle projections; ordinary audit History must never
+     * become player-facing merely because it shares an eligible category.
+     */
+    public AutoCloseable onChronicleRecorded(Consumer<HistoryEvent> listener) {
+        if (listener == null) return () -> { };
+        chronicleRecordedListeners.add(listener);
+        return () -> chronicleRecordedListeners.remove(listener);
     }
 
     public java.util.Optional<ChronicleProjection> publicProjection(
@@ -163,8 +181,19 @@ public final class HistoryService {
             Map<String, String> metadata,
             String chronicleText
     ) {
-        return record(HistoryEvent.create(
-                category, type, actorId, subjectType, subjectId, realmId, metadata, chronicleText));
+        if (server == null) throw new IllegalStateException("HistoryService is not bound to a server");
+        HistoryEvent event = HistoryEvent.create(
+                category, type, actorId, subjectType, subjectId, realmId, metadata, chronicleText);
+        if (recordIfAllowed(event)) {
+            for (Consumer<HistoryEvent> listener : chronicleRecordedListeners) {
+                try {
+                    listener.accept(event);
+                } catch (RuntimeException ignored) {
+                    // Public projections must never interrupt canonical history recording.
+                }
+            }
+        }
+        return event;
     }
 
     public List<HistoryEvent> recent(int limit) {

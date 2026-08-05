@@ -215,7 +215,7 @@ public final class ElarionCoreMod implements ModInitializer {
                 config, new HistoryStorage(LOGGER), new HistoryIndexStorage(LOGGER),
                 new ChronicleArchiveStorage(LOGGER), events);
         history.registerChronicleRenderer(CoreChronicleText.INSTANCE);
-        history.onRecorded(event -> publishChronicleProjection(history, webProjections, event));
+        history.onChronicleRecorded(event -> publishChronicleProjection(history, webProjections, event));
         TitleService titles = new TitleService(config, citizens, new TitleClaimStorage(LOGGER), history, events);
         AbilityService abilities = new AbilityService(titles);
         config.titles().values().forEach(title -> title.abilities().forEach(abilities::register));

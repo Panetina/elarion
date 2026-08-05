@@ -118,8 +118,11 @@ website `chronicle` projections. `default-chronicle-type-enabled`,
 `enabled-chronicle-types`, and `disabled-chronicle-types` provide the next,
 more precise filter. Type rules may be `type` or `category:type`; use the
 disabled list to suppress spam from public Chronicle outputs while leaving the
-audit event recorded. When the default is false, only the explicit allow-list
-can enter a Chronicle.
+underlying audit event intact. The live website bridge has a second intentional
+boundary: it only projects events emitted with `recordChronicle`; ordinary
+`record` calls are audit-only and cannot turn operational activity into public
+Chronicle news.
+When the default is false, only the explicit allow-list can enter a Chronicle.
 
 Major systems should emit short, immersive `chronicleText` for events that are
 expected to appear in Chronicles, newspapers, NPC rumors, ledgers, or public

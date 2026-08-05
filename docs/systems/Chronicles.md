@@ -15,9 +15,11 @@ Commands: `/e history ...`, `/e history chronicle ...`.
 
 Network packets: none yet; future GUI/search/news views should use bounded public-history APIs.
 
-Website projection: accepted public Chronicle categories are projected as
-ordered `chronicle` events through the durable Minecraft bridge outbox. The
-website never scans or receives raw history JSONL, indexes, or archives.
+Website projection: only events explicitly authored through `recordChronicle`
+are projected as ordered `chronicle` events through the durable Minecraft bridge
+outbox. Ordinary `record` calls remain durable audit History and never become
+public news merely because their category is Chronicle-eligible. The website
+never scans or receives raw history JSONL, indexes, or archives.
 
 GUI/screens: future Chronicle bookshelf, newspaper, Ledger, NPC rumor, and search views.
 
@@ -41,6 +43,9 @@ for weekly archive books, `chronicleLibrary(...)`, and website `chronicle`
 projections. It first selects categories, then applies `enabled-chronicle-types`
 and `disabled-chronicle-types` (plain `type` or scoped `category:type`). This
 filters public Chronicle spam without suppressing the durable audit event.
+For live website projection there is an additional deliberate-emission boundary:
+an event must have been recorded with `recordChronicle`; raw audit `record`
+events are never projected.
 
 Do not duplicate this system by creating: addon-local history logs, separate newspaper event storage, or unbounded GUI searches.
 
