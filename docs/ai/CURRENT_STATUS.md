@@ -158,9 +158,8 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 - Custom faction metadata beyond stable id/title-case display remains future
   work; Worldheart, Underworld, and Realm factions are available now.
 - Grave/Underworld edge-flow QA remains post-revamp hardening work.
-- Phase 13 is complete; Portal responsibilities are extracted behind the stable
-  facade and no further duplicate deletion was evidence-safe. See
-  `docs/reports/PHASE_13_COMPLETION.md`.
+- Portal responsibilities are extracted behind the stable facade; add further
+  splits only when an ownership boundary is evidenced.
 - Phase 14's former export evidence predates the manifest-owned performance
   distribution. Its dedicated startup, restart, DH/Bobby travel, A/B, and
   two-hour soak gates are now refreshed; the former eleven legacy
