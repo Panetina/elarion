@@ -10,10 +10,6 @@ this file focused on remaining performance and operational risks.
 Last broad build audit: 2026-07-18, `.\gradlew.bat build --console=plain`
 passed with 189 actionable tasks after post-revamp hardening.
 
-Last project-revamp audit slice: 2026-07-05, Phase 0 Slice 2 documentation-only
-Configuration/Admin Panel audit. See
-`docs/reports/CONFIG_ADMIN_AUDIT.md`.
-
 ## Active Risks
 
 - Phase 14 dual-client QA produced repeatable native `glfw.dll` access
