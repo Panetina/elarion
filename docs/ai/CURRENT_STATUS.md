@@ -89,11 +89,12 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 
 - Post-review persistence, request-budget, runtime-queue, and resource-pack
   hardening is reflected in the current source and focused tests.
-- Phase 14 passed GameTests, dedicated startup/shutdown, controlled restart
-  persistence, jar parity, onboarding, Realm teleport authority, `/e`
-  rejection, and title resync. Detailed evidence remains in the indexed Phase
-  14 reports; concurrent client observation is limited by host `glfw.dll`
-  crashes.
+- The 2026-08-06 headless GameTest gateway passes with all loaded addons. It
+  validates parseable generated Guildmaster dialogue defaults, explicit
+  Chronicle intent, and all six managed worlds before exercising command and
+  authority contracts. Phase 14's broader startup/shutdown, restart,
+  onboarding, teleport, rejection, and title-resync evidence remains indexed;
+  concurrent client observation is limited by host `glfw.dll` crashes.
 - The canonical distribution manifest validated; the official-CDN export
   resolved and passed SHA-512 verification. Current generated roots contain 62
   client jars, 12 `config/` files, one managed Bobby cache sentinel, and two
