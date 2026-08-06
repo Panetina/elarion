@@ -101,9 +101,10 @@ portrait library assets
   older fixed/default helpers. NPCs do not mutate wallets directly.
 - NPC `skin` and `portrait` are separate. `skin` is visible in-world
   presentation metadata. `portrait` is the image/profile shown in dialogue UI.
-- NPCs renders a compact `!` overhead marker only when Quests has sent the
-  viewer a bounded `NpcQuestMarkerSyncPayload`; NPCs never decides quest
-  availability or stores marker state.
+- NPCs renders a compact `!` overhead marker only when Quests has requested a
+  viewer-specific bounded marker snapshot through `ElarionNpcApi`; NPCs owns
+  the payload/network contract and never decides quest availability or stores
+  marker state.
 - Skin profile types:
   - `placeholder`: use the dedicated NPC renderer's safe default player body.
   - `texture`: render a player-model body with the explicit texture ID, useful

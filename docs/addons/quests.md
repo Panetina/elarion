@@ -64,8 +64,9 @@ Package definitions support:
 Quest packages may opt into an NPC availability marker with
 `quest.yml` metadata `start-actor: <actor-id>`. The selected actor must declare
 `allowed-npcs` (or `npc`). On player join, Quests computes a bounded, read-only
-availability projection for matching placed NPC definitions and sends it through
-the NPC-owned marker payload. A questline already started in the applicable
+availability projection for matching placed NPC definitions and requests it
+through the NPC API's marker-sync boundary. A questline already started in the
+applicable
 global, player, Realm, or NPC-world scope is not marked. This is presentation
 only; dialogue and quest actions remain server-authoritative. Join and relevant
 quest transitions recompute the viewer projection, but identical marker sets

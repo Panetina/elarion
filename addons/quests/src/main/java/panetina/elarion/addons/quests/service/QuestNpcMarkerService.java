@@ -1,10 +1,8 @@
 package panetina.elarion.addons.quests.service;
 
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
 import panetina.elarion.addons.npcs.api.ElarionNpcApi;
 import panetina.elarion.addons.npcs.model.PlacedNpcRecord;
-import panetina.elarion.addons.npcs.network.NpcQuestMarkerSyncPayload;
 import panetina.elarion.addons.quests.model.QuestActorDefinition;
 import panetina.elarion.addons.quests.model.QuestDefinition;
 
@@ -34,7 +32,7 @@ public final class QuestNpcMarkerService {
     public void sync(ServerPlayerEntity player) {
         Set<UUID> marked = new LinkedHashSet<>();
         for (UUID npcId : trackedNpcIds.getOrDefault(player.getUuid(), Set.of())) {
-            PlacedNpcRecord npc = ElarionNpcApi.get().placements().find(npcId).orElse(null);
+            PlacedNpcRecord npc = ElarionNpcApi.get().findPlacement(npcId).orElse(null);
             if (npc == null) continue;
             List<QuestDefinition> candidates = byNpcDefinition.get(npc.definitionId());
             if (candidates == null) continue;
@@ -47,7 +45,7 @@ public final class QuestNpcMarkerService {
         Set<UUID> immutable = Set.copyOf(marked);
         if (immutable.equals(lastSent.get(player.getUuid()))) return;
         lastSent.put(player.getUuid(), immutable);
-        ServerPlayNetworking.send(player, new NpcQuestMarkerSyncPayload(immutable.stream().toList()));
+        ElarionNpcApi.get().syncQuestMarkers(player, immutable);
     }
 
     public void track(ServerPlayerEntity player, UUID npcId) {
@@ -64,7 +62,7 @@ public final class QuestNpcMarkerService {
     }
 
     public void syncAll() {
-        ElarionNpcApi.get().placements().server().ifPresent(server ->
+        ElarionNpcApi.get().server().ifPresent(server ->
                 server.getPlayerManager().getPlayerList().forEach(this::sync));
     }
 

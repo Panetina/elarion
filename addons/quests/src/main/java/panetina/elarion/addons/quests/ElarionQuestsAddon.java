@@ -17,7 +17,6 @@ import panetina.elarion.addons.quests.service.QuestStateService;
 import panetina.elarion.addons.quests.service.QuestNpcMarkerService;
 import panetina.elarion.addons.quests.storage.QuestStorage;
 import panetina.elarion.addons.npcs.api.ElarionNpcApi;
-import panetina.elarion.addons.npcs.entity.ElarionNpcEntity;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.api.reset.PlayerResetHandler;
@@ -33,7 +32,7 @@ public final class ElarionQuestsAddon implements ElarionAddon {
         QuestStateService states = new QuestStateService(LOGGER, api, definitions, new QuestStorage(LOGGER));
         QuestNpcMarkerService markers = new QuestNpcMarkerService(definitions, states);
         definitions.onReload(markers::syncAll);
-        ElarionNpcApi.get().placements().onTopologyChanged(markers::syncAll);
+        ElarionNpcApi.get().onPlacementTopologyChanged(markers::syncAll);
         states.setMarkerRefresh(playerId -> {
             var server = api.citizens().server();
             if (server == null) return;
@@ -70,14 +69,10 @@ public final class ElarionQuestsAddon implements ElarionAddon {
                 server.execute(() -> markers.sync(handler.player)));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> markers.clear(handler.player.getUuid()));
         EntityTrackingEvents.START_TRACKING.register((entity, player) -> {
-            if (entity instanceof ElarionNpcEntity npc) {
-                npc.placedNpcId().ifPresent(id -> markers.track(player, id));
-            }
+            ElarionNpcApi.get().placementId(entity).ifPresent(id -> markers.track(player, id));
         });
         EntityTrackingEvents.STOP_TRACKING.register((entity, player) -> {
-            if (entity instanceof ElarionNpcEntity npc) {
-                npc.placedNpcId().ifPresent(id -> markers.untrack(player, id));
-            }
+            ElarionNpcApi.get().placementId(entity).ifPresent(id -> markers.untrack(player, id));
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> states.save());
         ServerTickEvents.END_SERVER_TICK.register(states::tick);
