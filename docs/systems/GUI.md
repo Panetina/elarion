@@ -39,8 +39,7 @@ packet, loads no map data, and exposes only disabled future feature labels.
 
 Risks: one-off buttons/panels per screen; duplicated colors; unbounded list rendering; client-owned mutation.
 
-Current Phase 4 status: `docs/reports/UI_SYSTEM_AUDIT.md` identifies the UI
-consolidation path. Core now owns additive civic color tokens, primitive
+Core now owns additive civic color tokens, primitive
 helpers, and font-scale-aware control metrics through `ElarionCivicColors`,
 `ElarionCivicUi`, `ElarionUiIcons`, and `ElarionUiMetrics`. New or touched custom Elarion
 screens should use those helpers for generic brown/gold shells, rows, action
@@ -108,8 +107,7 @@ Use semantic ids such as `profile`, `titles`, `mail`, `realm`, `quest`,
 screen-local placeholder textures. Server-authored item rewards and costs may
 still render real Minecraft item stacks for native item tooltips.
 
-Semantic component audit: `docs/reports/SEMANTIC_UI_COMPONENT_AUDIT.md`
-identifies the extraction order for shared UI composition. Core now owns
+Core now owns
 `ElarionListRangeMarker` for centered `Rows first-last / total` text with
 consistent tiny previous/next arrows; Government and Grave Recovery route their
 range markers through it. Core also owns `ElarionMoneySummary` for compact
@@ -235,8 +233,8 @@ Manual UI entry map:
   bypass server-side travel validation.
 - Grave Recovery opens by interacting with an Underworld grave/tomb.
 
-Visual reference journal: `docs/systems/UI_JOURNAL.md`. Government's current
-canonical reference images live in `docs/ui/government/` and should be used
+Government's current canonical reference images live in `docs/ui/government/`
+and should be used
 when polishing Civic Forum, Seat of Rule, and their inner modal flows.
 
 Notification HUD: Core owns the left icon rail, slideout drawer, and the

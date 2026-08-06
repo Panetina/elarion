@@ -101,17 +101,16 @@ UUIDs during its bounded load projection, retaining valid adjacent rows.
 
 Do not duplicate this system by creating: ad hoc file writers or gameplay code that parses config on interaction.
 
-## Proposed NPC Trade State
+## NPC Trade State
 
-NPC trade definitions now live as parsed config in
+NPC trade definitions live as parsed config in
 `config/elarion/addons/npcs/trades.yml` and are immutable runtime snapshots.
-They are not world state. Purchase recovery and finite placed-NPC stock are
-NPC-owned world state. The approved audit requires schema-versioned state, O(1)
+They are not world state. Purchase recovery, sales, and finite placed-NPC stock
+are NPC-owned world state. The contract requires schema-versioned state, O(1)
 operation lookup, bounded receipt retention, lazy restock, and restart
-reconciliation against an idempotent Economy operation receipt. See
-`docs/reports/NPC_TRADE_OWNER_AUDIT.md`.
+reconciliation against an idempotent Economy operation receipt.
 
-The purchase proposal adds two independent migrations that must not be bundled:
+The completed independent persistence foundations are:
 
 - Economy receipt state is now schema v2: bounded O(1) idempotent receipts,
   schema-v1 backup/migration, journal reconstruction, restart tests, and no
@@ -123,10 +122,6 @@ The purchase proposal adds two independent migrations that must not be bundled:
 - NPC placement schema v2 now stores resolved `REALM|WORLD` tax jurisdiction
   derived from definition policy and canonical placement world. Schema v1 is
   backed up before atomic migration; mismatch/unsupported state fails closed.
-
-NPC purchase journaling remains the later NPC-owned schema after Economy
-receipts and NPC jurisdiction foundations.
-See `docs/reports/NPC_TRADE_PURCHASE_FOUNDATION_PROPOSAL.md`.
 
 NPC trade purchases now use schema-v1 runtime state at
 `world/elarion/addon-state/npcs/trade-purchases.json`. The journal records

@@ -205,9 +205,8 @@ portrait library assets
   stock idempotently by sale ID. NPC config validation rejects prompts and
   executable dialogue actions on trade-node options so purchases and buybacks
   go through the dedicated trade request path.
-- The trade boundary is documented in
-  `docs/reports/NPC_TRADE_OWNER_AUDIT.md`. NPCs owns catalog/stock/session
-  meaning; Economy owns currency and public treasury settlement. Implemented
+- NPCs owns catalog/stock/session meaning; Economy owns currency and public
+  treasury settlement through its public API. Implemented
   packets include `NpcTradeSnapshotPayload`, `NpcTradeQuoteRequestPayload`,
   `NpcTradeQuotePayload`, `NpcTradePurchaseRequestPayload`, and
   `NpcTradePurchaseResultPayload`. NPCs persists purchase journal records in

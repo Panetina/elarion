@@ -213,7 +213,7 @@ Quest actions and conditions, while Quests owns questline state.
 Quests may reference placed NPC UUIDs through the NPC API for actor bindings,
 but NPCs remain the owner of placement records and dialogue sessions.
 
-Proposed NPC trade ownership follows a one-way optional integration, not an
+NPC trade ownership follows a one-way optional integration, not an
 `NPCs <-> Economy` cycle:
 
 ```text
@@ -224,10 +224,10 @@ NPCs trade service
   -> Core deferred rewards own restart-safe delivery actions
 ```
 
-This contract is audited in `docs/reports/NPC_TRADE_OWNER_AUDIT.md`. The
-Economy idempotent receipt foundation is implemented; NPC jurisdiction,
-purchase journaling, stock, and mutation remain pending. The current trade
-screen remains a non-mutating preview.
+Economy owns idempotent receipts, pricing, tax, and settlement. NPCs owns
+jurisdiction, purchase/sale journals, finite stock, sessions, and authoritative
+trade snapshots. The current trade screen is server-authored and mutating only
+through its dedicated request/result payload path.
 
 Core registers its server lifecycle callbacks before invoking custom addon
 entrypoints, then invokes addon entrypoints in deterministic required-dependency
@@ -292,7 +292,7 @@ Raw JSONL
   -> future newspaper/ledger/NPC rumor/search UI
 ```
 
-## Proposed NPC Trade Jurisdiction Dependency
+## NPC Trade Jurisdiction Dependency
 
 ```text
 Core RealmService -> canonical Realm/world ownership lookup
@@ -306,8 +306,7 @@ Economy           -> tax calculation, recipient account, transaction journal,
 
 NPCs must not own tax rates or treasury balances. Economy must not read NPC
 placement storage. The client receives a bounded quote and never supplies an
-authoritative tax, total, recipient, item, or price. See
-`docs/reports/NPC_TRADE_PURCHASE_FOUNDATION_PROPOSAL.md`.
+authoritative tax, total, recipient, item, or price.
 
 The NPC definition/placement jurisdiction path is implemented. Core's
 `RealmService.ownerForWorld` is read through the public API during placement

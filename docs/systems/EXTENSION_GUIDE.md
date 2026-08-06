@@ -57,8 +57,9 @@ and current source before using any example below.
   internal heights.
 - Add layout tests for normal, hover/selected/disabled, long text, and supported
   font scales. Add the component to the dev gallery when it is reusable.
-- Perform screenshot QA for player-facing changes and record it in
-  `UI_JOURNAL.md`. See `GUI.md` for visual and interaction contracts.
+- Perform screenshot QA for player-facing changes, retain the capture under
+  `build/ui-qa/`, and update the affected system doc with the verification
+  scope. See `GUI.md` for visual and interaction contracts.
 
 ## Add A Placeholder
 
@@ -153,4 +154,3 @@ and current source before using any example below.
   tests; otherwise state formats remain unchanged.
 - `PLAN.md`, `TODO.md`, `INDEX.md`, and `docs/ai/CURRENT_STATUS.md` describe the
   completed slice and precise remaining work.
-

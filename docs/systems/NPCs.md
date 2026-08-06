@@ -43,7 +43,6 @@ values are:
   through item escrow, sale replay storage, Economy wallet payout, and optional
   placed-NPC stock replenishment.
 
-The owner contract is audited in `docs/reports/NPC_TRADE_OWNER_AUDIT.md`.
 NPCs owns parsed `trades.yml` catalogs, server-authored catalog snapshots,
 offer visibility, trade sessions, purchase recovery, and finite placed-NPC
 stock. Economy remains currency authority through a one-way optional adapter.

@@ -58,7 +58,7 @@
       "id": "gui",
       "keywords": ["gui", "ui", "screen", "hud", "layout", "button", "tooltip", "render"],
       "owner": "Core shared primitives; addon-specific screens remain addon-owned",
-      "docs": ["docs/systems/GUI.md", "docs/reports/UI_FAMILY_INVENTORY.md"],
+      "docs": ["docs/systems/GUI.md"],
       "sourceGlobs": ["platform/core/src/main/java/**/client/**/*.java", "addons/*/src/main/java/**/client/**/*.java"],
       "testGlobs": ["platform/core/src/test/java/**/client/**/*.java", "addons/*/src/test/java/**/client/**/*.java"],
       "commands": [".\\gradlew.bat :platform:core:test"],

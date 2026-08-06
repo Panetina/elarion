@@ -45,7 +45,7 @@ passed with 189 actionable tasks after post-revamp hardening.
   JSONL history or poll stock every tick. Read-only catalog snapshots are now
   bounded and non-mutating. BUY mutations now use O(1) purchase IDs, O(1)
   Economy operation receipts, and per-placed-NPC stock records with lazy
-  restock. See `docs/reports/NPC_TRADE_OWNER_AUDIT.md`.
+  restock. The canonical ownership contract is in `docs/systems/NPCs.md`.
   - Receipt foundation completed: Economy schema v2 stores a bounded O(1)
     receipt map, reconstructs post-snapshot receipts during journal replay,
     evicts oldest entries at the configured cap, and expires entries in bounded

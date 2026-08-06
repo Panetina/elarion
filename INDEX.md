@@ -183,7 +183,6 @@ bounded context command and `docs/ai/routes.json` to select task material.
     `platform/core/src/main/java/panetina/elarion/core/client/ui/ElarionTooltipShellLayout.java`,
     and
     `platform/core/src/main/java/panetina/elarion/core/client/ui/ElarionItemSlotLayout.java`.
-- `docs/systems/UI_JOURNAL.md`
 - `docs/systems/Government.md`
 - `docs/systems/Underworld.md`
 - `docs/systems/Characters.md`
