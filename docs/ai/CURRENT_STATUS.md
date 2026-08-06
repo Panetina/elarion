@@ -63,7 +63,9 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 - Canonical History JSONL batches and rebuildable monthly Chronicle indexes now
   retain failed targets for retry. A blocking flush reports an unresolved IO
   failure instead of silently discarding queued entries; index retries retain
-  stable event-id deduplication.
+  stable event-id deduplication. Weekly archive aggregation runs on the compute
+  queue so it cannot occupy the single IO worker while waiting for an index
+  write to finish.
 - Explicit NPC `history-worthy` outcomes publish structured
   `npc/story-outcome` history with stable Chronicle variants. Ordinary
   dialogue, relationship changes, banking, and trades remain silent.
@@ -114,7 +116,7 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
   not in this bounded handoff.
 - Current History persistence hardening passes the focused `HistoryStorageTest`
   and `HistoryIndexStorageTest` suites on Java 21. The 2026-08-06 Java 21
-  full build then passed with 215 actionable tasks (33 executed), so the
+  full build then passed with 215 actionable tasks (113 executed), so the
   current Core slices have a fresh cross-module baseline.
 - Bobby's fresh-install cache-root error and Sodium Extra's Reese's Sodium
   Options recommendation remain corrected in source.
