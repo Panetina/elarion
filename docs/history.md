@@ -81,7 +81,9 @@ unless an OP audit path explicitly needs full event detail.
 
 Core generates immutable weekly Chronicle archives from completed calendar
 weeks. Weeks use the server timezone and start on Monday. Automatic generation
-runs through the Core task queues instead of ordinary server-tick work. It
+runs through the Core compute queue instead of ordinary server-tick work, so it
+can wait for a consistent index snapshot without occupying the bounded IO worker
+that persists that snapshot. It
 filters monthly index streams by the target week and Chronicle policy before
 materializing archive rows; it does not first copy every loaded index row into
 a combined intermediate list.

@@ -24,6 +24,9 @@ never scans or receives raw history JSONL, indexes, or archives.
 GUI/screens: future Chronicle bookshelf, newspaper, Ledger, NPC rumor, and search views.
 
 Storage/persistence: `world/elarion/history`, `history-index`, `chronicles/weekly`.
+Completed-week generation runs on Core's compute queue, not its single IO
+worker, because it may wait for an index write to finish before reading the
+archive source snapshot.
 
 Weekly archive generation runs on the Core IO queue and filters each loaded
 monthly index to the requested week and Chronicle policy before materializing

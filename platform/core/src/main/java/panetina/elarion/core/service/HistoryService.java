@@ -271,7 +271,10 @@ public final class HistoryService {
         nextArchiveCheckAt = System.currentTimeMillis() + 600_000L;
         if (server == null || tasks == null || !config.historyArchiveEnabled()) return;
         if (!archiveGenerationQueued.compareAndSet(false, true)) return;
-        tasks.submitIo("chronicle-archive-generate", () -> generateWeeklyChronicleArchives())
+        // Archive generation reads a consistent index snapshot and may wait for
+        // an outstanding index write. It must not occupy the single IO worker
+        // that is needed to complete that write.
+        tasks.submitCompute("chronicle-archive-generate", this::generateWeeklyChronicleArchives)
                 .whenComplete((ignored, throwable) -> archiveGenerationQueued.set(false));
     }
 
