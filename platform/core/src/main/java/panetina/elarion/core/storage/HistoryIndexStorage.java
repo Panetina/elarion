@@ -227,8 +227,9 @@ public final class HistoryIndexStorage {
                 Files.createDirectories(entry.getKey().getParent());
                 StoredMonthIndex stored = readStoredIndex(entry.getKey());
                 merge(stored, monthName(entry.getKey()), entry.getValue());
-                Files.writeString(entry.getKey(), GSON.toJson(stored), StandardCharsets.UTF_8);
-                Files.writeString(summaryPath(entry.getKey()), GSON.toJson(summary(stored)), StandardCharsets.UTF_8);
+                JsonStateStorage.writeAtomicChecked(entry.getKey(), GSON, stored, "history monthly index");
+                JsonStateStorage.writeAtomicChecked(summaryPath(entry.getKey()), GSON, summary(stored),
+                        "history monthly summary");
             }
         } catch (IOException | RuntimeException exception) {
             ElarionPerformanceMonitor.record("history-index-flush-failed", System.nanoTime() - started);

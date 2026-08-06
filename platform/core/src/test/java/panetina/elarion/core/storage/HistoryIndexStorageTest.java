@@ -38,6 +38,11 @@ final class HistoryIndexStorageTest {
         assertEquals(2, month.playerCounts().get(actor.toString()));
         assertEquals("title", month.entries().getFirst().category());
         assertTrue(Files.exists(tempDir.resolve("2026-06.summary.json")));
+        assertTrue(Files.notExists(tempDir.resolve("2026-06.json.tmp")));
+        assertTrue(Files.notExists(tempDir.resolve("2026-06.summary.json.tmp")));
+
+        HistoryIndexStorage reloaded = new HistoryIndexStorage(LoggerFactory.getLogger("history-index-reload-test"));
+        assertEquals(2, reloaded.loadRecentMonths(tempDir, 1).getFirst().totalEvents());
     }
 
     @Test
