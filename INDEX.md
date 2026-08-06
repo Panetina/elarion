@@ -52,6 +52,9 @@ bounded context command and `docs/ai/routes.json` to select task material.
 - [PLANS.md](PLANS.md)
 - [LORE.md](LORE.md)
 - [OPTIMIZATION_TRACKER.md](OPTIMIZATION_TRACKER.md)
+- [Core API contract](docs/api.md)
+- [History data contract](docs/history.md)
+- [Performance notes](docs/performance.md)
 
 ## Architecture
 
