@@ -113,8 +113,9 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
   Detailed historical slice evidence belongs in the indexed reports and Git,
   not in this bounded handoff.
 - Current History persistence hardening passes the focused `HistoryStorageTest`
-  and `HistoryIndexStorageTest` suites on Java 21. A fresh full build remains
-  required before a cross-module release handoff.
+  and `HistoryIndexStorageTest` suites on Java 21. The 2026-08-06 Java 21
+  full build then passed with 215 actionable tasks (33 executed), so the
+  current Core slices have a fresh cross-module baseline.
 - Bobby's fresh-install cache-root error and Sodium Extra's Reese's Sodium
   Options recommendation remain corrected in source.
 - Performance validation passed the two-hour soak, managed-world travel,
