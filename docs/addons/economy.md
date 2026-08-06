@@ -80,6 +80,11 @@ systems consume `ElarionEconomyApi`. They must use distinctive `sourceSystem`
 IDs so Governor diagnostics can attribute faucets and sinks without parsing
 reason text.
 
+Addons that only need the Economy currency identifier or Economy item-group
+key use `EconomyContentApi`; they must not import the internal
+`EconomyItems` registration class. Portal uses this content-only boundary for
+ticket-tab contribution and route-icon validation.
+
 Economy owns the current Banker NPC actions:
 
 - `elarion:economy_wallet_balance`

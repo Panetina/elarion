@@ -7,15 +7,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import panetina.elarion.addons.economy.api.EconomyContentApi;
 
 public final class EconomyItems {
-    public static final Identifier CURRENCY_ID = Identifier.of("elarion", "currency");
+    public static final Identifier CURRENCY_ID = EconomyContentApi.currencyItemId();
     public static final Identifier ITEM_GROUP_ID = Identifier.of("elarion", "economy");
-    public static final RegistryKey<ItemGroup> ITEM_GROUP_KEY =
-            RegistryKey.of(RegistryKeys.ITEM_GROUP, ITEM_GROUP_ID);
+    public static final RegistryKey<ItemGroup> ITEM_GROUP_KEY = EconomyContentApi.itemGroupKey();
     public static final int CURRENCY_MAX_STACK_SIZE = 999;
     public static final Item CURRENCY = new Item(new Item.Settings().maxCount(CURRENCY_MAX_STACK_SIZE));
     public static ItemGroup ITEM_GROUP;

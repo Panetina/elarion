@@ -1,6 +1,6 @@
 package panetina.elarion.addons.portals.config;
 
-import panetina.elarion.addons.economy.EconomyItems;
+import panetina.elarion.addons.economy.api.EconomyContentApi;
 import org.yaml.snakeyaml.Yaml;
 import panetina.elarion.addons.portals.PortalContent;
 import panetina.elarion.addons.portals.model.PortalRouteDefinition;
@@ -170,7 +170,7 @@ public final class PortalConfigLoader {
                     net.minecraft.util.Identifier.tryParse(route.visual().iconItem());
             if (icon == null || !net.minecraft.registry.Registries.ITEM.containsId(icon)
                     && !PortalContent.TICKET_ID.equals(icon)
-                    && !EconomyItems.CURRENCY_ID.equals(icon)) {
+                    && !EconomyContentApi.currencyItemId().equals(icon)) {
                 errors.add("invalid visual icon-item");
             }
         }
@@ -179,7 +179,7 @@ public final class PortalConfigLoader {
                     net.minecraft.util.Identifier.tryParse(route.visual().statusIconItem());
             if (icon == null || !net.minecraft.registry.Registries.ITEM.containsId(icon)
                     && !PortalContent.TICKET_ID.equals(icon)
-                    && !EconomyItems.CURRENCY_ID.equals(icon)) {
+                    && !EconomyContentApi.currencyItemId().equals(icon)) {
                 errors.add("invalid visual status-icon-item");
             }
         }

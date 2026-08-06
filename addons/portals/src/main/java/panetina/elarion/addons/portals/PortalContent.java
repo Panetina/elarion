@@ -7,7 +7,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
-import panetina.elarion.addons.economy.EconomyItems;
+import panetina.elarion.addons.economy.api.EconomyContentApi;
 
 public final class PortalContent {
     public static final Identifier FIELD_ID = Identifier.of("elarion", "portal_field");
@@ -35,7 +35,7 @@ public final class PortalContent {
         Registry.register(Registries.BLOCK, FIELD_ID, FIELD);
         Registry.register(Registries.ITEM, SURVEYOR_ID, SURVEYOR);
         Registry.register(Registries.ITEM, TICKET_ID, TICKET);
-        ItemGroupEvents.modifyEntriesEvent(EconomyItems.ITEM_GROUP_KEY).register(entries -> {
+        ItemGroupEvents.modifyEntriesEvent(EconomyContentApi.itemGroupKey()).register(entries -> {
             if (ticketDefinitions.isEmpty()) {
                 entries.add(TICKET);
             } else {

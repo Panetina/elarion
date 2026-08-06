@@ -40,6 +40,11 @@ files. Config editing, travel behavior changes, schedule evaluation changes,
 Economy price integration changes, packet changes, and persistence changes
 remain future approved slices.
 
+Portals references Economy through its public boundaries: payment and pricing
+use `ElarionEconomyApi`, while the ticket item-group contribution and configured
+currency-icon validation use `EconomyContentApi`. It does not reach into the
+Economy content registration implementation.
+
 Route display names and descriptions may use Core identity placeholders plus
 runtime Realm presentation placeholders:
 
