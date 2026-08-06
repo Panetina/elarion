@@ -669,6 +669,11 @@ archive:
     - administration
     - security
     - npc
+    - economy
+    - government
+    - offering
+    - portal
+    - underworld
   # Type rules can be "proposal-approved" or
   # "government:proposal-approved".
   default-chronicle-type-enabled: true

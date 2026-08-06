@@ -52,6 +52,7 @@ final class CoreConfigManagerTest {
         assertTrue(config.historyArchiveEnabled());
         assertEquals(8, config.historyArchiveMaxCompletedWeeks());
         assertTrue(config.historyChronicleCategories().contains("realm"));
+        assertTrue(config.historyChronicleCategories().contains("underworld"));
         assertTrue(config.historyChroniclePolicy().allows("realm", "leader-set"));
         assertTrue(!config.historyChroniclePolicy().allows("citizen", "realm-assigned"));
         assertEquals(8, config.publicHistoryDefaultWeeks());

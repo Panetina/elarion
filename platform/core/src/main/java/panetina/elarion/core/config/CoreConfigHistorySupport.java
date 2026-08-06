@@ -17,7 +17,8 @@ final class CoreConfigHistorySupport {
     private static final int MAX_PUBLIC_HISTORY_WEEKS = 52;
     static final Set<String> DEFAULT_CHRONICLE_CATEGORIES = Set.of(
             "realm", "realm-decision", "diplomacy", "leadership", "title",
-            "reward", "world", "administration", "security");
+            "reward", "world", "administration", "security", "npc", "economy",
+            "government", "offering", "portal", "underworld");
 
     private CoreConfigHistorySupport() {
     }
@@ -95,6 +96,12 @@ final class CoreConfigHistorySupport {
                         - "world"
                         - "administration"
                         - "security"
+                        - "npc"
+                        - "economy"
+                        - "government"
+                        - "offering"
+                        - "portal"
+                        - "underworld"
                       # Types can be plain ("proposal-approved") or scoped
                       # ("government:proposal-approved"). Deny-list known
                       # noisy events without disabling their audit recording.
