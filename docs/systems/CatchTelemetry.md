@@ -7,7 +7,9 @@ schema-v2 server-outcome details, immutable per-player and per-species
 summaries, lifecycle persistence, schema-v1 migration, memory-only normal
 queries, and asynchronous Core submit are implemented. Angling has a
 crash-recoverable telemetry/metric/reward coordinator, but public fishing
-remains release-gated. Titles, milestones, and tournaments remain incomplete.
+remains release-gated. Metric-driven title rules and bounded reconciliation are
+implemented; fishing-specific milestone families, tournaments, and public
+Chronicle promotion remain incomplete.
 
 ## Ownership
 
@@ -79,8 +81,9 @@ Implemented:
   deterministic Core reward grant; consumers deduplicate by event UUID.
 - `AnglingRarity.id()` exposes stable placeholder technical identifiers.
 
-Not implemented: title/milestone/tournament/Chronicle consumers and the final
-release-enabled rod/client trigger.
+Not implemented: fishing-specific milestone/tournament/Chronicle consumers and
+the final release-enabled rod/client trigger. Generic metric title rules are
+implemented and are evaluated from the durable metric update stream.
 
 Emitting the current event durably appends the accepted catch before updating
 the Core summary. It still does not grant rewards or mutate progression.
