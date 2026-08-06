@@ -34,8 +34,8 @@ Each monthly index has a compact `.summary.json` routing sidecar. Category,
 Realm, and player public filters use it to skip known-nonmatching monthly entry
 files; a missing or invalid sidecar falls back to the full index.
 Index and summary snapshots use the shared atomic-write contract, so a failed
-projection update preserves the previous parseable files while raw JSONL stays
-the canonical audit source.
+projection update preserves the previous parseable files and retains the
+pending entries for retry, while raw JSONL stays the canonical audit source.
 
 `history.yml.public-query.max-weeks` hard-caps every public-history request at
 52 weeks (including addon API callers). The configured default is clamped to

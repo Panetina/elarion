@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class HistoryIndexStorageTest {
@@ -91,6 +92,26 @@ final class HistoryIndexStorageTest {
 
         assertEquals(1, months.size());
         assertEquals("2026-04", months.getFirst().month());
+    }
+
+    @Test
+    void failedFlushRetainsProjectionEntriesForRetry() throws Exception {
+        HistoryIndexStorage storage = new HistoryIndexStorage(LoggerFactory.getLogger("history-index-test"));
+        Path blocker = tempDir.resolve("not-a-directory");
+        Files.writeString(blocker, "block index directory creation");
+        Path blockedIndex = blocker.resolve("history-index");
+        HistoryEvent event = eventAt("realm", "retry-after-io-failure", null, "realm",
+                "oak", "oak", "2026-06-10T12:00:00Z");
+
+        storage.append(blockedIndex, event);
+
+        assertThrows(IllegalStateException.class, storage::flushBlocking);
+
+        Files.delete(blocker);
+        storage.flushBlocking();
+
+        assertEquals(1, storage.loadRecentMonths(blockedIndex, 1).getFirst().totalEvents());
+        assertEquals(event.id(), storage.loadRecentMonths(blockedIndex, 1).getFirst().entries().getFirst().eventId());
     }
 
     private static HistoryEvent eventAt(

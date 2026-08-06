@@ -62,7 +62,9 @@ full monthly index, so known-nonmatching months do not add entry IO. Missing or
 invalid sidecars fall back to the full index to preserve results.
 Both index and sidecar use temporary-file replacement with an atomic move when
 the filesystem supports it. A failed index write therefore leaves the previous
-parseable projection intact; the JSONL audit log remains canonical regardless.
+parseable projection intact; failed projection entries remain queued for retry,
+and a blocking flush fails explicitly. The JSONL audit log remains canonical
+regardless.
 
 It intentionally does not copy full event metadata. Full detail remains in the
 raw JSONL history files.

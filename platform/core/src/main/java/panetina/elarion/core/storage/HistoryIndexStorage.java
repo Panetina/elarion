@@ -95,7 +95,11 @@ public final class HistoryIndexStorage {
 
             Map<Path, List<HistoryIndexEntry>> batch = drainPending();
             if (batch.isEmpty()) return;
-            writeBatch(batch);
+            Map<Path, List<HistoryIndexEntry>> failed = writeBatch(batch);
+            if (!failed.isEmpty()) {
+                restorePending(failed);
+                throw new IllegalStateException("Failed to persist Elarion history index; entries remain queued for retry");
+            }
         }
     }
 
@@ -108,10 +112,17 @@ public final class HistoryIndexStorage {
             taskService = tasks;
         }
         if (taskService == null) {
-            writeBatch(batch);
+            Map<Path, List<HistoryIndexEntry>> failed = writeBatch(batch);
+            if (!failed.isEmpty()) restorePending(failed);
             return;
         }
-        CompletableFuture<Void> write = taskService.submitIo("history-index-write", () -> writeBatch(batch));
+        CompletableFuture<Void> write = taskService.submitIo("history-index-write", () -> {
+            Map<Path, List<HistoryIndexEntry>> failed = writeBatch(batch);
+            if (!failed.isEmpty()) {
+                restorePending(failed);
+                throw new IllegalStateException("Failed to persist Elarion history index; entries remain queued for retry");
+            }
+        });
         synchronized (this) {
             activeWrite = write;
         }
@@ -220,23 +231,46 @@ public final class HistoryIndexStorage {
         return batch;
     }
 
-    private void writeBatch(Map<Path, List<HistoryIndexEntry>> batch) {
+    /** Restores failed projection writes before entries queued after the failed batch. */
+    private void restorePending(Map<Path, List<HistoryIndexEntry>> failed) {
+        synchronized (this) {
+            Map<String, List<HistoryIndexEntry>> restored = new LinkedHashMap<>();
+            failed.forEach((path, entries) -> restored.put(path.toString(), new ArrayList<>(entries)));
+            pendingEntries.forEach((path, entries) -> restored
+                    .computeIfAbsent(path, ignored -> new ArrayList<>())
+                    .addAll(entries));
+            pendingEntries.clear();
+            pendingEntries.putAll(restored);
+        }
+    }
+
+    /**
+     * Processes each monthly projection independently. A retry is safe because
+     * merge deduplicates stable event ids before writing the atomic snapshot.
+     */
+    private Map<Path, List<HistoryIndexEntry>> writeBatch(Map<Path, List<HistoryIndexEntry>> batch) {
         long started = System.nanoTime();
+        Map<Path, List<HistoryIndexEntry>> failed = new LinkedHashMap<>();
         try {
             for (Map.Entry<Path, List<HistoryIndexEntry>> entry : batch.entrySet()) {
-                Files.createDirectories(entry.getKey().getParent());
-                StoredMonthIndex stored = readStoredIndex(entry.getKey());
-                merge(stored, monthName(entry.getKey()), entry.getValue());
-                JsonStateStorage.writeAtomicChecked(entry.getKey(), GSON, stored, "history monthly index");
-                JsonStateStorage.writeAtomicChecked(summaryPath(entry.getKey()), GSON, summary(stored),
-                        "history monthly summary");
+                try {
+                    Files.createDirectories(entry.getKey().getParent());
+                    StoredMonthIndex stored = readStoredIndex(entry.getKey());
+                    merge(stored, monthName(entry.getKey()), entry.getValue());
+                    JsonStateStorage.writeAtomicChecked(entry.getKey(), GSON, stored, "history monthly index");
+                    JsonStateStorage.writeAtomicChecked(summaryPath(entry.getKey()), GSON, summary(stored),
+                            "history monthly summary");
+                } catch (IOException | RuntimeException exception) {
+                    failed.put(entry.getKey(), entry.getValue());
+                    ElarionPerformanceMonitor.record("history-index-flush-failed", System.nanoTime() - started);
+                    logger.error("Failed to flush Elarion history index for {}; retaining entries for retry",
+                            entry.getKey(), exception);
+                }
             }
-        } catch (IOException | RuntimeException exception) {
-            ElarionPerformanceMonitor.record("history-index-flush-failed", System.nanoTime() - started);
-            logger.error("Failed to flush Elarion history index", exception);
         } finally {
             ElarionPerformanceMonitor.record("history-index-write", System.nanoTime() - started);
         }
+        return failed;
     }
 
     private HistoryMonthIndex readIndex(Path path) {
