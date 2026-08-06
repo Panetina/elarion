@@ -60,6 +60,10 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
 - Phase 9 completed NPC narrative foundations. NPCs owns bounded per-player,
   per-placed-NPC relationship scores and durable story state with flags,
   one-time choices, endings, and opt-in re-entry.
+- Canonical History JSONL batches and rebuildable monthly Chronicle indexes now
+  retain failed targets for retry. A blocking flush reports an unresolved IO
+  failure instead of silently discarding queued entries; index retries retain
+  stable event-id deduplication.
 - Explicit NPC `history-worthy` outcomes publish structured
   `npc/story-outcome` history with stable Chronicle variants. Ordinary
   dialogue, relationship changes, banking, and trades remain silent.
@@ -108,6 +112,9 @@ archived under `docs/ai/archive/` and are not part of the normal AI read path.
   18 cases; `verifyExcaliburedCit` remains clean with 267 active definitions.
   Detailed historical slice evidence belongs in the indexed reports and Git,
   not in this bounded handoff.
+- Current History persistence hardening passes the focused `HistoryStorageTest`
+  and `HistoryIndexStorageTest` suites on Java 21. A fresh full build remains
+  required before a cross-module release handoff.
 - Bobby's fresh-install cache-root error and Sodium Extra's Reese's Sodium
   Options recommendation remain corrected in source.
 - Performance validation passed the two-hour soak, managed-world travel,
