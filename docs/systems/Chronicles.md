@@ -32,7 +32,10 @@ files; a missing or invalid sidecar falls back to the full index.
 `history.yml.public-query.max-weeks` hard-caps every public-history request at
 52 weeks (including addon API callers). The configured default is clamped to
 the same bound, so a caller cannot turn a player-facing archive request into an
-unbounded archive/index read.
+unbounded archive/index read. The API's `recentChronicles(...)` and
+`recentIndexes(...)` helpers apply the same public-week and configured
+month-scan caps; callers cannot bypass bounded storage reads with a large
+argument.
 
 Dependencies: Core task service, config recording policy, addon event emissions.
 

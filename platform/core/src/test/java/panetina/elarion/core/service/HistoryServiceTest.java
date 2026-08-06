@@ -11,4 +11,11 @@ final class HistoryServiceTest {
         assertEquals(52, HistoryService.boundedPublicHistoryWeeks(999, 8, 52));
         assertEquals(1, HistoryService.boundedPublicHistoryWeeks(-1, -2, 0));
     }
+
+    @Test
+    void recentIndexReadsNeverExceedTheConfiguredMonthWindow() {
+        assertEquals(3, HistoryService.boundedRecentIndexMonths(999, 3));
+        assertEquals(2, HistoryService.boundedRecentIndexMonths(2, 3));
+        assertEquals(1, HistoryService.boundedRecentIndexMonths(0, 0));
+    }
 }

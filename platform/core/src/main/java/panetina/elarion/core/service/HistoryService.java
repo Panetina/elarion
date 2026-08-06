@@ -236,12 +236,13 @@ public final class HistoryService {
 
     public List<HistoryMonthIndex> recentIndexes(int maxMonths) {
         if (server == null) throw new IllegalStateException("HistoryService is not bound to a server");
-        return indexes.loadRecentMonths(server, Math.max(1, maxMonths));
+        return indexes.loadRecentMonths(server, boundedRecentIndexMonths(maxMonths, config.historyQueryMaxMonths()));
     }
 
     public List<ChronicleArchive> recentChronicles(int maxWeeks) {
         if (server == null) throw new IllegalStateException("HistoryService is not bound to a server");
-        return archives.loadRecent(server, Math.max(1, maxWeeks));
+        return archives.loadRecent(server, boundedPublicHistoryWeeks(maxWeeks, config.publicHistoryDefaultWeeks(),
+                config.publicHistoryMaxWeeks()));
     }
 
     public List<ChronicleArchive> generateWeeklyChronicleArchives() {
@@ -347,6 +348,10 @@ public final class HistoryService {
         int safeMax = Math.max(1, maxWeeks);
         int requested = requestedWeeks <= 0 ? defaultWeeks : requestedWeeks;
         return Math.max(1, Math.min(requested, safeMax));
+    }
+
+    static int boundedRecentIndexMonths(int requestedMonths, int maxMonths) {
+        return Math.min(Math.max(1, requestedMonths), Math.max(1, maxMonths));
     }
 
     private void recordCitizenChange(ElarionEventBus.CitizenChanged event) {
