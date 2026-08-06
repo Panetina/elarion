@@ -85,7 +85,11 @@ public final class HistoryStorage {
 
             Map<Path, List<String>> batch = drainPending();
             if (batch.isEmpty()) return;
-            writeBatch(batch);
+            Map<Path, List<String>> failed = writeBatch(batch);
+            if (!failed.isEmpty()) {
+                restorePending(failed);
+                throw new IllegalStateException("Failed to persist Elarion history; entries remain queued for retry");
+            }
         }
     }
 
@@ -97,10 +101,17 @@ public final class HistoryStorage {
             taskService = tasks;
         }
         if (taskService == null) {
-            writeBatch(batch);
+            Map<Path, List<String>> failed = writeBatch(batch);
+            if (!failed.isEmpty()) restorePending(failed);
             return;
         }
-        CompletableFuture<Void> write = taskService.submitIo("history-write", () -> writeBatch(batch));
+        CompletableFuture<Void> write = taskService.submitIo("history-write", () -> {
+            Map<Path, List<String>> failed = writeBatch(batch);
+            if (!failed.isEmpty()) {
+                restorePending(failed);
+                throw new IllegalStateException("Failed to persist Elarion history; entries remain queued for retry");
+            }
+        });
         synchronized (this) {
             activeWrites.add(write);
         }
@@ -122,20 +133,43 @@ public final class HistoryStorage {
         }
     }
 
-    private void writeBatch(Map<Path, List<String>> batch) {
+    /** Restores only entries whose target file was not confirmed written, before newer queued entries. */
+    private void restorePending(Map<Path, List<String>> failed) {
+        synchronized (this) {
+            Map<Path, List<String>> restored = new LinkedHashMap<>();
+            failed.forEach((path, lines) -> restored.put(path, new ArrayList<>(lines)));
+            pendingLines.forEach((path, lines) -> restored
+                    .computeIfAbsent(path, ignored -> new ArrayList<>())
+                    .addAll(lines));
+            pendingLines.clear();
+            pendingLines.putAll(restored);
+        }
+    }
+
+    /**
+     * Appends each monthly target independently so a failed target can be retried
+     * without duplicating targets already confirmed written in the same batch.
+     */
+    private Map<Path, List<String>> writeBatch(Map<Path, List<String>> batch) {
         long started = System.nanoTime();
+        Map<Path, List<String>> failed = new LinkedHashMap<>();
         try {
             for (Map.Entry<Path, List<String>> entry : batch.entrySet()) {
-                Files.createDirectories(entry.getKey().getParent());
-                Files.writeString(entry.getKey(), String.join("", entry.getValue()),
-                        StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                try {
+                    Files.createDirectories(entry.getKey().getParent());
+                    Files.writeString(entry.getKey(), String.join("", entry.getValue()),
+                            StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                } catch (IOException | RuntimeException exception) {
+                    failed.put(entry.getKey(), entry.getValue());
+                    ElarionPerformanceMonitor.record("history-write-flush-failed", System.nanoTime() - started);
+                    logger.error("Failed to flush Elarion history batch for {}; retaining entries for retry",
+                            entry.getKey(), exception);
+                }
             }
-        } catch (IOException exception) {
-            ElarionPerformanceMonitor.record("history-write-flush-failed", System.nanoTime() - started);
-            logger.error("Failed to flush Elarion history batch", exception);
         } finally {
             ElarionPerformanceMonitor.record("history-write-batch", System.nanoTime() - started);
         }
+        return failed;
     }
 
     public List<HistoryEvent> loadAll(MinecraftServer server) {

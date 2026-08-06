@@ -25,6 +25,11 @@ GUI/screens: future Chronicle bookshelf, newspaper, Ledger, NPC rumor, and searc
 
 Storage/persistence: `world/elarion/history`, `history-index`, `chronicles/weekly`.
 
+Canonical JSONL history writes retain any failed monthly target in the pending
+queue ahead of newer events and make a blocking flush fail explicitly. A failed
+target is retried later; targets already confirmed in that batch are not
+replayed.
+
 Each monthly index has a compact `.summary.json` routing sidecar. Category,
 Realm, and player public filters use it to skip known-nonmatching monthly entry
 files; a missing or invalid sidecar falls back to the full index.

@@ -10,11 +10,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 final class HistoryStorageTest {
     @TempDir
@@ -81,6 +83,25 @@ final class HistoryStorageTest {
                 event -> event.realmId().equals("oak"), 10, 1).size());
         assertEquals(1, storage.queryRecent(tempDir,
                 event -> event.realmId().equals("oak"), 10, 3).size());
+    }
+
+    @Test
+    void failedFlushRetainsOnlyUnwrittenEntriesForRetry() throws IOException {
+        HistoryStorage storage = new HistoryStorage(LoggerFactory.getLogger("history-test"));
+        Path blocker = tempDir.resolve("not-a-directory");
+        Files.writeString(blocker, "block history directory creation");
+        Path blockedHistory = blocker.resolve("history");
+        HistoryEvent event = HistoryEvent.create(
+                "realm", "retry-after-io-failure", UUID.randomUUID(), "realm", "oak", "oak", Map.of());
+
+        storage.append(blockedHistory, event);
+
+        assertThrows(IllegalStateException.class, storage::flushBlocking);
+
+        Files.delete(blocker);
+        storage.flushBlocking();
+
+        assertEquals(List.of(event.id()), storage.loadAll(blockedHistory).stream().map(HistoryEvent::id).toList());
     }
 
     private static HistoryEvent eventAt(String category, String type, String realmId, String instant) {

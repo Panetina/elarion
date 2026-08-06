@@ -32,7 +32,9 @@ Each line is one `HistoryEvent` JSON object. The JSONL shape is stable:
 
 Writes are queued and batched by monthly target file. Pending writes flush
 periodically, at batch threshold, and on server shutdown before task workers
-stop.
+stop. A failed target remains queued ahead of newer entries for retry; a
+blocking flush fails explicitly instead of silently discarding canonical audit
+events. Targets confirmed earlier in the same batch are not replayed.
 
 ## Monthly Index
 
