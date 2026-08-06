@@ -88,19 +88,26 @@ final class HistoryStorageTest {
     @Test
     void failedFlushRetainsOnlyUnwrittenEntriesForRetry() throws IOException {
         HistoryStorage storage = new HistoryStorage(LoggerFactory.getLogger("history-test"));
+        Path healthyHistory = tempDir.resolve("healthy-history");
         Path blocker = tempDir.resolve("not-a-directory");
         Files.writeString(blocker, "block history directory creation");
         Path blockedHistory = blocker.resolve("history");
+        HistoryEvent healthy = HistoryEvent.create(
+                "realm", "confirmed-before-io-failure", UUID.randomUUID(), "realm", "oak", "oak", Map.of());
         HistoryEvent event = HistoryEvent.create(
                 "realm", "retry-after-io-failure", UUID.randomUUID(), "realm", "oak", "oak", Map.of());
 
+        storage.append(healthyHistory, healthy);
         storage.append(blockedHistory, event);
 
         assertThrows(IllegalStateException.class, storage::flushBlocking);
+        assertEquals(List.of(healthy.id()), new HistoryStorage(LoggerFactory.getLogger("history-reload-test"))
+                .loadAll(healthyHistory).stream().map(HistoryEvent::id).toList());
 
         Files.delete(blocker);
         storage.flushBlocking();
 
+        assertEquals(List.of(healthy.id()), storage.loadAll(healthyHistory).stream().map(HistoryEvent::id).toList());
         assertEquals(List.of(event.id()), storage.loadAll(blockedHistory).stream().map(HistoryEvent::id).toList());
     }
 

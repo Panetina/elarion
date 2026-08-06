@@ -97,19 +97,26 @@ final class HistoryIndexStorageTest {
     @Test
     void failedFlushRetainsProjectionEntriesForRetry() throws Exception {
         HistoryIndexStorage storage = new HistoryIndexStorage(LoggerFactory.getLogger("history-index-test"));
+        Path healthyIndex = tempDir.resolve("healthy-index");
         Path blocker = tempDir.resolve("not-a-directory");
         Files.writeString(blocker, "block index directory creation");
         Path blockedIndex = blocker.resolve("history-index");
+        HistoryEvent healthy = eventAt("realm", "confirmed-before-io-failure", null, "realm",
+                "oak", "oak", "2026-06-10T12:00:00Z");
         HistoryEvent event = eventAt("realm", "retry-after-io-failure", null, "realm",
                 "oak", "oak", "2026-06-10T12:00:00Z");
 
+        storage.append(healthyIndex, healthy);
         storage.append(blockedIndex, event);
 
         assertThrows(IllegalStateException.class, storage::flushBlocking);
+        assertEquals(1, new HistoryIndexStorage(LoggerFactory.getLogger("history-index-reload-test"))
+                .loadRecentMonths(healthyIndex, 1).getFirst().totalEvents());
 
         Files.delete(blocker);
         storage.flushBlocking();
 
+        assertEquals(1, storage.loadRecentMonths(healthyIndex, 1).getFirst().totalEvents());
         assertEquals(1, storage.loadRecentMonths(blockedIndex, 1).getFirst().totalEvents());
         assertEquals(event.id(), storage.loadRecentMonths(blockedIndex, 1).getFirst().entries().getFirst().eventId());
     }
