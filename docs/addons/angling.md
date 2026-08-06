@@ -364,8 +364,17 @@ revision.
 
 ## Next Slice
 
-Complete exact bobber/fish rendering, remaining catch/minigame modifiers,
-compatibility catch-tag membership, the Fabric loot-hook replacement, and bait
-debit kill/restart GameTests. Then continue blocks, guide,
-tournaments, economy integration, Delight, and full parity verification before
-player-facing gameplay is enabled.
+Port the two exact client rendering boundaries before any release-gate change:
+
+- the reference `bobentity/FishingBobRenderer` as the Fabric renderer for
+  `AnglingEntities.FISHING_BOBBER`;
+- the reference `fishentity/FishRenderer` and its authoritative caught-item
+  model mapping as the Fabric renderer for `AnglingEntities.FISH`.
+
+Register both only in `ElarionAnglingClient`; preserve the dedicated-server
+boundary and verify every mapped fish item against the frozen reference before
+considering the renderer requirement complete. Then complete the remaining
+catch/minigame modifiers, compatibility catch-tag membership, Fabric loot-hook
+replacement, and bait-debit kill/restart GameTests. Blocks, guide,
+tournaments, Economy integration, Delight, and full parity verification remain
+subsequent release-gated work.
