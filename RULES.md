@@ -72,17 +72,17 @@ authoritative docs selected through `docs/ai/routes.json`.
   `apply_patch` for manual changes.
 - Commands require registration, permission, help/suggestion, and execution
   coverage. Player-facing changes update docs and tests together.
-- Ownership/architecture changes: update `INDEX.md`, `AGENTS.md`, `CODEX.md`,
-  and affected system/addon docs.
+- Ownership/architecture changes: update `INDEX.md`, `AGENTS.md`, and affected
+  system/addon docs.
 - Command changes: update `docs/commands.md`, relevant test-command docs, and
   `wiki/admin/commands.md`.
 - Config, persistence, API, packet, UI, permission, event, or notification
   changes: update affected system/addon docs and the relevant wiki page.
 - Addon status changes: update the root source maps, addon indexes, and wiki
   addon status.
-- `TODO.md` contains unfinished work; `PLAN.md` current direction;
-  `PLANS.md` future ideas. Historical completion logs belong only under
-  `docs/ai/archive/`.
+- `TODO.md` contains only active unfinished work. `PLANS.md` contains future
+  ideas and design directions. Completed work and superseded plans belong in
+  Git history, not new Markdown logs.
 
 ## Verification
 

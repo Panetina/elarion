@@ -10,15 +10,17 @@ shared UI reuse. Keep future features bounded and server-authoritative.
 
 ## Active Risks
 
-- Government vote scanning is acceptable during development, but should move to
-  interval/deadline scheduling before many Realms run concurrent elections.
-- Large services should split along ownership boundaries before adding new
-  behavior:
-  - `GovernmentStateService`
-  - `PortalRouteService`
-  - large client UI screens
+- Concurrent Client One/Client Two rendering triggers native `glfw.dll`
+  failures on this Windows QA host. Each client and authority direction passes
+  independently; do not add gameplay workarounds unless the fault reproduces
+  outside the host runtime/capture stack.
+- One startup run observed a single slow `server-queue-apply` warning while
+  managed worlds opened. Profile it only if it grows or appears during ordinary
+  gameplay.
 - Chronicle/newspaper/ledger/search views need dedicated indexes or summaries
   before becoming rich player-facing views.
+- Split large services/screens only when an evidenced ownership boundary makes
+  the resulting pieces simpler; do not split merely by file size.
 - `addons/angling/reference/**` is reference-only and should not be included in
   ordinary source audits.
 

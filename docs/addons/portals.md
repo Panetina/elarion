@@ -245,9 +245,9 @@ declared complete.
 
 ## Structural Cleanup Notes
 
-Phase 13 classified `PortalRouteService` before extraction. It remains the
-canonical owner of live portal route state, entitlements, free passages, and
-travel authority. `PortalEndpointIndex`, `PortalFieldController`, and
+`PortalRouteService` remains the canonical owner of live portal route state,
+entitlements, free passages, and travel authority. `PortalEndpointIndex`,
+`PortalFieldController`, and
 `PortalStateMigration` remain valid helper boundaries. Route administration is
 now isolated in `PortalRouteAdminMutator`, schedule and field lifecycle in
 `PortalScheduleReconciler`, and bounded endpoint-entry prompts in

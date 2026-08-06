@@ -115,15 +115,15 @@ Government `proposal-rejected` and `civic-record-created`, Portal
 `title.progression-unlocked` are also migrated library-ready families. Each has
 at least 10 authored variants and a safe missing-context fallback.
 
-Phase 8 direction: the future in-game library must use this public-history
-projection boundary, not raw history JSONL. Library-ready event families require
+The future in-game library must use this public-history projection boundary,
+not raw history JSONL. Library-ready event families require
 at least 10 authored text variants each. Variant choice must be stable per
 event: use `chronicle.variant` when persisted, otherwise derive a deterministic
 variant from the event id and template family. Do not make Chronicle wording
 change every time a player opens the library.
 
-This is a project rule, not only a Phase 8 preference. Future player-facing
-systems such as war, peace, revolution, imperial succession, story quests,
+Future player-facing systems such as war, peace, revolution, imperial
+succession, story quests,
 seasonal events, NPC relationship milestones, Realm diplomacy, mounts, pets,
 and major rewards must add their Chronicle families with 10 variants, required
 metadata checks, fallback text, and tests in the same slice that promotes them

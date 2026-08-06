@@ -145,17 +145,16 @@ wrong Minecraft/Fabric pins, invalid sides, invalid SHA-512 values, or missing
 managed/default config groups. `exportMods` then verifies every copied
 third-party jar against its pinned hash before writing launcher manifests.
 
-Runtime promotion additionally follows the gates in
-`docs/reports/FABRIC_1_21_1_PERFORMANCE_CATALOG.md`. Passing a build proves
-artifact composition; it does not by itself prove client rendering, DH/Bobby
-travel, dedicated startup/restart, soak stability, or measured performance.
+Runtime promotion additionally requires client rendering, DH/Bobby travel,
+dedicated startup/restart, soak stability, and measured-performance evidence.
+Passing a build proves artifact composition only.
 `dev/tools/test-performance-distribution.ps1` runs the repeatable two-hour
 server/client soak, safe managed-world travel, resource sampling, and evidence
 capture used by that promotion gate.
 `dev/tools/benchmark-performance-server.ps1` runs the controlled ABBA server
 comparison and restores its exact temporarily staged jars in `finally`.
-Executed results and remaining resource-pack blockers are recorded in
-`docs/reports/PERFORMANCE_DISTRIBUTION_VALIDATION.md`.
+Executed results are recorded in the applicable release commit and retained in
+Git history instead of a separate report log.
 
 `verifyExcaliburedCit` validates the active Minecraft 1.21.1 Excalibured CIT
 layer before distribution verification. Active item definitions must target an

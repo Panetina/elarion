@@ -34,5 +34,5 @@ Manual checks to run after server-facing changes.
 
 ## Source-Backed Notes
 
-- Build command reference: [../../CODEX.md](../../CODEX.md)
+- Build and test command reference: [../../docs/test-commands.md](../../docs/test-commands.md)
 - Current TODO priorities: [../../TODO.md](../../TODO.md)

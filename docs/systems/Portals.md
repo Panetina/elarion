@@ -17,7 +17,7 @@ Main classes: `PortalRouteService`, `PortalDefinitionService`,
 mutation, schedule reconciliation, player prompts, travel execution, and
 setup/world guards stay behind its public facade and focused portal tests.
 
-Phase 13 completed all five classified extractions. `PortalRouteService` still
+All five responsibility extractions are complete. `PortalRouteService` still
 owns canonical state and the stable public facade; travel and movement helpers
 operate only through narrow effects and transient guards.
 

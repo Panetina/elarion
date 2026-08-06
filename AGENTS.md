@@ -14,9 +14,9 @@ scale. Permanent policy is in `RULES.md`.
    before creating anything.
 5. Preserve the large existing dirty worktree; never revert unrelated changes.
 
-Do not read `docs/ai/archive/**`, `external/**`, or
-`addons/angling/reference/**` unless the user explicitly requests historical,
-upstream, or Angling-porting research.
+Do not read `external/**` or `addons/angling/reference/**` unless the user
+explicitly requests upstream or Angling-porting research. Use Git history for
+explicit historical investigation.
 
 For explicitly requested Angling port work, the local reference is the
 owner-authorized source for code, content, edited artwork, models, sounds, and

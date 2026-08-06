@@ -23,12 +23,12 @@ function Get-Length([string]$RelativePath) {
     return (Get-Item -LiteralPath $path).Length
 }
 
-$rootContextBytes = (Get-Length 'RULES.md') + (Get-Length 'AGENTS.md') + (Get-Length 'CODEX.md')
-if ($rootContextBytes -gt 16384) {
-    Add-Failure "RULES.md + AGENTS.md + CODEX.md exceed 16 KB: $rootContextBytes bytes"
+$rootContextBytes = (Get-Length 'RULES.md') + (Get-Length 'AGENTS.md')
+if ($rootContextBytes -gt 12288) {
+    Add-Failure "RULES.md + AGENTS.md exceed 12 KB: $rootContextBytes bytes"
 }
 
-foreach ($bounded in @('docs/ai/CURRENT_STATUS.md', 'PLAN.md', 'TODO.md')) {
+foreach ($bounded in @('docs/ai/CURRENT_STATUS.md', 'TODO.md')) {
     $size = Get-Length $bounded
     if ($size -gt 12288) {
         Add-Failure "$bounded exceeds 12 KB: $size bytes"
@@ -36,18 +36,6 @@ foreach ($bounded in @('docs/ai/CURRENT_STATUS.md', 'PLAN.md', 'TODO.md')) {
     $datedHeadings = Select-String -LiteralPath (Join-Path $repoRoot $bounded) -Pattern '^##\s+20\d\d-' -ErrorAction SilentlyContinue
     if ($null -ne $datedHeadings) {
         Add-Failure "$bounded contains append-only dated completion headings"
-    }
-}
-
-$archiveMinimums = @{
-    'docs/ai/archive/CURRENT_STATUS_THROUGH_2026-07-11.md' = 500000
-    'docs/ai/archive/PLAN_THROUGH_2026-07-11.md' = 200000
-    'docs/ai/archive/TODO_THROUGH_2026-07-11.md' = 18000
-}
-foreach ($entry in $archiveMinimums.GetEnumerator()) {
-    $size = Get-Length $entry.Key
-    if ($size -lt $entry.Value) {
-        Add-Failure "$($entry.Key) is smaller than the preserved-history floor: $size bytes"
     }
 }
 
@@ -79,21 +67,19 @@ foreach ($toolFile in @('dev/tools/ai-context.ps1', 'dev/tools/verify-ai-context
     [void](Get-Length $toolFile)
 }
 $contextToolText = Get-Content -Raw -LiteralPath $contextScript
-foreach ($excludedPath in @('docs/ai/archive/**', 'external/**', 'addons/angling/reference/**', '**/build/**', 'dev/run/**')) {
+foreach ($excludedPath in @('external/**', 'addons/angling/reference/**', '**/build/**', 'dev/run/**')) {
     if (-not $contextToolText.Contains($excludedPath)) {
         Add-Failure "Context tool is missing ordinary-search exclusion: $excludedPath"
     }
 }
 
-$baselineFiles = @(
-    'docs/ai/archive/RULES_THROUGH_2026-07-11.md',
-    'docs/ai/archive/AGENTS_THROUGH_2026-07-11.md',
-    'docs/ai/archive/CODEX_THROUGH_2026-07-11.md',
-    'INDEX.md',
-    'docs/ai/archive/CURRENT_STATUS_THROUGH_2026-07-11.md',
-    'docs/ai/archive/AI_SEARCH_HINTS_THROUGH_2026-07-11.md',
-    'docs/architecture/DEPENDENCY_GRAPH.md'
-)
+$baselineFiles = @('RULES.md', 'AGENTS.md', 'INDEX.md', 'docs/ai/CURRENT_STATUS.md')
+$baselineFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs\systems') -File -Filter '*.md' |
+    ForEach-Object { $_.FullName.Substring($repoRoot.Length + 1) }
+$baselineFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs\addons') -File -Filter '*.md' |
+    ForEach-Object { $_.FullName.Substring($repoRoot.Length + 1) }
+$baselineFiles += Get-ChildItem -LiteralPath (Join-Path $repoRoot 'docs\architecture') -File -Filter '*.md' |
+    ForEach-Object { $_.FullName.Substring($repoRoot.Length + 1) }
 $baselineCharacters = 0
 foreach ($file in $baselineFiles) {
     $path = Join-Path $repoRoot $file
@@ -216,7 +202,7 @@ $reportDir = Join-Path $repoRoot 'build\ai-context'
 New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
 $report | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $reportDir 'benchmark.json') -Encoding UTF8
 
-Write-Output "AI context root bytes: $rootContextBytes / 16384"
+Write-Output "AI context root bytes: $rootContextBytes / 12288"
 Write-Output "Baseline characters per task: $baselineCharacters"
 Write-Output "Aggregate capsule savings: $savingsPercent%"
 Write-Output "Benchmark cases completed: $($results.Count) / $($benchmark.cases.Count)"

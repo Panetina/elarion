@@ -318,9 +318,9 @@ when Economy is present. Economy never depends on NPCs. NPCs owns catalog and
 jurisdiction inputs; Economy owns rates, quote arithmetic, and settlement.
 The shipped banker prompt IDs are recognized by NPC config validation as
 optional-provider contracts, but NPCs does not register Economy handlers.
-Without Economy, unavailable providers disable bank/trade settlement and the
-isolated loader matrix in
-`docs/reports/PHASE_14_OPTIONAL_ADDON_ABSENCE_QA.md` must remain green.
+Without Economy, unavailable providers disable bank/trade settlement. The
+isolated optional-addon loader matrix must remain green whenever this boundary
+changes.
 
 Worldheart authority is deliberately not Economy treasury ownership. Core may
 answer whether OP4 or a future ascended ruler can govern Worldheart, but

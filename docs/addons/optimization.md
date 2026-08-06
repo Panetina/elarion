@@ -1,6 +1,6 @@
 # Optimization Addon Contract
 
-Last reviewed: 2026-07-05
+Last reviewed: 2026-08-06
 
 Author: Panyel  
 Team: Panetina Team
@@ -72,10 +72,9 @@ This addon reports and controls Elarion cost. It is not a replacement for
 general server performance mods.
 
 The external mod/config performance baseline is distribution-owned, not addon
-state. Its canonical manifest and update policies are documented in
-`docs/systems/Distribution.md`; the FO audit and Fabric 1.21.1 candidate/release
-gates are in `docs/reports/FABULOUSLY_OPTIMIZED_ADAPTATION.md` and
-`docs/reports/FABRIC_1_21_1_PERFORMANCE_CATALOG.md`.
+state. `distribution/mods.json` is canonical for artifacts and
+`docs/systems/Distribution.md` owns its update, export, runtime-validation, and
+release gates. Past selection audits remain recoverable through Git history.
 
 Do not add persistent performance snapshots until live diagnostics show they
 are worth the IO and storage cost.

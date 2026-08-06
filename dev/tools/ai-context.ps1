@@ -98,8 +98,7 @@ function Add-Candidate {
     if (-not (Test-Path -LiteralPath $absolute -PathType Leaf)) {
         return
     }
-    if ($normalized -like 'docs/ai/archive/*' -or
-        $normalized -like 'external/*' -or
+    if ($normalized -like 'external/*' -or
         $normalized -like 'addons/angling/reference/*' -or
         $normalized -like 'build/*' -or
         $normalized -like '*/build/*' -or
@@ -335,7 +334,7 @@ if ($null -eq $rgPath) {
     $rgArgs = @(
         '--files-with-matches', '--ignore-case',
         '--glob', '*.java', '--glob', '*.json', '--glob', '*.yml', '--glob', '*.yaml',
-        '--glob', '!docs/ai/archive/**', '--glob', '!external/**',
+        '--glob', '!external/**',
         '--glob', '!addons/angling/reference/**', '--glob', '!**/build/**',
         '--glob', '!dev/run/**', $pattern, '.'
     )

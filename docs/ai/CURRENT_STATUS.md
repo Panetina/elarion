@@ -1,172 +1,92 @@
 # Current Project Status
 
-Bounded handoff snapshot. Keep this file below 12 KB. Completed slice logs are
-archived under `docs/ai/archive/` and are not part of the normal AI read path.
+Bounded handoff snapshot. Source and tests decide implementation reality;
+`RULES.md` owns policy, `INDEX.md` owns navigation, `TODO.md` owns active work,
+and `PLANS.md` owns future design. Use Git history for completed slice detail.
 
-## Current State
+## Canonical State
 
-- Target: Fabric 1.21.1. NeoForge is reference-only.
-- Core owns canonical citizens, Realms, titles, identity, relationships,
-  rewards, history, permissions, shared UI, task queues, and infrastructure.
-- Addons own only their feature-specific definitions and runtime state and
-  integrate through Core APIs, registries, events, and notifications.
-- Editable definitions live under `config/elarion/`; runtime state lives under
-  `world/elarion/`.
-- The completed revamp and post-review hardening are captured in a reproducible
-  Git checkpoint. Runtime worlds, generated output, caches, backups, and local
-  deployment secrets remain ignored.
+- Runtime target: Fabric 1.21.1 on Java 21. NeoForge code is reference-only.
+- Core owns citizens, Realms, identity, titles, relationships, rewards,
+  history, permissions, shared UI, task queues, and infrastructure.
+- Addons own only their domain definitions/runtime state and integrate through
+  public APIs, registries, events, notifications, and bounded projections.
+- Editable definitions live under `config/elarion/`; mutable runtime state
+  lives under `world/elarion/`.
+- Fabric owns canonical game truth. Website, launcher, Discord, and bridge
+  components own only their explicit external domains and consume signed,
+  bounded contracts.
 
-## Latest Completed Architecture Work
+## Implemented Foundations
 
-- Guild Registrar/management, chat/UUID PM selection, typed Seat Taxes,
-  tracked-NPC quest markers, and top-layer notification badges are integrated
-  as bounded server-authoritative projections.
+- Core provides server-authoritative identity, character lifecycle, shared UI,
+  notifications, rewards, metrics, History/Chronicle indexes, commands,
+  persistence helpers, task queues, and signed website projection outboxes.
+- Economy, Offerings, Government, Guilds, NPCs, Quests, Portals, Worlds,
+  Realms, Underworld, Mounts, Names, and Titles have implemented foundations.
+  Their authoritative status and boundaries live in `docs/addons/` and
+  `docs/systems/`.
+- Atlas is a data-free client shell. Jail, Newspapers, Tablist, and Voice Chat
+  Hooks remain shells or early integration modules.
+- Angling is an internal Fabric port foundation. Public fishing remains
+  release-disabled until the explicit gates in `TODO.md` pass.
+- Distribution is manifest-owned through `distribution/mods.json`; exports are
+  complete client/server install roots with managed configs, resource packs,
+  hashes, and launcher manifests.
+- Live deployment is guarded by explicit approval, stopped-server confirmation,
+  remote backup, staged hashes, and post-start verification.
 
-- Atlas now exists as a compiling shell addon: `M` opens a data-free Elarion
-  placeholder, its public marker API exposes no capabilities, and it registers
-  no server, storage, network, config, command, bridge, or domain integration.
-  The functional design remains future work in `docs/systems/Atlas.md`.
-- The final post-revamp findings are resolved. Shared JSON state quarantines
-  malformed input and propagates save failure; Government, Quest, and
-  Underworld state use schema v1; profile requests and contributor diagnostics
-  are bounded; and Underworld runtime corpse maintenance uses capped queues.
-- Canonical Excalibured art/font runtime packs live under tracked
-  `dev/resourcepacks/` and synchronize idempotently to all development clients.
-- Core now owns a restart-safe signed website projection outbox. Realm and
-  citizen summaries plus filtered Chronicle events publish without raw storage
-  scans; Government publishes voted Realm presentation and aggregate election
-  lifecycle through `api.system().webProjections()`. Website projections are
-  read models only and do not change canonical ownership.
-- Core now validates typed bounded website map markers and maintains a
-  persisted advancement leaderboard index updated on join/advancement events.
-  Offerings publishes per-instance Shrine aggregates and marker tombstones
-  without contributor identities or hot-path scans.
-- The external platform is now an explicit architecture boundary. The website
-  owns web identity, whitelist applications/reviews, permissions, audit state,
-  and permission-filtered read models; Fabric remains canonical for game and
-  whitelist state. The .NET launcher consumes signed immutable releases, and
-  Discord remains an identity/notification adapter through the website.
-- `deployLiveServerMods` is the guarded live promotion path. It verifies all
-  modules/context, rebuilds the canonical two-folder export, stages hashed jars,
-  backs up remote `mods`, and requires explicit stopped-server/owner approval.
-  It never starts PebbleHost or deploys the website/launcher.
-- Repository-context routing is implemented through `docs/ai/routes.json` and
-  `dev/tools/ai-context.ps1`; `verifyAiContext` enforces budgets, exclusions,
-  representative recall, and low-confidence refusal.
-- Phase 8 completed the Core Chronicle template-family and deterministic
-  variant framework. Existing `chronicle.variant` metadata remains
-  authoritative; library-ready event families require ten authored variants,
-  metadata validation, fallbacks, and tests.
-- Phase 9 completed NPC narrative foundations. NPCs owns bounded per-player,
-  per-placed-NPC relationship scores and durable story state with flags,
-  one-time choices, endings, and opt-in re-entry.
-- Canonical History JSONL batches and rebuildable monthly Chronicle indexes now
-  retain failed targets for retry. A blocking flush reports an unresolved IO
-  failure instead of silently discarding queued entries; index retries retain
-  stable event-id deduplication. Weekly archive aggregation runs on the compute
-  queue so it cannot occupy the single IO worker while waiting for an index
-  write to finish.
-- Explicit NPC `history-worthy` outcomes publish structured
-  `npc/story-outcome` history with stable Chronicle variants. Ordinary
-  dialogue, relationship changes, banking, and trades remain silent.
-- Development launch integrity is explicit: the root run wrappers order Loom
-  strictly after `syncDevRuntimeMods`, corrupt local managed-mod markers are
-  rebuilt safely, and the dev server is offline-only for deterministic Loom
-  identities. A real Client One launch reached rendering after all Elarion
-  addons and both runtime resource packs loaded.
-- Government's supported foundation is now intentionally limited to Monarchy
-  and Republic. The obsolete Confederation and Theocracy paths were removed
-  from config, runtime state, founding flow, UI, commands, tests, titles, and
-  documentation; focused command, packet, civic-mutation, persistence, and
-  GameTest coverage closes the former Government hardening item.
-- Client/server distribution is now manifest-owned. `distribution/mods.json`
-  pins official origins, versions, sides, licenses, filenames, sizes, and
-  SHA-512 values; builds no longer read a local Modrinth profile. Exports are
-  full install roots with configs, resource packs, and launcher manifests.
-- The stable performance core ships Sodium, Lithium, FerriteCore, ModernFix,
-  ImmediatelyFast, conservative rendering culling, EBE, BadOptimizations,
-  Particle Core, Dynamic FPS, and FastQuit. Distant Horizons and Bobby are
-  required clients with bounded, generation-disabled safety settings.
-  LambDynamicLights 4.8.10 is client-only and uses managed fancy/culling/
-  adaptive settings; Underworld registers low-luminance white dead and red
-  banished silhouettes without any custom post-processing, fog, or aura pass.
+## Reliability And Scale Baseline
+
+- Canonical History JSONL writes and rebuildable monthly Chronicle indexes
+  retain failed targets for retry. Blocking flushes surface unresolved IO
+  failure. Weekly Chronicle archives run on the compute queue so they cannot
+  deadlock the single IO worker while awaiting index writes.
+- Player-facing Chronicle/archive/website reads use bounded indexes and
+  deliberate `recordChronicle` promotion. Routine dialogue, relationship,
+  banking, trade, and diagnostic events remain excluded as spam.
+- NPC story state and relationships are bounded and NPC-owned. Quest marker
+  projection crosses the addon boundary only through `ElarionNpcApi`; Quests
+  does not import NPC entities, payloads, or networking internals.
+- Shared JSON state quarantines malformed input and propagates save failures.
+  Runtime maintenance uses bounded queues/caches instead of global per-tick
+  scans in ordinary gameplay paths.
+- Website projections are read models only. Mojang/Microsoft credentials are
+  never transferred to the website; launcher passage and website-session
+  contracts are documented in `docs/systems/MinecraftBridge.md`.
 
 ## Verification Snapshot
 
-- Post-review persistence, request-budget, runtime-queue, and resource-pack
-  hardening is reflected in the current source and focused tests.
-- The 2026-08-06 headless GameTest gateway passes with all loaded addons. It
-  validates parseable generated Guildmaster dialogue defaults, explicit
-  Chronicle intent, and all six managed worlds before exercising command and
-  authority contracts. Phase 14's broader startup/shutdown, restart,
-  onboarding, teleport, rejection, and title-resync evidence remains indexed;
-  concurrent client observation is limited by host `glfw.dll` crashes.
-- The canonical distribution manifest validated; the official-CDN export
-  resolved and passed SHA-512 verification. Current generated roots contain 62
-  client jars, 12 `config/` files, one managed Bobby cache sentinel, and two
-  resource packs; the server contains 46 jars plus three managed config files.
-  `syncDevRuntimeMods` produced 41-jar standard clients, a 43-jar admin Client
-  One, and a 25-jar development server.
-- Excalibured CIT is release-clean: `verifyExcaliburedCit` validates 267 active
-  definitions, and a fresh ordinary-player resource load had zero CIT errors.
-- The 2026-08-06 full Java 21 gateway rebuilt all modules and produced 332
-  JUnit result files with no failures or errors. `verifyAiContext` passed all
-  18 cases; `verifyExcaliburedCit` remains clean with 267 active definitions.
-  Detailed historical slice evidence belongs in the indexed reports and Git,
-  not in this bounded handoff.
-- Current History persistence hardening passes the focused `HistoryStorageTest`
-  and `HistoryIndexStorageTest` suites on Java 21. The 2026-08-06 Java 21
-  full build then passed with 215 actionable tasks (113 executed), so the
-  current Core slices have a fresh cross-module baseline.
-- Bobby's fresh-install cache-root error and Sodium Extra's Reese's Sodium
-  Options recommendation remain corrected in source.
-- Performance validation passed the two-hour soak, managed-world travel,
-  restart/reconnect, clean shutdown, and optimized-server A/B. Known remaining
-  startup messages are classified pinned-upstream noise.
+- 2026-08-06 Java 21 full build: PASS, 215 actionable tasks, 57 executed and
+  158 up-to-date.
+- AI context routing: PASS, 18/18 benchmark cases with no failures.
+- Quest/NPC ownership audit: no Quest imports of `ElarionNpcEntity`,
+  `NpcQuestMarkerSyncPayload`, or Fabric server networking.
+- Git worktree: clean at verified head `e9ff1eda792cf607ecde83fa26361482ef88196c`;
+  the same head was confirmed on `origin/master`.
+- Excalibured CIT, distribution hashes, GameTest gateway, restart/persistence,
+  managed-world travel, dedicated startup, and performance soak evidence have
+  passed their latest recorded gates. Re-run the narrowest applicable check
+  whenever the corresponding behavior changes.
 
-- Phase 10-13 focused suites and full cross-module builds passed; their detailed
-  evidence remains in the indexed completion reports.
-- Run focused module verification first. Use the full build only for
-  cross-module changes or final handoff.
+## Active Work And Risks
 
-## Active Work
-
-- Angling is active but public fishing is release-gated off pending rendering,
-  behavior parity, and restart GameTests. Details: `docs/addons/angling.md`.
-- The authorized local reference may be ported only into Elarion paths; its raw
-  checkout remains excluded. Runtime authority and reload snapshots stay bounded.
-
-## Known Risks
-
-- Custom faction metadata beyond stable id/title-case display remains future
-  work; Worldheart, Underworld, and Realm factions are available now.
-- Grave/Underworld edge-flow QA remains post-revamp hardening work.
-- Portal responsibilities are extracted behind the stable facade; add further
-  splits only when an ownership boundary is evidenced.
-- Phase 14's former export evidence predates the manifest-owned performance
-  distribution. Its dedicated startup, restart, DH/Bobby travel, A/B, and
-  two-hour soak gates are now refreshed; the former eleven legacy
-  Excalibured/Polytone colormap-target errors are resolved.
-- Distant Horizons 3.2.0-b is a required beta artifact. Its generation and
-  updater paths are disabled, its former 2.3.0-b OpenGL fault is absent, and
-  Java 21 Generational ZGC is enforced for clients. “100% stability” remains a
-  release-gate target rather than a guarantee.
-- Concurrent dual-renderer observation is still limited by native `glfw.dll`
-  crashes on this host; each authority direction passed independently.
-- Two isolated remote staging releases created while detecting the original
-  plan-only ordering defect remain pending explicit owner-approved cleanup.
+- `WORLD-01` managed-world regeneration and the Angling public-release gate are
+  the current implementation items; exact requirements are in `TODO.md`.
+- Custom physical Chronicle libraries/books are future presentation consumers,
+  not implemented storage. Their design remains in `PLANS.md` and
+  `docs/systems/Chronicles.md`.
+- Grave/Underworld edge-flow QA remains a focused future verification slice.
+- Distant Horizons 3.2.0-b is a required beta artifact with generation/updater
+  paths disabled. Stability is a release target, not a guarantee.
+- Concurrent two-client rendering is limited by native `glfw.dll` crashes on
+  this host; each authority direction passed independently.
+- Two isolated remote staging releases remain pending explicit owner-approved
+  cleanup; neither changed live `mods`.
 
 ## Next Slice
 
-- Complete exact bobber/fish rendering, remaining catch/minigame behavior,
-  compatibility catch-tag membership, the Fabric loot-hook replacement, and
-  bait-debit kill/restart GameTests. Continue block/UI/tournament/
-  economy slices only while the public gameplay gate stays false.
-
-## Historical Recovery
-
-- Status history: `docs/ai/archive/CURRENT_STATUS_THROUGH_2026-07-11.md`.
-- Plan history: `docs/ai/archive/PLAN_THROUGH_2026-07-11.md`.
-- Previous TODO detail: `docs/ai/archive/TODO_THROUGH_2026-07-11.md`.
-- Use these only for an explicit historical investigation. Current source and
-  authoritative system docs override archived handoffs.
+Select the relevant domain through `docs/ai/routes.json`, read its current
+source/tests and authoritative docs, then execute one item from `TODO.md` as a
+small verified commit. Do not activate release gates or destructive operations
+without their stated approval.

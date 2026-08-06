@@ -201,8 +201,18 @@ in `docs/systems/Atlas.md`. Economy is not an Atlas dependency.
 
 - Keep one source-backed system/addon document per active domain. Put active
   implementation work in `TODO.md`, design direction in this file, and
-  historical audit/completion evidence in Git history or `docs/ai/archive/`;
-  do not create parallel TODOs, roadmap logs, or report-only contracts.
+  historical audit/completion evidence in Git history; do not create parallel
+  TODOs, roadmap logs, archive copies, or report-only contracts.
+
+### Deferred Engineering Improvements
+
+- Add stable Mount/Pet reward hooks only as an approved owner-specific slice;
+  Core owns reward dispatch while each addon owns its unlock state.
+- Add selection and arbitrary caret navigation to `ElarionTextInput` only when
+  a concrete shared-input consumer needs it.
+- Add new website projection adapters only for concrete player-facing pages.
+  Each adapter must be bounded, owner-authored, and unable to scan or duplicate
+  canonical domain state.
 
 ### Marketplace
 

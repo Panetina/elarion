@@ -152,5 +152,5 @@ and current source before using any example below.
   applicable.
 - Persistence changes have schema, migration, backup, rollback, and restart
   tests; otherwise state formats remain unchanged.
-- `PLAN.md`, `TODO.md`, `INDEX.md`, and `docs/ai/CURRENT_STATUS.md` describe the
-  completed slice and precise remaining work.
+- `TODO.md`, `PLANS.md`, `INDEX.md`, and `docs/ai/CURRENT_STATUS.md` reflect the
+  resulting status and precise remaining work without completion logs.

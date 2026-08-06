@@ -23,13 +23,10 @@ output/
 !INDEX.md
 !RULES.md
 !AGENTS.md
-!CODEX.md
 !README.md
 !TODO.md
-!PLAN.md
 !PLANS.md
 !LORE.md
-!OPTIMIZATION_TRACKER.md
 !docs/
 !docs/**/
 !docs/**/*.md
