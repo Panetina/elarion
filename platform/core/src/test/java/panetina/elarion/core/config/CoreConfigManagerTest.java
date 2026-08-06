@@ -55,6 +55,7 @@ final class CoreConfigManagerTest {
         assertTrue(config.historyChroniclePolicy().allows("realm", "leader-set"));
         assertTrue(!config.historyChroniclePolicy().allows("citizen", "realm-assigned"));
         assertEquals(8, config.publicHistoryDefaultWeeks());
+        assertEquals(52, config.publicHistoryMaxWeeks());
         assertEquals(50, config.publicHistoryDefaultLimit());
         assertEquals(200, config.publicHistoryMaxLimit());
         assertEquals("Elarion", config.serverIdentity().serverName());
@@ -97,12 +98,14 @@ final class CoreConfigManagerTest {
         config.load();
         Path history = tempDir.resolve("history.yml");
         String oldShape = Files.readString(history, StandardCharsets.UTF_8)
-                .replace("                      default-chronicle-type-enabled: true\n                      enabled-chronicle-types: []\n                      disabled-chronicle-types: []\n", "");
+                .replace("                      default-chronicle-type-enabled: true\n                      enabled-chronicle-types: []\n                      disabled-chronicle-types: []\n", "")
+                .replace("                      max-weeks: 52\n", "");
         Files.writeString(history, oldShape, StandardCharsets.UTF_8);
 
         config.load();
         assertTrue(config.historyChroniclePolicy().allows("realm", "leader-set"));
         assertTrue(Files.readString(history, StandardCharsets.UTF_8).contains("disabled-chronicle-types: []"));
+        assertTrue(Files.readString(history, StandardCharsets.UTF_8).contains("max-weeks: 52"));
 
         Files.writeString(history, Files.readString(history, StandardCharsets.UTF_8)
                 .replace("disabled-chronicle-types: []", "disabled-chronicle-types:\n    - \"realm:leader-set\""),

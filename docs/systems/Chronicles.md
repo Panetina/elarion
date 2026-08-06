@@ -29,6 +29,11 @@ Each monthly index has a compact `.summary.json` routing sidecar. Category,
 Realm, and player public filters use it to skip known-nonmatching monthly entry
 files; a missing or invalid sidecar falls back to the full index.
 
+`history.yml.public-query.max-weeks` hard-caps every public-history request at
+52 weeks (including addon API callers). The configured default is clamped to
+the same bound, so a caller cannot turn a player-facing archive request into an
+unbounded archive/index read.
+
 Dependencies: Core task service, config recording policy, addon event emissions.
 
 Related systems: Newspapers, Ledger, NPC rumors, Offerings, Government, Economy.

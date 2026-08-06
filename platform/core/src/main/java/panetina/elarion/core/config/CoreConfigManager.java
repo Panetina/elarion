@@ -147,6 +147,7 @@ public final class CoreConfigManager {
     private HistoryChroniclePolicy historyChroniclePolicy = new HistoryChroniclePolicy(
             CoreConfigHistorySupport.DEFAULT_CHRONICLE_CATEGORIES, true, Set.of(), Set.of());
     private int publicHistoryDefaultWeeks = 8;
+    private int publicHistoryMaxWeeks = 52;
     private int publicHistoryDefaultLimit = 50;
     private int publicHistoryMaxLimit = 200;
     private int citizenInactivityDays = 14;
@@ -262,6 +263,7 @@ public final class CoreConfigManager {
         historyArchiveMaxCompletedWeeks = loadedHistory.archiveMaxCompletedWeeks();
         historyChroniclePolicy = loadedHistory.chroniclePolicy();
         publicHistoryDefaultWeeks = loadedHistory.publicDefaultWeeks();
+        publicHistoryMaxWeeks = loadedHistory.publicMaxWeeks();
         publicHistoryDefaultLimit = loadedHistory.publicDefaultLimit();
         publicHistoryMaxLimit = loadedHistory.publicMaxLimit();
         citizenInactivityDays = loadedCitizenInactivityDays;
@@ -309,6 +311,7 @@ public final class CoreConfigManager {
     public Set<String> historyChronicleCategories() { return historyChroniclePolicy.categories(); }
     public HistoryChroniclePolicy historyChroniclePolicy() { return historyChroniclePolicy; }
     public int publicHistoryDefaultWeeks() { return publicHistoryDefaultWeeks; }
+    public int publicHistoryMaxWeeks() { return publicHistoryMaxWeeks; }
     public int publicHistoryDefaultLimit() { return publicHistoryDefaultLimit; }
     public int publicHistoryMaxLimit() { return publicHistoryMaxLimit; }
     public int citizenInactivityDays() { return citizenInactivityDays; }

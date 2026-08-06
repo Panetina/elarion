@@ -283,7 +283,8 @@ public final class HistoryService {
         int limit = safeQuery.limit() <= 0
                 ? config.publicHistoryDefaultLimit()
                 : Math.min(safeQuery.limit(), config.publicHistoryMaxLimit());
-        int weeks = safeQuery.weeks() <= 0 ? config.publicHistoryDefaultWeeks() : safeQuery.weeks();
+        int weeks = boundedPublicHistoryWeeks(safeQuery.weeks(), config.publicHistoryDefaultWeeks(),
+                config.publicHistoryMaxWeeks());
         HistoryChroniclePolicy chroniclePolicy = config.historyChroniclePolicy();
         Set<String> categories = safeQuery.categories().isEmpty()
                 ? safeQuery.consumer() == PublicHistoryConsumer.CHRONICLE
@@ -340,6 +341,12 @@ public final class HistoryService {
     public boolean isChronicleEligible(HistoryEvent event) {
         return event != null && event.isChronicleIntentional()
                 && config.historyChroniclePolicy().allows(event.category(), event.type());
+    }
+
+    static int boundedPublicHistoryWeeks(int requestedWeeks, int defaultWeeks, int maxWeeks) {
+        int safeMax = Math.max(1, maxWeeks);
+        int requested = requestedWeeks <= 0 ? defaultWeeks : requestedWeeks;
+        return Math.max(1, Math.min(requested, safeMax));
     }
 
     private void recordCitizenChange(ElarionEventBus.CitizenChanged event) {

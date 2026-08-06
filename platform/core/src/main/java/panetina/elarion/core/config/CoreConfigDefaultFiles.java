@@ -509,6 +509,7 @@ final class CoreConfigDefaultFiles {
 
                     public-query:
                       default-weeks: 8
+                      max-weeks: 52
                       default-limit: 50
                       max-limit: 200
 

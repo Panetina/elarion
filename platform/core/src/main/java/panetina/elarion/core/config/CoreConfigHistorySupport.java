@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 final class CoreConfigHistorySupport {
+    private static final int MAX_PUBLIC_HISTORY_WEEKS = 52;
     static final Set<String> DEFAULT_CHRONICLE_CATEGORIES = Set.of(
             "realm", "realm-decision", "diplomacy", "leadership", "title",
             "reward", "world", "administration", "security");
@@ -51,13 +52,16 @@ final class CoreConfigHistorySupport {
                 stringSet(archive.get("disabled-chronicle-types")));
 
         Map<String, Object> publicQuery = map(history.get("public-query"));
-        int publicDefaultWeeks = Math.max(1, number(publicQuery.get("default-weeks"), 8).intValue());
+        int publicMaxWeeks = Math.max(1, Math.min(
+                number(publicQuery.get("max-weeks"), MAX_PUBLIC_HISTORY_WEEKS).intValue(), MAX_PUBLIC_HISTORY_WEEKS));
+        int publicDefaultWeeks = Math.max(1, Math.min(
+                number(publicQuery.get("default-weeks"), 8).intValue(), publicMaxWeeks));
         int publicMaxLimit = Math.max(1, Math.min(number(publicQuery.get("max-limit"), 200).intValue(), 1000));
         int publicDefaultLimit = Math.max(1, Math.min(
                 number(publicQuery.get("default-limit"), 50).intValue(), publicMaxLimit));
 
         return new Settings(policy, queryMaxMonths, commandLimitMax, archiveEnabled,
-                archiveMaxCompletedWeeks, chroniclePolicy, publicDefaultWeeks,
+                archiveMaxCompletedWeeks, chroniclePolicy, publicDefaultWeeks, publicMaxWeeks,
                 publicDefaultLimit, publicMaxLimit);
     }
 
@@ -104,6 +108,7 @@ final class CoreConfigHistorySupport {
 
                     public-query:
                       default-weeks: 8
+                      max-weeks: 52
                       default-limit: 50
                       max-limit: 200
                     """);
@@ -128,7 +133,13 @@ final class CoreConfigHistorySupport {
             String migrated = content.replaceFirst("(?m)^public-query:", chronicleTypeDefaults + "public-query:");
             if (!migrated.equals(content)) {
                 Files.writeString(path, migrated, StandardCharsets.UTF_8);
+                content = migrated;
             }
+        }
+        if (content.lines().anyMatch(line -> line.trim().equals("public-query:"))
+                && content.lines().noneMatch(line -> line.trim().startsWith("max-weeks:"))) {
+            String migrated = content.replaceFirst("(?m)^(\\s*default-weeks:\\s*.*)$", "$1\n                      max-weeks: 52");
+            if (!migrated.equals(content)) Files.writeString(path, migrated, StandardCharsets.UTF_8);
         }
     }
 
@@ -176,8 +187,9 @@ final class CoreConfigHistorySupport {
 
         Map<String, Object> publicQuery = requiredMap("history.yml.public-query", history.get("public-query"), errors);
         checkKeys("history.yml.public-query", publicQuery,
-                Set.of("default-weeks", "default-limit", "max-limit"), errors);
+                Set.of("default-weeks", "max-weeks", "default-limit", "max-limit"), errors);
         requireNumber("history.yml.public-query.default-weeks", publicQuery.get("default-weeks"), errors);
+        requireNumber("history.yml.public-query.max-weeks", publicQuery.get("max-weeks"), errors);
         requireNumber("history.yml.public-query.default-limit", publicQuery.get("default-limit"), errors);
         requireNumber("history.yml.public-query.max-limit", publicQuery.get("max-limit"), errors);
     }
@@ -249,6 +261,7 @@ final class CoreConfigHistorySupport {
             int archiveMaxCompletedWeeks,
             HistoryChroniclePolicy chroniclePolicy,
             int publicDefaultWeeks,
+            int publicMaxWeeks,
             int publicDefaultLimit,
             int publicMaxLimit
     ) {

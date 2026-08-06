@@ -684,6 +684,7 @@ Public-memory feed bounds are configured separately from OP command bounds:
 ```yaml
 public-query:
   default-weeks: 8
+  max-weeks: 52
   default-limit: 50
   max-limit: 200
 ```
