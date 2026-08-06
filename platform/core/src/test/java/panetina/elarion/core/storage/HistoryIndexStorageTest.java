@@ -121,6 +121,30 @@ final class HistoryIndexStorageTest {
         assertEquals(event.id(), storage.loadRecentMonths(blockedIndex, 1).getFirst().entries().getFirst().eventId());
     }
 
+    @Test
+    void corruptExistingIndexIsNotOverwrittenByNewProjectionEntries() throws Exception {
+        HistoryIndexStorage storage = new HistoryIndexStorage(LoggerFactory.getLogger("history-index-test"));
+        HistoryEvent original = eventAt("realm", "original", null, "realm",
+                "oak", "oak", "2026-06-10T12:00:00Z");
+        HistoryEvent pending = eventAt("realm", "pending", null, "realm",
+                "oak", "oak", "2026-06-11T12:00:00Z");
+        storage.append(tempDir, original);
+        storage.flushBlocking();
+
+        Path index = tempDir.resolve("2026-06.json");
+        String intactIndex = Files.readString(index);
+        Files.writeString(index, "{ invalid json");
+        storage.append(tempDir, pending);
+
+        assertThrows(IllegalStateException.class, storage::flushBlocking);
+        assertEquals("{ invalid json", Files.readString(index));
+
+        Files.writeString(index, intactIndex);
+        storage.flushBlocking();
+
+        assertEquals(2, storage.loadRecentMonths(tempDir, 1).getFirst().totalEvents());
+    }
+
     private static HistoryEvent eventAt(
             String category,
             String type,

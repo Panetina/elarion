@@ -65,6 +65,10 @@ the filesystem supports it. A failed index write therefore leaves the previous
 parseable projection intact; failed projection entries remain queued for retry,
 and a blocking flush fails explicitly. The JSONL audit log remains canonical
 regardless.
+If an existing monthly index is unreadable, a projection write fails closed and
+retains its pending entries instead of replacing the corrupt file with an
+incomplete new snapshot. This preserves the raw audit log and the damaged
+projection for repair rather than silently losing prior public references.
 
 It intentionally does not copy full event metadata. Full detail remains in the
 raw JSONL history files.

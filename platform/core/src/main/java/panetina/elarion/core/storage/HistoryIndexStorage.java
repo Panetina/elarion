@@ -255,7 +255,7 @@ public final class HistoryIndexStorage {
             for (Map.Entry<Path, List<HistoryIndexEntry>> entry : batch.entrySet()) {
                 try {
                     Files.createDirectories(entry.getKey().getParent());
-                    StoredMonthIndex stored = readStoredIndex(entry.getKey());
+                    StoredMonthIndex stored = readStoredIndexForWrite(entry.getKey());
                     merge(stored, monthName(entry.getKey()), entry.getValue());
                     JsonStateStorage.writeAtomicChecked(entry.getKey(), GSON, stored, "history monthly index");
                     JsonStateStorage.writeAtomicChecked(summaryPath(entry.getKey()), GSON, summary(stored),
@@ -308,6 +308,22 @@ public final class HistoryIndexStorage {
         } catch (IOException | RuntimeException exception) {
             logger.error("Failed to read Elarion history index {}", path, exception);
             return new StoredMonthIndex(monthName(path));
+        }
+    }
+
+    /**
+     * Projection writes must fail closed: replacing an unreadable existing
+     * month with only the new entries would silently lose prior references.
+     */
+    private StoredMonthIndex readStoredIndexForWrite(Path path) throws IOException {
+        if (Files.notExists(path)) return new StoredMonthIndex(monthName(path));
+        try {
+            String content = Files.readString(path, StandardCharsets.UTF_8);
+            StoredMonthIndex stored = GSON.fromJson(content, StoredMonthIndex.class);
+            if (stored == null) throw new IOException("History index contains no state: " + path);
+            return stored.normalized(monthName(path));
+        } catch (RuntimeException exception) {
+            throw new IOException("Failed to parse Elarion history index " + path, exception);
         }
     }
 
