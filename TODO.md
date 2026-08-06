@@ -3,57 +3,28 @@
 Active incomplete work only. Detailed superseded lists are archived at
 `docs/ai/archive/TODO_THROUGH_2026-07-11.md`.
 
-## Current Slice
+## Current Implementation Work
 
-### First Execution Roadmap
+### `WORLD-01` Managed World Regeneration
 
-1. `WORLD-01` Managed world regeneration: complete `/e reset world <world>` in a
-   separate run. Reuse managed-world validation and suggestions, require an
-   executor-bound preview/confirmation, stream a complete world backup,
-   evacuate and unload the selected world, recreate it from its configured seed
-   and current world-generation stack, validate it, and restore on failure.
-   Regeneration deliberately removes everything physically inside that world.
-`ADM-01` and `WORLD-01` must remain separate implementation slices. The player
-reset may not contain dimension deletion or regeneration logic.
+Complete `/e reset world <world>` as a separate destructive-command slice.
+It needs executor-bound preview/confirmation, a complete streamed backup,
+selected-world evacuation/unload/recreation from its existing definition,
+validation, and failure restoration. `ADM-01` player reset must not contain
+dimension deletion or regeneration.
 
-- Complete Angling's Fabric registries for custom items, bucketable fish,
-  blocks, block entities, entities, recipes, screen handlers, and particle
-  rendering consumers. The 198 registered items include all 15 component-safe
-  rods, the basic/native roster, 48
-  bucketable fish items, the caught-fish water bucket, generic persistent fish
-  entity, fishing-bob entity shell, all sound events, all three particle
-  types/factories, and all 12 durable components are done. The fish renderer's
-  55 model mappings remain gated, so the bucketable entity slice is not yet
-  player-ready.
-- Complete the remaining typed catch/minigame modifier behavior, compatibility
-  catch-tag lookup, and the bounded Fabric global-loot hook. Catch selection,
-  stable inline pool entries, treasure resolution, exact multi-stack outcome
-  persistence, and the implemented equipment modifiers are server-owned.
-- Integrate the deterministic server minigame session into the live Fabric
-  bobber entity and client screen. Typed start/state payloads, the owner/entity/
-  session/replay/rate input gate, live bobber/index/selection/commit runtime,
-  the native/equipment modifier behaviors implemented so far, all nine compiled sweetspot behaviors, holding,
-  layers, seeded placement, terminal idempotency, and the four-state/80-tick
-  bobber timing core are implemented and tested. The receiver resolves only a
-  same-world, same-owner bobber host. The authoritative client screen
-  foundation now renders server snapshots and emits only input edges. The
-  explicit public gameplay gate remains false until exact entity/fish
-  rendering and remaining modifiers pass. Clients send sequenced hit, layer-selection, and
-  abandon edges but never duration, hits, perfect, treasure, or success.
-- Add completed-event retention summaries, cursor-based offline title
-  reconciliation, and web projections. Versioned `MetricUpdatedEvent`,
-  metric-indexed title conditions, online lazy reconciliation, append-first
-  persistence, atomic restart restoration, bounded workers, diagnostics, and
-  the read-only/submit Core API are complete and bound.
-- Continue semantic screen/rendering/config/tournament/Delight ledgers with
-  their implementation slices. Do not enable catch selection before its full
-  native registry and server-authority dependencies validate together.
-- Add live kill/restart GameTests for the append-first bait debit projection,
-  player-file cursor reconciliation, and completed-action replay. The current
-  mock-player GameTest covers atomic rod debit, cursor advancement, exact retry,
-  and missing bait.
-- Use the owner-authorized local reference as the direct port source; do not
-  create a duplicate placeholder roster or schedule a replacement-art phase.
+### Angling Fabric Release Gate
+
+Keep public fishing disabled until all remaining parity evidence is complete:
+
+- exact fish and bobber renderer/model mappings;
+- remaining typed catch/minigame behavior, compatibility catch tags, and the
+  bounded Fabric loot-hook replacement;
+- live kill/restart GameTests for bait debit, title reconciliation, and action
+  replay.
+
+The owner-authorized local reference remains the direct port source. Do not
+replace its roster/assets with placeholders or enable partial public gameplay.
 
 ## High Priority Backlog
 
