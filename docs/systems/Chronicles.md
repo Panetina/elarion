@@ -25,6 +25,10 @@ GUI/screens: future Chronicle bookshelf, newspaper, Ledger, NPC rumor, and searc
 
 Storage/persistence: `world/elarion/history`, `history-index`, `chronicles/weekly`.
 
+Weekly archive generation runs on the Core IO queue and filters each loaded
+monthly index to the requested week and Chronicle policy before materializing
+archive rows. It does not create an unfiltered all-month intermediate list.
+
 Canonical JSONL history writes retain any failed monthly target in the pending
 queue ahead of newer events and make a blocking flush fail explicitly. A failed
 target is retried later; targets already confirmed in that batch are not

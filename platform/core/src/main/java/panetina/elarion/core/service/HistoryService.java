@@ -250,9 +250,7 @@ public final class HistoryService {
         if (server == null || !config.historyArchiveEnabled()) return List.of();
         int weeks = config.historyArchiveMaxCompletedWeeks();
         int indexMonths = Math.max(config.historyQueryMaxMonths(), weeks / 4 + 2);
-        List<HistoryIndexEntry> entries = indexes.loadRecentMonths(server, indexMonths).stream()
-                .flatMap(month -> month.entries().stream())
-                .toList();
+        List<HistoryMonthIndex> sourceMonths = indexes.loadRecentMonths(server, indexMonths);
         ZoneId zone = ZoneId.systemDefault();
         LocalDate currentWeekStart = LocalDate.now(zone)
                 .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -261,7 +259,7 @@ public final class HistoryService {
         for (int offset = 1; offset <= weeks; offset++) {
             LocalDate weekStart = currentWeekStart.minusWeeks(offset);
             LocalDate weekEnd = weekStart.plusWeeks(1);
-            ChronicleArchive archive = buildArchive(entries, weekStart, weekEnd, zone, chroniclePolicy);
+            ChronicleArchive archive = buildArchive(sourceMonths, weekStart, weekEnd, zone, chroniclePolicy);
             if (archive.entries().isEmpty()) continue;
             archives.saveIfAbsent(server, archive).ifPresent(generated::add);
         }
@@ -380,8 +378,8 @@ public final class HistoryService {
         return value == null ? "event" : value.trim().toLowerCase(Locale.ROOT).replace('_', '-');
     }
 
-    private static ChronicleArchive buildArchive(
-            List<HistoryIndexEntry> source,
+    static ChronicleArchive buildArchive(
+            List<HistoryMonthIndex> sourceMonths,
             LocalDate weekStart,
             LocalDate weekEnd,
             ZoneId zone,
@@ -389,7 +387,8 @@ public final class HistoryService {
     ) {
         long start = weekStart.atStartOfDay(zone).toInstant().toEpochMilli();
         long end = weekEnd.atStartOfDay(zone).toInstant().toEpochMilli();
-        List<ChronicleEntry> entries = source.stream()
+        List<ChronicleEntry> entries = sourceMonths.stream()
+                .flatMap(month -> month.entries().stream())
                 .filter(entry -> entry.timestamp() >= start && entry.timestamp() < end)
                 .filter(entry -> isChronicleEligible(entry.metadata(), entry.category(), entry.type(), chroniclePolicy))
                 .sorted(Comparator.comparingLong(HistoryIndexEntry::timestamp).reversed())
