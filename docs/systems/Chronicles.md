@@ -28,6 +28,8 @@ Storage/persistence: `world/elarion/history`, `history-index`, `chronicles/weekl
 Weekly archive generation runs on the Core IO queue and filters each loaded
 monthly index to the requested week and Chronicle policy before materializing
 archive rows. It does not create an unfiltered all-month intermediate list.
+Completed immutable weeks are checked by filename before their archive rows are
+rebuilt, so the periodic task does not repeat work for an existing volume.
 
 Canonical JSONL history writes retain any failed monthly target in the pending
 queue ahead of newer events and make a blocking flush fail explicitly. A failed

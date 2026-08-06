@@ -89,7 +89,8 @@ world/elarion/chronicles/weekly/<yyyy-MM-dd>.json
 ```
 
 The filename is the week start date. Existing archive files are not overwritten.
-If a week was already archived, later generation attempts leave it unchanged.
+If a week was already archived, later generation attempts skip rebuilding it and
+leave it unchanged.
 Archive writes use a temporary file and atomic move where the filesystem
 supports it.
 

@@ -259,6 +259,7 @@ public final class HistoryService {
         for (int offset = 1; offset <= weeks; offset++) {
             LocalDate weekStart = currentWeekStart.minusWeeks(offset);
             LocalDate weekEnd = weekStart.plusWeeks(1);
+            if (archives.exists(server, weekStart.toString())) continue;
             ChronicleArchive archive = buildArchive(sourceMonths, weekStart, weekEnd, zone, chroniclePolicy);
             if (archive.entries().isEmpty()) continue;
             archives.saveIfAbsent(server, archive).ifPresent(generated::add);

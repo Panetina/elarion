@@ -31,6 +31,16 @@ final class ChronicleArchiveStorageTest {
         assertEquals("first", loaded.entries().getFirst().text());
     }
 
+    @Test
+    void existenceCheckSkipsOnlyTheMatchingCompletedWeek() {
+        ChronicleArchiveStorage storage =
+                new ChronicleArchiveStorage(LoggerFactory.getLogger("chronicle-test"));
+        storage.saveIfAbsent(tempDir, archive("first"));
+
+        org.junit.jupiter.api.Assertions.assertTrue(storage.exists(tempDir, "2026-06-01"));
+        org.junit.jupiter.api.Assertions.assertFalse(storage.exists(tempDir, "2026-06-08"));
+    }
+
     private static ChronicleArchive archive(String text) {
         ChronicleEntry entry = new ChronicleEntry(
                 UUID.randomUUID(),

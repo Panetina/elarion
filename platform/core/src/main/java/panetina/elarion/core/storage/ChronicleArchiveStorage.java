@@ -32,6 +32,16 @@ public final class ChronicleArchiveStorage {
         return saveIfAbsent(archiveDir(server), archive);
     }
 
+    /** Cheap existence check used to skip rebuilding immutable completed weeks. */
+    public boolean exists(MinecraftServer server, String weekStart) {
+        return exists(archiveDir(server), weekStart);
+    }
+
+    /** Cheap existence check used to skip rebuilding immutable completed weeks. */
+    public boolean exists(Path directory, String weekStart) {
+        return Files.isRegularFile(archivePath(directory, weekStart));
+    }
+
     public Optional<ChronicleArchive> saveIfAbsent(Path directory, ChronicleArchive archive) {
         long started = System.nanoTime();
         Path path = archivePath(directory, archive.weekStart());
