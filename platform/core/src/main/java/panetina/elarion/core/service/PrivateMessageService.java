@@ -54,13 +54,7 @@ public final class PrivateMessageService {
 
         String senderRealmId = citizens.getOrCreate(sender).realmId();
         String recipientRealmId = citizens.getOrCreate(recipient).realmId();
-        RealmDefinition recipientRealm = realms.forCitizen(citizens.getOrCreate(recipient)).orElse(null);
-        boolean sameRealm = !senderRealmId.isBlank() && senderRealmId.equals(recipientRealmId);
-        boolean recipientIsGlobal = recipientRealm != null && recipientRealm.visibilityScope() == VisibilityScope.GLOBAL;
-        RealmRelationship relationship = governance.relationship(senderRealmId, recipientRealmId);
-        boolean relationshipAllowsForeignMessage =
-                relationship == RealmRelationship.ALLY || relationship == RealmRelationship.NEUTRAL;
-        if (!sameRealm && (!recipientIsGlobal || !relationshipAllowsForeignMessage)) {
+        if (!canMessage(sender, recipient)) {
             sender.sendMessage(Text.literal(
                     "You may only message Embers in your " + serverIdentity.realmSingular()
                             + " or reachable members of a GLOBAL " + serverIdentity.realmSingular() + ".")
@@ -84,6 +78,19 @@ public final class PrivateMessageService {
                         "recipientRealm", recipientRealmId
                 ));
         return true;
+    }
+
+    public boolean canMessage(ServerPlayerEntity sender, ServerPlayerEntity recipient) {
+        if (sender == null || recipient == null || sender.getUuid().equals(recipient.getUuid())) return false;
+        if (restrictions.isRestricted(sender, PlayerRestrictionService.PRIVATE_MESSAGE)
+                || restrictions.isRestricted(recipient, PlayerRestrictionService.PRIVATE_MESSAGE)) return false;
+        String senderRealmId = citizens.getOrCreate(sender).realmId();
+        String recipientRealmId = citizens.getOrCreate(recipient).realmId();
+        if (!senderRealmId.isBlank() && senderRealmId.equals(recipientRealmId)) return true;
+        RealmDefinition recipientRealm = realms.forCitizen(citizens.getOrCreate(recipient)).orElse(null);
+        RealmRelationship relationship = governance.relationship(senderRealmId, recipientRealmId);
+        return recipientRealm != null && recipientRealm.visibilityScope() == VisibilityScope.GLOBAL
+                && (relationship == RealmRelationship.ALLY || relationship == RealmRelationship.NEUTRAL);
     }
 
     public boolean reply(ServerPlayerEntity sender, String message) {

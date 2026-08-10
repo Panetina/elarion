@@ -55,8 +55,8 @@ Use grouped facades from `ElarionApi` for new work:
 UI theme, server identity, Realm definition, title/title-progression
 definition, reward definition, citizen/activity, chat, identity/nickname, and
 history descriptors backed by the current validated `CoreConfigManager`
-snapshot; `groups`, backed by the
-current validated Groups config snapshot; `economy`, backed by the current
+snapshot; `guilds`, backed by the
+current validated Guilds config snapshot; `economy`, backed by the current
 validated Economy transaction config and service-price snapshots; and `worlds`,
 backed by the current validated Worlds manager snapshot; and `portals`, backed
 by current Portal route and UI definition snapshots; and `offerings`, backed
@@ -148,7 +148,7 @@ visibility rules.
 
 `CitizenProfileSummaryFields` is the canonical Core contract for stable
 Character Menu summary source and field identifiers. Current reserved summary
-sources include `progression`, `offerings`, `quests`, `npcs`, `groups`,
+sources include `progression`, `offerings`, `quests`, `npcs`, `guilds`,
 `government`, `underworld`, `portals`, and `history`. Future addon
 contributors must use those constants when filling the existing Ledger summary
 slots, and must not invent parallel IDs for completed quests, Offering score,
@@ -306,6 +306,10 @@ profile cache; registered Core/addon handlers remove only their player-owned
 records below `world/elarion`. Shared runtime/configuration state is never
 removed by scanning or deleting the entire Elarion tree.
 
+The completed backup has an atomic `manifest.json` containing only
+backup-relative handler targets. It is an operator recovery inventory, not an
+automatic restore mechanism.
+
 The Config tab shows read-only config descriptor rows from
 `ElarionApi.system().configs()`. It shows domain summary rows, per-category
 detail rows, and stable per-entry rows for OP discovery. The tab is scoped for
@@ -396,7 +400,7 @@ Government owns the office-to-title restore pointer in Government runtime state.
 | Core rewards | Personal/Reward | claimable Realm grants and Offering rewards |
 | Core Realm delivery | Realm | admin mail and Realm announcements |
 | Titles | Personal and World | all grants/revokes are Personal; constrained title grants are also World announcements |
-| Groups | Personal | invitation, acceptance, kick, leadership transfer, deletion |
+| Guilds | Personal | invitation, acceptance, kick, leadership transfer, deletion |
 | Government | Realm/Government | proposal/vote windows, runoffs, results, office changes |
 | Realm governance | Realm/Government | relationship decisions with Approve/Reject and final results |
 | Offerings | Realm or World | configured milestone notices and Shrine progression notices |

@@ -14,6 +14,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.core.api.ElarionAddon;
@@ -116,6 +117,15 @@ import panetina.elarion.core.network.ElarionConfigEditOpenPayload;
 import panetina.elarion.core.network.ElarionConfigEditRequestPayload;
 import panetina.elarion.core.network.ElarionConfigEditResultPayload;
 import panetina.elarion.core.network.LauncherPassageTicketPayload;
+import panetina.elarion.core.network.ChatChannelSendPayload;
+import panetina.elarion.core.network.ChatRecipientRequestPayload;
+import panetina.elarion.core.network.ChatRecipientSnapshotPayload;
+import panetina.elarion.core.network.ChatChannelAvailabilityPayload;
+import panetina.elarion.core.network.PlayerContextActionExecutePayload;
+import panetina.elarion.core.network.PlayerContextActionRequestPayload;
+import panetina.elarion.core.network.PlayerContextActionSnapshotPayload;
+import panetina.elarion.core.model.ElarionChatChannel;
+import panetina.elarion.core.service.ElarionChatChannelRouter;
 import panetina.elarion.core.service.ElarionAdminPanelService;
 import panetina.elarion.core.service.ElarionConfigApplyService;
 import panetina.elarion.core.service.WorldheartGovernanceService;
@@ -142,8 +152,11 @@ public final class ElarionCoreMod implements ModInitializer {
     public static final String MOD_ID = "elarion_core";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private static final String PROFILE_REQUEST_CHANNEL = "citizen-profile";
+    private static final String PLAYER_CONTEXT_REQUEST_CHANNEL = "player-context-actions";
     private static final int PROFILE_REQUESTS_PER_WINDOW = 4;
+    private static final int PLAYER_CONTEXT_REQUESTS_PER_WINDOW = 4;
     private static final long PROFILE_REQUEST_WINDOW_MILLIS = 1_000L;
+    private static final long PLAYER_CONTEXT_REQUEST_WINDOW_MILLIS = 1_000L;
 
     @Override
     public void onInitialize() {
@@ -154,6 +167,16 @@ public final class ElarionCoreMod implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(NotificationClaimPayload.ID, NotificationClaimPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NotificationDismissPayload.ID, NotificationDismissPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(NotificationActionPayload.ID, NotificationActionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ChatChannelSendPayload.ID, ChatChannelSendPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ChatChannelAvailabilityPayload.ID, ChatChannelAvailabilityPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ChatRecipientRequestPayload.ID, ChatRecipientRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ChatRecipientSnapshotPayload.ID, ChatRecipientSnapshotPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(
+                PlayerContextActionRequestPayload.ID, PlayerContextActionRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(
+                PlayerContextActionExecutePayload.ID, PlayerContextActionExecutePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                PlayerContextActionSnapshotPayload.ID, PlayerContextActionSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(
                 CharacterCreationRequirementPayload.ID, CharacterCreationRequirementPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(
@@ -290,7 +313,7 @@ public final class ElarionCoreMod implements ModInitializer {
             }
         });
         commands.registerAdminSubcommand(() -> PlayerResetCommandRegistrar.register(playerResetService));
-        commands.registerAdminSubcommand(() -> WorldResetCommandRegistrar.register(worldResetService, java.util.List::of));
+        commands.registerAdminSubcommand(() -> WorldResetCommandRegistrar.register(worldResetService, worldResets::worldIds));
         commands.registerHelpDescription("/e reset players", "Preview and confirm a complete player progression reset.");
         commands.registerHelpDescription("/e reset world <world>", "Regenerate a managed world and remove its world-scoped content.");
         commands.registerAdminSubcommand(() -> CharacterCommands.admin(characters));
@@ -365,6 +388,22 @@ public final class ElarionCoreMod implements ModInitializer {
                         notifications.act(context.player(), payload.notificationId(), payload.actionId());
                     }
                 }));
+        ServerPlayNetworking.registerGlobalReceiver(ChatChannelSendPayload.ID, (payload, context) ->
+                context.server().execute(() -> routeChatChannel(api, context.player(), payload)));
+        ServerPlayNetworking.registerGlobalReceiver(ChatRecipientRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> ServerPlayNetworking.send(context.player(), chatRecipients(api, context.player()))));
+        ServerPlayNetworking.registerGlobalReceiver(
+                PlayerContextActionRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    if (requestLimiter.allow(context.player().getUuid(), PLAYER_CONTEXT_REQUEST_CHANNEL,
+                            System.currentTimeMillis(), PLAYER_CONTEXT_REQUESTS_PER_WINDOW,
+                            PLAYER_CONTEXT_REQUEST_WINDOW_MILLIS)) {
+                        sendPlayerContextActions(api, context.player(), payload.targetId());
+                    }
+                }));
+        ServerPlayNetworking.registerGlobalReceiver(
+                PlayerContextActionExecutePayload.ID, (payload, context) ->
+                context.server().execute(() -> executePlayerContextAction(api, context.player(), payload.targetId(), payload.actionId())));
         ServerPlayNetworking.registerGlobalReceiver(CollectionOpenRequestPayload.ID, (payload, context) ->
                 context.server().execute(() -> collections.open(context.player())));
         ServerPlayNetworking.registerGlobalReceiver(CollectionActionPayload.ID, (payload, context) ->
@@ -462,6 +501,7 @@ public final class ElarionCoreMod implements ModInitializer {
             catchTelemetryWorker.activate(handler.getPlayer().getUuid());
             identitySync.syncAllNow(server);
             uiThemes.sync(handler.getPlayer());
+            ServerPlayNetworking.send(handler.getPlayer(), chatChannels(api, handler.getPlayer()));
             String launcherPassageTicket = launcherPassageTickets.issue(handler.getPlayer().getUuid());
             if (!launcherPassageTicket.isBlank()) {
                 ServerPlayNetworking.send(handler.getPlayer(), new LauncherPassageTicketPayload(
@@ -785,5 +825,65 @@ public final class ElarionCoreMod implements ModInitializer {
         } catch (IllegalArgumentException exception) {
             return ElarionNotificationService.ActionResult.failure("Invalid Realm decision.");
         }
+    }
+
+    private static void routeChatChannel(ElarionApi api, ServerPlayerEntity sender, ChatChannelSendPayload payload) {
+        if (payload.message().isBlank()) return;
+        if (!ElarionChatChannelRouter.available(api, sender).contains(payload.channel())) {
+            sender.sendMessage(Text.literal("That chat channel is unavailable."), false);
+            return;
+        }
+        switch (payload.channel()) {
+            case LOCAL -> api.chat().sendLocalMessage(sender, payload.message());
+            case REALM -> api.chat().sendRealmMessage(sender, payload.message());
+            case ALLIANCE -> api.chat().sendAllianceMessage(sender, payload.message());
+            case GUILD -> {
+                if (!ElarionChatChannelRouter.route(ElarionChatChannel.GUILD, sender, payload.message())) {
+                    sender.sendMessage(Text.literal("Guild chat is unavailable."), false);
+                }
+            }
+            case PRIVATE -> {
+                ServerPlayerEntity recipient = payload.recipientId() == null ? null
+                        : sender.getServer().getPlayerManager().getPlayer(payload.recipientId());
+                if (recipient == null) {
+                    sender.sendMessage(Text.literal("That private-message recipient is no longer online."), false);
+                } else {
+                    api.privateMessages().privateMessage(sender, recipient, payload.message());
+                }
+            }
+        }
+    }
+
+    private static void sendPlayerContextActions(ElarionApi api, ServerPlayerEntity actor, UUID targetId) {
+        ServerPlayerEntity target = actor.getServer().getPlayerManager().getPlayer(targetId);
+        if (target == null || target.getUuid().equals(actor.getUuid())) return;
+        var actions = api.registries().playerContextActions().available(actor, target).stream()
+                .map(action -> new PlayerContextActionSnapshotPayload.Entry(
+                        action.id(), action.label()))
+                .toList();
+        if (actions.isEmpty()) return;
+        ServerPlayNetworking.send(actor, new PlayerContextActionSnapshotPayload(
+                target.getUuid(), target.getGameProfile().getName(), actions));
+    }
+
+    private static void executePlayerContextAction(ElarionApi api, ServerPlayerEntity actor, UUID targetId, String actionId) {
+        ServerPlayerEntity target = actor.getServer().getPlayerManager().getPlayer(targetId);
+        if (target == null) return;
+        var result = api.registries().playerContextActions().execute(actionId, actor, target);
+        if (!result.success()) actor.sendMessage(Text.literal(result.message()), false);
+    }
+
+    private static ChatChannelAvailabilityPayload chatChannels(ElarionApi api, ServerPlayerEntity player) {
+        return new ChatChannelAvailabilityPayload(ElarionChatChannelRouter.available(api, player));
+    }
+
+    private static ChatRecipientSnapshotPayload chatRecipients(ElarionApi api, ServerPlayerEntity sender) {
+        return new ChatRecipientSnapshotPayload(sender.getServer().getPlayerManager().getPlayerList().stream()
+                .filter(candidate -> api.privateMessages().canMessage(sender, candidate))
+                .map(candidate -> new ChatRecipientSnapshotPayload.Entry(candidate.getUuid(),
+                        api.identities().resolve(candidate).displayName().getString()))
+                .sorted(java.util.Comparator.comparing(ChatRecipientSnapshotPayload.Entry::nickname,
+                        String.CASE_INSENSITIVE_ORDER))
+                .toList());
     }
 }

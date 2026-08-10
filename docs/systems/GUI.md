@@ -17,12 +17,21 @@ Network packets: `UiThemeSyncPayload`, `NotificationSnapshotPayload`,
 `NotificationActionPayload`, `CollectionOpenPayload`,
 `CollectionOpenRequestPayload`, `CollectionActionPayload`,
 `AdminPanelOpenPayload`, `AdminPanelOpenRequestPayload`,
-`AdminPanelActionPayload`; legacy reward-claim compatibility payloads and
+`AdminPanelActionPayload`, `PlayerContextActionRequestPayload`,
+`PlayerContextActionSnapshotPayload`, `PlayerContextActionExecutePayload`;
+legacy reward-claim compatibility payloads and
 addon-specific screen snapshots.
 
 GUI/screens: NPC dialogue, Shrine UI, Government UI, notification drawer,
 Collection menu, Atlas placeholder shell, and future shops/market/quests/full
 Atlas.
+
+Player context menu: holding the configured Sneak key and right-clicking a
+nearby player opens a small cursor-positioned menu only after Core receives a
+server-authored action snapshot. Core owns the bounded registry, target range
+check, snapshot and execution routing; addons contribute handlers and repeat
+their authorization during execution. The current Guild contribution is
+`Invite to Guild`. The menu closes on any key or after a click.
 
 Storage/persistence: `config/elarion/core/ui_theme.yml`.
 
@@ -275,6 +284,19 @@ surface plus a narrow category-colored accent, keeping the state visible
 without changing row height.
 Notification cards are ordered newest-first regardless of read state; unread
 cards use a small marker in addition to the category rail new-message icon.
+Rail unread markers are drawn after their category glyph at the icon's upper
+edge, so the glyph cannot cover the exclamation marker.
+
+Chat composer: the compact channel control above the `T` input lists only the
+server-projected channels the player may currently attempt to use. Selection
+persists for the connection. Tab/Shift+Tab cycles channels for ordinary text;
+slash-command completion remains vanilla. PM opens a bounded list of eligible
+nicknames but sends the selected stable UUID. All delivery, membership,
+restriction, distance, visibility, and rate checks remain server-owned.
+`Local` is always available; `Realm` requires a canonical Realm membership;
+`Guild` and `Alliance` appear only when their owning addon registers and
+authorizes a route. `Global` is intentionally absent until the Worldheart
+portal projection defines its availability.
 
 Nether/End route-state icons are Portal-owned HUD accessories, not notification
 categories. Each unlocked scheduled route receives a compact route-colored slot

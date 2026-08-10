@@ -12,7 +12,7 @@ import panetina.elarion.addons.economy.model.EconomyAccount;
 import panetina.elarion.addons.npcs.api.ElarionNpcApi;
 import panetina.elarion.addons.government.api.ElarionGovernmentApi;
 import panetina.elarion.addons.government.GovernmentBlocks;
-import panetina.elarion.addons.groups.api.ElarionGroupsApi;
+import panetina.elarion.addons.guilds.api.ElarionGuildsApi;
 import net.minecraft.registry.Registries;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.HistoryEvent;
@@ -94,8 +94,8 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "Expected public history search to include live indexed events");
 
         ElarionWorldsApi worlds = ElarionWorldsApi.get();
-        context.assertEquals(worlds.definitions().size(), 4,
-                "Expected the lobby and three default managed world definitions");
+        context.assertEquals(worlds.definitions().size(), 6,
+                "Expected lobby, three Realm worlds, Worldheart, and Underworld managed definitions");
         context.assertTrue(worlds.resolve("lobby") != null,
                 "lobby destination should resolve");
         context.assertTrue(worlds.resolve("realm_world_1") != null,
@@ -104,6 +104,10 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "realm_world_2 should be loaded");
         context.assertTrue(worlds.resolve("realm_world_3") != null,
                 "realm_world_3 should be loaded");
+        context.assertTrue(worlds.resolve("worldheart") != null,
+                "worldheart should be loaded");
+        context.assertTrue(worlds.resolve("underworld") != null,
+                "underworld should be loaded");
 
         var server = context.getWorld().getServer();
         var commands = new CommandGameTestSupport(context);
@@ -115,8 +119,8 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertRegistered("r");
         commands.assertRegistered("yell");
         commands.assertRegistered("help");
-        commands.assertRegistered("group");
-        commands.assertRegistered("gc");
+        commands.assertRemoved("guild");
+        commands.assertRemoved("gc");
         commands.assertRegistered("lc");
         commands.assertRegistered("banish");
         commands.assertRegistered("unbanish");
@@ -189,13 +193,13 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertFails("e portal endpoint set nether a_gate", 4);
         commands.assertFails("e portal guide missing_route", 4);
 
-        ElarionGroupsApi groups = ElarionGroupsApi.get();
-        context.assertTrue(groups.all() != null, "Groups API should be available");
-        commands.assertExecutes("e groups reload", 4);
-        commands.assertExecutes("e groups list", 4);
-        commands.assertFails("e groups list", 0);
-        commands.assertFails("e groups inspect missing_group", 4);
-        commands.assertFails("group info", 4);
+        ElarionGuildsApi guilds = ElarionGuildsApi.get();
+        context.assertTrue(guilds.all() != null, "Guilds API should be available");
+        commands.assertExecutes("e guild reload", 4);
+        commands.assertExecutes("e guild list", 4);
+        commands.assertFails("e guild list", 0);
+        commands.assertFails("e guild inspect missing_guild", 4);
+        commands.assertFails("guild info", 4);
         commands.assertFails("gc hello", 4);
         commands.assertFails("lc hello", 4);
 

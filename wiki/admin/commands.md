@@ -14,20 +14,18 @@ Implemented command surface for server owners and OP level 4 operators.
 /r <message>
 /w <message>
 /yell <message>
-/group create <id> <tag> <display-name...>
-/group invite <player>
-/group accept <group>
-/group kick <player>
-/group leave
-/group transfer <player>
-/group info [group]
-/gc <message>
 /lc <message>
 ```
 
 The Character Menu opens from the default `C` keybind. `/charactermenu` remains
 a hidden client command for manual use, but it is not
 advertised in slash recommendations or `/help`.
+
+`G` requests the server-authoritative Guild screen. Guild creation remains
+available through the configured Guild Registrar NPC action. The Guild screen
+owns its typed invitation, role, announcement, and emblem requests; Guild chat
+uses the Core channel selector. Vanilla `/say` is unavailable so it cannot
+bypass Elarion chat restrictions.
 
 ## Core Admin Commands
 
@@ -54,7 +52,7 @@ advertised in slash recommendations or `/help`.
 /e history chronicle inspect <week> [limit]
 ```
 
-`/e panel` opens the in-game Admin Panel for OP level 4 players. It groups
+`/e panel` opens the in-game Admin Panel for OP level 4 players. It guilds
 player inspection/move/edit tools, system resets, Realm-scoped actions, and a
 click-confirmed runtime-only Danger Zone reset.
 
@@ -68,6 +66,12 @@ Realm/world definitions, configuration, and map infrastructure remain intact.
 Use the console or a fresh signed website/bridge access operation afterward to
 restore whitelist access; restore OPs from console. Historical bridge commands
 are not replayed by the reset.
+
+`/e reset world <world>` is separate and OP-only. It offers only server-known
+managed world IDs, requires executor-bound confirmation, backs up the Fantasy
+persistent dimension plus world-scoped addon state with `manifest.json`, and
+waits for the old runtime world to be deleted before opening the replacement.
+Definitions and configuration remain intact.
 
 ## Economy
 
@@ -223,14 +227,14 @@ for an offline player already present in the persisted banishment list.
 /e government office remove <realm> <office> <player>
 ```
 
-## Groups
+## Guilds
 
 ```text
-/e groups reload
-/e groups list
-/e groups inspect <group>
-/e groups delete <group>
-/e groups transfer <group> <player>
+/e guild reload
+/e guild list
+/e guild inspect <guild>
+/e guild delete <guild>
+/e guild transfer <guild> <player>
 ```
 
 ## NPCs

@@ -1,0 +1,270 @@
+package panetina.elarion.addons.guilds.client;
+
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Text;
+import org.lwjgl.glfw.GLFW;
+import panetina.elarion.addons.guilds.network.GuildRegistrarOpenPayload;
+import panetina.elarion.addons.guilds.network.GuildRegistrarSubmitPayload;
+import panetina.elarion.addons.guilds.network.GuildUiFeedbackPayload;
+import panetina.elarion.core.client.ui.ElarionCivicColors;
+import panetina.elarion.core.client.ui.ElarionCivicUi;
+import panetina.elarion.core.client.ui.ElarionScaledLayout;
+import panetina.elarion.core.client.ui.ElarionScreen;
+import panetina.elarion.core.client.ui.ElarionTextInput;
+import panetina.elarion.core.client.ui.ElarionUiIcons;
+import panetina.elarion.core.client.ui.ElarionUiRenderer;
+import panetina.elarion.core.client.ui.ElarionUiStyle;
+import panetina.elarion.core.client.ui.ElarionUiThemes;
+import panetina.elarion.core.client.ui.ElarionUiTypography;
+
+/** Guild-owned creation surface opened by an NPC Registrar action. */
+public final class GuildCreateScreen extends ElarionScreen {
+    private static final int LOGICAL_WIDTH = 520;
+    private static final int LOGICAL_HEIGHT = 330;
+    private static final int NAME_X = 32;
+    private static final int NAME_Y = 112;
+    private static final int FIELD_WIDTH = 294;
+    private static final int FIELD_HEIGHT = 24;
+    private static final int TAG_Y = 166;
+    private static final int CREATE_X = 326;
+    private static final int CREATE_Y = 266;
+    private static final int CREATE_WIDTH = 162;
+    private static final int CLOSE_X = 488;
+    private static final int CLOSE_Y = 14;
+    private static final int CLOSE_SIZE = 16;
+
+    private final GuildRegistrarOpenPayload terms;
+    private final ElarionTextInput name;
+    private final ElarionTextInput tag;
+    private ElarionScaledLayout layout;
+    private ElarionUiStyle style;
+    private boolean secret;
+    private boolean submitting;
+    private String feedback = "";
+    private boolean feedbackError;
+
+    public GuildCreateScreen(GuildRegistrarOpenPayload terms) {
+        super(Text.literal("Guild Registrar"));
+        this.terms = terms;
+        this.name = new ElarionTextInput(terms.maxNameLength(), false);
+        this.tag = new ElarionTextInput(terms.maxTagLength(), false);
+        this.name.focused(true);
+    }
+
+    @Override
+    protected void init() {
+        style = ElarionUiStyle.from(ElarionUiThemes.variant("default"));
+        layout = ElarionScaledLayout.fit(width, height, LOGICAL_WIDTH, LOGICAL_HEIGHT, 8, 70, 1.0F);
+    }
+
+    public void feedback(GuildUiFeedbackPayload update) {
+        feedback = update.message();
+        feedbackError = !update.successful();
+        submitting = false;
+    }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        context.fill(0, 0, width, height, style.backgroundOverlayColor());
+        double lx = layout.logicalX(mouseX);
+        double ly = layout.logicalY(mouseY);
+        context.getMatrices().push();
+        context.getMatrices().translate(layout.screenX(), layout.screenY(), 0.0F);
+        context.getMatrices().scale(layout.scale(), layout.scale(), 1.0F);
+
+        ElarionCivicUi.attachedShell(context, 0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT, 64);
+        ElarionCivicUi.headerOrnament(context, LOGICAL_WIDTH / 2 - 126, 24, true);
+        ElarionCivicUi.headerOrnament(context, LOGICAL_WIDTH / 2 + 126, 24, false);
+        ElarionUiTypography.drawCentered(context, textRenderer, "Guild Registrar", LOGICAL_WIDTH / 2,
+                15, style.titleColor(), true);
+        ElarionUiTypography.drawCentered(context, textRenderer,
+                "Create a charter for the people who will carry its name.",
+                LOGICAL_WIDTH / 2, 36, style.mutedColor(), false);
+        ElarionCivicUi.closeButton(context, CLOSE_X, CLOSE_Y, CLOSE_SIZE);
+
+        renderForm(context);
+        renderTerms(context);
+        renderFooter(context, lx, ly);
+        context.getMatrices().pop();
+    }
+
+    private void renderForm(DrawContext context) {
+        ElarionCivicUi.thinBox(context, 20, 78, 326, 172,
+                ElarionCivicColors.ROOT_SURFACE, ElarionCivicColors.GOLD_BORDER);
+        ElarionUiIcons.drawOrDefault(context, "guild", 32, 88, 16);
+
+        renderField(context, name, "Guild name", "The name players will see", NAME_X, NAME_Y, FIELD_WIDTH);
+        renderField(context, tag, "Guild tag", "Short public identity", NAME_X, TAG_Y, FIELD_WIDTH);
+
+        int toggleY = 218;
+        ElarionCivicUi.compactActionButton(context, textRenderer, NAME_X, toggleY, FIELD_WIDTH, 22,
+                secret ? "Secret Guild: enabled" : "Secret Guild: disabled",
+                false, false, terms.enabled(), secret ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.NORMAL,
+                style);
+    }
+
+    private void renderField(
+            DrawContext context, ElarionTextInput input, String label, String hint, int x, int y, int fieldWidth
+    ) {
+        ElarionUiTypography.draw(context, textRenderer, label, x, y - 13, style.textColor(), false);
+        ElarionUiTypography.drawRight(context, textRenderer,
+                input.length() + " / " + (input == tag ? terms.maxTagLength() : terms.maxNameLength()),
+                x + fieldWidth, y - 13, style.mutedColor(), false);
+        ElarionCivicUi.thinBox(context, x, y, fieldWidth, FIELD_HEIGHT,
+                ElarionCivicColors.MESSAGE_BODY,
+                input.focused() ? ElarionCivicColors.ACTIVE_GREEN : ElarionCivicColors.GOLD_SHADOW);
+        String value = input.text();
+        int color = style.textColor();
+        if (value.isBlank()) {
+            value = hint;
+            color = style.mutedColor();
+        }
+        String visible = ElarionUiRenderer.ellipsize(textRenderer, value, fieldWidth - 16);
+        ElarionUiTypography.draw(context, textRenderer, visible, x + 7, y + 8, color, false);
+        if (input.focused() && input.caretVisible()) {
+            int caretX = x + 7 + Math.min(fieldWidth - 16, ElarionUiTypography.width(textRenderer,
+                    ElarionUiRenderer.ellipsize(textRenderer, input.text(), fieldWidth - 16)));
+            context.fill(caretX, y + 6, caretX + 1, y + 18, style.titleColor());
+        }
+    }
+
+    private void renderTerms(DrawContext context) {
+        ElarionCivicUi.headerShell(context, 358, 78, 142, 172, 30);
+        ElarionUiTypography.drawCentered(context, textRenderer, "PRICE", 429, 89,
+                style.titleColor(), false);
+        ElarionUiRenderer.currencyIcon(context, 374, 122, 20);
+        ElarionUiTypography.draw(context, textRenderer, currency(terms.creationFee()), 402, 125,
+                style.titleColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, "Your inventory", 374, 163, style.mutedColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, currency(terms.inventorySigils()), 374, 178,
+                terms.affordable() ? style.feedbackColor() : style.errorColor(), false);
+        ElarionUiTypography.draw(context, textRenderer,
+                terms.affordable() ? "Sigils are paid on creation." : "Not enough Sigils in inventory.",
+                374, 205, terms.affordable() ? style.mutedColor() : style.errorColor(), false);
+        ElarionUiTypography.draw(context, textRenderer,
+                "Tag: " + terms.minTagLength() + "-" + terms.maxTagLength() + " characters",
+                374, 226, style.mutedColor(), false);
+    }
+
+    private void renderFooter(DrawContext context, double mouseX, double mouseY) {
+        if (!feedback.isBlank()) {
+            ElarionUiTypography.draw(context, textRenderer,
+                    ElarionUiRenderer.ellipsize(textRenderer, feedback, 288), 32, 275,
+                    feedbackError ? style.errorColor() : style.feedbackColor(), false);
+        } else {
+            ElarionUiTypography.draw(context, textRenderer,
+                    "Names and tags remain server-validated and unique.", 32, 275,
+                    style.mutedColor(), false);
+        }
+        boolean active = canSubmit();
+        ElarionCivicUi.compactActionButton(context, textRenderer, CREATE_X, CREATE_Y,
+                CREATE_WIDTH, 26, submitting ? "Registering..." : "Create Guild",
+                inside(mouseX, mouseY, CREATE_X, CREATE_Y, CREATE_WIDTH, 26), false, active,
+                active ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.MUTED, style);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button != 0) return false;
+        double lx = layout.logicalX(mouseX);
+        double ly = layout.logicalY(mouseY);
+        if (inside(lx, ly, CLOSE_X, CLOSE_Y, CLOSE_SIZE, CLOSE_SIZE)) {
+            close();
+            return true;
+        }
+        if (inside(lx, ly, NAME_X, NAME_Y, FIELD_WIDTH, FIELD_HEIGHT)) {
+            focus(name);
+            return true;
+        }
+        if (inside(lx, ly, NAME_X, TAG_Y, FIELD_WIDTH, FIELD_HEIGHT)) {
+            focus(tag);
+            return true;
+        }
+        if (inside(lx, ly, NAME_X, 218, FIELD_WIDTH, 22) && terms.enabled()) {
+            secret = !secret;
+            return true;
+        }
+        if (inside(lx, ly, CREATE_X, CREATE_Y, CREATE_WIDTH, 26) && canSubmit()) {
+            submit();
+            return true;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            close();
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_TAB) {
+            focus(name.focused() ? tag : name);
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
+            if (canSubmit()) submit();
+            return true;
+        }
+        ElarionTextInput input = focusedInput();
+        if (input == null) return true;
+        if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+            input.backspace();
+            feedback = "";
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_V && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0 && client != null) {
+            input.append(client.keyboard.getClipboard());
+            normalizeTagInput();
+            feedback = "";
+            return true;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean charTyped(char chr, int modifiers) {
+        ElarionTextInput input = focusedInput();
+        if (input == null || !input.type(chr)) return false;
+        normalizeTagInput();
+        feedback = "";
+        return true;
+    }
+
+    private void submit() {
+        submitting = true;
+        feedback = "Registering Guild...";
+        feedbackError = false;
+        ClientPlayNetworking.send(new GuildRegistrarSubmitPayload(name.text().trim(), tag.text().trim(), secret));
+    }
+
+    private boolean canSubmit() {
+        int tagLength = tag.text().trim().length();
+        return terms.enabled() && terms.affordable() && !submitting
+                && !name.text().trim().isBlank()
+                && tagLength >= terms.minTagLength() && tagLength <= terms.maxTagLength();
+    }
+
+    private void normalizeTagInput() {
+        if (tag.focused()) tag.text(tag.text().toUpperCase(java.util.Locale.ROOT));
+    }
+
+    private ElarionTextInput focusedInput() {
+        if (name.focused()) return name;
+        if (tag.focused()) return tag;
+        return null;
+    }
+
+    private void focus(ElarionTextInput selected) {
+        name.focused(selected == name);
+        tag.focused(selected == tag);
+    }
+
+    private String currency(long amount) {
+        return amount + " " + terms.currencyPlural();
+    }
+
+    private static boolean inside(double x, double y, int left, int top, int width, int height) {
+        return x >= left && x < left + width && y >= top && y < top + height;
+    }
+}

@@ -121,7 +121,7 @@ Preserves:
 - Shrine progress and Foundation flags
 - Portal routes and coordinates
 - NPC placements
-- Groups membership and identity
+- Guild membership and identity
 
 Government reset does not touch Portal routes, NPC placements, Shrine blocks,
 or Offering progress.

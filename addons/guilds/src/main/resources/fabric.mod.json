@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "elarion_guilds",
+  "version": "${version}",
+  "name": "Elarion Guilds",
+  "icon": "assets/elarion_guilds/icon.png",
+  "description": "Reusable public guild, tag, invite, and guild chat foundation for Elarion.",
+  "contact": {
+    "homepage": "https://ashesofelarion.com",
+    "discord": "https://discord.gg/bSEHtMhqKa"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/bSEHtMhqKa"
+      }
+    }
+  },
+  "authors": [
+    "Panyel"
+  ],
+  "license": "MIT",
+  "environment": "*",
+    "entrypoints": {
+      "elarion:addon": [
+        "panetina.elarion.addons.guilds.ElarionGuildsAddon"
+      ],
+      "client": [
+        "panetina.elarion.addons.guilds.client.ElarionGuildsClient"
+      ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "elarion_core": "*",
+    "elarion_economy": "*"
+  },
+  "contributors": [
+    "Panetina Team"
+  ]
+}
