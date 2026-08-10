@@ -63,4 +63,15 @@ class GuildRecordTest {
         assertEquals(100L, updated.memberJoinedAt().get(existing));
         assertEquals(200L, updated.memberJoinedAt().get(joined));
     }
+
+    @Test
+    void contributionAggregateIsGuildOwnedAndAttributedToTheMember() {
+        UUID leader = UUID.randomUUID();
+        GuildRecord guild = GuildRecord.create("merc", "Mercury Guild", "MERC", leader);
+
+        GuildRecord updated = guild.withContribution(leader, 75L).withContribution(leader, 25L);
+
+        assertEquals(100L, updated.progression().totalContributed());
+        assertEquals(100L, updated.progression().memberContributions().get(leader));
+    }
 }

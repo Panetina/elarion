@@ -67,7 +67,11 @@ world/elarion/addon-state/guilds/guilds.json
 
 Runtime state stores guilds, membership indexes, invites, role assignments,
 and member join timestamps. The join timestamp is server-owned and remains
-stable through future rank changes.
+stable through future rank changes. Guilds also stores only its bounded
+per-member contribution aggregate; Economy owns the actual physical-Sigil
+payment and transaction ledger. A contribution is paid from carried Sigils,
+never from a bank balance. Member admission is capped by the active configured
+progression tier.
 
 ## Commands
 
@@ -84,6 +88,9 @@ contains Overview, Members, News, Invites, Roles, and Emblem tabs.
 Client actions are requests: the server derives the player's Guild and checks
 the same service permission before leaving, inviting, assigning/creating a
 role, publishing an announcement, or redrawing the icon.
+Overview shows the current level, contribution total, next threshold, and
+member capacity. Every member can submit a positive carried-Sigil donation;
+the server charges it through Economy before updating Guild progression.
 
 NPC dialogue may use the registry action `elarion_guilds:open_registrar`.
 

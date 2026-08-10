@@ -203,6 +203,10 @@ public final class GuildService {
         requireEnabled();
         if (state.playerGuilds.containsKey(player.getUuid())) throw new IllegalArgumentException("You are already in a guild.");
         GuildRecord guild = requireGuild(guildId);
+        int capacity = config.progression().tierFor(guild.progression().totalContributed()).memberCapacity();
+        if (guild.members().size() >= capacity) {
+            throw new IllegalArgumentException("This guild has reached its member capacity of " + capacity + ".");
+        }
         GuildInvite invite = state.invites.get(guild.id() + ":" + player.getUuid());
         if (invite == null) throw new IllegalArgumentException("You do not have an invite to that guild.");
         if (invite.createdAt() + config.inviteLifetimeMillis() <= System.currentTimeMillis()) {
@@ -235,6 +239,32 @@ public final class GuildService {
                 player.getGameProfile().getName() + " declined the invitation to " + guild.displayName() + ".",
                 "guild-invite-declined:" + invite.key());
         return invite;
+    }
+
+    /** Member-accessible physical-Sigil contribution. Economy remains payment authority. */
+    public GuildRecord donate(ServerPlayerEntity player, long amount) {
+        GuildRecord guild = guildFor(player.getUuid())
+                .orElseThrow(() -> new IllegalArgumentException("You are not in a guild."));
+        if (amount < 1L || amount > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Donation amount is invalid.");
+        }
+        var payment = ElarionEconomyApi.get().payPhysicalOnly(
+                player, amount, "Guild contribution: " + guild.id(), "guilds");
+        if (!payment.successful()) throw new IllegalArgumentException(payment.message());
+        GuildRecord updated;
+        try {
+            updated = guild.withContribution(player.getUuid(), amount);
+        } catch (ArithmeticException exception) {
+            ElarionEconomyApi.get().refundMixedPayment(player, payment,
+                    "Guild contribution rollback: " + guild.id(), "guilds");
+            throw new IllegalArgumentException("Guild contribution total is at its safe limit.");
+        }
+        state.guilds.put(updated.id(), updated);
+        save();
+        api.history().record("guilds", "contributed", player.getUuid(), "guild", updated.id(),
+                realmOf(player.getUuid()), java.util.Map.of("amount", Long.toString(amount)));
+        webProjections.publishActive(updated);
+        return updated;
     }
 
     public GuildRecord kick(ServerPlayerEntity actor, ServerPlayerEntity target) {

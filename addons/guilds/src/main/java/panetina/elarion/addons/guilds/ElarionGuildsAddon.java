@@ -147,6 +147,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                 }
                 case "create_role" -> createRole(guilds, player, payload.value());
                 case "assign_role" -> assignRole(guilds, player, payload.target(), payload.value());
+                case "donate" -> guilds.donate(player, parseDonation(payload.value()));
                 case "leave" -> guilds.leave(player);
                 case "publish_announcement" -> guilds.publishAnnouncement(player, payload.value());
                 case "redraw_icon" -> guilds.redrawIcon(player, payload.iconPixels());
@@ -185,6 +186,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
             ServerPlayNetworking.send(player, GuildScreenOpenPayload.from(
                     guild,
                     displayName,
+                    guilds.config().progression(),
                     permissions,
                     candidates));
         }, () -> player.sendMessage(Text.literal("You are not in a guild."), false));
@@ -242,6 +244,14 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         ServerPlayerEntity target = actor.getServer().getPlayerManager().getPlayer(targetId);
         if (target == null) throw new IllegalArgumentException("That player is no longer online.");
         return target;
+    }
+
+    private static long parseDonation(String value) {
+        try {
+            return Long.parseLong(value == null ? "" : value.trim());
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Enter a whole positive Sigil amount.");
+        }
     }
 
     private static void createRole(GuildService guilds, ServerPlayerEntity player, String encoded) {

@@ -7,6 +7,7 @@ import net.minecraft.util.Identifier;
 import panetina.elarion.addons.guilds.model.GuildAnnouncement;
 import panetina.elarion.addons.guilds.model.GuildRecord;
 import panetina.elarion.addons.guilds.model.GuildRole;
+import panetina.elarion.addons.guilds.model.GuildProgressionConfig;
 import panetina.elarion.core.network.ElarionPacketCodecs;
 
 import java.util.ArrayList;
@@ -16,7 +17,8 @@ import java.util.UUID;
 /** Bounded player-facing Guild overview. Mutations use separate validated actions. */
 public record GuildScreenOpenPayload(
         String guildId, String displayName, String tag, boolean secret, UUID leaderId,
-        long revision, byte[] iconPixels, List<String> viewerPermissions,
+        long revision, int level, long totalContributed, int memberCapacity, long nextLevelContribution,
+        byte[] iconPixels, List<String> viewerPermissions,
         List<Member> members, List<Role> roles, List<Announcement> announcements,
         List<InviteCandidate> inviteCandidates
 ) implements CustomPayload {
@@ -26,7 +28,7 @@ public record GuildScreenOpenPayload(
                 ElarionPacketCodecs.writeString(buffer, payload.guildId, 64);
                 ElarionPacketCodecs.writeString(buffer, payload.displayName, 128);
                 ElarionPacketCodecs.writeString(buffer, payload.tag, 32);
-                buffer.writeBoolean(payload.secret); buffer.writeUuid(payload.leaderId); buffer.writeLong(payload.revision); buffer.writeVarInt(payload.iconPixels.length); buffer.writeBytes(payload.iconPixels);
+                buffer.writeBoolean(payload.secret); buffer.writeUuid(payload.leaderId); buffer.writeLong(payload.revision); buffer.writeVarInt(payload.level); buffer.writeLong(payload.totalContributed); buffer.writeVarInt(payload.memberCapacity); buffer.writeLong(payload.nextLevelContribution); buffer.writeVarInt(payload.iconPixels.length); buffer.writeBytes(payload.iconPixels);
                 buffer.writeVarInt(payload.viewerPermissions.size()); for (String permission : payload.viewerPermissions) ElarionPacketCodecs.writeString(buffer, permission, 48);
                 buffer.writeVarInt(payload.members.size()); for (Member member : payload.members) member.write(buffer);
                 buffer.writeVarInt(payload.roles.size()); for (Role role : payload.roles) role.write(buffer);
@@ -34,7 +36,7 @@ public record GuildScreenOpenPayload(
                 buffer.writeVarInt(payload.inviteCandidates.size()); for (InviteCandidate candidate : payload.inviteCandidates) candidate.write(buffer);
             }, buffer -> {
                 String id = ElarionPacketCodecs.readString(buffer, 64); String name = ElarionPacketCodecs.readString(buffer, 128);
-                String tag = ElarionPacketCodecs.readString(buffer, 32); boolean secret = buffer.readBoolean(); UUID leader = buffer.readUuid(); long revision = buffer.readLong();
+                String tag = ElarionPacketCodecs.readString(buffer, 32); boolean secret = buffer.readBoolean(); UUID leader = buffer.readUuid(); long revision = buffer.readLong(); int level = ElarionPacketCodecs.readBoundedCount(buffer, 64); long total = buffer.readLong(); int capacity = ElarionPacketCodecs.readBoundedCount(buffer, 4096); long next = buffer.readLong();
                 int iconLength = ElarionPacketCodecs.readBoundedCount(buffer, 1024); byte[] icon = new byte[iconLength]; buffer.readBytes(icon);
                 int permissionCount = ElarionPacketCodecs.readBoundedCount(buffer, 8); List<String> permissions = new ArrayList<>(permissionCount);
                 for (int i = 0; i < permissionCount; i++) permissions.add(ElarionPacketCodecs.readString(buffer, 48));
@@ -46,13 +48,17 @@ public record GuildScreenOpenPayload(
                 for (int i = 0; i < announcementCount; i++) announcements.add(Announcement.read(buffer));
                 int candidateCount = ElarionPacketCodecs.readBoundedCount(buffer, 32); List<InviteCandidate> candidates = new ArrayList<>(candidateCount);
                 for (int i = 0; i < candidateCount; i++) candidates.add(InviteCandidate.read(buffer));
-                return new GuildScreenOpenPayload(id, name, tag, secret, leader, revision, icon, permissions,
+                return new GuildScreenOpenPayload(id, name, tag, secret, leader, revision, level, total, capacity, next, icon, permissions,
                         members, roles, announcements, candidates);
             });
     public GuildScreenOpenPayload {
         guildId = guildId == null ? "" : guildId;
         displayName = displayName == null ? "" : displayName;
         tag = tag == null ? "" : tag;
+        level = Math.max(1, level);
+        totalContributed = Math.max(0L, totalContributed);
+        memberCapacity = Math.max(1, memberCapacity);
+        nextLevelContribution = Math.max(0L, nextLevelContribution);
         iconPixels = iconPixels == null ? new byte[0] : iconPixels.clone();
         viewerPermissions = viewerPermissions == null ? List.of() : List.copyOf(viewerPermissions);
         members = members == null ? List.of() : List.copyOf(members);
@@ -69,9 +75,11 @@ public record GuildScreenOpenPayload(
     @Override public byte[] iconPixels() { return iconPixels.clone(); }
     public static GuildScreenOpenPayload from(
             GuildRecord guild, java.util.function.Function<UUID, String> name,
-            List<String> viewerPermissions, List<InviteCandidate> inviteCandidates
+            GuildProgressionConfig progression, List<String> viewerPermissions, List<InviteCandidate> inviteCandidates
     ) {
-        return new GuildScreenOpenPayload(guild.id(), guild.displayName(), guild.tag(), guild.secret(), guild.leaderId(), guild.revision(), guild.iconPaletteIndices(), viewerPermissions,
+        int level = progression.levelFor(guild.progression().totalContributed());
+        long next = level >= progression.tiers().size() ? 0L : progression.tiers().get(level).requiredContributions();
+        return new GuildScreenOpenPayload(guild.id(), guild.displayName(), guild.tag(), guild.secret(), guild.leaderId(), guild.revision(), level, guild.progression().totalContributed(), progression.tierFor(guild.progression().totalContributed()).memberCapacity(), next, guild.iconPaletteIndices(), viewerPermissions,
                 guild.members().stream()
                         .sorted(java.util.Comparator
                                 .comparing((UUID id) -> !id.equals(guild.leaderId()))

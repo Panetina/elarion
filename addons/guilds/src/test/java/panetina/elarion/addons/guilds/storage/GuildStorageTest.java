@@ -49,6 +49,7 @@ class GuildStorageTest {
         assertEquals(1234L, loadedGuild.memberJoinedAt().get(leader));
         assertEquals(1234L, loadedGuild.memberJoinedAt().get(member));
         assertEquals(1, loadedGuild.roles().get("owner").position());
+        assertEquals(0L, loadedGuild.progression().totalContributed());
         assertEquals("merc", loaded.playerGuilds.get(leader));
         assertEquals(invited, loaded.invites.get(invite.key()).invitedPlayer());
     }
@@ -72,6 +73,7 @@ class GuildStorageTest {
         assertEquals("merc", loaded.invites.get("merc:" + invited).guildId());
         assertEquals(1234L, loaded.guilds.get("merc").memberJoinedAt().get(leader));
         assertEquals(1, loaded.guilds.get("merc").roles().get("owner").position());
+        assertEquals(0L, loaded.guilds.get("merc").progression().totalContributed());
         assertTrue(Files.exists(guildRoot.resolve("guilds.json")));
         assertFalse(Files.exists(legacyRoot.resolve("groups.json")));
         assertTrue(Files.exists(legacyRoot.resolve("groups.json.migrated-v1.bak")));

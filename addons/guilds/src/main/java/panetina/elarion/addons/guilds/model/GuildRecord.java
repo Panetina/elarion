@@ -19,6 +19,7 @@ public record GuildRecord(
         Map<String, GuildRole> roles,
         Map<UUID, String> memberRoles,
         Map<UUID, Long> memberJoinedAt,
+        GuildProgression progression,
         List<GuildAnnouncement> announcements,
         long iconRevision,
         byte[] iconPaletteIndices,
@@ -46,6 +47,7 @@ public record GuildRecord(
         normalizedJoinedAt.keySet().retainAll(members);
         for (UUID member : members) normalizedJoinedAt.putIfAbsent(member, createdAt);
         memberJoinedAt = Map.copyOf(normalizedJoinedAt);
+        progression = progression == null ? GuildProgression.empty() : progression;
         announcements = announcements == null ? List.of() : List.copyOf(announcements);
         iconPaletteIndices = new ElarionPixelAsset32(iconRevision, iconPaletteIndices).paletteIndices();
     }
@@ -53,7 +55,7 @@ public record GuildRecord(
     public GuildRecord(String id, String displayName, String tag, boolean tagHidden, UUID leaderId,
                        Set<UUID> members, long createdAt) {
         this(id, displayName, tag, tagHidden, false, leaderId, members,
-                defaults(leaderId), Map.of(leaderId, "owner"), Map.of(leaderId, createdAt), List.of(), 0L, new byte[0], 0L, createdAt);
+                defaults(leaderId), Map.of(leaderId, "owner"), Map.of(leaderId, createdAt), GuildProgression.empty(), List.of(), 0L, new byte[0], 0L, createdAt);
     }
 
     public static GuildRecord create(String id, String displayName, String tag, UUID leaderId) {
@@ -63,7 +65,7 @@ public record GuildRecord(
     public static GuildRecord create(String id, String displayName, String tag, boolean secret, UUID leaderId) {
         long now = System.currentTimeMillis();
         return new GuildRecord(id, displayName, tag, false, secret, leaderId, Set.of(leaderId),
-                defaults(leaderId), Map.of(leaderId, "owner"), Map.of(leaderId, now), List.of(), 0L, new byte[0], 0L, now);
+                defaults(leaderId), Map.of(leaderId, "owner"), Map.of(leaderId, now), GuildProgression.empty(), List.of(), 0L, new byte[0], 0L, now);
     }
 
     @Override public byte[] iconPaletteIndices() { return iconPaletteIndices.clone(); }
@@ -79,7 +81,7 @@ public record GuildRecord(
         updatedJoinedAt.keySet().retainAll(updatedMembers);
         for (UUID member : updatedMembers) updatedJoinedAt.putIfAbsent(member, joinedAt);
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, updatedMembers, roles, updatedRoles,
-                updatedJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                updatedJoinedAt, progression, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withLeader(UUID leaderId) {
@@ -95,17 +97,17 @@ public record GuildRecord(
         Map<UUID, Long> updatedJoinedAt = new LinkedHashMap<>(memberJoinedAt);
         updatedJoinedAt.putIfAbsent(leaderId, System.currentTimeMillis());
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, updated, roles, updatedRoles,
-                updatedJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                updatedJoinedAt, progression, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withTagHidden(boolean hidden) {
         return new GuildRecord(id, displayName, tag, hidden, secret, leaderId, members, roles, memberRoles,
-                memberJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                memberJoinedAt, progression, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withRoles(Map<String, GuildRole> updatedRoles, Map<UUID, String> updatedAssignments) {
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, updatedRoles,
-                updatedAssignments, memberJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                updatedAssignments, memberJoinedAt, progression, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withAnnouncement(GuildAnnouncement announcement) {
@@ -113,13 +115,19 @@ public record GuildRecord(
         updated.add(0, announcement);
         if (updated.size() > 50) updated.subList(50, updated.size()).clear();
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, roles, memberRoles,
-                memberJoinedAt, updated, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                memberJoinedAt, progression, updated, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withIcon(byte[] palette) {
         ElarionPixelAsset32 icon = new ElarionPixelAsset32(iconRevision, iconPaletteIndices).revised(palette);
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, roles, memberRoles,
-                memberJoinedAt, announcements, icon.revision(), icon.paletteIndices(), revision + 1L, createdAt);
+                memberJoinedAt, progression, announcements, icon.revision(), icon.paletteIndices(), revision + 1L, createdAt);
+    }
+
+    public GuildRecord withContribution(UUID memberId, long amount) {
+        return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, roles, memberRoles,
+                memberJoinedAt, progression.contribute(memberId, amount), announcements, iconRevision,
+                iconPaletteIndices, revision + 1L, createdAt);
     }
 
     private static Map<String, GuildRole> defaults(UUID leaderId) {

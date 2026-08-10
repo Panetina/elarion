@@ -42,6 +42,7 @@ public final class GuildScreen extends ElarionScreen {
     private GuildScreenOpenPayload payload;
     private final ElarionPixelCanvas32 iconCanvas = new ElarionPixelCanvas32();
     private final ElarionTextInput announcement = new ElarionTextInput(500, false);
+    private final ElarionTextInput donation = new ElarionTextInput(10, false);
     private final ElarionTextInput roleId = new ElarionTextInput(24, false);
     private final ElarionTextInput roleName = new ElarionTextInput(96, false);
     private final EnumSet<GuildPermission> selectedPermissions = EnumSet.noneOf(GuildPermission.class);
@@ -145,10 +146,15 @@ public final class GuildScreen extends ElarionScreen {
         card(context, 34, 142, 286, 76, "Leader", memberName(payload.leaderId()), "Canonical Guild authority");
         card(context, 340, 142, 286, 76, "Visibility", payload.secret() ? "Secret" : "Public",
                 payload.secret() ? "Hidden from public projections" : "Visible in approved projections");
-        card(context, 34, 232, 286, 76, "Members", Integer.toString(payload.members().size()),
-                "Membership is stored by Guilds");
-        card(context, 340, 232, 286, 76, "Guild chat", "Available",
-                "Select Guild in chat to speak with members.");
+        card(context, 34, 232, 286, 76, "Guild Level", "Level " + payload.level(),
+                payload.totalContributed() + " Sigils contributed");
+        String next = payload.nextLevelContribution() == 0L ? "Maximum level" : "Next: " + payload.nextLevelContribution() + " Sigils";
+        card(context, 340, 232, 286, 76, "Members", payload.members().size() + " / " + payload.memberCapacity(), next);
+        renderInput(context, donation, "Sigils to donate", 34, 326, 258, Input.DONATION);
+        boolean validDonation = donation.text().trim().matches("[1-9][0-9]*");
+        button(context, mouseX, mouseY, 302, 326, 156, 24, "Donate Sigils", validDonation,
+                ElarionCivicUi.Tone.PRIMARY,
+                () -> send("donate", null, donation.text().trim(), new byte[0]));
         if (client != null && client.player != null && !payload.leaderId().equals(client.player.getUuid())) {
             button(context, mouseX, mouseY, 494, 326, 132, 24, "Leave Guild", true,
                     ElarionCivicUi.Tone.DESTRUCTIVE, () -> send("leave", null, "", new byte[0]));
@@ -435,6 +441,7 @@ public final class GuildScreen extends ElarionScreen {
     private void focus(Input target) {
         input = target;
         announcement.focused(target == Input.ANNOUNCEMENT);
+        donation.focused(target == Input.DONATION);
         roleId.focused(target == Input.ROLE_ID);
         roleName.focused(target == Input.ROLE_NAME);
     }
@@ -442,6 +449,7 @@ public final class GuildScreen extends ElarionScreen {
     private ElarionTextInput focusedInput() {
         return switch (input) {
             case ANNOUNCEMENT -> announcement;
+            case DONATION -> donation;
             case ROLE_ID -> roleId;
             case ROLE_NAME -> roleName;
             case NONE -> null;
@@ -516,7 +524,7 @@ public final class GuildScreen extends ElarionScreen {
         Tab(String label) { this.label = label; }
     }
 
-    private enum Input { NONE, ANNOUNCEMENT, ROLE_ID, ROLE_NAME }
+    private enum Input { NONE, ANNOUNCEMENT, DONATION, ROLE_ID, ROLE_NAME }
 
     private record Hit(int x, int y, int width, int height, Runnable action) { }
 }
