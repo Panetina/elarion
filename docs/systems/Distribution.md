@@ -14,6 +14,16 @@ those jars from that origin; it must not rehost jars whose license or project
 policy disallows redistribution. Elarion jars, Elarion configs, and Elarion
 resource packs are release-bundle files.
 
+Yyz's Backpack is vendored from its MIT-licensed official `1.21.1-fabric`
+source at commit `6f44d3372a25638a90c48e76751c7638e42a4d87`; its bundled MIT compatibility
+JAR is retained verbatim. Elarion's only upstream-code change moves item-color
+registration from the common initializer to the client initializer, fixing the
+official release's dedicated-server crash. Its recipes, recipe advancements,
+and vanilla dyeable-tag contribution are removed from source and excluded again
+during compilation. The resulting source-built JAR is delivered inside the
+Elarion release bundle. Trinkets remains pinned to its official Modrinth release
+on both client and server.
+
 ## Install roots
 
 `exportMods` builds exactly two roots:

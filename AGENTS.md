@@ -48,6 +48,10 @@ tree.
   GeckoLib rendering.
 - `addons/atlas`: current client-only map shell; future Atlas rendering,
   exploration projections, and personal tracking state.
+- `addons/backpacks`: Yyz's Backpack/Trinkets integration and non-crafting
+  acquisition policy; it does not duplicate backpack contents or slot state.
+- `vendor/yyzsbackpack`: pinned MIT upstream implementation; changes are limited
+  to documented compatibility/release policy and must preserve upstream IDs.
 - `addons/names`, `addons/titles`: identity/title presentation.
 - `addons/optimization`, `addons/security`, `addons/angling`: diagnostics,
   evidence foundation, and fishing foundation.

@@ -1,0 +1,12 @@
+dependencies {
+    implementation(project(path: ':platform:core', configuration: 'namedElements')) {
+        exclude group: 'net.fabricmc.fabric-api'
+    }
+
+    testImplementation platform('org.junit:junit-bom:5.10.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}

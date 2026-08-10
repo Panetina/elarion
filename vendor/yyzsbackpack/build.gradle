@@ -1,0 +1,59 @@
+plugins {
+    id 'fabric-loom'
+}
+
+group = 'com.yyz'
+version = '0.0.3-reborn+1.21.1'
+
+base {
+    archivesName = 'yyzsbackpack'
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.loader_version}"
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.14+1.21.1'
+    include 'yyz729:yyzsbackpackcompat:0.0.1+1.21.1'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'minecraft_version', rootProject.minecraft_version
+    inputs.property 'loader_version', rootProject.loader_version
+    filteringCharset = 'UTF-8'
+    exclude 'data/yyzsbackpack/recipe/**'
+    exclude 'data/yyzsbackpack/advancement/recipes/**'
+    filesMatching('fabric.mod.json') {
+        expand 'version': project.version,
+                'minecraft_version': rootProject.minecraft_version,
+                'loader_version': rootProject.loader_version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from('LICENSE.txt') {
+        rename { 'LICENSE_yyzsbackpack' }
+    }
+}
+
+tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
+    enabled = false
+}

@@ -69,6 +69,11 @@ history, not parallel Markdown archives or completion reports.
   Fractures, and Core True Death handoff.
 - Mounts: native rideable mounts, Collection projection, control, and rendering.
 - Atlas: current client shell; future bounded map/discovery projections.
+- Backpacks: acquisition policy and compatibility guard for Yyz's Backpack and
+  Trinkets; the upstream mod owns backpack contents/UI and Trinkets owns
+  accessory slots.
+- `vendor/yyzsbackpack`: pinned MIT upstream source, assets, bundled
+  compatibility module, and dedicated-server source-separation patch.
 - Names and Titles: identity/title presentation hooks.
 - Optimization and Security: diagnostics/evidence, never duplicate domain state.
 - Angling: fishing runtime; Core retains accepted catches, metrics, rewards,

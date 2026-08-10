@@ -27,7 +27,7 @@ allprojects {
     version = project.mod_version + '+mc.' + project.jar_mc_version
 }
 
-def structuralProjects = [':platform', ':addons', ':tests']
+def structuralProjects = [':platform', ':addons', ':tests', ':vendor']
 def modProjects = subprojects.findAll { !structuralProjects.contains(it.path) }
 def optionalAddonQa = providers.gradleProperty('optionalAddonQa')
         .map { it.toBoolean() }
@@ -38,11 +38,21 @@ def foundationOnlyModPaths = [':addons:angling', ':addons:angling-delight'] as S
 def exportableModProjects = modProjects.findAll {
     (it.path == ':platform:core' || it.path.startsWith(':addons:'))
             && !foundationOnlyModPaths.contains(it.path)
-}
+} + modProjects.findAll { it.path == ':vendor:yyzsbackpack' }
 def distributionManifestFile = layout.projectDirectory.file('distribution/mods.json').asFile
 def distributionManifest = new groovy.json.JsonSlurper().parse(distributionManifestFile)
 def distributionArtifacts = distributionManifest.artifacts as List<Map<String, Object>>
 def distributionArtifactsByFilename = distributionArtifacts.collectEntries { [(it.filename): it] }
+def bundledArtifactMetadata = [
+        'yyzsbackpack-0.0.3-reborn+1.21.1.jar': [
+                role: 'gameplay',
+                source: 'https://github.com/yyz729/yyzsbackpack/tree/6f44d3372a25638a90c48e76751c7638e42a4d87',
+                license: 'MIT'
+        ]
+]
+def bundledRuntimeJarFiles = files(
+        'vendor/yyzsbackpack/build/libs/yyzsbackpack-0.0.3-reborn+1.21.1.jar'
+)
 def artifactsForSide = { String side ->
     distributionArtifacts.findAll { it.side == side }
 }
@@ -142,7 +152,7 @@ dependencies {
     }
 }
 
-configure(modProjects) {
+configure(modProjects.findAll { it.path != ':vendor:yyzsbackpack' }) {
     apply plugin: 'fabric-loom'
     apply plugin: 'maven-publish'
 
@@ -435,18 +445,22 @@ def exportModsTask = tasks.register('exportMods', Sync) {
                 def artifact = relative.startsWith('mods/')
                         ? distributionArtifactsByFilename[exportedFile.name]
                         : null
+                def bundledArtifact = relative.startsWith('mods/')
+                        ? bundledArtifactMetadata[exportedFile.name]
+                        : null
                 def internalJar = relative.startsWith('mods/') && artifact == null
                 [
                         path: relative,
                         side: side,
-                        role: artifact?.role ?: (internalJar ? 'elarion-mod' :
+                        role: artifact?.role ?: bundledArtifact?.role ?: (internalJar ? 'elarion-mod' :
                                 (relative.startsWith('resourcepacks/') ? 'resource-pack' :
                                         ((relative.startsWith('config/') || managedPaths[side].contains(relative))
                                                 ? 'config' : 'content'))),
                         size: exportedFile.length(),
                         sha512: sha512(exportedFile),
-                        source: artifact?.source ?: 'elarion-release-bundle',
-                        license: artifact?.license ?: (internalJar ? 'Elarion project license' : 'Elarion configuration/content'),
+                        source: artifact?.source ?: bundledArtifact?.source ?: 'elarion-release-bundle',
+                        license: artifact?.license ?: bundledArtifact?.license ?:
+                                (internalJar ? 'Elarion project license' : 'Elarion configuration/content'),
                         url: artifact?.url,
                         projectId: artifact?.projectId,
                         versionId: artifact?.versionId,
@@ -486,10 +500,12 @@ tasks.register('syncDevRuntimeMods') {
     group = 'fabric'
     description = 'Synchronizes canonical third-party mods, managed safety configs, defaults, and resource packs into IntelliJ/Loom runs.'
     dependsOn verifyDistributionManifestTask
+    dependsOn ':vendor:yyzsbackpack:remapJar'
     inputs.files(configurations.distributionBoth)
     inputs.files(configurations.distributionServer)
     inputs.files(configurations.distributionClient)
     inputs.files(configurations.distributionAdmin)
+    inputs.files(bundledRuntimeJarFiles)
     inputs.files(fileTree('dev/resourcepacks') { include '*.zip' })
     inputs.files(fileTree('distribution/client') { include '**/*' })
     inputs.files(fileTree('distribution/server') { include '**/*' })
@@ -523,7 +539,7 @@ tasks.register('syncDevRuntimeMods') {
                 layout.projectDirectory.dir('dev/run/client-one/resourcepacks').asFile,
                 layout.projectDirectory.dir('dev/run/client-two/resourcepacks').asFile
         ]
-        def legacyManaged = (distributionArtifacts*.filename + [
+        def legacyManaged = (distributionArtifacts*.filename + bundledArtifactMetadata.keySet() + [
                 'modmenu-11.0.3.jar',
                 'iris-fabric-1.8.8+mc1.21.1.jar'
         ]) as Set
@@ -544,6 +560,7 @@ tasks.register('syncDevRuntimeMods') {
         def serverArtifactNames = distributionArtifacts.findAll {
             it.side in ['both', 'server', 'admin']
         }*.filename as Set
+        serverArtifactNames.addAll(bundledArtifactMetadata.keySet())
         serverMods.mkdirs()
         def serverMarker = new File(serverMods, '.elarion-managed-mods.json')
         def previousServer = readManagedMarker(serverMarker)
@@ -555,6 +572,7 @@ tasks.register('syncDevRuntimeMods') {
             from configurations.distributionBoth
             from configurations.distributionServer
             from configurations.distributionAdmin
+            from bundledRuntimeJarFiles
             rename { canonicalThirdPartyJarName(it) }
             into serverMods
         }
@@ -572,6 +590,7 @@ tasks.register('syncDevRuntimeMods') {
         copy { from 'distribution/server/managed'; into serverRoot }
         clientModDirs.each { clientModDir ->
             def expected = distributionArtifacts.findAll { it.side in ['both', 'client'] }*.filename as Set
+            expected.addAll(bundledArtifactMetadata.keySet())
             def marker = new File(clientModDir, '.elarion-managed-mods.json')
             def previous = readManagedMarker(marker)
             (previous + legacyManaged).each { name ->
@@ -581,6 +600,7 @@ tasks.register('syncDevRuntimeMods') {
             copy {
                 from configurations.distributionBoth
                 from configurations.distributionClient
+                from bundledRuntimeJarFiles
                 rename { canonicalThirdPartyJarName(it) }
                 into clientModDir
             }
@@ -593,7 +613,9 @@ tasks.register('syncDevRuntimeMods') {
             into adminClientModDir
         }
         def adminMarker = new File(adminClientModDir, '.elarion-managed-mods.json')
-        def adminNames = distributionArtifacts.findAll { it.side in ['both', 'client', 'admin'] }*.filename.sort()
+        def adminNames = (distributionArtifacts.findAll {
+            it.side in ['both', 'client', 'admin']
+        }*.filename + bundledArtifactMetadata.keySet()).sort()
         adminMarker.setText(groovy.json.JsonOutput.prettyPrint(
                 groovy.json.JsonOutput.toJson(adminNames)) + '\n', 'UTF-8')
         clientModDirs.each { clientModDir ->

@@ -45,6 +45,7 @@ notifications, or status changes.
 - `angling.md`
 - `underworld.md`
 - `mounts.md`
+- `backpacks.md`
 
 ## Shell / Early Integration Modules
 
