@@ -57,9 +57,16 @@ public final class WorldResetCommandRegistrar {
 
     private static int confirm(ServerCommandSource source, WorldResetService resets, String token) {
         try {
-            WorldResetService.Execution result = resets.execute(source.getServer(), key(source), source.getName(), token);
-            source.sendFeedback(() -> Text.literal("World reset complete for " + result.worldId() + ". Backup: " + result.backup()
-                    + "; changed: " + result.changed()), true);
+            source.sendFeedback(() -> Text.literal("World reset confirmed. The old dimension is being removed before regeneration."), true);
+            resets.execute(source.getServer(), key(source), source.getName(), token).whenComplete((result, failure) ->
+                    source.getServer().execute(() -> {
+                        if (failure != null) {
+                            source.sendError(Text.literal("World reset failed: " + failure.getMessage()));
+                            return;
+                        }
+                        source.sendFeedback(() -> Text.literal("World reset complete for " + result.worldId() + ". Backup: " + result.backup()
+                                + "; changed: " + result.changed()), true);
+                    }));
             return 1;
         } catch (Exception exception) {
             source.sendError(Text.literal("World reset failed: " + exception.getMessage()));

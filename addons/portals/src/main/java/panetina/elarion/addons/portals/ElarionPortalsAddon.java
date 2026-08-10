@@ -78,6 +78,9 @@ public final class ElarionPortalsAddon implements ElarionAddon {
             @Override public WorldResetResult reset(panetina.elarion.core.api.reset.WorldResetContext context) {
                 return WorldResetResult.of("portalRoutes", routes.deleteWorldEndpoints(context.worldId()));
             }
+            @Override public void restore(panetina.elarion.core.api.reset.WorldResetContext context) {
+                routes.bind(context.server());
+            }
         });
         api.publicHistory().registerRenderer(PortalChronicleText.INSTANCE);
         api.system().profiles().registerContributor(new PortalProfileContributor(api.playerStats()));

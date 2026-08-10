@@ -82,6 +82,9 @@ public final class ElarionOfferingsAddon implements ElarionAddon {
             @Override public WorldResetResult reset(panetina.elarion.core.api.reset.WorldResetContext context) {
                 return WorldResetResult.of("shrines", service.deleteWorld(context.worldId()));
             }
+            @Override public void restore(panetina.elarion.core.api.reset.WorldResetContext context) {
+                service.bind(context.server());
+            }
         });
 
         api.system().abilities().register("elarion.offering.manage");

@@ -5,7 +5,13 @@ Development-only command contract for resetting and advancing progression tests.
 Administrative world reset is separate from the test namespace: `/e reset world
 <world>` previews and confirms regeneration of a managed world, removes its
 placed NPCs, Shrine/offering records, and portal endpoints, then recreates the
-world from its existing definition. It does not delete definitions or configs.
+world from its existing definition. Its world argument uses server-authored
+managed-world completion. It does not delete definitions or configs. Each reset
+backup includes the Fantasy persistent-dimension files, world-scoped addon
+state, and an atomic, backup-relative `manifest.json` recovery inventory. If
+regeneration or a world-scoped handler fails, Core restores those files,
+reopens the managed world, and asks each state owner to reload before reporting
+the original reset failure.
 
 Administrative player reset is also separate from the test namespace:
 `/e reset players` backs up and removes all player-owned vanilla and Elarion
