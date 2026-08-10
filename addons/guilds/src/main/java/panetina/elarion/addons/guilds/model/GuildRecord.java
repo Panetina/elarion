@@ -64,6 +64,11 @@ public record GuildRecord(
         LinkedHashSet<UUID> updated = new LinkedHashSet<>(members);
         updated.add(leaderId);
         Map<UUID, String> updatedRoles = new LinkedHashMap<>(memberRoles);
+        // `owner` is the unique rank-one role. A transfer must never leave the
+        // former leader with its full permission set.
+        if (this.leaderId != null && !this.leaderId.equals(leaderId)) {
+            updatedRoles.put(this.leaderId, "member");
+        }
         updatedRoles.put(leaderId, "owner");
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, updated, roles, updatedRoles,
                 announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);

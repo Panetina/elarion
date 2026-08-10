@@ -32,4 +32,17 @@ class GuildRecordTest {
         assertTrue(updated.members().contains(oldLeader));
         assertTrue(updated.members().contains(newLeader));
     }
+
+    @Test
+    void transferDemotesTheFormerLeaderFromTheUniqueOwnerRole() {
+        UUID oldLeader = UUID.randomUUID();
+        UUID newLeader = UUID.randomUUID();
+        GuildRecord guild = GuildRecord.create("merc", "Mercury Guild", "MERC", oldLeader)
+                .withMembers(Set.of(oldLeader, newLeader));
+
+        GuildRecord updated = guild.withLeader(newLeader);
+
+        assertEquals("owner", updated.memberRoles().get(newLeader));
+        assertEquals("member", updated.memberRoles().get(oldLeader));
+    }
 }
