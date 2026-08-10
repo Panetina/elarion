@@ -14,6 +14,16 @@ those jars from that origin; it must not rehost jars whose license or project
 policy disallows redistribution. Elarion jars, Elarion configs, and Elarion
 resource packs are release-bundle files.
 
+Yyz's Backpack is vendored from its MIT-licensed official `1.21.1-fabric`
+source at commit `6f44d3372a25638a90c48e76751c7638e42a4d87`; its bundled MIT compatibility
+JAR is retained verbatim. Elarion's only upstream-code change moves item-color
+registration from the common initializer to the client initializer, fixing the
+official release's dedicated-server crash. Its recipes, recipe advancements,
+and vanilla dyeable-tag contribution are removed from source and excluded again
+during compilation. The resulting source-built JAR is delivered inside the
+Elarion release bundle. Trinkets remains pinned to its official Modrinth release
+on both client and server.
+
 ## Install roots
 
 `exportMods` builds exactly two roots:
@@ -125,6 +135,18 @@ Each generated mods directory has `.elarion-managed-mods.json`. Subsequent
 syncs remove only files recorded by that marker plus the explicit bootstrap
 set from the prior build contract. Unrelated local jars are not wildcard
 deleted. The marker makes version replacement and removal deterministic.
+If a local marker is unreadable, synchronization ignores it, removes the same
+canonical bootstrap set, and writes a fresh marker; a damaged local marker
+cannot block a dev-client launch or leave stale managed artifacts authoritative.
+
+The same dev-only synchronization enforces `online-mode=false` and
+`enforce-secure-profile=false` in `dev/run/server.properties`, because the
+three Loom clients use deterministic offline test identities. This never alters
+the distribution server configuration or a published server.
+
+The root `runServer`, `runClient`, `runClientOne`, and `runClientTwo` wrappers
+also order the corresponding Loom run strictly after this synchronization.
+This prevents Fabric from scanning a JAR while it is being replaced.
 
 ## Verification
 

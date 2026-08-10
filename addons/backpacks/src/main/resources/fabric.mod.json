@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "elarion_backpacks",
+  "version": "${version}",
+  "name": "Elarion Backpacks",
+  "description": "Elarion acquisition policy and compatibility guard for Yyz's Backpack and Trinkets.",
+  "contact": {
+    "homepage": "https://ashesofelarion.com",
+    "discord": "https://discord.gg/bSEHtMhqKa"
+  },
+  "authors": [
+    "Panyel"
+  ],
+  "contributors": [
+    "Panetina Team"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "elarion:addon": [
+      "panetina.elarion.addons.backpacks.ElarionBackpacksAddon"
+    ]
+  },
+  "mixins": [
+    "elarion_backpacks.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "elarion_core": "*",
+    "yyzsbackpack": "0.0.3-reborn+1.21.1",
+    "trinkets": ">=3.10.0"
+  }
+}

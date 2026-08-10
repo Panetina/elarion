@@ -32,7 +32,7 @@ notifications, or status changes.
 - `economy.md`
 - `offerings.md`
 - `government.md`
-- `groups.md`
+- `guilds.md`
 - `npcs.md`
 - `quests.md`
 - `portals.md`
@@ -45,6 +45,7 @@ notifications, or status changes.
 - `angling.md`
 - `underworld.md`
 - `mounts.md`
+- `backpacks.md`
 
 ## Shell / Early Integration Modules
 

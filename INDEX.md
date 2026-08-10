@@ -20,7 +20,7 @@ completed implementation evidence.
 
 | Owner | Canonical responsibility |
 | --- | --- |
-| `platform/core` | Shared truth/infrastructure: citizens, identity, Realms, lifecycle, permissions, history, UI, storage, queues, APIs and networking. |
+| `platform/core` | Shared truth/infrastructure: citizens, identity, Realms, lifecycle, permissions, history, UI (including player-context action routing), storage, queues, APIs and networking. |
 | `addons/economy` | Currency, balances, treasury, transactions, pricing and tax. |
 | `addons/npcs` | NPC definitions/placements, dialogue, relationship/story state and NPC services. |
 | `addons/quests` | Quest definitions and runtime progress. |
