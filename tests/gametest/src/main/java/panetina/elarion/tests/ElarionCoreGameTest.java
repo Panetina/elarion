@@ -78,7 +78,7 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "realm",
                 realmId,
                 realmId,
-                Map.of(),
+                Map.of(HistoryEvent.CHRONICLE_INTENT_METADATA_KEY, "true"),
                 "The Realm " + realmId + " entered the Chronicle during a server test."));
         api.publicHistory().generateChronicles();
         context.assertTrue(api.publicHistory().recentChronicles(1).stream()
