@@ -14,8 +14,6 @@ Implemented command surface for server owners and OP level 4 operators.
 /r <message>
 /w <message>
 /yell <message>
-/guild
-/gc <message>
 /lc <message>
 ```
 
@@ -23,10 +21,11 @@ The Character Menu opens from the default `C` keybind. `/charactermenu` remains
 a hidden client command for manual use, but it is not
 advertised in slash recommendations or `/help`.
 
-Guild creation is available through the configured Guild Registrar NPC action.
-The Guild screen owns its typed invitation, role, announcement, and emblem
-requests; `/gc` remains the Guild-chat keyboard fallback. Vanilla `/say` is
-unavailable so it cannot bypass Elarion chat restrictions.
+`G` requests the server-authoritative Guild screen. Guild creation remains
+available through the configured Guild Registrar NPC action. The Guild screen
+owns its typed invitation, role, announcement, and emblem requests; Guild chat
+uses the Core channel selector. Vanilla `/say` is unavailable so it cannot
+bypass Elarion chat restrictions.
 
 ## Core Admin Commands
 
@@ -231,11 +230,11 @@ for an offline player already present in the persisted banishment list.
 ## Guilds
 
 ```text
-/e guilds reload
-/e guilds list
-/e guilds inspect <guild>
-/e guilds delete <guild>
-/e guilds transfer <guild> <player>
+/e guild reload
+/e guild list
+/e guild inspect <guild>
+/e guild delete <guild>
+/e guild transfer <guild> <player>
 ```
 
 ## NPCs

@@ -12,6 +12,7 @@ public final class ElarionRegistries {
     private final ElarionRegistry<ActionType> actions = new ElarionRegistry<>("action");
     private final ElarionRegistry<RequirementType> requirements = new ElarionRegistry<>("requirement");
     private final ElarionRegistry<MilestoneEventType> milestoneEvents = new ElarionRegistry<>("milestone event");
+    private final PlayerContextActionRegistry playerContextActions = new PlayerContextActionRegistry();
     private final Map<String, ConditionHandler> conditionHandlers = new ConcurrentHashMap<>();
     private final Map<String, ActionHandler> actionHandlers = new ConcurrentHashMap<>();
     private final Map<String, RequirementHandler> requirementHandlers = new ConcurrentHashMap<>();
@@ -35,6 +36,10 @@ public final class ElarionRegistries {
 
     public ElarionRegistry<MilestoneEventType> milestoneEvents() {
         return milestoneEvents;
+    }
+
+    public PlayerContextActionRegistry playerContextActions() {
+        return playerContextActions;
     }
 
     public void registerConditionHandler(String id, ConditionHandler handler) {

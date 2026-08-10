@@ -15,24 +15,17 @@ Status: Implemented foundation, Registrar, and bounded management UI.
 
 ## Commands
 
-Player:
-
-- `/guild` (open the current Guild management surface)
-- `/guild invite <player>`
-- `/guild accept <guild>`
-- `/guild kick <player>`
-- `/guild leave`
-- `/guild transfer <player>`
-- `/guild info [guild]`
-- `/gc <message>`
+Player: `G` opens the server-authoritative Guild surface. Non-members receive a
+read-only empty state; creation remains a Registrar NPC action. Guild chat uses
+the Core chat selector, not a player command.
 
 Admin:
 
-- `/e guilds reload`
-- `/e guilds list`
-- `/e guilds inspect <guild>`
-- `/e guilds delete <guild>`
-- `/e guilds transfer <guild> <player>`
+- `/e guild reload`
+- `/e guild list`
+- `/e guild inspect <guild>`
+- `/e guild delete <guild>`
+- `/e guild transfer <guild> <player>`
 
 ## Storage / Persistence
 
@@ -53,11 +46,19 @@ Runtime:
 
 - The NPC action opens a Guild-owned Registrar screen for non-members and the
   management screen for members.
-- Creation terms and wallet affordability are server-authored. The player never
+- Creation terms and physical-inventory affordability are server-authored. The player never
   enters a storage ID; Guilds generates a collision-safe internal ID.
 - The management surface contains Overview, Members, News, Invites, Roles, and
   Emblem tabs. Viewer permissions and at most 32 eligible online invite targets
   are projected by the server; all mutations are revalidated by `GuildService`.
+- An online invitation opens a small central Accept/Deny prompt. It is only a
+  client presentation of a server-created invite: the decision payload contains
+  the guild ID and the server revalidates membership, inviter, expiry and
+  permissions. The persistent notification action remains the fallback.
+- Hold Sneak and right-click a nearby player for Core's contextual menu. Guilds
+  contributes `Invite to Guild` only when the actor has its canonical `INVITE`
+  permission and the target has no membership; the Guild service validates the
+  same invariants again before creating the invite.
 - Successful membership exit closes the stale screen. Snapshot refreshes update
   the current screen in place so the selected tab is preserved.
 

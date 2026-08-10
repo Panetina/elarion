@@ -23,7 +23,7 @@ final class GuildConfigDescriptorsTest {
 
         ElarionConfigDomain domain = registry.domain("guilds").orElseThrow();
         assertEquals("addons:guilds", domain.ownerModule());
-        assertEquals("/e guilds reload", domain.reloadCommand());
+        assertEquals("/e guild reload", domain.reloadCommand());
         assertTrue(domain.files().contains("config/elarion/addons/guilds/guilds.yml"));
         assertTrue(domain.category("general").isPresent());
         assertTrue(domain.category("identity").isPresent());
@@ -65,4 +65,3 @@ final class GuildConfigDescriptorsTest {
         assertTrue(creationFee.validateCurrent().isEmpty());
     }
 }
-

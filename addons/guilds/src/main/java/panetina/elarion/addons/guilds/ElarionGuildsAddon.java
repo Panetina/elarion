@@ -1,6 +1,5 @@
 package panetina.elarion.addons.guilds;
 
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -19,7 +18,11 @@ import panetina.elarion.addons.guilds.network.GuildScreenOpenRequestPayload;
 import panetina.elarion.addons.guilds.network.GuildScreenActionPayload;
 import panetina.elarion.addons.guilds.network.GuildScreenClosePayload;
 import panetina.elarion.addons.guilds.network.GuildRegistrarOpenPayload;
+import panetina.elarion.addons.guilds.network.GuildRegistrarSubmitPayload;
+import panetina.elarion.addons.guilds.network.GuildEmptyScreenPayload;
 import panetina.elarion.addons.guilds.network.GuildUiFeedbackPayload;
+import panetina.elarion.addons.guilds.network.GuildInvitationPromptPayload;
+import panetina.elarion.addons.guilds.network.GuildInvitationDecisionPayload;
 import panetina.elarion.addons.economy.api.ElarionEconomyApi;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
@@ -30,6 +33,7 @@ import panetina.elarion.core.service.ElarionChatChannelRouter;
 import panetina.elarion.core.network.ChatChannelAvailabilityPayload;
 import panetina.elarion.core.registry.ActionType;
 import panetina.elarion.core.registry.RegistryExecutionResult;
+import panetina.elarion.core.registry.PlayerContextActionRegistry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
@@ -40,10 +44,14 @@ public final class ElarionGuildsAddon implements ElarionAddon {
     public void initialize(ElarionApi api) {
         PayloadTypeRegistry.playC2S().register(GuildScreenOpenRequestPayload.ID, GuildScreenOpenRequestPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(GuildScreenActionPayload.ID, GuildScreenActionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(GuildRegistrarSubmitPayload.ID, GuildRegistrarSubmitPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(GuildInvitationDecisionPayload.ID, GuildInvitationDecisionPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildScreenOpenPayload.ID, GuildScreenOpenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildScreenClosePayload.ID, GuildScreenClosePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildRegistrarOpenPayload.ID, GuildRegistrarOpenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildUiFeedbackPayload.ID, GuildUiFeedbackPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(GuildEmptyScreenPayload.ID, GuildEmptyScreenPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(GuildInvitationPromptPayload.ID, GuildInvitationPromptPayload.CODEC);
         GuildService guilds = new GuildService(api, new GuildStorage(LOGGER), GuildConfigLoader.load());
         api.system().profiles().registerContributor(new GuildProfileContributor(guilds));
         GuildConfigDescriptors.register(api.system().configs(), guilds::config);
@@ -87,12 +95,26 @@ public final class ElarionGuildsAddon implements ElarionAddon {
             }
         });
         ServerLifecycleEvents.SERVER_STARTED.register(guilds::bind);
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
-                GuildCommands.registerPlayerCommands(dispatcher, api, guilds, player -> sendScreen(api, guilds, player)));
         api.system().commands().registerAdminSubcommand(() -> GuildCommands.admin(guilds));
         api.identity().registerChatPrefixProvider(player -> guilds.tagFor(player.getUuid()));
         ElarionChatChannelRouter.register(ElarionChatChannel.GUILD, guilds::sendGuildMessage,
                 player -> guilds.guildFor(player.getUuid()).isPresent());
+        api.registries().playerContextActions().register(new PlayerContextActionRegistry.Action(
+                "elarion_guilds:invite", "Invite to Guild", new PlayerContextActionRegistry.Handler() {
+            @Override public boolean available(ServerPlayerEntity actor, ServerPlayerEntity target) {
+                return target != null && guilds.guildFor(target.getUuid()).isEmpty()
+                        && guilds.permissionsFor(actor.getUuid()).contains(GuildPermission.INVITE);
+            }
+            @Override public RegistryExecutionResult execute(ServerPlayerEntity actor, ServerPlayerEntity target) {
+                try {
+                    guilds.invite(actor, target);
+                    sendInvitationPrompt(guilds, actor, target);
+                    return RegistryExecutionResult.ok();
+                } catch (IllegalArgumentException exception) {
+                    return RegistryExecutionResult.failure(exception.getMessage());
+                }
+            }
+        }));
         api.registries().actions().register(new ActionType("elarion_guilds:open_registrar", "elarion_guilds",
                 "Open the Guild Registrar creation or management screen."));
         api.registries().registerActionHandler("elarion_guilds:open_registrar", context -> {
@@ -104,9 +126,13 @@ public final class ElarionGuildsAddon implements ElarionAddon {
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(GuildScreenOpenRequestPayload.ID, (payload, context) ->
-                context.server().execute(() -> sendScreen(api, guilds, context.player())));
+                context.server().execute(() -> sendScreenOrEmpty(api, guilds, context.player())));
         ServerPlayNetworking.registerGlobalReceiver(GuildScreenActionPayload.ID, (payload, context) ->
                 context.server().execute(() -> handleScreenAction(api, guilds, context.player(), payload)));
+        ServerPlayNetworking.registerGlobalReceiver(GuildRegistrarSubmitPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleRegistrarSubmit(api, guilds, context.player(), payload)));
+        ServerPlayNetworking.registerGlobalReceiver(GuildInvitationDecisionPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleInvitationDecision(api, guilds, context.player(), payload)));
         LOGGER.info("Elarion Guilds addon initialized");
     }
 
@@ -114,8 +140,11 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                                            GuildScreenActionPayload payload) {
         try {
             switch (payload.action()) {
-                case "create" -> createFromRegistrar(guilds, player, payload.value());
-                case "invite" -> guilds.invite(player, findOnlinePlayer(player, payload.target()));
+                case "invite" -> {
+                    ServerPlayerEntity target = findOnlinePlayer(player, payload.target());
+                    guilds.invite(player, target);
+                    sendInvitationPrompt(guilds, player, target);
+                }
                 case "create_role" -> createRole(guilds, player, payload.value());
                 case "assign_role" -> assignRole(guilds, player, payload.target(), payload.value());
                 case "leave" -> guilds.leave(player);
@@ -161,13 +190,39 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         }, () -> player.sendMessage(Text.literal("You are not in a guild."), false));
     }
 
-    private static void createFromRegistrar(GuildService guilds, ServerPlayerEntity player, String encoded) {
-        String[] fields = encoded == null ? new String[0] : encoded.split("\\n", 3);
-        if (fields.length != 3) throw new IllegalArgumentException("Guild Registrar submission is incomplete.");
-        if (!"true".equals(fields[1]) && !"false".equals(fields[1])) {
-            throw new IllegalArgumentException("Guild secrecy selection is invalid.");
+    private static void sendScreenOrEmpty(ElarionApi api, GuildService guilds, ServerPlayerEntity player) {
+        if (guilds.guildFor(player.getUuid()).isPresent()) sendScreen(api, guilds, player);
+        else ServerPlayNetworking.send(player, GuildEmptyScreenPayload.INSTANCE);
+    }
+
+    private static void handleRegistrarSubmit(ElarionApi api, GuildService guilds, ServerPlayerEntity player,
+                                               GuildRegistrarSubmitPayload payload) {
+        try {
+            guilds.createFromRegistrar(player, payload.tag(), payload.name(), payload.secret());
+            sendScreen(api, guilds, player);
+            ServerPlayNetworking.send(player, new ChatChannelAvailabilityPayload(ElarionChatChannelRouter.available(api, player)));
+        } catch (IllegalArgumentException exception) {
+            ServerPlayNetworking.send(player, new GuildUiFeedbackPayload(false, exception.getMessage()));
         }
-        guilds.createFromRegistrar(player, fields[0], fields[2], Boolean.parseBoolean(fields[1]));
+    }
+
+    private static void handleInvitationDecision(ElarionApi api, GuildService guilds, ServerPlayerEntity player,
+                                                 GuildInvitationDecisionPayload payload) {
+        try {
+            if (payload.accepted()) guilds.accept(player, payload.guildId());
+            else guilds.decline(player, payload.guildId());
+            if (guilds.guildFor(player.getUuid()).isPresent()) sendScreen(api, guilds, player);
+            ServerPlayNetworking.send(player, new ChatChannelAvailabilityPayload(
+                    ElarionChatChannelRouter.available(api, player)));
+        } catch (IllegalArgumentException exception) {
+            player.sendMessage(Text.literal(exception.getMessage()), false);
+        }
+    }
+
+    private static void sendInvitationPrompt(GuildService guilds, ServerPlayerEntity inviter, ServerPlayerEntity target) {
+        GuildService.GuildInvitationView invitation = guilds.invitationView(inviter, target.getUuid());
+        ServerPlayNetworking.send(target, new GuildInvitationPromptPayload(
+                invitation.guildId(), invitation.guildName(), invitation.guildTag(), invitation.inviterName()));
     }
 
     private static void sendRegistrar(ElarionApi api, GuildService guilds, ServerPlayerEntity player) {
@@ -175,7 +230,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         ServerPlayNetworking.send(player, new GuildRegistrarOpenPayload(
                 config.enabled(),
                 config.creationFee(),
-                ElarionEconomyApi.get().wallet(player.getUuid()),
+                ElarionEconomyApi.get().physicalCurrency(player),
                 api.serverIdentity().currencyPlural(),
                 config.minTagLength(),
                 config.maxTagLength(),

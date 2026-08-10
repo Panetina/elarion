@@ -78,7 +78,7 @@ public final class ElarionCoreGameTest implements FabricGameTest {
                 "realm",
                 realmId,
                 realmId,
-                Map.of(HistoryEvent.CHRONICLE_INTENT_METADATA_KEY, "true"),
+                Map.of(),
                 "The Realm " + realmId + " entered the Chronicle during a server test."));
         api.publicHistory().generateChronicles();
         context.assertTrue(api.publicHistory().recentChronicles(1).stream()
@@ -95,7 +95,7 @@ public final class ElarionCoreGameTest implements FabricGameTest {
 
         ElarionWorldsApi worlds = ElarionWorldsApi.get();
         context.assertEquals(worlds.definitions().size(), 6,
-                "Expected the lobby, three Realm worlds, Worldheart, and Underworld managed worlds");
+                "Expected lobby, three Realm worlds, Worldheart, and Underworld managed definitions");
         context.assertTrue(worlds.resolve("lobby") != null,
                 "lobby destination should resolve");
         context.assertTrue(worlds.resolve("realm_world_1") != null,
@@ -119,8 +119,8 @@ public final class ElarionCoreGameTest implements FabricGameTest {
         commands.assertRegistered("r");
         commands.assertRegistered("yell");
         commands.assertRegistered("help");
-        commands.assertRegistered("guild");
-        commands.assertRegistered("gc");
+        commands.assertRemoved("guild");
+        commands.assertRemoved("gc");
         commands.assertRegistered("lc");
         commands.assertRegistered("banish");
         commands.assertRegistered("unbanish");
@@ -195,10 +195,10 @@ public final class ElarionCoreGameTest implements FabricGameTest {
 
         ElarionGuildsApi guilds = ElarionGuildsApi.get();
         context.assertTrue(guilds.all() != null, "Guilds API should be available");
-        commands.assertExecutes("e guilds reload", 4);
-        commands.assertExecutes("e guilds list", 4);
-        commands.assertFails("e guilds list", 0);
-        commands.assertFails("e guilds inspect missing_guild", 4);
+        commands.assertExecutes("e guild reload", 4);
+        commands.assertExecutes("e guild list", 4);
+        commands.assertFails("e guild list", 0);
+        commands.assertFails("e guild inspect missing_guild", 4);
         commands.assertFails("guild info", 4);
         commands.assertFails("gc hello", 4);
         commands.assertFails("lc hello", 4);

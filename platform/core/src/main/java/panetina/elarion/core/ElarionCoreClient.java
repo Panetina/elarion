@@ -15,6 +15,7 @@ import panetina.elarion.core.client.CitizenProfileClientState;
 import panetina.elarion.core.client.ClientIdentityCache;
 import panetina.elarion.core.client.ElarionAdminPanelScreen;
 import panetina.elarion.core.client.ElarionCollectionScreen;
+import panetina.elarion.core.client.PlayerContextActionScreen;
 import panetina.elarion.core.client.ElarionConfigEditClientState;
 import panetina.elarion.core.client.ElarionNotificationHud;
 import panetina.elarion.core.client.ElarionUiComponentGalleryScreen;
@@ -43,6 +44,7 @@ import panetina.elarion.core.client.ElarionChatChannelClientState;
 import panetina.elarion.core.client.ElarionHeraldryClientRegistry;
 import panetina.elarion.core.network.ChatRecipientSnapshotPayload;
 import panetina.elarion.core.network.ChatChannelAvailabilityPayload;
+import panetina.elarion.core.network.PlayerContextActionSnapshotPayload;
 
 public final class ElarionCoreClient implements ClientModInitializer {
     private static KeyBinding collectionKey;
@@ -65,6 +67,19 @@ public final class ElarionCoreClient implements ClientModInitializer {
                 context.client().execute(() -> ElarionChatRecipientClientState.update(payload)));
         ClientPlayNetworking.registerGlobalReceiver(ChatChannelAvailabilityPayload.ID, (payload, context) ->
                 context.client().execute(() -> ElarionChatChannelClientState.updateAvailable(payload.channels())));
+        ClientPlayNetworking.registerGlobalReceiver(PlayerContextActionSnapshotPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    if (!payload.actions().isEmpty()) {
+                        double[] rawX = new double[1];
+                        double[] rawY = new double[1];
+                        org.lwjgl.glfw.GLFW.glfwGetCursorPos(context.client().getWindow().getHandle(), rawX, rawY);
+                        int scaledX = (int) (rawX[0] * context.client().getWindow().getScaledWidth()
+                                / context.client().getWindow().getWidth());
+                        int scaledY = (int) (rawY[0] * context.client().getWindow().getScaledHeight()
+                                / context.client().getWindow().getHeight());
+                        context.client().setScreen(new PlayerContextActionScreen(payload, scaledX, scaledY));
+                    }
+                }));
         ClientPlayNetworking.registerGlobalReceiver(UiThemeSyncPayload.ID, (payload, context) ->
                 context.client().execute(() -> ElarionUiThemes.update(payload.theme())));
         ClientPlayNetworking.registerGlobalReceiver(NotificationSnapshotPayload.ID, (payload, context) ->

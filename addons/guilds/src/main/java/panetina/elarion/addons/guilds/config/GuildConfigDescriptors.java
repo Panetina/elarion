@@ -29,7 +29,7 @@ public final class GuildConfigDescriptors {
                 "Guilds",
                 "Public player guild configuration.",
                 List.of("config/elarion/addons/guilds/guilds.yml"),
-                "/e guilds reload",
+                "/e guild reload",
                 List.of(
                         new ElarionConfigCategory(
                                 "general",

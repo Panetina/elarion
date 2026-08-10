@@ -17,12 +17,21 @@ Network packets: `UiThemeSyncPayload`, `NotificationSnapshotPayload`,
 `NotificationActionPayload`, `CollectionOpenPayload`,
 `CollectionOpenRequestPayload`, `CollectionActionPayload`,
 `AdminPanelOpenPayload`, `AdminPanelOpenRequestPayload`,
-`AdminPanelActionPayload`; legacy reward-claim compatibility payloads and
+`AdminPanelActionPayload`, `PlayerContextActionRequestPayload`,
+`PlayerContextActionSnapshotPayload`, `PlayerContextActionExecutePayload`;
+legacy reward-claim compatibility payloads and
 addon-specific screen snapshots.
 
 GUI/screens: NPC dialogue, Shrine UI, Government UI, notification drawer,
 Collection menu, Atlas placeholder shell, and future shops/market/quests/full
 Atlas.
+
+Player context menu: holding the configured Sneak key and right-clicking a
+nearby player opens a small cursor-positioned menu only after Core receives a
+server-authored action snapshot. Core owns the bounded registry, target range
+check, snapshot and execution routing; addons contribute handlers and repeat
+their authorization during execution. The current Guild contribution is
+`Invite to Guild`. The menu closes on any key or after a click.
 
 Storage/persistence: `config/elarion/core/ui_theme.yml`.
 
@@ -39,7 +48,8 @@ packet, loads no map data, and exposes only disabled future feature labels.
 
 Risks: one-off buttons/panels per screen; duplicated colors; unbounded list rendering; client-owned mutation.
 
-Core now owns additive civic color tokens, primitive
+Current Phase 4 status: `docs/reports/UI_SYSTEM_AUDIT.md` identifies the UI
+consolidation path. Core now owns additive civic color tokens, primitive
 helpers, and font-scale-aware control metrics through `ElarionCivicColors`,
 `ElarionCivicUi`, `ElarionUiIcons`, and `ElarionUiMetrics`. New or touched custom Elarion
 screens should use those helpers for generic brown/gold shells, rows, action
@@ -107,7 +117,8 @@ Use semantic ids such as `profile`, `titles`, `mail`, `realm`, `quest`,
 screen-local placeholder textures. Server-authored item rewards and costs may
 still render real Minecraft item stacks for native item tooltips.
 
-Core now owns
+Semantic component audit: `docs/reports/SEMANTIC_UI_COMPONENT_AUDIT.md`
+identifies the extraction order for shared UI composition. Core now owns
 `ElarionListRangeMarker` for centered `Rows first-last / total` text with
 consistent tiny previous/next arrows; Government and Grave Recovery route their
 range markers through it. Core also owns `ElarionMoneySummary` for compact
@@ -233,8 +244,8 @@ Manual UI entry map:
   bypass server-side travel validation.
 - Grave Recovery opens by interacting with an Underworld grave/tomb.
 
-Government's current canonical reference images live in `docs/ui/government/`
-and should be used
+Visual reference journal: `docs/systems/UI_JOURNAL.md`. Government's current
+canonical reference images live in `docs/ui/government/` and should be used
 when polishing Civic Forum, Seat of Rule, and their inner modal flows.
 
 Notification HUD: Core owns the left icon rail, slideout drawer, and the
@@ -282,6 +293,10 @@ persists for the connection. Tab/Shift+Tab cycles channels for ordinary text;
 slash-command completion remains vanilla. PM opens a bounded list of eligible
 nicknames but sends the selected stable UUID. All delivery, membership,
 restriction, distance, visibility, and rate checks remain server-owned.
+`Local` is always available; `Realm` requires a canonical Realm membership;
+`Guild` and `Alliance` appear only when their owning addon registers and
+authorizes a route. `Global` is intentionally absent until the Worldheart
+portal projection defines its availability.
 
 Nether/End route-state icons are Portal-owned HUD accessories, not notification
 categories. Each unlocked scheduled route receives a compact route-colored slot
@@ -521,8 +536,9 @@ not already have one.
 self/admin viewers through the Core player-stat key `portal_journeys`,
 incremented only after successful server-authoritative portal travel.
 
-The shell uses `Character Menu` as its player-facing name while preserving the
-existing Collection API, packets,
+The source-backed migration audit is
+`docs/reports/CITIZEN_LEDGER_AUDIT.md`. The shell uses `Character Menu` as its
+player-facing name while preserving the existing Collection API, packets,
 config/runtime filenames, and provider contracts as the internal Unlockables
 subsystem. Profile uses separate read-only model records, contributor
 contracts, server-side visibility, and bounded section/field/card caps.

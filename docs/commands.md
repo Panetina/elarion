@@ -35,8 +35,6 @@ Government, Offerings, Portal, Ledger, and Chronicle commands.
 /r <message>
 /w <message>
 /yell <message>
-/guild
-/gc <message>
 /lc <message>
 ```
 
@@ -53,17 +51,19 @@ Rules:
   not registered in the server command tree, `/help`, or slash recommendations.
   Core clears vanilla's default Save Hotbar Activator binding when it still
   owns `C`, so fresh clients do not shadow the Character Menu keybind.
-- `/guild` opens the player's Guild management screen. Guild creation is only
-  available through a configured Guild Registrar NPC action. Invitations,
-  announcements, role assignment, and emblem editing use typed server-checked
-  UI actions; the existing Guild commands remain limited keyboard fallbacks.
+- `G` requests the server-authoritative Guild screen. Players without membership
+  receive its empty state; creation remains a configured Guild Registrar NPC
+  action. Invitations, announcements, role assignment, emblem editing and Guild
+  chat use typed server-checked UI actions.
 - Vanilla `/say` is intentionally unavailable. Typed Local chat and every
   available channel route through Core's restriction checks.
 - The `T` chat selector lists only server-authored eligible channels. Its
   selected channel persists for the connection and resets only on join or
   disconnect; Tab/Shift+Tab cycle that eligible list without entering a slash
   command, and PM choices are stable UUID requests behind displayed nicknames.
-- `/gc` sends guild chat to current guild members.
+  Realm requires canonical membership, Guild/Alliance require their registered
+  owner routes, and Global is hidden and rejected until the Worldheart portal
+  projection makes it available.
 - `/lc` sends Government authority chat to same-Realm authority holders.
 - `/ac` remains alliance chat; it is not used for Government authority chat.
 - OP level 4 does not bypass local chat distances by default.
@@ -152,11 +152,11 @@ Rules:
 /e government block remove
 /e government office assign <realm> <office> <player>
 /e government office remove <realm> <office> <player>
-/e guilds reload
-/e guilds list
-/e guilds inspect <guild>
-/e guilds delete <guild>
-/e guilds transfer <guild> <player>
+/e guild reload
+/e guild list
+/e guild inspect <guild>
+/e guild delete <guild>
+/e guild transfer <guild> <player>
 /e portal reload
 /e portal wand
 /e portal list
@@ -269,7 +269,10 @@ executor-bound. It first copies the Fantasy persistent-dimension directory and
 world-scoped addon state into a timestamped backup with `manifest.json`, then
 waits for Fantasy to delete the old runtime dimension before opening the new
 one. The command reports completion only after the replacement world is open.
-Definitions and configuration are preserved.
+Definitions and configuration are preserved. If regeneration or a registered
+world-scoped cleanup fails, it restores the persistent dimension and declared
+addon state from that backup, reloads each affected owner, records rollback in
+the audit log, then reports the original failure.
 
 `/random` is Minecraft's vanilla random-number and named random-sequence
 command. The bare `/random` root is incomplete; examples are

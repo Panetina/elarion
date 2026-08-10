@@ -36,7 +36,7 @@ Guilds does not own:
 - war/crime systems
 - secret society mechanics
 
-Economy owns guild creation payment. Core owns citizen and Realm truth.
+Economy owns physical-inventory Sigil fee consumption. Core owns citizen and Realm truth.
 
 ## Config
 
@@ -60,18 +60,12 @@ Runtime state stores guilds, membership indexes, and invites.
 Player commands:
 
 ```text
-/guild
-/guild invite <player>
-/guild accept <guild>
-/guild kick <player>
-/guild leave
-/guild transfer <player>
-/guild info [guild]
-/gc <message>
+G
 ```
 
-`/guild` opens the current member's management surface. Guild creation is only
-available at the configured Registrar action. Its bounded server projection
+`G` requests the server-authoritative Guild surface; non-members receive a
+read-only empty state. Guild creation is only available at the configured
+Registrar action. Its bounded server projection
 contains Overview, Members, News, Invites, Roles, and Emblem tabs.
 Client actions are requests: the server derives the player's Guild and checks
 the same service permission before leaving, inviting, assigning/creating a
@@ -79,7 +73,7 @@ role, publishing an announcement, or redrawing the icon.
 
 NPC dialogue may use the registry action `elarion_guilds:open_registrar`.
 
-The Registrar receives the current creation fee, wallet balance, currency name,
+The Registrar receives the current creation fee, inventory Sigil count, currency name,
 and field bounds from the server. Players choose only the display name, public
 tag, and Secret setting; Guilds generates the stable internal ID. The action
 opens Guild management for an existing member and the Guild-owned creation form
@@ -88,11 +82,11 @@ otherwise; the NPC never owns Guild state, fees, IDs, or permissions.
 Admin commands:
 
 ```text
-/e guilds reload
-/e guilds list
-/e guilds inspect <guild>
-/e guilds delete <guild>
-/e guilds transfer <guild> <player>
+/e guild reload
+/e guild list
+/e guild inspect <guild>
+/e guild delete <guild>
+/e guild transfer <guild> <player>
 ```
 
 ## Public Presentation
@@ -106,8 +100,7 @@ it:
 
 Full guild names, announcements, membership, and roles are shown in the Guild
 management surface. The selected chat channel remains selected between
-messages; Guild is sent through the addon-owned `/gc` route after the Core
-chat composer validates it.
+messages; Guild is sent through the Core chat composer after server validation.
 
 ## Notifications
 

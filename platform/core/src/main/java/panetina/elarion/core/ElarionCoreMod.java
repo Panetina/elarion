@@ -121,6 +121,9 @@ import panetina.elarion.core.network.ChatChannelSendPayload;
 import panetina.elarion.core.network.ChatRecipientRequestPayload;
 import panetina.elarion.core.network.ChatRecipientSnapshotPayload;
 import panetina.elarion.core.network.ChatChannelAvailabilityPayload;
+import panetina.elarion.core.network.PlayerContextActionExecutePayload;
+import panetina.elarion.core.network.PlayerContextActionRequestPayload;
+import panetina.elarion.core.network.PlayerContextActionSnapshotPayload;
 import panetina.elarion.core.model.ElarionChatChannel;
 import panetina.elarion.core.service.ElarionChatChannelRouter;
 import panetina.elarion.core.service.ElarionAdminPanelService;
@@ -149,8 +152,11 @@ public final class ElarionCoreMod implements ModInitializer {
     public static final String MOD_ID = "elarion_core";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private static final String PROFILE_REQUEST_CHANNEL = "citizen-profile";
+    private static final String PLAYER_CONTEXT_REQUEST_CHANNEL = "player-context-actions";
     private static final int PROFILE_REQUESTS_PER_WINDOW = 4;
+    private static final int PLAYER_CONTEXT_REQUESTS_PER_WINDOW = 4;
     private static final long PROFILE_REQUEST_WINDOW_MILLIS = 1_000L;
+    private static final long PLAYER_CONTEXT_REQUEST_WINDOW_MILLIS = 1_000L;
 
     @Override
     public void onInitialize() {
@@ -165,6 +171,12 @@ public final class ElarionCoreMod implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(ChatChannelAvailabilityPayload.ID, ChatChannelAvailabilityPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ChatRecipientRequestPayload.ID, ChatRecipientRequestPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ChatRecipientSnapshotPayload.ID, ChatRecipientSnapshotPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(
+                PlayerContextActionRequestPayload.ID, PlayerContextActionRequestPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(
+                PlayerContextActionExecutePayload.ID, PlayerContextActionExecutePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(
+                PlayerContextActionSnapshotPayload.ID, PlayerContextActionSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(
                 CharacterCreationRequirementPayload.ID, CharacterCreationRequirementPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(
@@ -215,7 +227,7 @@ public final class ElarionCoreMod implements ModInitializer {
                 config, new HistoryStorage(LOGGER), new HistoryIndexStorage(LOGGER),
                 new ChronicleArchiveStorage(LOGGER), events);
         history.registerChronicleRenderer(CoreChronicleText.INSTANCE);
-        history.onChronicleRecorded(event -> publishChronicleProjection(history, webProjections, event));
+        history.onRecorded(event -> publishChronicleProjection(history, webProjections, event));
         TitleService titles = new TitleService(config, citizens, new TitleClaimStorage(LOGGER), history, events);
         AbilityService abilities = new AbilityService(titles);
         config.titles().values().forEach(title -> title.abilities().forEach(abilities::register));
@@ -380,6 +392,18 @@ public final class ElarionCoreMod implements ModInitializer {
                 context.server().execute(() -> routeChatChannel(api, context.player(), payload)));
         ServerPlayNetworking.registerGlobalReceiver(ChatRecipientRequestPayload.ID, (payload, context) ->
                 context.server().execute(() -> ServerPlayNetworking.send(context.player(), chatRecipients(api, context.player()))));
+        ServerPlayNetworking.registerGlobalReceiver(
+                PlayerContextActionRequestPayload.ID, (payload, context) ->
+                context.server().execute(() -> {
+                    if (requestLimiter.allow(context.player().getUuid(), PLAYER_CONTEXT_REQUEST_CHANNEL,
+                            System.currentTimeMillis(), PLAYER_CONTEXT_REQUESTS_PER_WINDOW,
+                            PLAYER_CONTEXT_REQUEST_WINDOW_MILLIS)) {
+                        sendPlayerContextActions(api, context.player(), payload.targetId());
+                    }
+                }));
+        ServerPlayNetworking.registerGlobalReceiver(
+                PlayerContextActionExecutePayload.ID, (payload, context) ->
+                context.server().execute(() -> executePlayerContextAction(api, context.player(), payload.targetId(), payload.actionId())));
         ServerPlayNetworking.registerGlobalReceiver(CollectionOpenRequestPayload.ID, (payload, context) ->
                 context.server().execute(() -> collections.open(context.player())));
         ServerPlayNetworking.registerGlobalReceiver(CollectionActionPayload.ID, (payload, context) ->
@@ -805,6 +829,10 @@ public final class ElarionCoreMod implements ModInitializer {
 
     private static void routeChatChannel(ElarionApi api, ServerPlayerEntity sender, ChatChannelSendPayload payload) {
         if (payload.message().isBlank()) return;
+        if (!ElarionChatChannelRouter.available(api, sender).contains(payload.channel())) {
+            sender.sendMessage(Text.literal("That chat channel is unavailable."), false);
+            return;
+        }
         switch (payload.channel()) {
             case LOCAL -> api.chat().sendLocalMessage(sender, payload.message());
             case REALM -> api.chat().sendRealmMessage(sender, payload.message());
@@ -824,6 +852,25 @@ public final class ElarionCoreMod implements ModInitializer {
                 }
             }
         }
+    }
+
+    private static void sendPlayerContextActions(ElarionApi api, ServerPlayerEntity actor, UUID targetId) {
+        ServerPlayerEntity target = actor.getServer().getPlayerManager().getPlayer(targetId);
+        if (target == null || target.getUuid().equals(actor.getUuid())) return;
+        var actions = api.registries().playerContextActions().available(actor, target).stream()
+                .map(action -> new PlayerContextActionSnapshotPayload.Entry(
+                        action.id(), action.label()))
+                .toList();
+        if (actions.isEmpty()) return;
+        ServerPlayNetworking.send(actor, new PlayerContextActionSnapshotPayload(
+                target.getUuid(), target.getGameProfile().getName(), actions));
+    }
+
+    private static void executePlayerContextAction(ElarionApi api, ServerPlayerEntity actor, UUID targetId, String actionId) {
+        ServerPlayerEntity target = actor.getServer().getPlayerManager().getPlayer(targetId);
+        if (target == null) return;
+        var result = api.registries().playerContextActions().execute(actionId, actor, target);
+        if (!result.success()) actor.sendMessage(Text.literal(result.message()), false);
     }
 
     private static ChatChannelAvailabilityPayload chatChannels(ElarionApi api, ServerPlayerEntity player) {

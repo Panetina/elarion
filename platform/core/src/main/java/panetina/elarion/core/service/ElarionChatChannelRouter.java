@@ -33,10 +33,11 @@ public final class ElarionChatChannelRouter {
     public static java.util.List<ElarionChatChannel> available(ElarionApi api, ServerPlayerEntity player) {
         java.util.List<ElarionChatChannel> channels = new java.util.ArrayList<>();
         channels.add(ElarionChatChannel.LOCAL);
-        if (api != null && player != null && !api.citizens().getOrCreate(player).realmId().isBlank()) {
+        if (api != null && player != null && api.citizens().find(player.getUuid())
+                .map(citizen -> !citizen.realmId().isBlank()).orElse(false)) {
             channels.add(ElarionChatChannel.REALM);
-            channels.add(ElarionChatChannel.ALLIANCE);
         }
+        if (eligible(ElarionChatChannel.ALLIANCE, player)) channels.add(ElarionChatChannel.ALLIANCE);
         if (eligible(ElarionChatChannel.GUILD, player)) channels.add(ElarionChatChannel.GUILD);
         channels.add(ElarionChatChannel.PRIVATE);
         return java.util.List.copyOf(channels);

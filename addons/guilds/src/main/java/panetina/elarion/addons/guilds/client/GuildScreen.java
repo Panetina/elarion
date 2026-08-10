@@ -148,7 +148,7 @@ public final class GuildScreen extends ElarionScreen {
         card(context, 34, 232, 286, 76, "Members", Integer.toString(payload.members().size()),
                 "Membership is stored by Guilds");
         card(context, 340, 232, 286, 76, "Guild chat", "Available",
-                "Select Guild in chat or use /gc");
+                "Select Guild in chat to speak with members.");
         if (client != null && client.player != null && !payload.leaderId().equals(client.player.getUuid())) {
             button(context, mouseX, mouseY, 494, 326, 132, 24, "Leave Guild", true,
                     ElarionCivicUi.Tone.DESTRUCTIVE, () -> send("leave", null, "", new byte[0]));

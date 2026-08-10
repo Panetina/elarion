@@ -10,7 +10,7 @@ import panetina.elarion.core.network.ElarionPacketCodecs;
 public record GuildRegistrarOpenPayload(
         boolean enabled,
         long creationFee,
-        long walletBalance,
+        long inventorySigils,
         String currencyPlural,
         int minTagLength,
         int maxTagLength,
@@ -21,7 +21,7 @@ public record GuildRegistrarOpenPayload(
             (payload, buffer) -> {
                 buffer.writeBoolean(payload.enabled);
                 buffer.writeVarLong(payload.creationFee);
-                buffer.writeVarLong(payload.walletBalance);
+                buffer.writeVarLong(payload.inventorySigils);
                 ElarionPacketCodecs.writeString(buffer, payload.currencyPlural, 32);
                 buffer.writeVarInt(payload.minTagLength);
                 buffer.writeVarInt(payload.maxTagLength);
@@ -37,7 +37,7 @@ public record GuildRegistrarOpenPayload(
                     buffer.readVarInt()));
 
     public GuildRegistrarOpenPayload {
-        if (creationFee < 0L || walletBalance < 0L) {
+        if (creationFee < 0L || inventorySigils < 0L) {
             throw new IllegalArgumentException("Guild Registrar currency values must not be negative.");
         }
         currencyPlural = currencyPlural == null || currencyPlural.isBlank() ? "Sigils" : currencyPlural;
@@ -50,7 +50,7 @@ public record GuildRegistrarOpenPayload(
     }
 
     public boolean affordable() {
-        return walletBalance >= creationFee;
+        return inventorySigils >= creationFee;
     }
 
     @Override public Id<? extends CustomPayload> getId() { return ID; }

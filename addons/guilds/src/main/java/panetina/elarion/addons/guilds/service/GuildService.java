@@ -32,6 +32,9 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 public final class GuildService {
+    /** Server-authored text projection for an immediate invitation prompt. */
+    public record GuildInvitationView(String guildId, String guildName, String guildTag, String inviterName) { }
+
     private final ElarionApi api;
     private final GuildStorage storage;
     private final GuildWebProjectionPublisher webProjections;
@@ -105,10 +108,9 @@ public final class GuildService {
             throw new IllegalArgumentException("You are already in a guild.");
         }
         if (config.creationFee() > 0L) {
-            var result = ElarionEconomyApi.get().sink(
-                    EconomyAccount.player(creator.getUuid()),
+            var result = ElarionEconomyApi.get().payPhysicalOnly(
+                    creator,
                     config.creationFee(),
-                    creator.getUuid(),
                     "Guild creation: " + normalizedId,
                     "guilds"
             );
@@ -185,6 +187,16 @@ public final class GuildService {
                 java.util.Map.of("guildId", guild.id(), "invitedBy", actor.getUuidAsString()),
                 invite.createdAt() + config.inviteLifetimeMillis());
         return invite;
+    }
+
+    /** Resolves prompt copy from canonical membership state immediately after inviting. */
+    public GuildInvitationView invitationView(ServerPlayerEntity inviter, UUID invitedPlayer) {
+        GuildRecord guild = requirePermissionGuild(inviter.getUuid(), GuildPermission.INVITE);
+        GuildInvite invite = state.invites.get(guild.id() + ":" + invitedPlayer);
+        if (invite == null || !invite.invitedBy().equals(inviter.getUuid())) {
+            throw new IllegalArgumentException("That Guild invitation is no longer pending.");
+        }
+        return new GuildInvitationView(guild.id(), guild.displayName(), guild.tag(), inviter.getGameProfile().getName());
     }
 
     public GuildRecord accept(ServerPlayerEntity player, String guildId) {
