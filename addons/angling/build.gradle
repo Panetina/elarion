@@ -357,7 +357,7 @@ tasks.register('compareAnglingNativeServerData') {
 
 tasks.register('verifyAnglingDomainMaps') {
     group = 'verification'
-    description = 'Validates five transformed domain-specific replacements for NeoForge data maps.'
+    description = 'Compares five transformed domain-map replacements with the authorized local reference.'
     doLast {
         exec {
             commandLine 'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass',
@@ -373,12 +373,14 @@ tasks.register('compareAnglingDomainMaps') {
     dependsOn tasks.named('verifyAnglingDomainMaps')
 }
 
-check.dependsOn tasks.named('verifyAnglingDomainMaps')
+tasks.register('verifyAnglingPort') {
+    group = 'verification'
+    description = 'Runs the complete Angling parity gate; requires the authorized local reference checkout.'
+    dependsOn tasks.named('verifyAnglingFoundation'), tasks.named('verifyAnglingPortInventory'),
+            tasks.named('verifyAnglingTransformedData'), tasks.named('verifyAnglingPortAssets'),
+            tasks.named('verifyAnglingNativeServerData'), tasks.named('verifyAnglingDomainMaps')
+}
 
 test {
     useJUnitPlatform()
 }
-
-check.dependsOn tasks.named('verifyAnglingFoundation'), tasks.named('verifyAnglingPortInventory'),
-        tasks.named('verifyAnglingTransformedData'), tasks.named('verifyAnglingPortAssets')
-check.dependsOn tasks.named('verifyAnglingNativeServerData')

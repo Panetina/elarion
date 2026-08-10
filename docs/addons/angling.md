@@ -257,6 +257,12 @@ The build tasks `verifyAnglingFoundation`, `verifyAnglingPortInventory`,
 `verifyAnglingNativeServerData`, and `verifyAnglingDelightFoundation` enforce
 identity, hashes, transformed content, ownership, and release boundaries. Run
 the matching `compareAngling*` tasks when the ignored reference is present.
+`verifyAnglingPort` aggregates the Angling verification gate, including
+`verifyAnglingDomainMaps`, and is deliberately outside the normal `check`
+lifecycle: a clean clone cannot compare against a checkout that Git
+deliberately excludes. It remains required before an Angling parity change or
+release-gate decision; it does not block the disabled module from the current
+pack/launcher release path.
 
 ## Authorized Port Source and Release Boundary
 
