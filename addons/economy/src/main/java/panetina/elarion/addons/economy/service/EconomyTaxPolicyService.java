@@ -4,6 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import panetina.elarion.addons.economy.model.EconomyTaxAuthority;
 import panetina.elarion.addons.economy.model.EconomyTaxCategory;
 import panetina.elarion.addons.economy.model.EconomyTaxQuote;
+import panetina.elarion.addons.economy.model.EconomyTaxPolicySnapshot;
 import panetina.elarion.addons.economy.storage.EconomyTaxPolicyStorage;
 
 import java.util.LinkedHashMap;
@@ -45,12 +46,30 @@ public final class EconomyTaxPolicyService {
     }
 
     public synchronized void setRate(EconomyTaxAuthority authority, EconomyTaxCategory category, int basisPoints) {
+        setRates(authority, revision, Map.of(category, basisPoints));
+    }
+
+    public synchronized EconomyTaxPolicySnapshot snapshot(EconomyTaxAuthority authority) {
+        Map<EconomyTaxCategory, Integer> values = new LinkedHashMap<>();
+        for (EconomyTaxCategory category : EconomyTaxCategory.values()) values.put(category, rate(authority, category));
+        return new EconomyTaxPolicySnapshot(authority, revision, values);
+    }
+
+    public synchronized void setRates(
+            EconomyTaxAuthority authority,
+            long expectedRevision,
+            Map<EconomyTaxCategory, Integer> updatedRates
+    ) {
         if (!bound) throw new IllegalStateException("Economy tax policy service is not bound");
-        if (basisPoints < 0 || basisPoints > 10_000) {
-            throw new IllegalArgumentException("Tax basis points must be between 0 and 10000");
+        if (expectedRevision != revision) throw new IllegalStateException("Tax policy changed; reload before applying.");
+        if (updatedRates == null || updatedRates.isEmpty()) return;
+        for (Map.Entry<EconomyTaxCategory, Integer> entry : updatedRates.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null || entry.getValue() < 0 || entry.getValue() > 2_500) {
+                throw new IllegalArgumentException("Seat tax rates must be between 0 and 2500 basis points");
+            }
         }
         Map<String, Integer> candidate = new LinkedHashMap<>(rates);
-        candidate.put(key(authority, category), basisPoints);
+        updatedRates.forEach((category, rate) -> candidate.put(key(authority, category), rate));
         long candidateRevision = revision + 1L;
         storage.save(server, candidateRevision, candidate);
         rates.clear();

@@ -11,8 +11,11 @@ import panetina.elarion.addons.government.api.ElarionGovernmentApi;
 import panetina.elarion.addons.government.command.GovernmentCommands;
 import panetina.elarion.addons.government.config.GovernmentConfigDescriptors;
 import panetina.elarion.addons.government.network.GovernmentUiActionPayload;
+import panetina.elarion.addons.government.network.GovernmentHeraldrySavePayload;
+import panetina.elarion.addons.government.network.GovernmentHeraldrySnapshotPayload;
 import panetina.elarion.addons.government.network.GovernmentUiFeedbackPayload;
 import panetina.elarion.addons.government.network.GovernmentUiOpenPayload;
+import panetina.elarion.addons.government.network.GovernmentTaxPolicySnapshotPayload;
 import panetina.elarion.addons.government.service.GovernmentDefinitionService;
 import panetina.elarion.addons.government.service.GovernmentAdminPanelProvider;
 import panetina.elarion.addons.government.service.GovernmentStateService;
@@ -33,6 +36,9 @@ public final class ElarionGovernmentAddon implements ElarionAddon {
         PayloadTypeRegistry.playS2C().register(GovernmentUiOpenPayload.ID, GovernmentUiOpenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GovernmentUiFeedbackPayload.ID, GovernmentUiFeedbackPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(GovernmentUiActionPayload.ID, GovernmentUiActionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(GovernmentHeraldrySavePayload.ID, GovernmentHeraldrySavePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(GovernmentHeraldrySnapshotPayload.ID, GovernmentHeraldrySnapshotPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(GovernmentTaxPolicySnapshotPayload.ID, GovernmentTaxPolicySnapshotPayload.CODEC);
         GovernmentBlocks.register();
         api.system().abilities().register("elarion.government.manage");
         GovernmentDefinitionService definitions = new GovernmentDefinitionService(api);
@@ -90,6 +96,9 @@ public final class ElarionGovernmentAddon implements ElarionAddon {
         ServerPlayNetworking.registerGlobalReceiver(GovernmentUiActionPayload.ID, (payload, context) ->
                 context.server().execute(() ->
                         GovernmentBlockInteractions.handleAction(api, definitions, states, context.player(), payload)));
+        ServerPlayNetworking.registerGlobalReceiver(GovernmentHeraldrySavePayload.ID, (payload, context) ->
+                context.server().execute(() -> GovernmentBlockInteractions.handleHeraldrySave(
+                        definitions, states, context.player(), payload)));
         GovernmentBlockInteractions.register(api, definitions, states);
         LOGGER.info("Elarion Government addon initialized with {} form definitions", definitions.forms().size());
     }

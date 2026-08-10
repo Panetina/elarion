@@ -9,7 +9,7 @@ public final class GovernmentVoteOption {
     public String tag = "";
     public String formId = "";
     public String officeId = "";
-    public String groupId = "";
+    public String guildId = "";
     public UUID candidateId;
     public UUID proposedBy;
     public long createdAt;
@@ -58,7 +58,7 @@ public final class GovernmentVoteOption {
             String body,
             String officeId,
             UUID candidateId,
-            String groupId
+            String guildId
     ) {
         GovernmentVoteOption option = new GovernmentVoteOption();
         option.id = id;
@@ -66,7 +66,7 @@ public final class GovernmentVoteOption {
         option.body = body;
         option.officeId = officeId;
         option.candidateId = candidateId;
-        option.groupId = groupId == null ? "" : groupId;
+        option.guildId = guildId == null ? "" : guildId;
         option.proposedBy = candidateId;
         option.createdAt = System.currentTimeMillis();
         return option;
@@ -84,8 +84,8 @@ public final class GovernmentVoteOption {
         return formId;
     }
 
-    public String groupId() {
-        return groupId;
+    public String guildId() {
+        return guildId;
     }
 
     public UUID candidateId() {

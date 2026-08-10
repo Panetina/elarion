@@ -22,9 +22,14 @@ import panetina.elarion.addons.government.model.RealmGovernmentState;
 import panetina.elarion.addons.government.network.GovernmentUiActionPayload;
 import panetina.elarion.addons.government.network.GovernmentUiFeedbackPayload;
 import panetina.elarion.addons.government.network.GovernmentUiOpenPayload;
+import panetina.elarion.addons.government.network.GovernmentHeraldrySavePayload;
 import panetina.elarion.addons.government.service.GovernmentDefinitionService;
 import panetina.elarion.addons.government.service.GovernmentStateService;
 import panetina.elarion.addons.government.service.GovernmentUiSessionService;
+import panetina.elarion.addons.economy.api.ElarionEconomyApi;
+import panetina.elarion.addons.economy.model.EconomyTaxAuthority;
+import panetina.elarion.addons.economy.model.EconomyTaxCategory;
+import panetina.elarion.addons.government.network.GovernmentTaxPolicySnapshotPayload;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.model.CitizenRecord;
 import panetina.elarion.core.model.ChronicleProjection;
@@ -234,6 +239,18 @@ public final class GovernmentBlockInteractions {
                             "offices", "Office resigned.");
                     return;
                 }
+                case "set_tax_rate" -> {
+                    if (!states.canDirectCreateRecords(player, realmId)) {
+                        throw new IllegalArgumentException("Only the active Realm authority may set tax policy.");
+                    }
+                    EconomyTaxCategory category = EconomyTaxCategory.fromId(payload.targetId());
+                    long expectedRevision = Long.parseLong(payload.secondaryValue());
+                    ElarionEconomyApi.get().setTaxRates(EconomyTaxAuthority.realm(realmId, ""), expectedRevision,
+                            java.util.Map.of(category, Integer.parseInt(payload.value())));
+                    sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                            "taxes", "Tax policy updated.");
+                    return;
+                }
                 default -> message = "Unknown Government UI action.";
             }
         } catch (IllegalArgumentException | IllegalStateException exception) {
@@ -241,9 +258,36 @@ public final class GovernmentBlockInteractions {
         }
 
         if ("seat_of_rule".equals(screenType) || screenType.startsWith("seat_module_")) {
-            sendSeatSnapshot(api, definitions, states, player, realmId, session, message);
+            if (screenType.startsWith("seat_module_")) {
+                sendSeatModuleSnapshot(api, definitions, states, player, realmId, session,
+                        moduleFromScreen(screenType), message);
+            } else {
+                sendSeatSnapshot(api, definitions, states, player, realmId, session, message);
+            }
         } else {
             sendCivicSnapshot(api, definitions, states, player, realmId, session, message);
+        }
+    }
+
+    /** Applies the fixed-size heraldry asset only from a current Seat of Rule session. */
+    public static void handleHeraldrySave(
+            GovernmentDefinitionService definitions,
+            GovernmentStateService states,
+            ServerPlayerEntity player,
+            GovernmentHeraldrySavePayload payload
+    ) {
+        if (player == null || payload == null) return;
+        GovernmentUiSessionService.Session session = validateSession(player, payload.sessionId(), payload.realmId(), "seat_of_rule");
+        if (session == null) {
+            player.sendMessage(Text.literal("Open the Seat of Rule again before saving heraldry."), false);
+            return;
+        }
+        try {
+            states.setHeraldry(player, payload.realmId(), payload.pixels());
+            sendSeatSnapshot(ElarionApi.get(), definitions, states, player, payload.realmId(), session,
+                    "Realm heraldry saved.");
+        } catch (IllegalArgumentException exception) {
+            player.sendMessage(Text.literal(exception.getMessage()), false);
         }
     }
 
@@ -322,6 +366,9 @@ public final class GovernmentBlockInteractions {
         RealmDefinition realm = api.realms().find(realmId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown Realm " + realmId));
         RealmGovernmentState state = states.realm(realm.id());
+        var heraldry = states.heraldry(realm.id());
+        ServerPlayNetworking.send(player, new panetina.elarion.addons.government.network.GovernmentHeraldrySnapshotPayload(
+                realm.id(), heraldry.revision(), heraldry.paletteIndices()));
         GovernmentGateStatus gates = states.gates(realm.id());
         GovernmentCivicScreen screen = states.currentCivicScreen(realm.id());
         boolean eligible = states.eligibleCitizen(player, realm.id());
@@ -490,7 +537,7 @@ public final class GovernmentBlockInteractions {
                 "seat_of_rule", "review", formLabel(definitions, state),
                 authorityLabel(api, definitions, state), "Authority Seat",
                 selectedColor(realm, state), "seat_crest", "",
-                status, formRows, officeRows, List.of()));
+                status, formRows, officeRows, seatModules()));
     }
 
     private static void sendCivicModuleSnapshot(
@@ -595,6 +642,24 @@ public final class GovernmentBlockInteractions {
             title = "Offices";
             subtitle = "Authority holders, tenure, and office tools.";
             rows = officeRows(api, states, form, states.realm(realm.id()));
+        } else if ("taxes".equals(module)) {
+            title = "Realm Taxes";
+            subtitle = "Economy-owned service tax policy for " + api.realms().officialName(realm) + ".";
+            boolean canEdit = states.canDirectCreateRecords(player, realm.id());
+            var policy = ElarionEconomyApi.get().taxPolicy(EconomyTaxAuthority.realm(realm.id(), ""));
+            ServerPlayNetworking.send(player, new GovernmentTaxPolicySnapshotPayload(
+                    realm.id(),
+                    policy.revision(),
+                    api.realms().officialName(realm) + " Realm treasury",
+                    java.util.Arrays.stream(EconomyTaxCategory.values())
+                            .map(category -> new GovernmentTaxPolicySnapshotPayload.Entry(
+                                    category.id(), taxLabel(category), policy.rates().getOrDefault(category, 0)))
+                            .toList()));
+            rows = java.util.Arrays.stream(EconomyTaxCategory.values()).<GovernmentUiOpenPayload.Row>map(category -> row(category.id(),
+                    taxLabel(category), "Current rate: " + percent(policy.rates().getOrDefault(category, 0))
+                            + ". This applies only to this Realm.",
+                    policy.rates().getOrDefault(category, 0) + " bp / revision " + policy.revision(), canEdit, false)).toList();
+            primaryAction = canEdit ? "set_tax_rate" : "";
         } else {
             title = "Audience";
             subtitle = "Approve or reject audience requests.";
@@ -1144,9 +1209,32 @@ public final class GovernmentBlockInteractions {
             case "audience", "proposals" -> "audience";
             case "projects" -> "projects";
             case "offices" -> "offices";
+            case "taxes", "tax" -> "taxes";
             case "history", "archive" -> "history";
             default -> "audience";
         };
+    }
+
+    private static List<GovernmentUiOpenPayload.Row> seatModules() {
+        return List.of(
+                row("laws", "Laws", "Official laws and civic rules.", "Open", true, false),
+                row("projects", "Projects", "Approved Realm projects.", "Open", true, false),
+                row("offices", "Offices", "Authority holders and appointments.", "Open", true, false),
+                row("taxes", "Taxes", "Economy-owned Realm tax policy.", "Open", true, false),
+                row("archive", "Archive", "Archived records and history.", "Open", true, false));
+    }
+
+    private static String taxLabel(EconomyTaxCategory category) {
+        return switch (category) {
+            case NPC_TRADE -> "NPC Trade";
+            case PORTAL_SERVICE -> "Portal Services";
+            case MARKETPLACE -> "Marketplace";
+            case GENERAL_SERVICE -> "General Services";
+        };
+    }
+
+    private static String percent(int basisPoints) {
+        return String.format(java.util.Locale.ROOT, "%.2f%%", basisPoints / 100.0D);
     }
 
     private static String normalizeSeatModule(String moduleId) {

@@ -11,7 +11,7 @@ typed civic records, Government blocks, Government runtime state, notifications,
 and temporary office-driven active title overrides.
 
 Government does not own Core Realm membership, Core citizens, Economy balances,
-Offering progress, Groups membership, taxes, treaties, automated enforcement,
+Offering progress, Guild membership, taxes, treaties, automated enforcement,
 or treasury spending.
 
 ## Main Classes
@@ -126,7 +126,7 @@ Republic:
   command registration, networking, notifications, and domain events.
 - Offerings: Foundation flags `foundation_i`, `foundation_ii`,
   `foundation_iii`.
-- Groups: normal group presentation only; Government no longer consumes Groups
+- Guilds: normal Guild presentation only; Government no longer consumes Guilds
   for founding offices.
 
 ## Extension Points
@@ -157,5 +157,5 @@ Republic:
 - a second office/authority owner
 - a second voting runtime store
 - a second Government UI packet stack
-- laws/taxes/treaties inside Core or Groups
+- laws/taxes/treaties inside Core or Guilds
 - a separate civic-record manager outside Government

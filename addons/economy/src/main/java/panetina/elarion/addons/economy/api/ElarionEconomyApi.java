@@ -13,6 +13,7 @@ import panetina.elarion.addons.economy.model.EconomyTransactionType;
 import panetina.elarion.addons.economy.model.EconomyTaxAuthority;
 import panetina.elarion.addons.economy.model.EconomyTaxCategory;
 import panetina.elarion.addons.economy.model.EconomyTaxQuote;
+import panetina.elarion.addons.economy.model.EconomyTaxPolicySnapshot;
 import panetina.elarion.addons.economy.model.EconomyTradePriceQuote;
 import panetina.elarion.addons.economy.model.EconomyTradePriceRequest;
 import panetina.elarion.addons.economy.model.TransactionResult;
@@ -254,6 +255,15 @@ public final class ElarionEconomyApi {
 
     public void setTaxRate(EconomyTaxAuthority authority, EconomyTaxCategory category, int basisPoints) {
         taxPolicies.setRate(authority, category, basisPoints);
+    }
+
+    public EconomyTaxPolicySnapshot taxPolicy(EconomyTaxAuthority authority) {
+        return taxPolicies.snapshot(authority);
+    }
+
+    public void setTaxRates(EconomyTaxAuthority authority, long expectedRevision,
+                            Map<EconomyTaxCategory, Integer> rates) {
+        taxPolicies.setRates(authority, expectedRevision, rates);
     }
 
     public EconomyAccount taxDestination(EconomyTaxAuthority authority) {

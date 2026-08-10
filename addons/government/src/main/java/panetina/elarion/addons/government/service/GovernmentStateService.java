@@ -15,6 +15,7 @@ import panetina.elarion.addons.government.model.GovernmentVoteState;
 import panetina.elarion.addons.government.model.GovernmentVoteType;
 import panetina.elarion.addons.government.model.RealmGovernmentState;
 import panetina.elarion.addons.government.model.RealmIdentityRules;
+import panetina.elarion.addons.government.model.RealmHeraldry;
 import panetina.elarion.addons.offerings.api.ElarionOfferingsApi;
 import panetina.elarion.addons.government.storage.GovernmentState;
 import panetina.elarion.addons.government.storage.GovernmentStorage;
@@ -46,6 +47,7 @@ public final class GovernmentStateService {
     private static final Duration FOUNDING_VOTE_DURATION = Duration.ofHours(24);
     private static final Duration RUNOFF_VOTE_DURATION = Duration.ofHours(12);
     private static final int VOTE_RESOLUTION_INTERVAL_TICKS = 20;
+    private static final long HERALDRY_SAVE_COOLDOWN_MILLIS = 1_500L;
     private static final String SOURCE_SYSTEM = "elarion_government";
     private static final String OPEN_CIVIC_FORUM_ACTION = "elarion_government:open_civic_forum";
     private static final String NOTIFICATION_ICON = "realm";
@@ -62,6 +64,7 @@ public final class GovernmentStateService {
     private final GovernmentStorage storage;
     private GovernmentState state = new GovernmentState();
     private final Map<UUID, List<GovernmentOfficeTermRecord>> officeTermsByHolder = new LinkedHashMap<>();
+    private final Map<UUID, Long> lastHeraldrySaveByActor = new LinkedHashMap<>();
     private MinecraftServer server;
     private int voteResolutionTicks;
     private int authorityCleanupTicks;
@@ -81,6 +84,7 @@ public final class GovernmentStateService {
         if (state.laws == null) state.laws = new LinkedHashMap<>();
         if (state.officeTerms == null) state.officeTerms = new LinkedHashMap<>();
         if (state.authorityTitleRestores == null) state.authorityTitleRestores = new LinkedHashMap<>();
+        if (state.heraldry == null) state.heraldry = new LinkedHashMap<>();
         api.realms().all().forEach(realm ->
                 state.realms.computeIfAbsent(realm.id(), RealmGovernmentState::empty));
         boolean migratedForms = migrateRemovedForms();
@@ -116,6 +120,26 @@ public final class GovernmentStateService {
 
     public Collection<RealmGovernmentState> realms() {
         return state.realms.values();
+    }
+
+    public RealmHeraldry heraldry(String realmId) {
+        String normalized = normalize(realmId);
+        if (api.realms().find(normalized).isEmpty()) throw new IllegalArgumentException("Unknown Realm " + realmId);
+        return state.heraldry.computeIfAbsent(normalized, ignored -> RealmHeraldry.blank());
+    }
+    public RealmHeraldry setHeraldry(ServerPlayerEntity player, String realmId, byte[] pixels) {
+        String realm = normalize(realmId);
+        if (!canOpenSeatOfRule(player, realm)) throw new IllegalArgumentException("Only the active Realm authority may redraw heraldry.");
+        long now = System.currentTimeMillis();
+        long previous = lastHeraldrySaveByActor.getOrDefault(player.getUuid(), 0L);
+        if (now - previous < HERALDRY_SAVE_COOLDOWN_MILLIS) {
+            throw new IllegalArgumentException("Wait before saving heraldry again.");
+        }
+        RealmHeraldry updated = heraldry(realm).revised(pixels);
+        state.heraldry.put(realm, updated); lastHeraldrySaveByActor.put(player.getUuid(), now); save();
+        emit("realm-heraldry-set", player.getUuid(), realm, "realm", realm,
+                Map.of("revision", Long.toString(updated.revision())));
+        return updated;
     }
 
     public String realmDisplayName(String realmId) {

@@ -8,7 +8,12 @@ import org.lwjgl.glfw.GLFW;
 import panetina.elarion.addons.government.client.GovernmentScreenChrome;
 import panetina.elarion.addons.government.client.GovernmentUiComponents;
 import panetina.elarion.addons.government.client.GovernmentUiGlyphs;
+import panetina.elarion.addons.government.client.GovernmentTaxPolicyClientState;
 import panetina.elarion.addons.government.network.GovernmentUiActionPayload;
+import panetina.elarion.addons.government.network.GovernmentTaxPolicySnapshotPayload;
+import panetina.elarion.addons.government.network.GovernmentHeraldrySavePayload;
+import panetina.elarion.core.client.ElarionHeraldryClientRegistry;
+import panetina.elarion.core.client.ui.ElarionPixelCanvas32;
 import panetina.elarion.addons.government.network.GovernmentUiOpenPayload;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
 import panetina.elarion.core.client.ui.ElarionScreen;
@@ -44,6 +49,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
     private static final int HEADER_META_RIGHT = LOGICAL_WIDTH - 40;
     private static final int HEADER_META_COUNT = 4;
     private static final int HEADER_CLOSE_X = LOGICAL_WIDTH - 24;
+    private static final int TAX_STEP_BASIS_POINTS = 25;
 
     private final GovernmentUiOpenPayload payload;
     private final List<Hit> hits = new ArrayList<>();
@@ -59,11 +65,21 @@ public final class SeatOfRuleScreen extends ElarionScreen {
     private String overlayTarget = "";
     private String titleInput = "";
     private String bodyInput = "";
+    private final ElarionPixelCanvas32 heraldryCanvas = new ElarionPixelCanvas32();
+    private GovernmentTaxPolicySnapshotPayload taxPolicy;
 
     public SeatOfRuleScreen(GovernmentUiOpenPayload payload) {
         super(Text.literal("Seat of Rule"));
         this.payload = payload;
         this.selectedRowId = firstSelectable(rowsForActiveTab()).id();
+        this.heraldryCanvas.load(ElarionHeraldryClientRegistry.realm(payload.realmId()).paletteIndices());
+        this.taxPolicy = GovernmentTaxPolicyClientState.get(payload.realmId());
+    }
+
+    public void loadHeraldry(byte[] pixels) { heraldryCanvas.load(pixels); }
+
+    public void loadTaxPolicy(GovernmentTaxPolicySnapshotPayload update) {
+        if (update != null && payload.realmId().equals(update.realmId())) taxPolicy = update;
     }
 
     public static Layout layoutMetrics() {
@@ -161,7 +177,9 @@ public final class SeatOfRuleScreen extends ElarionScreen {
                 new GovernmentScreenChrome.Tab("laws", "Laws", "law"),
                 new GovernmentScreenChrome.Tab("projects", "Projects", "project"),
                 new GovernmentScreenChrome.Tab("offices", "Offices", "office"),
-                new GovernmentScreenChrome.Tab("archive", "Archive", "archive")
+                new GovernmentScreenChrome.Tab("taxes", "Taxes", "tax"),
+                new GovernmentScreenChrome.Tab("archive", "Archive", "archive"),
+                new GovernmentScreenChrome.Tab("heraldry", "Heraldry", "civic_crest")
         };
         int areaX = LEFT_X;
         int areaWidth = RIGHT_X + RIGHT_WIDTH - LEFT_X;
@@ -178,11 +196,25 @@ public final class SeatOfRuleScreen extends ElarionScreen {
     }
 
     private void renderContent(DrawContext context, double mouseX, double mouseY) {
+        if ("heraldry".equals(activeTab())) { renderHeraldry(context, mouseX, mouseY); return; }
         GovernmentUiGlyphs.sectionBox(context, LEFT_X, CONTENT_TOP, LEFT_WIDTH, MAIN_BOTTOM - CONTENT_TOP, style);
         GovernmentUiGlyphs.sectionBox(context, RIGHT_X, CONTENT_TOP, RIGHT_WIDTH, MAIN_BOTTOM - CONTENT_TOP, style);
         renderRows(context, rowsForActiveTab(), mouseX, mouseY);
         renderDetail(context, selectedRow(), mouseX, mouseY);
         renderBottomBand(context);
+    }
+
+    private void renderHeraldry(DrawContext context, double mouseX, double mouseY) {
+        GovernmentUiGlyphs.sectionBox(context, LEFT_X, CONTENT_TOP, LOGICAL_WIDTH - 32, MAIN_BOTTOM - CONTENT_TOP, style);
+        ElarionUiTypography.draw(context, textRenderer, "Realm Heraldry", LEFT_X + 14, CONTENT_TOP + 14, theme.titleColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, "Paint a 32×32 emblem. Only the active Realm authority may save.", LEFT_X + 14, CONTENT_TOP + 31, theme.mutedColor(), false);
+        int x = LEFT_X + 18, y = CONTENT_TOP + 55;
+        heraldryCanvas.render(context, x, y, 8);
+        heraldryCanvas.renderPalette(context, x + 280, y + 8, 22);
+        int saveX = x + 280, saveY = y + 80;
+        GovernmentUiGlyphs.actionButton(context, textRenderer, saveX, saveY, 130, 24, "Save Heraldry",
+                inside(mouseX, mouseY, saveX, saveY, 130, 24), payload.eligible() && !payload.locked(), true, style);
+        hits.add(new Hit(saveX, saveY, 130, 24, "save_heraldry", ""));
     }
 
     private void renderRows(DrawContext context, List<GovernmentUiOpenPayload.Row> rows, double mouseX, double mouseY) {
@@ -388,8 +420,10 @@ public final class SeatOfRuleScreen extends ElarionScreen {
 
     private void renderOverlay(DrawContext context, double mouseX, double mouseY) {
         int w = 470;
-        boolean officeTool = overlayAction.equals("appoint_office") || overlayAction.equals("remove_office");
-        int h = officeTool ? 128 : 230;
+        boolean taxTool = overlayAction.equals("set_tax_rate");
+        boolean officeTool = overlayAction.equals("appoint_office") || overlayAction.equals("remove_office")
+                || taxTool;
+        int h = taxTool ? 150 : officeTool ? 128 : 230;
         int x = (LOGICAL_WIDTH - w) / 2;
         int y = (LOGICAL_HEIGHT - h) / 2;
         context.fill(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT, 0xAA000000);
@@ -397,16 +431,19 @@ public final class SeatOfRuleScreen extends ElarionScreen {
         GovernmentUiGlyphs.icon(context, x + 14, y + 12, 18, officeTool ? "office" : "law", style);
         ElarionUiTypography.draw(context, textRenderer, overlayTitle(), x + 40, y + 16, theme.titleColor(), false);
         renderInput(context, x + 14, y + 42, w - 28,
-                officeTool ? "Ember nickname" : "Official title", titleInput, !bodyActive);
+                taxTool ? "Basis points (0-2500)" : officeTool ? "Ember nickname" : "Official title",
+                titleInput, !bodyActive);
+        if (taxTool) renderTaxSlider(context, x + 14, y + 78, w - 28, mouseX, mouseY);
         if (!officeTool) {
             renderTextArea(context, x + 14, y + 72, w - 28, 104, "Official body", bodyInput, bodyActive);
         }
-        String hint = officeTool
+        String hint = taxTool ? "25 bp steps; 100 bp = 1%. Destination: " + taxPolicy.destinationLabel()
+                : officeTool
                 ? "Uses Core nickname first; username also works."
                 : overlayAction.equals("finalize_proposal")
                 ? "This publishes the approved Ember proposal."
                 : "This creates a direct authority civic record.";
-        ElarionUiTypography.draw(context, textRenderer, hint, x + 16, y + (officeTool ? 72 : 184), theme.mutedColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, hint, x + 16, y + (taxTool ? 104 : officeTool ? 72 : 184), theme.mutedColor(), false);
         int cancelX = x + w - 152;
         int submitX = x + w - 76;
         int by = y + h - 28;
@@ -414,9 +451,40 @@ public final class SeatOfRuleScreen extends ElarionScreen {
                 inside(mouseX, mouseY, cancelX, by, 66, 18), true, false, style);
         GovernmentUiGlyphs.actionButton(context, textRenderer, submitX, by, 66, 18, "Submit",
                 inside(mouseX, mouseY, submitX, by, 66, 18),
-                !titleInput.isBlank() && (officeTool || !bodyInput.isBlank()), true, style);
+                taxTool ? validTaxInput() : !titleInput.isBlank() && (officeTool || !bodyInput.isBlank()),
+                true, style);
         hits.add(new Hit(cancelX, by, 66, 18, "overlay_cancel", ""));
         hits.add(new Hit(submitX, by, 66, 18, "overlay_submit", ""));
+    }
+
+    private void renderTaxSlider(DrawContext context, int x, int y, int width, double mouseX, double mouseY) {
+        int basisPoints = taxBasisPoints();
+        int trackX = x + 4;
+        int trackWidth = width - 8;
+        context.fill(trackX, y + 7, trackX + trackWidth, y + 11, theme.insetColor());
+        int knobX = trackX + Math.round(trackWidth * (basisPoints / 2500.0F));
+        context.fill(trackX, y + 7, knobX, y + 11, theme.buttonHoverColor());
+        context.fill(knobX - 3, y + 3, knobX + 4, y + 15, theme.titleColor());
+        String label = String.format(java.util.Locale.ROOT, "%.2f%%", basisPoints / 100.0D);
+        ElarionUiTypography.draw(context, textRenderer, label, x, y + 20, theme.mutedColor(), false);
+    }
+
+    private int taxBasisPoints() {
+        try {
+            int raw = Math.max(0, Math.min(2500, Integer.parseInt(titleInput.trim())));
+            return Math.max(0, Math.min(2500,
+                    Math.round(raw / (float) TAX_STEP_BASIS_POINTS) * TAX_STEP_BASIS_POINTS));
+        }
+        catch (NumberFormatException ignored) { return 0; }
+    }
+
+    private boolean validTaxInput() {
+        try {
+            int value = Integer.parseInt(titleInput.trim());
+            return value >= 0 && value <= 2500;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
     }
 
     private void renderInput(DrawContext context, int x, int y, int width, String label, String value, boolean active) {
@@ -492,6 +560,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             case "projects" -> "Projects";
             case "offices" -> "Government Offices";
             case "archive" -> "Civic Archive";
+            case "heraldry" -> "Realm Heraldry";
             default -> "Proposal Review";
         };
     }
@@ -502,6 +571,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             case "projects" -> "project";
             case "offices" -> "office";
             case "archive" -> "archive";
+            case "heraldry" -> "civic_crest";
             default -> "proposal";
         };
     }
@@ -554,6 +624,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             case "add_law_vote" -> "Open Law Vote";
             case "add_law_record" -> "Add Law";
             case "send_notice" -> "Send Notice";
+            case "set_tax_rate" -> "Set Tax Rate";
             default -> "Add Record";
         };
     }
@@ -566,6 +637,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
             case "add_project_record" -> "Add Project Record";
             case "add_law_vote" -> "Open Republic Law Vote";
             case "send_notice" -> "Send Realm Notice";
+            case "set_tax_rate" -> "Set Tax Rate (basis points)";
             case "appoint_office" -> "Appoint Office Holder";
             case "remove_office" -> "Remove Office Holder";
             default -> "Add Law";
@@ -578,9 +650,14 @@ public final class SeatOfRuleScreen extends ElarionScreen {
     }
 
     private void submitOverlay() {
-        boolean officeTool = overlayAction.equals("appoint_office") || overlayAction.equals("remove_office");
-        if (titleInput.isBlank() || (!officeTool && bodyInput.isBlank())) return;
-        sendAction(overlayAction, overlayTarget, titleInput, officeTool ? "" : bodyInput);
+        boolean officeTool = overlayAction.equals("appoint_office") || overlayAction.equals("remove_office")
+                || overlayAction.equals("set_tax_rate");
+        boolean taxTool = overlayAction.equals("set_tax_rate");
+        if (titleInput.isBlank() || (!officeTool && !taxTool && bodyInput.isBlank())) return;
+        if (taxTool && !validTaxInput()) return;
+        String secondary = taxTool ? Long.toString(taxPolicyRevision()) : officeTool ? "" : bodyInput;
+        String value = taxTool ? Integer.toString(taxBasisPoints()) : titleInput;
+        sendAction(overlayAction, overlayTarget, value, secondary);
         overlay = false;
         titleInput = "";
         bodyInput = "";
@@ -594,25 +671,34 @@ public final class SeatOfRuleScreen extends ElarionScreen {
                 activeTabOverride = hit.target;
                 rowFirstVisible = 0;
                 selectedRowId = firstSelectable(rowsForActiveTab()).id();
-                sendAction("open_module", hit.target, "", "");
+                if (!"heraldry".equals(hit.target)) sendAction("open_module", hit.target, "", "");
             }
             case "open_module", "approve_proposal", "reject_proposal", "archive_record", "restore_record" ->
                     sendAction(hit.action, hit.target, "", "");
             case "finalize_proposal", "add_law_record", "add_law_vote", "add_notice_record", "add_rule_record",
-                    "add_project_record", "send_notice", "appoint_office", "remove_office" -> {
+                    "add_project_record", "send_notice", "appoint_office", "remove_office", "set_tax_rate" -> {
                 overlay = true;
                 bodyActive = false;
                 overlayAction = hit.action;
                 overlayTarget = hit.target;
-                titleInput = "";
+                titleInput = "set_tax_rate".equals(hit.action) ? Integer.toString(currentTaxBasisPoints()) : "";
                 bodyInput = "";
             }
             case "resign_office" -> sendAction(hit.action, hit.target, "", "");
+            case "save_heraldry" -> ClientPlayNetworking.send(new GovernmentHeraldrySavePayload(payload.realmId(), payload.sessionId(), heraldryCanvas.pixels()));
             case "overlay_cancel" -> overlay = false;
             case "overlay_submit" -> submitOverlay();
             default -> {
             }
         }
+    }
+
+    private long taxPolicyRevision() {
+        return taxPolicy.revision();
+    }
+
+    private int currentTaxBasisPoints() {
+        return taxPolicy.basisPoints(selectedRow().id());
     }
 
     public static boolean primaryOffice(String officeId) {
@@ -628,11 +714,21 @@ public final class SeatOfRuleScreen extends ElarionScreen {
         double lx = layout.logicalX(mouseX);
         double ly = layout.logicalY(mouseY);
         if (overlay) {
-            boolean officeTool = overlayAction.equals("appoint_office") || overlayAction.equals("remove_office");
+            boolean officeTool = overlayAction.equals("appoint_office") || overlayAction.equals("remove_office")
+                    || overlayAction.equals("set_tax_rate");
             int w = 470;
-            int h = officeTool ? 128 : 230;
+            boolean taxTool = overlayAction.equals("set_tax_rate");
+            int h = taxTool ? 150 : officeTool ? 128 : 230;
             int x = (LOGICAL_WIDTH - w) / 2;
             int y = (LOGICAL_HEIGHT - h) / 2;
+            if (taxTool && button == 0 && inside(lx, ly, x + 14, y + 74, w - 28, 24)) {
+                double fraction = Math.max(0.0D, Math.min(1.0D, (lx - (x + 18)) / (double) (w - 36)));
+                int raw = (int) Math.round(fraction * 2500.0D);
+                titleInput = Integer.toString(Math.max(0, Math.min(2500,
+                        Math.round(raw / (float) TAX_STEP_BASIS_POINTS) * TAX_STEP_BASIS_POINTS)));
+                bodyActive = false;
+                return true;
+            }
             if (inside(lx, ly, x + 14, y + 42, w - 28, 22)) {
                 bodyActive = false;
                 return true;
@@ -641,6 +737,11 @@ public final class SeatOfRuleScreen extends ElarionScreen {
                 bodyActive = true;
                 return true;
             }
+        }
+        if ("heraldry".equals(activeTab()) && button == 0) {
+            int x = LEFT_X + 18, y = CONTENT_TOP + 55;
+            if (heraldryCanvas.click((int) lx, (int) ly, x, y, 8)
+                    || heraldryCanvas.selectPalette((int) lx, (int) ly, x + 280, y + 8, 22)) return true;
         }
         for (Hit hit : List.copyOf(hits)) {
             if (inside(lx, ly, hit.x, hit.y, hit.width, hit.height)) {
@@ -701,7 +802,8 @@ public final class SeatOfRuleScreen extends ElarionScreen {
         if (!overlay || Character.isISOControl(chr)) return super.charTyped(chr, modifiers);
         if (bodyActive) {
             if (bodyInput.length() < 2000) bodyInput += chr;
-        } else if (titleInput.length() < 64) {
+        } else if (titleInput.length() < 64
+                && (!overlayAction.equals("set_tax_rate") || Character.isDigit(chr))) {
             titleInput += chr;
         }
         return true;
@@ -760,7 +862,7 @@ public final class SeatOfRuleScreen extends ElarionScreen {
         public int contentTop() { return CONTENT_TOP; }
         public int mainBottom() { return MAIN_BOTTOM; }
         public int bottomY() { return BOTTOM_Y; }
-        public int tabCount() { return 5; }
+        public int tabCount() { return 7; }
         public int tabAreaX() { return LEFT_X; }
         public int tabAreaWidth() { return RIGHT_X + RIGHT_WIDTH - LEFT_X; }
         public int tabGap() { return TAB_GAP; }

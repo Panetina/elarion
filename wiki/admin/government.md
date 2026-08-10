@@ -82,6 +82,11 @@ Seat modules:
 - Projects
 - Offices
 - Archive
+- Heraldry: active authority can save a validated 32x32 Realm emblem from a
+  live Seat session. The emblem is never shown in chat.
+- Taxes: Economy-owned Realm service categories. The Seat slider is bounded to
+  0–25% in 0.25% steps, displays the treasury destination, includes the policy
+  revision, and refreshes from Economy after a save or stale-write rejection.
 
 ## Audience And Laws
 
