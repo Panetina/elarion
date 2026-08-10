@@ -8,7 +8,7 @@ Entry points: `addons/npcs/src/main/resources/fabric.mod.json`, custom `elarion:
 
 Commands: `/e npc ...`.
 
-Network packets: `NpcDialogueOpenPayload`, `NpcDialogueSelectPayload`, `NpcDialoguePromptSubmitPayload`, `NpcTradeSnapshotPayload`, `NpcVisualSyncPayload`, close/dismiss payloads.
+Network packets: `NpcDialogueOpenPayload`, `NpcDialogueSelectPayload`, `NpcDialoguePromptSubmitPayload`, `NpcTradeSnapshotPayload`, `NpcVisualSyncPayload`, bounded per-viewer `NpcQuestMarkerSyncPayload`, close/dismiss payloads.
 
 GUI/screens: `NpcDialogueScreen`, `NpcBankScreen`, `NpcTradeScreen`, shared Core UI primitives.
 
@@ -23,6 +23,11 @@ Extension points: dialogue actions, dialogue conditions, conditional node text v
 Risks: duplicating addon-owned state inside NPCs; client-trusted action execution; broad entity scans; hard-coded banker/shop behavior.
 
 Do not duplicate this system by creating: a second NPC manager, hard-coded vendor entity system, or NPC-local wallet/quest/progression storage.
+
+Quest availability markers are Quest-owned read-only projections: Quests tracks
+only NPC entities already visible to a player and sends their placed IDs when
+availability changes. NPCs holds the client presentation set and renders `!`;
+it never evaluates quest definitions or persists marker state.
 
 ## Presentation Contract
 

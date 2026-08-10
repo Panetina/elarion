@@ -10,6 +10,9 @@ trees, dialogue sessions, and NPC interaction dispatch. It does not own
 wallets, quests, titles, portals, laws, ledgers, Realm membership, or other
 addon state.
 
+The default `guildmaster` NPC uses addon-owned skin and portrait assets and
+opens the Guild Registrar through `elarion_guilds:open_registrar`.
+
 ## Storage
 
 Editable definitions:
@@ -58,7 +61,9 @@ Explicit policies reject placement or movement in a conflicting world.
 
 Schema-v1 placement files are backed up as
 `placed-npcs.json.schema-v1.bak` and atomically migrated after every record
-resolves. Invalid or unsupported state fails closed. `/e npc reload` validates
+resolves. Unreadable placement state is quarantined as
+`placed-npcs.json.corrupt-<timestamp>` and starts empty; an unsupported schema
+still fails closed. `/e npc reload` validates
 all placements against the candidate definition snapshot and restores previous
 definitions on failure before respawning entities.
 The current shipped defaults use dedicated texture skins
@@ -96,6 +101,9 @@ portrait library assets
   older fixed/default helpers. NPCs do not mutate wallets directly.
 - NPC `skin` and `portrait` are separate. `skin` is visible in-world
   presentation metadata. `portrait` is the image/profile shown in dialogue UI.
+- NPCs renders a compact `!` overhead marker only when Quests has sent the
+  viewer a bounded `NpcQuestMarkerSyncPayload`; NPCs never decides quest
+  availability or stores marker state.
 - Skin profile types:
   - `placeholder`: use the dedicated NPC renderer's safe default player body.
   - `texture`: render a player-model body with the explicit texture ID, useful

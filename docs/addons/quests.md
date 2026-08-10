@@ -1,6 +1,6 @@
 # Elarion Quests Addon
 
-Last reviewed: 2026-07-05
+Last reviewed: 2026-07-26
 
 Status: Generic package foundation implemented, authoring needed.
 
@@ -11,6 +11,10 @@ Shrines, rewards, and future systems should consume Quests through Core
 registries or `ElarionQuestsApi`, not by reading quest files directly. Quests
 also owns the Character Menu completed-quest summary projection for new
 player-authored quest ending locks.
+
+Disabled test quest definitions use a non-YAML extension such as
+`.yml.disabled`; the loader ignores them. Rename the Guildmaster decoy quest
+to `.yml` and reload or restart to activate it without changing its content.
 
 ## Config
 
@@ -56,6 +60,20 @@ Package definitions support:
 - `conditions`: reusable authoring conditions validated against Core registries
 - `consequences`: reusable scheduled actions validated against Core registries
 - `authoring`: editor-only notes and graph metadata
+
+Quest packages may opt into an NPC availability marker with
+`quest.yml` metadata `start-actor: <actor-id>`. The selected actor must declare
+`allowed-npcs` (or `npc`). On player join, Quests computes a bounded, read-only
+availability projection for matching placed NPC definitions and sends it through
+the NPC-owned marker payload. A questline already started in the applicable
+global, player, Realm, or NPC-world scope is not marked. This is presentation
+only; dialogue and quest actions remain server-authoritative. Join and relevant
+quest transitions recompute the viewer projection, but identical marker sets
+are not resent. The quest-to-NPC-definition index is cached and rebuilt only on
+definition reload. Quest start/reset, definition reload, and placed-NPC topology
+changes trigger event-driven resynchronization; there is no render-tick or
+server-tick scan. Clients clear the projection on join/disconnect, and render a
+gold marker above the NPC nameplate.
 
 ## Runtime State
 

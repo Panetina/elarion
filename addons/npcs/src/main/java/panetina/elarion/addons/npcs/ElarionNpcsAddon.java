@@ -24,6 +24,7 @@ import panetina.elarion.addons.npcs.network.NpcDialogueSelectPayload;
 import panetina.elarion.addons.npcs.network.NpcBankQuotePayload;
 import panetina.elarion.addons.npcs.network.NpcBankQuoteRequestPayload;
 import panetina.elarion.addons.npcs.network.NpcVisualSyncPayload;
+import panetina.elarion.addons.npcs.network.NpcQuestMarkerSyncPayload;
 import panetina.elarion.addons.npcs.network.NpcTradeSnapshotPayload;
 import panetina.elarion.addons.npcs.network.NpcTradeQuotePayload;
 import panetina.elarion.addons.npcs.network.NpcTradeQuoteRequestPayload;
@@ -70,6 +71,7 @@ public final class ElarionNpcsAddon implements ElarionAddon {
         PayloadTypeRegistry.playS2C().register(NpcDialogueOpenPayload.ID, NpcDialogueOpenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(NpcDialogueClosePayload.ID, NpcDialogueClosePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(NpcVisualSyncPayload.ID, NpcVisualSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(NpcQuestMarkerSyncPayload.ID, NpcQuestMarkerSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(NpcBankQuotePayload.ID, NpcBankQuotePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(NpcTradeSnapshotPayload.ID, NpcTradeSnapshotPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(NpcTradeQuotePayload.ID, NpcTradeQuotePayload.CODEC);

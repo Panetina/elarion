@@ -66,6 +66,19 @@ final class NpcPlacementStorageTest {
         assertEquals(original, Files.readString(file));
     }
 
+    @Test
+    void unreadableStateIsQuarantinedAndDoesNotBlockStartup() throws Exception {
+        Path file = root.resolve("placed-npcs.json");
+        Files.writeString(file, "not-json", StandardCharsets.UTF_8);
+        NpcPlacementStorage storage = new NpcPlacementStorage(LoggerFactory.getLogger("npc-test"), root);
+
+        assertTrue(storage.load(null).isEmpty());
+        try (var files = Files.list(root)) {
+            assertTrue(files.anyMatch(path -> path.getFileName().toString()
+                    .startsWith("placed-npcs.json.corrupt-")));
+        }
+    }
+
     private static String schemaOne(UUID id, String worldId) {
         return """
                 {

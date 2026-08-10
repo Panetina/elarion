@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public final class NpcPlacementService {
@@ -44,6 +45,7 @@ public final class NpcPlacementService {
     private boolean bound;
     private Consumer<UUID> removalListener = ignored -> {
     };
+    private final List<Runnable> topologyListeners = new CopyOnWriteArrayList<>();
 
     public NpcPlacementService(Logger logger, NpcDefinitionService definitions, NpcPlacementStorage storage) {
         this(logger, definitions, storage, new NpcTaxJurisdictionResolver(ignored -> Optional.empty()));
@@ -82,6 +84,11 @@ public final class NpcPlacementService {
     public void onRemoved(Consumer<UUID> listener) {
         removalListener = listener == null ? ignored -> {
         } : listener;
+    }
+
+    /** Notifies bounded projections when the placed-NPC set or world membership changes. */
+    public void onTopologyChanged(Runnable listener) {
+        if (listener != null) topologyListeners.add(listener);
     }
 
     public Collection<PlacedNpcRecord> all() {
@@ -150,6 +157,7 @@ public final class NpcPlacementService {
         placed.put(record.id(), record);
         save();
         broadcastVisuals();
+        notifyTopologyChanged();
         return record;
     }
 
@@ -179,6 +187,7 @@ public final class NpcPlacementService {
         placed.put(copy.id(), copy);
         save();
         broadcastVisuals();
+        notifyTopologyChanged();
         return Optional.of(copy);
     }
 
@@ -191,6 +200,7 @@ public final class NpcPlacementService {
         removalListener.accept(record.id());
         save();
         broadcastVisuals();
+        notifyTopologyChanged();
         return true;
     }
 
@@ -204,7 +214,7 @@ public final class NpcPlacementService {
                 removalListener.accept(record.id());
             }
         }
-        if (!ids.isEmpty()) { save(); broadcastVisuals(); }
+        if (!ids.isEmpty()) { save(); broadcastVisuals(); notifyTopologyChanged(); }
         return ids.size();
     }
 
@@ -225,6 +235,7 @@ public final class NpcPlacementService {
         placed.put(current.id(), moved);
         save();
         broadcastVisuals();
+        notifyTopologyChanged();
         return Optional.of(moved);
     }
 
@@ -535,6 +546,10 @@ public final class NpcPlacementService {
         if (server == null) return;
         NpcVisualSyncPayload payload = visualSyncPayload();
         server.getPlayerManager().getPlayerList().forEach(player -> ServerPlayNetworking.send(player, payload));
+    }
+
+    private void notifyTopologyChanged() {
+        topologyListeners.forEach(Runnable::run);
     }
 
     private PlacedNpcRecord ensureHandle(PlacedNpcRecord record) {

@@ -2,6 +2,8 @@ package panetina.elarion.addons.quests;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import panetina.elarion.addons.quests.api.ElarionQuestsApi;
@@ -12,7 +14,10 @@ import panetina.elarion.addons.quests.service.QuestDefinitionService;
 import panetina.elarion.addons.quests.service.QuestProfileContributor;
 import panetina.elarion.addons.quests.service.QuestRegistryHandlers;
 import panetina.elarion.addons.quests.service.QuestStateService;
+import panetina.elarion.addons.quests.service.QuestNpcMarkerService;
 import panetina.elarion.addons.quests.storage.QuestStorage;
+import panetina.elarion.addons.npcs.api.ElarionNpcApi;
+import panetina.elarion.addons.npcs.entity.ElarionNpcEntity;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
 import panetina.elarion.core.api.reset.PlayerResetHandler;
@@ -26,6 +31,16 @@ public final class ElarionQuestsAddon implements ElarionAddon {
         QuestDefinitionService definitions = new QuestDefinitionService(new QuestConfigLoader(
                 LOGGER, null, api.registries().conditions()::contains, api.registries().actions()::contains));
         QuestStateService states = new QuestStateService(LOGGER, api, definitions, new QuestStorage(LOGGER));
+        QuestNpcMarkerService markers = new QuestNpcMarkerService(definitions, states);
+        definitions.onReload(markers::syncAll);
+        ElarionNpcApi.get().placements().onTopologyChanged(markers::syncAll);
+        states.setMarkerRefresh(playerId -> {
+            var server = api.citizens().server();
+            if (server == null) return;
+            var player = server.getPlayerManager().getPlayer(playerId);
+            if (player != null) markers.sync(player);
+        });
+        states.setMarkerRefreshAll(markers::syncAll);
         new ElarionQuestsApi(definitions, states);
         api.system().playerResets().register(new PlayerResetHandler() {
             @Override public String id() { return "elarion_quests"; }
@@ -51,6 +66,19 @@ public final class ElarionQuestsAddon implements ElarionAddon {
                 "/e quest ...", "Manage data-driven quest definitions and runtime questline state.");
 
         ServerLifecycleEvents.SERVER_STARTED.register(states::bind);
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+                server.execute(() -> markers.sync(handler.player)));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> markers.clear(handler.player.getUuid()));
+        EntityTrackingEvents.START_TRACKING.register((entity, player) -> {
+            if (entity instanceof ElarionNpcEntity npc) {
+                npc.placedNpcId().ifPresent(id -> markers.track(player, id));
+            }
+        });
+        EntityTrackingEvents.STOP_TRACKING.register((entity, player) -> {
+            if (entity instanceof ElarionNpcEntity npc) {
+                npc.placedNpcId().ifPresent(id -> markers.untrack(player, id));
+            }
+        });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> states.save());
         ServerTickEvents.END_SERVER_TICK.register(states::tick);
 

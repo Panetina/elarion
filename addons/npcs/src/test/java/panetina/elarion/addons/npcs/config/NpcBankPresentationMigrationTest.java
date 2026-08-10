@@ -1,6 +1,7 @@
 package panetina.elarion.addons.npcs.config;
 
 import org.junit.jupiter.api.Test;
+import org.yaml.snakeyaml.Yaml;
 import panetina.elarion.addons.npcs.model.DialogueNode;
 import panetina.elarion.addons.npcs.model.DialogueOption;
 import panetina.elarion.addons.npcs.model.DialoguePrompt;
@@ -37,6 +38,12 @@ final class NpcBankPresentationMigrationTest {
         assertTrue(NpcConfigDefaults.BANKER_DIALOGUE.contains("presentation-role: \"open_bank\""));
         assertTrue(NpcConfigDefaults.BANKER_DIALOGUE.contains("button-text: \"Open Bank\""));
         assertTrue(NpcConfigDefaults.BANKER_DIALOGUE.contains("button-text: \"Back to Conversation\""));
+    }
+
+    @Test
+    void generatedGuildmasterDialogueIsValidYaml() {
+        Object parsed = new Yaml().load(NpcConfigDefaults.GUILDMASTER_DIALOGUE);
+        assertTrue(parsed instanceof Map<?, ?>);
     }
 
     @Test
