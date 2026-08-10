@@ -6,6 +6,7 @@ import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import panetina.elarion.addons.guilds.model.GuildPermission;
 import panetina.elarion.addons.guilds.network.GuildScreenActionPayload;
+import panetina.elarion.addons.guilds.network.GuildDonationPayload;
 import panetina.elarion.addons.guilds.network.GuildScreenOpenPayload;
 import panetina.elarion.addons.guilds.network.GuildUiFeedbackPayload;
 import panetina.elarion.core.client.ui.ElarionCivicColors;
@@ -154,7 +155,7 @@ public final class GuildScreen extends ElarionScreen {
         boolean validDonation = donation.text().trim().matches("[1-9][0-9]*");
         button(context, mouseX, mouseY, 302, 326, 156, 24, "Donate Sigils", validDonation,
                 ElarionCivicUi.Tone.PRIMARY,
-                () -> send("donate", null, donation.text().trim(), new byte[0]));
+                this::donate);
         if (client != null && client.player != null && !payload.leaderId().equals(client.player.getUuid())) {
             button(context, mouseX, mouseY, 494, 326, 132, 24, "Leave Guild", true,
                     ElarionCivicUi.Tone.DESTRUCTIVE, () -> send("leave", null, "", new byte[0]));
@@ -373,6 +374,15 @@ public final class GuildScreen extends ElarionScreen {
         if (roles.isEmpty()) return "";
         int index = roles.indexOf(currentRole);
         return roles.get((index + 1 + roles.size()) % roles.size());
+    }
+
+    private void donate() {
+        try {
+            ClientPlayNetworking.send(new GuildDonationPayload(UUID.randomUUID(), Long.parseLong(donation.text().trim())));
+        } catch (NumberFormatException exception) {
+            feedback = "Enter a whole positive Sigil amount.";
+            feedbackError = true;
+        }
     }
 
     private boolean canManage(GuildScreenOpenPayload.Member member) {

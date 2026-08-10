@@ -23,6 +23,7 @@ import panetina.elarion.addons.guilds.network.GuildEmptyScreenPayload;
 import panetina.elarion.addons.guilds.network.GuildUiFeedbackPayload;
 import panetina.elarion.addons.guilds.network.GuildInvitationPromptPayload;
 import panetina.elarion.addons.guilds.network.GuildInvitationDecisionPayload;
+import panetina.elarion.addons.guilds.network.GuildDonationPayload;
 import panetina.elarion.addons.economy.api.ElarionEconomyApi;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
@@ -46,6 +47,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         PayloadTypeRegistry.playC2S().register(GuildScreenActionPayload.ID, GuildScreenActionPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(GuildRegistrarSubmitPayload.ID, GuildRegistrarSubmitPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(GuildInvitationDecisionPayload.ID, GuildInvitationDecisionPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(GuildDonationPayload.ID, GuildDonationPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildScreenOpenPayload.ID, GuildScreenOpenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildScreenClosePayload.ID, GuildScreenClosePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildRegistrarOpenPayload.ID, GuildRegistrarOpenPayload.CODEC);
@@ -133,6 +135,8 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                 context.server().execute(() -> handleRegistrarSubmit(api, guilds, context.player(), payload)));
         ServerPlayNetworking.registerGlobalReceiver(GuildInvitationDecisionPayload.ID, (payload, context) ->
                 context.server().execute(() -> handleInvitationDecision(api, guilds, context.player(), payload)));
+        ServerPlayNetworking.registerGlobalReceiver(GuildDonationPayload.ID, (payload, context) ->
+                context.server().execute(() -> handleDonation(api, guilds, context.player(), payload)));
         LOGGER.info("Elarion Guilds addon initialized");
     }
 
@@ -147,7 +151,6 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                 }
                 case "create_role" -> createRole(guilds, player, payload.value());
                 case "assign_role" -> assignRole(guilds, player, payload.target(), payload.value());
-                case "donate" -> guilds.donate(player, parseDonation(payload.value()));
                 case "leave" -> guilds.leave(player);
                 case "publish_announcement" -> guilds.publishAnnouncement(player, payload.value());
                 case "redraw_icon" -> guilds.redrawIcon(player, payload.iconPixels());
@@ -246,13 +249,16 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         return target;
     }
 
-    private static long parseDonation(String value) {
+    private static void handleDonation(ElarionApi api, GuildService guilds, ServerPlayerEntity player,
+                                       GuildDonationPayload payload) {
         try {
-            return Long.parseLong(value == null ? "" : value.trim());
-        } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Enter a whole positive Sigil amount.");
+            guilds.donate(player, payload.operationId(), payload.amount());
+            sendScreen(api, guilds, player);
+        } catch (IllegalArgumentException exception) {
+            ServerPlayNetworking.send(player, new GuildUiFeedbackPayload(false, exception.getMessage()));
         }
     }
+
 
     private static void createRole(GuildService guilds, ServerPlayerEntity player, String encoded) {
         String[] fields = encoded == null ? new String[0] : encoded.split("\\n", 3);

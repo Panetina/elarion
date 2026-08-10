@@ -6,6 +6,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import panetina.elarion.addons.economy.api.ElarionEconomyApi;
 import panetina.elarion.addons.economy.model.EconomyAccount;
+import panetina.elarion.addons.economy.model.EconomyOperationKey;
 import panetina.elarion.addons.guilds.model.GuildConfig;
 import panetina.elarion.addons.guilds.model.GuildInvite;
 import panetina.elarion.addons.guilds.model.GuildRecord;
@@ -242,23 +243,26 @@ public final class GuildService {
     }
 
     /** Member-accessible physical-Sigil contribution. Economy remains payment authority. */
-    public GuildRecord donate(ServerPlayerEntity player, long amount) {
+    public GuildRecord donate(ServerPlayerEntity player, java.util.UUID operationId, long amount) {
         GuildRecord guild = guildFor(player.getUuid())
                 .orElseThrow(() -> new IllegalArgumentException("You are not in a guild."));
         if (amount < 1L || amount > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("Donation amount is invalid.");
         }
-        var payment = ElarionEconomyApi.get().payPhysicalOnly(
-                player, amount, "Guild contribution: " + guild.id(), "guilds");
+        if (guild.progression().totalContributed() > Long.MAX_VALUE - amount) {
+            throw new IllegalArgumentException("Guild contribution total is at its safe limit.");
+        }
+        var existing = guild.progression().receipt(operationId);
+        if (existing != null) return guild.withContribution(operationId, player.getUuid(), amount);
+        var payment = ElarionEconomyApi.get().payPhysicalOnlyOnce(player,
+                new EconomyOperationKey("elarion_guilds:donation", operationId), EconomyAccount.BURN,
+                amount, "Guild contribution: " + guild.id(), "guilds",
+                java.util.Map.of("guild", guild.id()));
         if (!payment.successful()) throw new IllegalArgumentException(payment.message());
         GuildRecord updated;
         try {
-            updated = guild.withContribution(player.getUuid(), amount);
-        } catch (ArithmeticException exception) {
-            ElarionEconomyApi.get().refundMixedPayment(player, payment,
-                    "Guild contribution rollback: " + guild.id(), "guilds");
-            throw new IllegalArgumentException("Guild contribution total is at its safe limit.");
-        }
+            updated = guild.withContribution(operationId, player.getUuid(), amount);
+        } catch (ArithmeticException exception) { throw new IllegalStateException("Prevalidated Guild contribution overflow.", exception); }
         state.guilds.put(updated.id(), updated);
         save();
         api.history().record("guilds", "contributed", player.getUuid(), "guild", updated.id(),

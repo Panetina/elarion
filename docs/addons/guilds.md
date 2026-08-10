@@ -91,6 +91,9 @@ role, publishing an announcement, or redrawing the icon.
 Overview shows the current level, contribution total, next threshold, and
 member capacity. Every member can submit a positive carried-Sigil donation;
 the server charges it through Economy before updating Guild progression.
+Donation requests carry a UUID operation ID. Guilds keeps the most recent 128
+Guild receipt projections for bounded replay protection, while Economy retains
+the canonical idempotent payment receipt for the same operation key.
 
 NPC dialogue may use the registry action `elarion_guilds:open_registrar`.
 

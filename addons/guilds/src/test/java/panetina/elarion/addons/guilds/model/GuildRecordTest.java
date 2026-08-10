@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GuildRecordTest {
     @Test
@@ -69,9 +70,23 @@ class GuildRecordTest {
         UUID leader = UUID.randomUUID();
         GuildRecord guild = GuildRecord.create("merc", "Mercury Guild", "MERC", leader);
 
-        GuildRecord updated = guild.withContribution(leader, 75L).withContribution(leader, 25L);
+        GuildRecord updated = guild.withContribution(UUID.randomUUID(), leader, 75L)
+                .withContribution(UUID.randomUUID(), leader, 25L);
 
         assertEquals(100L, updated.progression().totalContributed());
         assertEquals(100L, updated.progression().memberContributions().get(leader));
+    }
+
+    @Test
+    void contributionOperationIsReplaySafeAndCannotChangeItsAmount() {
+        UUID leader = UUID.randomUUID();
+        UUID operation = UUID.randomUUID();
+        GuildRecord guild = GuildRecord.create("merc", "Mercury Guild", "MERC", leader)
+                .withContribution(operation, leader, 50L);
+
+        GuildRecord replay = guild.withContribution(operation, leader, 50L);
+
+        assertEquals(50L, replay.progression().totalContributed());
+        assertThrows(IllegalArgumentException.class, () -> guild.withContribution(operation, leader, 51L));
     }
 }
