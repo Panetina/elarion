@@ -6,8 +6,7 @@ Use `INDEX.md` as the entry point. This file shows where information lives.
 Elarion
 |-- Authority
 |   |-- RULES.md
-|   |-- AGENTS.md
-|   `-- CODEX.md
+|   `-- AGENTS.md
 |-- Navigation
 |   |-- INDEX.md
 |   |-- docs/ai/CURRENT_STATUS.md
@@ -58,9 +57,7 @@ Elarion
 |   `-- lore/folklore/
 |-- Plans
 |   |-- PLAN.md
-|   |-- TODO.md
-|   |-- PLANS.md
-|   `-- OPTIMIZATION_TRACKER.md
+|   `-- TODO.md
 `-- Reports
     `-- docs/reports/
 ```
@@ -74,7 +71,7 @@ Elarion
 - `docs/ai/routes.json` decides bounded task routing; it points to authority but
   does not replace it.
 - `TODO.md` decides current work.
-- `PLANS.md` decides future ideas.
+- `PLAN.md` decides active direction and future constraints.
 - `LORE.md` decides established canon.
 
 ## Exclusion Rule

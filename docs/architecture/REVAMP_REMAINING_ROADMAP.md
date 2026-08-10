@@ -104,12 +104,13 @@ never parse display text or trigger broad storage/history scans.
 boundedness, idempotency, and no-scan corrections are complete. See
 `docs/reports/PHASE_12_COMPLETION.md`.
 
-Select evidence-backed risks individually from `OPTIMIZATION_TRACKER.md`:
-reload inconsistencies, bounded indexes, stale caches, blocking IO, payload
-sizes, save safety, and initialization hazards. Every persistence migration is
-a separately approved slice with schema, backup/failure behavior, round-trip,
-reload, restart, and compatibility coverage. Do not perform speculative
-micro-optimization or broad storage rewrites.
+Select evidence-backed risks from current source, focused verification, and
+Git-backed completion evidence: reload inconsistencies, bounded indexes, stale
+caches, blocking IO, payload sizes, save safety, and initialization hazards.
+Every persistence migration is a separately approved slice with schema,
+backup/failure behavior, round-trip, reload, restart, and compatibility
+coverage. Do not perform speculative micro-optimization or broad storage
+rewrites.
 
 ## Phase 13 - Duplicate And Structural Cleanup
 

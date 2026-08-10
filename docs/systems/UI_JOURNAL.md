@@ -566,13 +566,12 @@ Live QA note: if `runClientOne` starts with a tiny/white framebuffer or blank
 main menu, focus the Minecraft window and toggle `F11` once before restarting
 or changing shader state.
 
-## Option A Runtime Asset Bank
+## Option A Runtime Assets
 
-The approved Option A art direction needs a curated runtime asset bank, not
-untracked concept-board crops. Track the planned asset families, sizes, and
-promotion rules in `docs/ui/revamp-option-a/ASSET_PLAN.md`. Generate assets in
-screen-family batches and promote final PNGs into module resources only when a
-slice consumes them.
+The approved Option A direction uses curated, implementation-ready assets, not
+untracked concept-board crops. The asset rules live with the Option A reference
+set; generate screen-family batches only when a slice consumes them and promote
+only final PNGs into module resources.
 
 ## Character Onboarding Option A Migration - 2026-07-07
 
