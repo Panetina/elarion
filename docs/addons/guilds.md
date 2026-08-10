@@ -55,7 +55,9 @@ config/elarion/addons/guilds/guilds.yml
 ```
 
 Config controls creation fee, internal guild ID pattern, display-name length, tag length,
-tag regex, blocked public tags, and invitation lifetime.
+tag regex, blocked public tags, invitation lifetime, and the ordered
+`progression.levels` tiers. Each tier declares a cumulative physical-Sigil
+contribution threshold and member capacity; level one must begin at zero.
 
 ## Runtime State
 

@@ -52,4 +52,14 @@ class GuildConfigTest {
 
         assertEquals(60_000L, config.inviteLifetimeMillis());
     }
+
+    @Test
+    void progressionUsesOrderedTierThresholds() {
+        GuildProgressionConfig progression = GuildProgressionConfig.defaults();
+
+        assertEquals(1, progression.levelFor(0L));
+        assertEquals(1, progression.levelFor(249L));
+        assertEquals(2, progression.levelFor(250L));
+        assertEquals(15, progression.tierFor(250L).memberCapacity());
+    }
 }

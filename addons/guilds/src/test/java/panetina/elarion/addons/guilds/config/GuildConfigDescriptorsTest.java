@@ -42,7 +42,7 @@ final class GuildConfigDescriptorsTest {
         ElarionConfigEntry<?> inviteDays =
                 domain.entry("invitations", "invitations.lifetime-days").orElseThrow();
 
-        assertEquals("25", creationFee.currentDisplayValue());
+        assertEquals("100", creationFee.currentDisplayValue());
         assertEquals("48", maxName.currentDisplayValue());
         assertEquals("7", inviteDays.currentDisplayValue());
 

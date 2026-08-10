@@ -9,6 +9,8 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -41,6 +43,7 @@ public final class GuildConfigLoader {
         Map<?, ?> tags = map(root.get("tags"));
         Map<?, ?> identity = map(root.get("identity"));
         Map<?, ?> invitations = map(root.get("invitations"));
+        Map<?, ?> progression = map(root.get("progression"));
         return new GuildConfig(
                 bool(root, "enabled", true),
                 number(creation, "fee", 25L),
@@ -50,7 +53,8 @@ public final class GuildConfigLoader {
                 string(identity, "id-pattern", "[a-z0-9_-]{3,32}"),
                 string(tags, "pattern", "[A-Z0-9]{2,6}"),
                 stringSet(tags.get("blocked")),
-                java.time.Duration.ofDays(number(invitations, "lifetime-days", 7L)).toMillis()
+                java.time.Duration.ofDays(number(invitations, "lifetime-days", 7L)).toMillis(),
+                progression(progression.get("levels"))
         );
     }
 
@@ -102,5 +106,19 @@ public final class GuildConfigLoader {
             }
         }
         return Set.copyOf(result);
+    }
+
+    private static panetina.elarion.addons.guilds.model.GuildProgressionConfig progression(Object value) {
+        if (!(value instanceof Iterable<?> values)) {
+            return panetina.elarion.addons.guilds.model.GuildProgressionConfig.defaults();
+        }
+        List<panetina.elarion.addons.guilds.model.GuildProgressionTier> tiers = new ArrayList<>();
+        for (Object candidate : values) {
+            Map<?, ?> tier = map(candidate);
+            tiers.add(new panetina.elarion.addons.guilds.model.GuildProgressionTier(
+                    number(tier, "required-contributions", -1L),
+                    (int) number(tier, "member-capacity", 0L)));
+        }
+        return new panetina.elarion.addons.guilds.model.GuildProgressionConfig(tiers);
     }
 }

@@ -41,7 +41,7 @@ public final class GuildConfigDescriptors {
                                                 "guilds.yml.enabled",
                                                 defaults.enabled(), () -> config.get().enabled()),
                                         longEntry("creation.fee", "Creation Fee",
-                                                "Banked currency charged when a player creates a guild.",
+                                                "Physical carried currency charged when a player creates a guild.",
                                                 "guilds.yml.creation.fee",
                                                 defaults.creationFee(), () -> config.get().creationFee(), 0L))),
                         new ElarionConfigCategory(

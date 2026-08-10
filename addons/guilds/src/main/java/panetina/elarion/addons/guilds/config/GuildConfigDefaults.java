@@ -14,6 +14,19 @@ public final class GuildConfigDefaults {
             invitations:
               lifetime-days: 7
 
+            progression:
+              levels:
+                - required-contributions: 0
+                  member-capacity: 10
+                - required-contributions: 250
+                  member-capacity: 15
+                - required-contributions: 750
+                  member-capacity: 20
+                - required-contributions: 1750
+                  member-capacity: 30
+                - required-contributions: 3500
+                  member-capacity: 40
+
             tags:
               min-length: 2
               max-length: 6
