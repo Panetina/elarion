@@ -162,12 +162,14 @@ public final class GuildScreen extends ElarionScreen {
         for (GuildScreenOpenPayload.Member member : visible) {
             boolean leader = payload.leaderId().equals(member.id());
             ElarionCivicUi.rowSurface(context, 34, y, 592, 20, false, false, true);
+            String joined = "Joined " + java.time.Instant.ofEpochMilli(member.joinedAt())
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
             ElarionUiTypography.draw(context, textRenderer,
-                    ElarionUiRenderer.ellipsize(textRenderer, member.name(), 260), 44, y + 6,
+                    ElarionUiRenderer.ellipsize(textRenderer, member.name() + "  |  " + joined, 278), 44, y + 6,
                     leader ? style.titleColor() : style.textColor(), false);
             ElarionUiTypography.draw(context, textRenderer, leader ? "Leader" : roleLabel(member.role()),
-                    330, y + 6, style.mutedColor(), false);
-            if (!leader && can(GuildPermission.ASSIGN_ROLES)) {
+                    334, y + 6, style.mutedColor(), false);
+            if (!leader && can(GuildPermission.ASSIGN_ROLES) && canManage(member)) {
                 String next = nextAssignableRole(member.role());
                 if (!next.isBlank()) button(context, mouseX, mouseY, 486, y + 1, 130, 18,
                         "Set " + roleLabel(next), true, ElarionCivicUi.Tone.NORMAL,
@@ -223,10 +225,10 @@ public final class GuildScreen extends ElarionScreen {
     private void renderRoles(DrawContext context, double mouseX, double mouseY) {
         sectionTitle(context, "Roles and permissions", "roles", 34, 112);
         int y = 140;
-        for (GuildScreenOpenPayload.Role role : payload.roles().stream().limit(4).toList()) {
+        for (GuildScreenOpenPayload.Role role : payload.roles().stream().limit(8).toList()) {
             ElarionCivicUi.rowSurface(context, 34, y, 292, 22, false, false, true);
             ElarionUiTypography.draw(context, textRenderer,
-                    ElarionUiRenderer.ellipsize(textRenderer, role.displayName(), 110), 44, y + 7,
+                    ElarionUiRenderer.ellipsize(textRenderer, "#" + role.position() + " " + role.displayName(), 110), 44, y + 7,
                     style.titleColor(), false);
             ElarionUiTypography.draw(context, textRenderer,
                     ElarionUiRenderer.ellipsize(textRenderer, String.join(", ", role.permissions()), 150),
@@ -351,17 +353,36 @@ public final class GuildScreen extends ElarionScreen {
     }
 
     private String roleLabel(String roleId) {
-        if ("owner".equals(roleId)) return "Owner";
+        if ("owner".equals(roleId)) return "Leader";
         return payload.roles().stream().filter(role -> role.id().equals(roleId)).findFirst()
                 .map(GuildScreenOpenPayload.Role::displayName).orElse(roleId);
     }
 
     private String nextAssignableRole(String currentRole) {
-        List<String> roles = payload.roles().stream().map(GuildScreenOpenPayload.Role::id)
-                .filter(id -> !"owner".equals(id)).sorted().toList();
+        int viewerPosition = viewerPosition();
+        List<String> roles = payload.roles().stream()
+                .filter(role -> !"owner".equals(role.id()) && role.position() > viewerPosition)
+                .sorted(java.util.Comparator.comparingInt(GuildScreenOpenPayload.Role::position))
+                .map(GuildScreenOpenPayload.Role::id).toList();
         if (roles.isEmpty()) return "";
         int index = roles.indexOf(currentRole);
         return roles.get((index + 1 + roles.size()) % roles.size());
+    }
+
+    private boolean canManage(GuildScreenOpenPayload.Member member) {
+        return viewerPosition() < rolePosition(member.role());
+    }
+
+    private int viewerPosition() {
+        if (client != null && client.player != null && payload.leaderId().equals(client.player.getUuid())) return 1;
+        if (client == null || client.player == null) return Integer.MAX_VALUE;
+        return payload.members().stream().filter(member -> member.id().equals(client.player.getUuid()))
+                .findFirst().map(member -> rolePosition(member.role())).orElse(Integer.MAX_VALUE);
+    }
+
+    private int rolePosition(String roleId) {
+        return payload.roles().stream().filter(role -> role.id().equals(roleId)).findFirst()
+                .map(GuildScreenOpenPayload.Role::position).orElse(Integer.MAX_VALUE);
     }
 
     private static String friendly(GuildPermission permission) {

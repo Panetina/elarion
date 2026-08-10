@@ -72,7 +72,14 @@ public record GuildScreenOpenPayload(
             List<String> viewerPermissions, List<InviteCandidate> inviteCandidates
     ) {
         return new GuildScreenOpenPayload(guild.id(), guild.displayName(), guild.tag(), guild.secret(), guild.leaderId(), guild.revision(), guild.iconPaletteIndices(), viewerPermissions,
-                guild.members().stream().limit(256).map(id -> new Member(id, name.apply(id), guild.memberRoles().getOrDefault(id, "member"), guild.memberJoinedAt().getOrDefault(id, guild.createdAt()))).toList(),
+                guild.members().stream()
+                        .sorted(java.util.Comparator
+                                .comparing((UUID id) -> !id.equals(guild.leaderId()))
+                                .thenComparingLong(id -> guild.memberJoinedAt().getOrDefault(id, guild.createdAt()))
+                                .thenComparing(UUID::toString))
+                        .limit(256)
+                        .map(id -> new Member(id, name.apply(id), guild.memberRoles().getOrDefault(id, "member"), guild.memberJoinedAt().getOrDefault(id, guild.createdAt())))
+                        .toList(),
                 guild.roles().values().stream().sorted(java.util.Comparator.comparingInt(GuildRole::position)).limit(12).map(Role::from).toList(),
                 guild.announcements().stream().limit(50).map(value -> new Announcement(value.id(), name.apply(value.authorId()), value.body(), value.createdAt())).toList(),
                 inviteCandidates == null ? List.of() : inviteCandidates.stream().limit(32).toList());
