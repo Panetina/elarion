@@ -151,6 +151,8 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                 }
                 case "create_role" -> createRole(guilds, player, payload.value());
                 case "assign_role" -> assignRole(guilds, player, payload.target(), payload.value());
+                case "transfer_leadership" -> guilds.transfer(player, findOnlinePlayer(player, payload.target()));
+                case "toggle_secret" -> guilds.setSecret(player, Boolean.parseBoolean(payload.value()));
                 case "leave" -> guilds.leave(player);
                 case "publish_announcement" -> guilds.publishAnnouncement(player, payload.value());
                 case "redraw_icon" -> guilds.redrawIcon(player, payload.iconPixels());

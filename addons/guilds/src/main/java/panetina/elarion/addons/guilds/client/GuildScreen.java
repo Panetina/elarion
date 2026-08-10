@@ -156,6 +156,12 @@ public final class GuildScreen extends ElarionScreen {
         button(context, mouseX, mouseY, 302, 326, 156, 24, "Donate Sigils", validDonation,
                 ElarionCivicUi.Tone.PRIMARY,
                 this::donate);
+        if (client != null && client.player != null && payload.leaderId().equals(client.player.getUuid())) {
+            button(context, mouseX, mouseY, 470, 326, 156, 24,
+                    payload.secret() ? "Make Public (50)" : "Make Secret (50)", true,
+                    ElarionCivicUi.Tone.NORMAL,
+                    () -> send("toggle_secret", null, Boolean.toString(!payload.secret()), new byte[0]));
+        }
         if (client != null && client.player != null && !payload.leaderId().equals(client.player.getUuid())) {
             button(context, mouseX, mouseY, 494, 326, 132, 24, "Leave Guild", true,
                     ElarionCivicUi.Tone.DESTRUCTIVE, () -> send("leave", null, "", new byte[0]));
@@ -181,6 +187,11 @@ public final class GuildScreen extends ElarionScreen {
                 if (!next.isBlank()) button(context, mouseX, mouseY, 486, y + 1, 130, 18,
                         "Set " + roleLabel(next), true, ElarionCivicUi.Tone.NORMAL,
                         () -> send("assign_role", member.id(), next, new byte[0]));
+            }
+            if (!leader && client != null && client.player != null && payload.leaderId().equals(client.player.getUuid())) {
+                button(context, mouseX, mouseY, 392, y + 1, 84, 18, "Lead (25)", true,
+                        ElarionCivicUi.Tone.DESTRUCTIVE,
+                        () -> send("transfer_leadership", member.id(), "", new byte[0]));
             }
             y += 22;
         }
