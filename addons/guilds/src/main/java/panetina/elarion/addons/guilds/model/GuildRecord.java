@@ -18,6 +18,7 @@ public record GuildRecord(
         Set<UUID> members,
         Map<String, GuildRole> roles,
         Map<UUID, String> memberRoles,
+        Map<UUID, Long> memberJoinedAt,
         List<GuildAnnouncement> announcements,
         long iconRevision,
         byte[] iconPaletteIndices,
@@ -28,18 +29,31 @@ public record GuildRecord(
         id = id == null ? "" : id;
         displayName = displayName == null ? "" : displayName;
         tag = tag == null ? "" : tag;
-        members = members == null ? Set.of() : Set.copyOf(new LinkedHashSet<>(members));
-        roles = roles == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(roles));
-        memberRoles = memberRoles == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(memberRoles));
+        createdAt = createdAt <= 0L ? System.currentTimeMillis() : createdAt;
+        LinkedHashSet<UUID> normalizedMembers = new LinkedHashSet<>(members == null ? Set.of() : members);
+        if (leaderId != null) normalizedMembers.add(leaderId);
+        members = Set.copyOf(normalizedMembers);
+        // Old state had only owner/member. Keep any custom role definitions while
+        // backfilling the standard ordered ranks introduced after V1.
+        LinkedHashMap<String, GuildRole> normalizedGuildRoles = new LinkedHashMap<>(defaults(leaderId));
+        if (roles != null) normalizedGuildRoles.putAll(roles);
+        roles = Map.copyOf(normalizedGuildRoles);
+        LinkedHashMap<UUID, String> normalizedRoles = new LinkedHashMap<>(memberRoles == null ? Map.of() : memberRoles);
+        normalizedRoles.keySet().retainAll(members);
+        if (leaderId != null) normalizedRoles.put(leaderId, "owner");
+        memberRoles = Map.copyOf(normalizedRoles);
+        LinkedHashMap<UUID, Long> normalizedJoinedAt = new LinkedHashMap<>(memberJoinedAt == null ? Map.of() : memberJoinedAt);
+        normalizedJoinedAt.keySet().retainAll(members);
+        for (UUID member : members) normalizedJoinedAt.putIfAbsent(member, createdAt);
+        memberJoinedAt = Map.copyOf(normalizedJoinedAt);
         announcements = announcements == null ? List.of() : List.copyOf(announcements);
         iconPaletteIndices = new ElarionPixelAsset32(iconRevision, iconPaletteIndices).paletteIndices();
-        createdAt = createdAt <= 0L ? System.currentTimeMillis() : createdAt;
     }
 
     public GuildRecord(String id, String displayName, String tag, boolean tagHidden, UUID leaderId,
                        Set<UUID> members, long createdAt) {
         this(id, displayName, tag, tagHidden, false, leaderId, members,
-                defaults(leaderId), Map.of(leaderId, "owner"), List.of(), 0L, new byte[0], 0L, createdAt);
+                defaults(leaderId), Map.of(leaderId, "owner"), Map.of(leaderId, createdAt), List.of(), 0L, new byte[0], 0L, createdAt);
     }
 
     public static GuildRecord create(String id, String displayName, String tag, UUID leaderId) {
@@ -47,17 +61,25 @@ public record GuildRecord(
     }
 
     public static GuildRecord create(String id, String displayName, String tag, boolean secret, UUID leaderId) {
+        long now = System.currentTimeMillis();
         return new GuildRecord(id, displayName, tag, false, secret, leaderId, Set.of(leaderId),
-                defaults(leaderId), Map.of(leaderId, "owner"), List.of(), 0L, new byte[0], 0L, System.currentTimeMillis());
+                defaults(leaderId), Map.of(leaderId, "owner"), Map.of(leaderId, now), List.of(), 0L, new byte[0], 0L, now);
     }
 
     @Override public byte[] iconPaletteIndices() { return iconPaletteIndices.clone(); }
 
     public GuildRecord withMembers(Set<UUID> updatedMembers) {
+        return withMembers(updatedMembers, System.currentTimeMillis());
+    }
+
+    GuildRecord withMembers(Set<UUID> updatedMembers, long joinedAt) {
         Map<UUID, String> updatedRoles = new LinkedHashMap<>(memberRoles);
         updatedRoles.keySet().retainAll(updatedMembers);
+        Map<UUID, Long> updatedJoinedAt = new LinkedHashMap<>(memberJoinedAt);
+        updatedJoinedAt.keySet().retainAll(updatedMembers);
+        for (UUID member : updatedMembers) updatedJoinedAt.putIfAbsent(member, joinedAt);
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, updatedMembers, roles, updatedRoles,
-                announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                updatedJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withLeader(UUID leaderId) {
@@ -70,18 +92,20 @@ public record GuildRecord(
             updatedRoles.put(this.leaderId, "member");
         }
         updatedRoles.put(leaderId, "owner");
+        Map<UUID, Long> updatedJoinedAt = new LinkedHashMap<>(memberJoinedAt);
+        updatedJoinedAt.putIfAbsent(leaderId, System.currentTimeMillis());
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, updated, roles, updatedRoles,
-                announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                updatedJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withTagHidden(boolean hidden) {
         return new GuildRecord(id, displayName, tag, hidden, secret, leaderId, members, roles, memberRoles,
-                announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                memberJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withRoles(Map<String, GuildRole> updatedRoles, Map<UUID, String> updatedAssignments) {
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, updatedRoles,
-                updatedAssignments, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                updatedAssignments, memberJoinedAt, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withAnnouncement(GuildAnnouncement announcement) {
@@ -89,17 +113,20 @@ public record GuildRecord(
         updated.add(0, announcement);
         if (updated.size() > 50) updated.subList(50, updated.size()).clear();
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, roles, memberRoles,
-                updated, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+                memberJoinedAt, updated, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
     }
 
     public GuildRecord withIcon(byte[] palette) {
         ElarionPixelAsset32 icon = new ElarionPixelAsset32(iconRevision, iconPaletteIndices).revised(palette);
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, roles, memberRoles,
-                announcements, icon.revision(), icon.paletteIndices(), revision + 1L, createdAt);
+                memberJoinedAt, announcements, icon.revision(), icon.paletteIndices(), revision + 1L, createdAt);
     }
 
     private static Map<String, GuildRole> defaults(UUID leaderId) {
-        return Map.of("owner", new GuildRole("owner", "Leader", Set.of(GuildPermission.values())),
-                "member", new GuildRole("member", "Member", Set.of()));
+        return Map.of(
+                "owner", new GuildRole("owner", "Leader", 1, Set.of(GuildPermission.values())),
+                "officer", new GuildRole("officer", "Officer", 2, Set.of(GuildPermission.INVITE, GuildPermission.REMOVE_MEMBER, GuildPermission.ASSIGN_ROLES, GuildPermission.PUBLISH_ANNOUNCEMENTS)),
+                "recruiter", new GuildRole("recruiter", "Recruiter", 3, Set.of(GuildPermission.INVITE)),
+                "member", new GuildRole("member", "Member", 4, Set.of()));
     }
 }

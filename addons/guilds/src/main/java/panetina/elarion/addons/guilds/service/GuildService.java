@@ -308,6 +308,12 @@ public final class GuildService {
         GuildRecord guild = requirePermissionGuild(actor.getUuid(), GuildPermission.ASSIGN_ROLES);
         if (!guild.members().contains(memberId)) throw new IllegalArgumentException("Player is not in your guild.");
         if (!guild.roles().containsKey(roleId) || "owner".equals(roleId)) throw new IllegalArgumentException("That role cannot be assigned.");
+        int actorPosition = rolePosition(guild, actor.getUuid());
+        int targetPosition = rolePosition(guild, memberId);
+        int assignedPosition = guild.roles().get(roleId).position();
+        if (actorPosition >= targetPosition || actorPosition >= assignedPosition) {
+            throw new IllegalArgumentException("You may only manage ranks below your own.");
+        }
         java.util.Map<UUID, String> assignments = new java.util.LinkedHashMap<>(guild.memberRoles());
         assignments.put(memberId, roleId);
         GuildRecord updated = guild.withRoles(guild.roles(), assignments);
@@ -327,7 +333,8 @@ public final class GuildService {
         Set<GuildPermission> allowed = permissions == null ? Set.of() : Set.copyOf(permissions);
         if (!effectivePermissions(guild, actor.getUuid()).containsAll(allowed)) throw new IllegalArgumentException("You cannot grant permissions you do not hold.");
         java.util.Map<String, GuildRole> roles = new java.util.LinkedHashMap<>(guild.roles());
-        roles.put(normalized, new GuildRole(normalized, normalizeName(name), allowed));
+        int position = roles.values().stream().mapToInt(GuildRole::position).max().orElse(0) + 1;
+        roles.put(normalized, new GuildRole(normalized, normalizeName(name), position, allowed));
         GuildRecord updated = guild.withRoles(roles, guild.memberRoles());
         state.guilds.put(updated.id(), updated);
         save();
@@ -455,6 +462,13 @@ public final class GuildService {
         String roleId = guild.memberRoles().getOrDefault(playerId, "member");
         GuildRole role = guild.roles().get(roleId);
         return role == null ? Set.of() : role.permissions();
+    }
+
+    private static int rolePosition(GuildRecord guild, UUID playerId) {
+        if (guild.leaderId().equals(playerId)) return 1;
+        String roleId = guild.memberRoles().getOrDefault(playerId, "member");
+        GuildRole role = guild.roles().get(roleId);
+        return role == null ? Integer.MAX_VALUE : role.position();
     }
 
     private GuildRecord requireGuild(String guildId) {

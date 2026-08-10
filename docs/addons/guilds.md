@@ -2,7 +2,7 @@
 
 Technical contract for reusable public player guilds.
 
-Last reviewed: 2026-07-26.
+Last reviewed: 2026-08-11.
 
 ## Status
 
@@ -24,8 +24,9 @@ Guilds owns:
 - invites
 - guild chat
 - guild runtime storage
-- secret-guild flag, bounded announcements, custom roles, role assignments,
-  and a revisioned 32x32 fixed-palette Guild icon
+- secret-guild flag, bounded announcements, hierarchy-safe custom roles and
+  role assignments, member join timestamps, and a revisioned 32x32
+  fixed-palette Guild icon
 
 Guilds does not own:
 
@@ -40,6 +41,12 @@ Economy owns physical-inventory Sigil fee consumption. Core owns citizen and Rea
 
 The unique internal `owner` role is presented to players as `Leader`; it is
 assigned only to the current Guild leader and is demoted on ownership transfer.
+Ranks have an explicit positive position (`1` is highest authority). Every
+Guild includes the ordered `Leader`, `Officer`, `Recruiter`, and `Member`
+defaults. A player may only change a target and assign a rank strictly below
+their own position; `Leader` is never assignable. Existing saves are migrated
+in memory: missing join times use the Guild founding time and missing standard
+ranks are backfilled without deleting custom roles.
 
 ## Config
 
@@ -56,7 +63,9 @@ tag regex, blocked public tags, and invitation lifetime.
 world/elarion/addon-state/guilds/guilds.json
 ```
 
-Runtime state stores guilds, membership indexes, and invites.
+Runtime state stores guilds, membership indexes, invites, role assignments,
+and member join timestamps. The join timestamp is server-owned and remains
+stable through future rank changes.
 
 ## Commands
 

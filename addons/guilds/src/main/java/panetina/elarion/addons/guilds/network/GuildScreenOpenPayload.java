@@ -72,22 +72,22 @@ public record GuildScreenOpenPayload(
             List<String> viewerPermissions, List<InviteCandidate> inviteCandidates
     ) {
         return new GuildScreenOpenPayload(guild.id(), guild.displayName(), guild.tag(), guild.secret(), guild.leaderId(), guild.revision(), guild.iconPaletteIndices(), viewerPermissions,
-                guild.members().stream().limit(256).map(id -> new Member(id, name.apply(id), guild.memberRoles().getOrDefault(id, "member"))).toList(),
-                guild.roles().values().stream().limit(12).map(Role::from).toList(),
+                guild.members().stream().limit(256).map(id -> new Member(id, name.apply(id), guild.memberRoles().getOrDefault(id, "member"), guild.memberJoinedAt().getOrDefault(id, guild.createdAt()))).toList(),
+                guild.roles().values().stream().sorted(java.util.Comparator.comparingInt(GuildRole::position)).limit(12).map(Role::from).toList(),
                 guild.announcements().stream().limit(50).map(value -> new Announcement(value.id(), name.apply(value.authorId()), value.body(), value.createdAt())).toList(),
                 inviteCandidates == null ? List.of() : inviteCandidates.stream().limit(32).toList());
     }
     @Override public Id<? extends CustomPayload> getId() { return ID; }
-    public record Member(UUID id, String name, String role) {
+    public record Member(UUID id, String name, String role, long joinedAt) {
         public Member { name = name == null ? "" : name; role = role == null ? "member" : role; }
-        void write(PacketByteBuf b) { b.writeUuid(id); ElarionPacketCodecs.writeString(b, name, 128); ElarionPacketCodecs.writeString(b, role, 32); }
-        static Member read(PacketByteBuf b) { return new Member(b.readUuid(), ElarionPacketCodecs.readString(b, 128), ElarionPacketCodecs.readString(b, 32)); }
+        void write(PacketByteBuf b) { b.writeUuid(id); ElarionPacketCodecs.writeString(b, name, 128); ElarionPacketCodecs.writeString(b, role, 32); b.writeLong(joinedAt); }
+        static Member read(PacketByteBuf b) { return new Member(b.readUuid(), ElarionPacketCodecs.readString(b, 128), ElarionPacketCodecs.readString(b, 32), b.readLong()); }
     }
-    public record Role(String id, String displayName, List<String> permissions) {
+    public record Role(String id, String displayName, int position, List<String> permissions) {
         public Role { id = id == null ? "" : id; displayName = displayName == null ? "" : displayName; permissions = permissions == null ? List.of() : List.copyOf(permissions); }
-        static Role from(GuildRole role) { return new Role(role.id(), role.displayName(), role.permissions().stream().map(Enum::name).sorted().toList()); }
-        void write(PacketByteBuf b) { ElarionPacketCodecs.writeString(b, id, 24); ElarionPacketCodecs.writeString(b, displayName, 96); b.writeVarInt(permissions.size()); for (String permission : permissions) ElarionPacketCodecs.writeString(b, permission, 48); }
-        static Role read(PacketByteBuf b) { String id = ElarionPacketCodecs.readString(b, 24); String displayName = ElarionPacketCodecs.readString(b, 96); int count = ElarionPacketCodecs.readBoundedCount(b, 8); List<String> values = new ArrayList<>(count); for (int i = 0; i < count; i++) values.add(ElarionPacketCodecs.readString(b, 48)); return new Role(id, displayName, values); }
+        static Role from(GuildRole role) { return new Role(role.id(), role.displayName(), role.position(), role.permissions().stream().map(Enum::name).sorted().toList()); }
+        void write(PacketByteBuf b) { ElarionPacketCodecs.writeString(b, id, 24); ElarionPacketCodecs.writeString(b, displayName, 96); b.writeVarInt(position); b.writeVarInt(permissions.size()); for (String permission : permissions) ElarionPacketCodecs.writeString(b, permission, 48); }
+        static Role read(PacketByteBuf b) { String id = ElarionPacketCodecs.readString(b, 24); String displayName = ElarionPacketCodecs.readString(b, 96); int position = ElarionPacketCodecs.readBoundedCount(b, 256); int count = ElarionPacketCodecs.readBoundedCount(b, 8); List<String> values = new ArrayList<>(count); for (int i = 0; i < count; i++) values.add(ElarionPacketCodecs.readString(b, 48)); return new Role(id, displayName, position, values); }
     }
     public record Announcement(String id, String author, String body, long createdAt) {
         public Announcement { id = id == null ? "" : id; author = author == null ? "" : author; body = body == null ? "" : body; }
