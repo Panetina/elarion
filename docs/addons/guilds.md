@@ -38,6 +38,9 @@ Guilds does not own:
 
 Economy owns physical-inventory Sigil fee consumption. Core owns citizen and Realm truth.
 
+The unique internal `owner` role is presented to players as `Leader`; it is
+assigned only to the current Guild leader and is demoted on ownership transfer.
+
 ## Config
 
 ```text

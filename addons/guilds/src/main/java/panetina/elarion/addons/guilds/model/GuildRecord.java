@@ -99,7 +99,7 @@ public record GuildRecord(
     }
 
     private static Map<String, GuildRole> defaults(UUID leaderId) {
-        return Map.of("owner", new GuildRole("owner", "Owner", Set.of(GuildPermission.values())),
+        return Map.of("owner", new GuildRole("owner", "Leader", Set.of(GuildPermission.values())),
                 "member", new GuildRole("member", "Member", Set.of()));
     }
 }
