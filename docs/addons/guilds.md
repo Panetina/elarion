@@ -41,6 +41,9 @@ Economy owns physical-inventory Sigil fee consumption. Core owns citizen and Rea
 
 The unique internal `owner` role is presented to players as `Leader`; it is
 assigned only to the current Guild leader and is demoted on ownership transfer.
+Only that leader may transfer ownership (25 carried Sigils) or change Secret
+Guild status (50 carried Sigils); `/e guild transfer` remains the separate
+operator recovery action.
 Ranks have an explicit positive position (`1` is highest authority). Every
 Guild includes the ordered `Leader`, `Officer`, `Recruiter`, and `Member`
 defaults. A player may only change a target and assign a rank strictly below

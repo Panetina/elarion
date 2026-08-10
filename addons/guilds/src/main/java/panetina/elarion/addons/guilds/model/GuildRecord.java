@@ -124,6 +124,11 @@ public record GuildRecord(
                 memberJoinedAt, progression, announcements, icon.revision(), icon.paletteIndices(), revision + 1L, createdAt);
     }
 
+    public GuildRecord withSecret(boolean updatedSecret) {
+        return new GuildRecord(id, displayName, tag, tagHidden, updatedSecret, leaderId, members, roles, memberRoles,
+                memberJoinedAt, progression, announcements, iconRevision, iconPaletteIndices, revision + 1L, createdAt);
+    }
+
     public GuildRecord withContribution(UUID operationId, UUID memberId, long amount) {
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, roles, memberRoles,
                 memberJoinedAt, progression.contribute(operationId, memberId, amount), announcements, iconRevision,

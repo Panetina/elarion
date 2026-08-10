@@ -308,7 +308,12 @@ public final class GuildService {
     }
 
     public GuildRecord transfer(ServerPlayerEntity actor, ServerPlayerEntity target) {
-        GuildRecord guild = requirePermissionGuild(actor.getUuid(), GuildPermission.TRANSFER_OWNERSHIP);
+        GuildRecord guild = guildFor(actor.getUuid()).orElseThrow(() -> new IllegalArgumentException("You are not in a guild."));
+        if (!guild.leaderId().equals(actor.getUuid())) throw new IllegalArgumentException("Only the Guild leader may transfer ownership.");
+        if (target == null || !guild.members().contains(target.getUuid())) throw new IllegalArgumentException("New leader must be a guild member.");
+        var payment = ElarionEconomyApi.get().payPhysicalOnly(actor, 25L,
+                "Guild ownership transfer: " + guild.id(), "guilds");
+        if (!payment.successful()) throw new IllegalArgumentException(payment.message());
         return transfer(guild.id(), target.getUuid(), actor.getUuid());
     }
 
@@ -496,6 +501,22 @@ public final class GuildService {
         String roleId = guild.memberRoles().getOrDefault(playerId, "member");
         GuildRole role = guild.roles().get(roleId);
         return role == null ? Set.of() : role.permissions();
+    }
+
+    public GuildRecord setSecret(ServerPlayerEntity actor, boolean secret) {
+        GuildRecord guild = guildFor(actor.getUuid()).orElseThrow(() -> new IllegalArgumentException("You are not in a guild."));
+        if (!guild.leaderId().equals(actor.getUuid())) throw new IllegalArgumentException("Only the Guild leader may change secrecy.");
+        if (guild.secret() == secret) throw new IllegalArgumentException("Guild secrecy is already set that way.");
+        var payment = ElarionEconomyApi.get().payPhysicalOnly(actor, 50L,
+                "Guild secrecy change: " + guild.id(), "guilds");
+        if (!payment.successful()) throw new IllegalArgumentException(payment.message());
+        GuildRecord updated = guild.withSecret(secret);
+        state.guilds.put(updated.id(), updated);
+        save();
+        api.history().record("guilds", secret ? "secret-enabled" : "secret-disabled", actor.getUuid(), "guild", updated.id(),
+                realmOf(actor.getUuid()), java.util.Map.of());
+        webProjections.publishActive(updated);
+        return updated;
     }
 
     private static int rolePosition(GuildRecord guild, UUID playerId) {

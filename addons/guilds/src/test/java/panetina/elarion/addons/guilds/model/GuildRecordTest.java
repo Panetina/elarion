@@ -89,4 +89,15 @@ class GuildRecordTest {
         assertEquals(50L, replay.progression().totalContributed());
         assertThrows(IllegalArgumentException.class, () -> guild.withContribution(operation, leader, 51L));
     }
+
+    @Test
+    void secrecyMutationChangesOnlyTheSecrecyFlag() {
+        UUID leader = UUID.randomUUID();
+        GuildRecord guild = GuildRecord.create("merc", "Mercury Guild", "MERC", leader);
+
+        GuildRecord secret = guild.withSecret(true);
+
+        assertTrue(secret.secret());
+        assertEquals(guild.leaderId(), secret.leaderId());
+    }
 }
