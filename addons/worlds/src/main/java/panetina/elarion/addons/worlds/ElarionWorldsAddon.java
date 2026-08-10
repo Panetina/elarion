@@ -32,6 +32,11 @@ public final class ElarionWorldsAddon implements ElarionAddon {
                 return worlds.regenerate(worldId);
             }
 
+            @Override public java.util.concurrent.CompletionStage<Void> restore(
+                    net.minecraft.server.MinecraftServer server, String worldId, java.nio.file.Path backupRoot) {
+                return worlds.restore(worldId, backupRoot);
+            }
+
             @Override public java.util.Collection<String> worldIds() {
                 return worlds.destinationNames();
             }

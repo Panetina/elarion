@@ -136,6 +136,9 @@ public final class ElarionNpcsAddon implements ElarionAddon {
             @Override public WorldResetResult reset(panetina.elarion.core.api.reset.WorldResetContext context) {
                 return WorldResetResult.of("placedNpcs", placements.removeWorld(context.worldId()));
             }
+            @Override public void restore(panetina.elarion.core.api.reset.WorldResetContext context) {
+                placements.bind(context.server());
+            }
         });
         placements.onRemoved(interactions::closeNpcSessions);
         new ElarionNpcApi(api, definitions, placements, interactions, relationships);

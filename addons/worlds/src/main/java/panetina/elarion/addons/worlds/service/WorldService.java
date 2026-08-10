@@ -27,6 +27,7 @@ import panetina.elarion.addons.worlds.model.WorldBorderDefinition;
 import panetina.elarion.addons.worlds.model.WorldSpawn;
 import panetina.elarion.addons.worlds.model.WorldType;
 import panetina.elarion.core.api.ElarionApi;
+import panetina.elarion.core.api.reset.PlayerResetFiles;
 import xyz.nucleoid.fantasy.Fantasy;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.fantasy.RuntimeWorldHandle;
@@ -228,6 +229,23 @@ public final class WorldService {
      * its queued deletion. Reopening immediately would cancel that deletion.
      */
     public CompletableFuture<Void> regenerate(String worldId) {
+        return replace(worldId, null);
+    }
+
+    /** Reopens a managed world from the Core-owned backup made before reset. */
+    public CompletableFuture<Void> restore(String worldId, java.nio.file.Path backupRoot) {
+        requireServer();
+        ManagedWorldDefinition definition = findDefinition(worldId);
+        if (definition == null) throw new IllegalArgumentException("Unknown managed world: " + worldId);
+        java.nio.file.Path source = backupRoot.toAbsolutePath().normalize()
+                .resolve("managed-world").resolve(relativePersistentWorldPath(definition)).normalize();
+        if (!source.startsWith(backupRoot.toAbsolutePath().normalize()) || java.nio.file.Files.notExists(source)) {
+            throw new IllegalArgumentException("World reset backup is missing persistent data for " + worldId);
+        }
+        return replace(definition.id(), source);
+    }
+
+    private CompletableFuture<Void> replace(String worldId, java.nio.file.Path restoreSource) {
         requireServer();
         ManagedWorldDefinition definition = findDefinition(worldId);
         if (definition == null) throw new IllegalArgumentException("Unknown managed world: " + worldId);
@@ -244,7 +262,7 @@ public final class WorldService {
             handle.delete();
         }
         CompletableFuture<Void> completion = new CompletableFuture<>();
-        regenerations.put(definition.id(), new PendingRegeneration(definition, completion));
+        regenerations.put(definition.id(), new PendingRegeneration(definition, completion, restoreSource));
         return completion;
     }
 
@@ -262,8 +280,7 @@ public final class WorldService {
         if (definition == null || server == null) return List.of();
         Identifier id = Identifier.tryParse(definition.id());
         if (id == null) return List.of();
-        return List.of(server.getSavePath(WorldSavePath.ROOT)
-                .resolve("dimensions").resolve(id.getNamespace()).resolve(id.getPath()));
+        return List.of(server.getSavePath(WorldSavePath.ROOT).resolve(relativePersistentWorldPath(definition)));
     }
 
     public ServerWorld resolveWorld(String name) {
@@ -395,10 +412,11 @@ public final class WorldService {
         for (PendingRegeneration pending : List.copyOf(regenerations.values())) {
             if (getWorld(pending.definition().id()) != null) continue;
             try {
+                if (pending.restoreSource() != null) restorePersistentFiles(pending.definition(), pending.restoreSource());
                 open(pending.definition());
-                recordHistory("regenerated", pending.definition(), Map.of());
+                recordHistory(pending.restoreSource() == null ? "regenerated" : "restored", pending.definition(), Map.of());
                 pending.completion().complete(null);
-            } catch (RuntimeException exception) {
+            } catch (Exception exception) {
                 pending.completion().completeExceptionally(exception);
             } finally {
                 regenerations.remove(pending.definition().id());
@@ -443,6 +461,22 @@ public final class WorldService {
         if (server == null) throw new IllegalStateException("Elarion Worlds is not bound to a server");
     }
 
+    private java.nio.file.Path relativePersistentWorldPath(ManagedWorldDefinition definition) {
+        Identifier id = Identifier.tryParse(definition.id());
+        if (id == null) throw new IllegalArgumentException("Invalid managed world ID: " + definition.id());
+        return java.nio.file.Path.of("dimensions", id.getNamespace(), id.getPath());
+    }
+
+    private void restorePersistentFiles(ManagedWorldDefinition definition, java.nio.file.Path source) throws java.io.IOException {
+        java.nio.file.Path root = server.getSavePath(WorldSavePath.ROOT).toAbsolutePath().normalize();
+        java.nio.file.Path target = root.resolve(relativePersistentWorldPath(definition)).normalize();
+        if (!target.startsWith(root.resolve("dimensions"))) {
+            throw new java.io.IOException("Invalid managed world restore target");
+        }
+        PlayerResetFiles.deleteTree(target);
+        PlayerResetFiles.copyTree(source, target);
+    }
+
     private void validateRegistryEntries() {
         List<String> errors = new ArrayList<>();
         for (ManagedWorldDefinition definition : config.worlds().values()) {
@@ -483,6 +517,8 @@ public final class WorldService {
     private record PendingHistory(String type, String worldId, Map<String, String> metadata) {
     }
 
-    private record PendingRegeneration(ManagedWorldDefinition definition, CompletableFuture<Void> completion) {
+    private record PendingRegeneration(
+            ManagedWorldDefinition definition, CompletableFuture<Void> completion, java.nio.file.Path restoreSource
+    ) {
     }
 }

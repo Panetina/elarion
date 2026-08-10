@@ -37,6 +37,9 @@ Use command autocomplete and `/help e world` in-game for the exact active subcom
 - Confirm Realm worlds, lobby, and Worldheart-ready worlds exist.
 - Verify portal destinations use configured loaded worlds.
 - Check `/e perf worlds` for sampled world diagnostics.
+- For `/e reset world <world>`, confirm the preview token is executor-bound,
+  the timestamped backup contains `manifest.json`, and a forced failure
+  restores the managed dimension plus Portal, Shrine, and NPC state.
 
 ## Source-Backed Notes
 

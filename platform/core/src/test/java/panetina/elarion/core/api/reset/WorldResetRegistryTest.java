@@ -22,6 +22,11 @@ final class WorldResetRegistryTest {
                 return java.util.concurrent.CompletableFuture.completedFuture(null);
             }
 
+            @Override public java.util.concurrent.CompletionStage<Void> restore(
+                    net.minecraft.server.MinecraftServer server, String worldId, java.nio.file.Path backupRoot) {
+                return java.util.concurrent.CompletableFuture.completedFuture(null);
+            }
+
             @Override public java.util.Collection<String> worldIds() {
                 return List.of("lobby", "underworld");
             }
