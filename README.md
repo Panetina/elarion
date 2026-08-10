@@ -8,7 +8,7 @@ Start with `RULES.md`, `AGENTS.md`, and the bounded
 the complete human navigation map. Core owns canonical truth and shared
 infrastructure; addons extend behavior without duplicating Core state.
 
-Use `TODO.md` for current work, `PLANS.md` for future ideas, and
+Use `TODO.md` for current work, `PLAN.md` for the approved roadmap, and
 `docs/architecture/PROJECT_STRUCTURE.md` for the source map.
 
 Active foundations include Core, Economy, Offerings, Government, Guilds, NPCs,

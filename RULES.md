@@ -80,9 +80,9 @@ authoritative docs selected through `docs/ai/routes.json`.
   changes: update affected system/addon docs and the relevant wiki page.
 - Addon status changes: update the root source maps, addon indexes, and wiki
   addon status.
-- `TODO.md` contains only active unfinished work. `PLANS.md` contains future
-  ideas and design directions. Completed work and superseded plans belong in
-  Git history, not new Markdown logs.
+- `TODO.md` contains only active unfinished work. `PLAN.md` contains the
+  approved roadmap and future constraints. Completed work and superseded plans
+  belong in Git history, not new Markdown logs.
 
 ## Verification
 

@@ -102,4 +102,4 @@ activated.
 6. Bridge region batching and dedicated website map read model/UI.
 
 No item above belongs in current implementation work until explicitly moved
-from `PLANS.md` to the active plan and TODO.
+from `PLAN.md` to the active plan and TODO.

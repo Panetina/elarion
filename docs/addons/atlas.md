@@ -60,7 +60,7 @@ None. Reserved packages contain documentation only and are not operational.
 
 The authoritative deferred design, visibility rules, performance invariants,
 bridge boundary, and staged implementation are in `../systems/Atlas.md` and
-`../../PLANS.md`.
+`../../PLAN.md`.
 
 ## Inspiration And Credits
 

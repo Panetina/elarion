@@ -1,17 +1,17 @@
 # TODO
 
 Active incomplete work only. Future ideas and deferred designs belong in
-`PLANS.md`; completed work belongs in Git history.
+`PLAN.md`; completed work belongs in Git history.
 
 ## Implementation
 
-### WORLD-01: Managed World Regeneration
+### P0 Verification and Integration
 
-Implement `/e reset world <world>` as a separate destructive-command slice.
-It requires executor-bound preview/confirmation, a complete streamed backup,
-selected-world evacuation and unload, recreation from the existing definition,
-validation, and automatic restoration on failure. It must remain separate from
-player reset behavior and cannot ship without restart/recovery tests.
+- Run the dedicated-server smoke test after the owner has accepted Mojang's
+  EULA for the isolated local test runtime; do not commit runtime files.
+- Merge the independently verified integration branch only after reviewing the
+  preserved Desktop WIP and divergent local history; never force-push or reset
+  that WIP.
 
 ### Angling Release Gate
 

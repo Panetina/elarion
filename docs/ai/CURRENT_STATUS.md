@@ -2,7 +2,8 @@
 
 Bounded handoff snapshot. Source and tests decide implementation reality;
 `RULES.md` owns policy, `INDEX.md` owns navigation, `TODO.md` owns active work,
-and `PLANS.md` owns future design. Use Git history for completed slice detail.
+and `PLAN.md` owns the approved roadmap. Use Git history for completed slice
+detail.
 
 ## Canonical State
 
@@ -55,26 +56,27 @@ and `PLANS.md` owns future design. Use Git history for completed slice detail.
   never transferred to the website; launcher passage and website-session
   contracts are documented in `docs/systems/MinecraftBridge.md`.
 
-## Verification Snapshot
+## Verification
 
-- 2026-08-06 Java 21 full build: PASS, 215 actionable tasks, 57 executed and
-  158 up-to-date.
-- AI context routing: PASS, 18/18 benchmark cases with no failures.
-- Quest/NPC ownership audit: no Quest imports of `ElarionNpcEntity`,
-  `NpcQuestMarkerSyncPayload`, or Fabric server networking.
-- Git worktree: clean at verified head `e9ff1eda792cf607ecde83fa26361482ef88196c`;
-  the same head was confirmed on `origin/master`.
-- Excalibured CIT, distribution hashes, GameTest gateway, restart/persistence,
-  managed-world travel, dedicated startup, and performance soak evidence have
-  passed their latest recorded gates. Re-run the narrowest applicable check
-  whenever the corresponding behavior changes.
+- Use Java 21 and run the narrowest applicable module test before a full
+  `gradlew build`; cross-module changes also run
+  `:tests:gametest:runGameTest`.
+- Quest/NPC marker integration crosses only `ElarionNpcApi`; Quests must not
+  import NPC entities, payloads or Fabric server networking.
+- Angling parity is an explicit P2 gate that requires its ignored,
+  owner-authorized reference checkout. It is not evidence that the disabled
+  public Angling release gate is open.
+- Dedicated-server smoke tests require the owner's local EULA acceptance and
+  ignored runtime configuration. Never commit those runtime files.
 
 ## Active Work And Risks
 
-- `WORLD-01` managed-world regeneration and the Angling public-release gate are
-  the current implementation items; exact requirements are in `TODO.md`.
+- The recoverable World Reset, Guild/Chat foundation, Backpacks integration,
+  Government/tax/heraldry controls and NPC quest-marker projection are
+  integrated and tested on the current P0 integration branch. Their evidence
+  is in focused Git commits; remaining P0 work is listed in `TODO.md`.
 - Custom physical Chronicle libraries/books are future presentation consumers,
-  not implemented storage. Their design remains in `PLANS.md` and
+  not implemented storage. Their design remains in `PLAN.md` and
   `docs/systems/Chronicles.md`.
 - Grave/Underworld edge-flow QA remains a focused future verification slice.
 - Distant Horizons 3.2.0-b is a required beta artifact with generation/updater

@@ -10,7 +10,8 @@ When sources disagree, use this precedence and investigate the drift:
 2. `RULES.md` establishes permanent engineering policy.
 3. `AGENTS.md` establishes repository workflow and bounded context rules.
 4. Authoritative system/addon docs establish accepted domain contracts.
-5. `TODO.md` lists active incomplete work; `PLANS.md` contains future design.
+5. `TODO.md` lists active incomplete work; `PLAN.md` contains the approved
+   roadmap and future constraints.
 
 Start with `RULES.md`, `AGENTS.md`, and
 `docs/ai/CURRENT_STATUS.md`. Select task context through
@@ -23,7 +24,7 @@ index when a route already answers the task.
 - `RULES.md`: permanent policy and documentation maintenance matrix.
 - `AGENTS.md`: AI/engineering workflow, ownership summary, and context budget.
 - `TODO.md`: active implementation and verification work only.
-- `PLANS.md`: future ideas and design directions only.
+- `PLAN.md`: approved roadmap and future constraints.
 - `LORE.md`: setting/lore entry point.
 
 Completed work, superseded plans, and old verification narratives live in Git

@@ -44,7 +44,7 @@ Status labels:
 - Project ownership map: [../INDEX.md](../INDEX.md)
 - Current AI/new PC handoff snapshot: [../docs/ai/CURRENT_STATUS.md](../docs/ai/CURRENT_STATUS.md)
 - Current implementation work: [../TODO.md](../TODO.md)
-- Future design book: [../PLANS.md](../PLANS.md)
+- Approved roadmap: [../PLAN.md](../PLAN.md)
 - Technical docs: [../docs/](../docs/)
 
 ## Maintenance Rule
