@@ -390,4 +390,7 @@ test {
 // port, but never package any Angling recipe before that gate is complete.
 processResources {
     exclude 'data/elarion_angling/recipe/**'
+    exclude 'data/elarion_angling/advancement/**'
+    exclude 'data/elarion_angling/loot_table/**'
+    exclude 'data/elarion_angling/tags/**'
 }
