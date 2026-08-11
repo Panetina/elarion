@@ -43,7 +43,6 @@ public final class GuildScreen extends ElarionScreen {
     private final ElarionPixelCanvas16 iconCanvas = new ElarionPixelCanvas16();
     private final ElarionTextInput announcement = new ElarionTextInput(500, false);
     private final ElarionTextInput donation = new ElarionTextInput(10, false);
-    private final ElarionTextInput roleId = new ElarionTextInput(24, false);
     private final ElarionTextInput roleName = new ElarionTextInput(96, false);
     private final EnumSet<GuildPermission> selectedPermissions = EnumSet.noneOf(GuildPermission.class);
     private final List<Hit> hits = new ArrayList<>();
@@ -423,17 +422,6 @@ public final class GuildScreen extends ElarionScreen {
                 .map(GuildScreenOpenPayload.Role::displayName).orElse(roleId);
     }
 
-    private String nextAssignableRole(String currentRole) {
-        int viewerPosition = viewerPosition();
-        List<String> roles = payload.roles().stream()
-                .filter(role -> !"owner".equals(role.id()) && role.position() > viewerPosition)
-                .sorted(java.util.Comparator.comparingInt(GuildScreenOpenPayload.Role::position))
-                .map(GuildScreenOpenPayload.Role::id).toList();
-        if (roles.isEmpty()) return "";
-        int index = roles.indexOf(currentRole);
-        return roles.get((index + 1 + roles.size()) % roles.size());
-    }
-
     private void updateRole() {
         String permissions = selectedPermissions.stream().map(Enum::name).sorted().collect(Collectors.joining(","));
         send("update_role", null, selectedRoleId + "\n" + roleName.text().trim() + "\n" + permissions, new byte[0]);
@@ -520,7 +508,6 @@ public final class GuildScreen extends ElarionScreen {
         input = target;
         announcement.focused(target == Input.ANNOUNCEMENT);
         donation.focused(target == Input.DONATION);
-        roleId.focused(target == Input.ROLE_ID);
         roleName.focused(target == Input.ROLE_NAME);
     }
 
@@ -528,7 +515,6 @@ public final class GuildScreen extends ElarionScreen {
         return switch (input) {
             case ANNOUNCEMENT -> announcement;
             case DONATION -> donation;
-            case ROLE_ID -> roleId;
             case ROLE_NAME -> roleName;
             case NONE -> null;
         };
@@ -639,7 +625,7 @@ public final class GuildScreen extends ElarionScreen {
         Tab(String label) { this.label = label; }
     }
 
-    private enum Input { NONE, ANNOUNCEMENT, DONATION, ROLE_ID, ROLE_NAME }
+    private enum Input { NONE, ANNOUNCEMENT, DONATION, ROLE_NAME }
 
     private record Hit(int x, int y, int width, int height, Runnable action) { }
 }
