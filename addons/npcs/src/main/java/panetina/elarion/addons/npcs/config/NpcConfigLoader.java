@@ -106,8 +106,7 @@ public final class NpcConfigLoader {
                     NpcConfigDefaults.BANKER_DIALOGUE);
             writeIfMissing(root.resolve("dialogues").resolve("worldheart_trader.yml"),
                     NpcConfigDefaults.TRADER_DIALOGUE);
-            writeIfMissing(root.resolve("dialogues").resolve("guildmaster.yml"),
-                    NpcConfigDefaults.GUILDMASTER_DIALOGUE);
+            writeGuildmasterDefault(root.resolve("dialogues").resolve("guildmaster.yml"));
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to create NPC config defaults", exception);
         }
@@ -118,6 +117,31 @@ public final class NpcConfigLoader {
             Files.createDirectories(path.getParent());
             Files.writeString(path, content, StandardCharsets.UTF_8);
         }
+    }
+
+    /**
+     * Generated dialogue defaults normally never overwrite configuration. The sole
+     * exception is the exact previous Guildmaster default, which has no owner
+     * customization and needs the current safe management flow. Any divergence,
+     * including a formatting change, remains untouched for the operator to own.
+     */
+    private static void writeGuildmasterDefault(Path path) throws IOException {
+        if (Files.notExists(path)) {
+            writeIfMissing(path, NpcConfigDefaults.GUILDMASTER_DIALOGUE);
+            return;
+        }
+        String existing = Files.readString(path, StandardCharsets.UTF_8);
+        if (isLegacyGuildmasterDefault(existing)) {
+            Files.writeString(path, NpcConfigDefaults.GUILDMASTER_DIALOGUE, StandardCharsets.UTF_8);
+        }
+    }
+
+    static boolean isLegacyGuildmasterDefault(String content) {
+        return normalizeDefault(content).equals(normalizeDefault(NpcConfigDefaults.LEGACY_GUILDMASTER_DIALOGUE));
+    }
+
+    private static String normalizeDefault(String content) {
+        return content == null ? "" : content.replace("\r\n", "\n").trim();
     }
 
     private Map<String, NpcDefinition> loadNpcs(List<String> errors) {

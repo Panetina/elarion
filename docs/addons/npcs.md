@@ -11,7 +11,10 @@ wallets, quests, titles, portals, laws, ledgers, Realm membership, or other
 addon state.
 
 The default `guildmaster` NPC uses addon-owned skin and portrait assets and
-opens the Guild Registrar through `elarion_guilds:open_registrar`.
+opens the Guild Registrar through `elarion_guilds:open_registrar`. The exact
+legacy generated Guildmaster dialogue is upgraded once to the current Guild
+services flow; any customized dialogue file, including one with changed
+formatting, remains operator-owned and is never overwritten.
 
 ## Storage
 

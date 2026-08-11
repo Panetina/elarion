@@ -57,6 +57,13 @@ final class NpcBankPresentationMigrationTest {
     }
 
     @Test
+    void recognizesOnlyTheExactPriorGuildmasterDefaultForMigration() {
+        assertTrue(NpcConfigLoader.isLegacyGuildmasterDefault(NpcConfigDefaults.LEGACY_GUILDMASTER_DIALOGUE));
+        assertFalse(NpcConfigLoader.isLegacyGuildmasterDefault(
+                NpcConfigDefaults.LEGACY_GUILDMASTER_DIALOGUE.replace("public or secret Guild", "custom Guild")));
+    }
+
+    @Test
     void shippedBankPromptsRemainValidWhenEconomyProviderIsAbsent() {
         assertTrue(NpcConfigLoader.optionalProviderAction(
                 "elarion:economy_deposit_currency_amount"));

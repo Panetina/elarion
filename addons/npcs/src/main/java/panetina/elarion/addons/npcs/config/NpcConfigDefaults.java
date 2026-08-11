@@ -406,8 +406,40 @@ public final class NpcConfigDefaults {
                     next: intro
             """;
 
-    public static final String GUILDMASTER_DIALOGUE = """
+    /** Prior generated default, retained solely for exact safe-default migration. */
+    public static final String LEGACY_GUILDMASTER_DIALOGUE = """
             config-version: 1
+            id: guildmaster
+            root: welcome
+            nodes:
+              welcome:
+                text: "I can register a public or secret Guild, or open your existing Guild records. The Registrar will show the current charter fee before you confirm."
+                sound: "minecraft:entity.villager.yes"
+                voice: ""
+                options:
+                  - id: open_registrar
+                    button-text: "Register or manage my Guild"
+                    player-text: "I want to register or manage a Guild."
+                    actions:
+                      - type: "elarion_guilds:open_registrar"
+                    close: true
+                  - id: charter
+                    button-text: "What is a Guild charter?"
+                    player-text: "What does a charter mean?"
+                    next: charter
+              charter:
+                text: "A charter records your Guild's name and leadership. Secret Guilds remain hidden from public projections."
+                sound: "minecraft:entity.villager.ambient"
+                voice: ""
+                options:
+                  - id: back
+                    button-text: "Back"
+                    player-text: "I understand."
+                    next: welcome
+            """;
+
+    public static final String GUILDMASTER_DIALOGUE = """
+            config-version: 2
             id: guildmaster
             root: welcome
             nodes:
