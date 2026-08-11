@@ -41,9 +41,20 @@ loom {
         gameTestServer {
             server()
             name = 'Elarion Game Test Server'
-            runDir = 'run/gametest'
+            // GameTests must be deterministic: never reuse a developer's old
+            // generated config after an Elarion schema evolves.
+            runDir = 'build/run/gametest'
             vmArg '-Dfabric-api.gametest'
             vmArg "-Dfabric-api.gametest.report-file=${project.layout.buildDirectory.file('test-results/gametest.xml').get().asFile.absolutePath}"
         }
+    }
+}
+
+tasks.matching { it.name == 'runGameTest' }.configureEach {
+    doFirst {
+        def gameTestRun = layout.buildDirectory.dir('run/gametest').get().asFile
+        delete(new File(gameTestRun, 'config/elarion'))
+        gameTestRun.mkdirs()
+        new File(gameTestRun, 'server.properties').text = 'online-mode=false\n'
     }
 }
