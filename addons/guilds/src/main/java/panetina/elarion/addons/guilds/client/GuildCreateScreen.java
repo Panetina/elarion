@@ -148,10 +148,14 @@ public final class GuildCreateScreen extends ElarionScreen {
     }
 
     private void renderFooter(DrawContext context, double mouseX, double mouseY) {
+        String validation = validationMessage();
         if (!feedback.isBlank()) {
             ElarionUiTypography.draw(context, textRenderer,
                     ElarionUiRenderer.ellipsize(textRenderer, feedback, 288), 32, 275,
                     feedbackError ? style.errorColor() : style.feedbackColor(), false);
+        } else if (!validation.isBlank()) {
+            ElarionUiTypography.draw(context, textRenderer, validation, 32, 275,
+                    style.mutedColor(), false);
         } else {
             ElarionUiTypography.draw(context, textRenderer,
                     "Names and tags remain server-validated and unique.", 32, 275,
@@ -243,6 +247,17 @@ public final class GuildCreateScreen extends ElarionScreen {
         return terms.enabled() && terms.affordable() && !submitting
                 && !name.text().trim().isBlank()
                 && tagLength >= terms.minTagLength() && tagLength <= terms.maxTagLength();
+    }
+
+    private String validationMessage() {
+        if (!terms.enabled()) return "Guild creation is currently disabled.";
+        if (!terms.affordable()) return "You need more Sigils in your inventory.";
+        if (name.text().trim().isBlank()) return "Enter the Guild name players will see.";
+        int tagLength = tag.text().trim().length();
+        if (tagLength < terms.minTagLength() || tagLength > terms.maxTagLength()) {
+            return "Guild tag must contain " + terms.minTagLength() + "-" + terms.maxTagLength() + " characters.";
+        }
+        return "Names and tags remain server-validated and unique.";
     }
 
     private void normalizeTagInput() {

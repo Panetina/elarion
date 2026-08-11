@@ -313,7 +313,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
 
 
     private static void createRole(GuildService guilds, ServerPlayerEntity player, String encoded) {
-        String[] fields = encoded == null ? new String[0] : encoded.split("\\n", 3);
+        String[] fields = encoded == null ? new String[0] : encoded.split("\\n", -1);
         if (fields.length != 3) throw new IllegalArgumentException("Role submission is incomplete.");
         java.util.EnumSet<GuildPermission> permissions = java.util.EnumSet.noneOf(GuildPermission.class);
         if (!fields[2].isBlank()) for (String raw : fields[2].split(",")) {
@@ -324,10 +324,13 @@ public final class ElarionGuildsAddon implements ElarionAddon {
     }
 
     private static void updateRole(GuildService guilds, ServerPlayerEntity player, String encoded) {
-        String[] fields = encoded == null ? new String[0] : encoded.split("\\n", 3);
+        String[] fields = encoded == null ? new String[0] : encoded.split("\\n", -1);
         if (fields.length != 3) throw new IllegalArgumentException("Role submission is incomplete.");
         java.util.EnumSet<GuildPermission> permissions = java.util.EnumSet.noneOf(GuildPermission.class);
-        if (!fields[2].isBlank()) for (String raw : fields[2].split(",")) permissions.add(GuildPermission.valueOf(raw));
+        if (!fields[2].isBlank()) for (String raw : fields[2].split(",")) {
+            try { permissions.add(GuildPermission.valueOf(raw)); }
+            catch (IllegalArgumentException ignored) { throw new IllegalArgumentException("Unknown Guild permission."); }
+        }
         guilds.updateRole(player, fields[0], fields[1], permissions);
     }
 
