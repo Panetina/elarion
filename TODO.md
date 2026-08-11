@@ -7,8 +7,6 @@ Active incomplete work only. Future ideas and deferred designs belong in
 
 ### P0 Verification and Integration
 
-- Run the dedicated-server smoke test after the owner has accepted Mojang's
-  EULA for the isolated local test runtime; do not commit runtime files.
 - Merge the independently verified integration branch only after reviewing the
   preserved Desktop WIP and divergent local history; never force-push or reset
   that WIP.

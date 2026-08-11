@@ -66,8 +66,9 @@ detail.
 - Angling parity is an explicit P2 gate that requires its ignored,
   owner-authorized reference checkout. It is not evidence that the disabled
   public Angling release gate is open.
-- Dedicated-server smoke tests require the owner's local EULA acceptance and
-  ignored runtime configuration. Never commit those runtime files.
+- The isolated dedicated-server smoke test passed after the owner accepted the
+  local EULA; rerun it after runtime dependency or server-startup changes.
+  Never commit its runtime files.
 
 ## Active Work And Risks
 
