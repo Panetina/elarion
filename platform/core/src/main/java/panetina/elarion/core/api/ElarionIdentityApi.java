@@ -47,6 +47,10 @@ public final class ElarionIdentityApi {
         identities.registerChatPrefixProvider(provider);
     }
 
+    public void registerNameplateTitleProvider(Function<ServerPlayerEntity, String> provider) {
+        identities.registerNameplateTitleProvider(provider);
+    }
+
     public void registerAuthorityMarkerProvider(BiPredicate<String, ServerPlayerEntity> provider) {
         identities.registerAuthorityMarkerProvider(provider);
     }
