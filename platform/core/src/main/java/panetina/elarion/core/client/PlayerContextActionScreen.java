@@ -63,7 +63,12 @@ public final class PlayerContextActionScreen extends ElarionScreen {
         return true;
     }
 
-    @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) { close(); return true; }
+    @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // The menu is opened with Shift + right click.  Closing on every key event also
+        // closed it as the Shift key was released, before the player could select an action.
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) close();
+        return true;
+    }
     @Override public void close() { if (client != null) client.setScreen(null); }
     private static boolean inside(double x, double y, int left, int top, int width, int height) { return x >= left && x < left + width && y >= top && y < top + height; }
 }
