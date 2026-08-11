@@ -45,8 +45,8 @@ Only that leader may transfer ownership (25 carried Sigils) or change Secret
 Guild status (50 carried Sigils); `/e guild transfer` remains the separate
 operator recovery action.
 Ranks have an explicit positive position (`1` is highest authority). Every
-Guild includes the ordered `Leader`, `Officer`, `Recruiter`, and `Member`
-defaults. A player may only change a target and assign a rank strictly below
+Guild includes the ordered `Leader`, `Officer`, `Recruiter`, `Member`,
+`Veteran`, `Initiate`, and `Newcomer` defaults. A player may only change a target and assign a rank strictly below
 their own position; `Leader` is never assignable. Existing saves are migrated
 in memory: missing join times use the Guild founding time and missing standard
 ranks are backfilled without deleting custom roles.
@@ -146,10 +146,11 @@ messages; Guild is sent through the Core chat composer after server validation.
 
 ## Notifications
 
-Guild invitations are actionable Personal notifications with Accept and
-Decline actions. Acceptance, removal, leadership transfer, and guild deletion
-publish dismissible Personal notices to affected players. Guilds owns invite
-validation and expiry; Core owns notification storage and presentation.
+Guild invitations use only the immediate in-world Accept/Deny modal, so they
+do not also appear in the notification tab. Acceptance, removal, leadership
+transfer, and guild deletion publish dismissible Personal notices to affected
+players. Guilds owns invite validation and expiry; Core owns notification
+storage and presentation.
 
 ## Website Authority Projection
 
@@ -177,8 +178,9 @@ Primary services:
 
 The Registrar and five-tab management surface are implemented with shared Core
 theme, scaling, text-input, button, and fixed-palette canvas primitives. Invite
-candidates and viewer permissions are bounded server projections. Leaving a
-Guild explicitly closes the now-stale management screen. Guild emblems are
+candidates and viewer permissions are bounded server projections. A non-leader
+must confirm leaving before the server receives the request; a confirmed
+departure explicitly closes the now-stale management screen. Guild emblems are
 intentionally not rendered in chat.
 
 ## Bridge Heraldry Fields

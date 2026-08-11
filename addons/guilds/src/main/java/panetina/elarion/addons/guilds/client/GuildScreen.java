@@ -37,7 +37,6 @@ public final class GuildScreen extends ElarionScreen {
     private static final int BODY_HEIGHT = 276;
     private static final int FOOTER_Y = 382;
     private static final int TAB_Y = 62;
-    private static final int TAB_WIDTH = 101;
     private static final int TAB_GAP = 5;
 
     private GuildScreenOpenPayload payload;
@@ -55,6 +54,8 @@ public final class GuildScreen extends ElarionScreen {
     private String feedback = "";
     private String selectedRoleId = "";
     private boolean feedbackError;
+    private UUID roleDropdownMemberId;
+    private boolean leaveConfirmation;
     private int scroll;
     private int lastPaintX = Integer.MIN_VALUE;
     private int lastPaintY = Integer.MIN_VALUE;
@@ -105,6 +106,7 @@ public final class GuildScreen extends ElarionScreen {
                 ElarionCivicColors.ROOT_SURFACE, ElarionCivicColors.GOLD_BORDER);
         renderBody(context, lx, ly);
         renderFooter(context);
+        if (leaveConfirmation) renderLeaveConfirmation(context, lx, ly);
         context.getMatrices().pop();
     }
 
@@ -123,14 +125,15 @@ public final class GuildScreen extends ElarionScreen {
     }
 
     private void renderTabs(DrawContext context, double mouseX, double mouseY) {
+        int tabWidth = (BODY_WIDTH - TAB_GAP * (Tab.values().length - 1)) / Tab.values().length;
         int x = BODY_X;
         for (Tab value : Tab.values()) {
-            boolean hovered = inside(mouseX, mouseY, x, TAB_Y, TAB_WIDTH, 24);
-            ElarionUiRenderer.tab(context, textRenderer, x, TAB_Y, TAB_WIDTH, 24,
+            boolean hovered = inside(mouseX, mouseY, x, TAB_Y, tabWidth, 24);
+            ElarionUiRenderer.tab(context, textRenderer, x, TAB_Y, tabWidth, 24,
                     value.label, value == tab, hovered, ElarionUiThemes.variant("default"));
             Tab selected = value;
-            hits.add(new Hit(x, TAB_Y, TAB_WIDTH, 24, () -> selectTab(selected)));
-            x += TAB_WIDTH + TAB_GAP;
+            hits.add(new Hit(x, TAB_Y, tabWidth, 24, () -> selectTab(selected)));
+            x += tabWidth + TAB_GAP;
         }
     }
 
@@ -145,72 +148,70 @@ public final class GuildScreen extends ElarionScreen {
     }
 
     private void renderOverview(DrawContext context, double mouseX, double mouseY) {
-        sectionTitle(context, "Guild Overview", "guild", 34, 112);
-        card(context, 34, 142, 286, 76, "Leader", memberName(payload.leaderId()), "Canonical Guild authority");
-        card(context, 340, 142, 286, 76, "Visibility", payload.secret() ? "Secret" : "Public",
-                payload.secret() ? "Hidden from public projections" : "Visible in approved projections");
-        card(context, 34, 232, 286, 76, "Guild Level", "Level " + payload.level(),
-                payload.totalContributed() + " Sigils contributed");
-        String next = payload.nextLevelContribution() == 0L ? "Maximum level" : "Next: " + payload.nextLevelContribution() + " Sigils";
-        card(context, 340, 232, 286, 76, "Members", payload.members().size() + " / " + payload.memberCapacity(), next);
-        if (payload.nextLevelContribution() > 0L) {
-            ElarionUiRenderer.progressBar(context, textRenderer, 350, 278, 266, 16,
-                    payload.totalContributed(), payload.nextLevelContribution(), ElarionUiThemes.variant("default"));
-        } else {
-            muted(context, "All configured Guild levels unlocked.", 350, 283);
-        }
+        sectionTitle(context, "Guild Hall", "guild", 34, 112);
+        ElarionCivicUi.headerShell(context, 34, 140, 592, 72, 24);
+        ElarionUiTypography.draw(context, textRenderer, "LEVEL " + payload.level(), 48, 151, style.mutedColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, payload.totalContributed() + " / "
+                + (payload.nextLevelContribution() == 0L ? "MAX" : payload.nextLevelContribution()) + " Sigils", 48, 174,
+                style.titleColor(), false);
+        ElarionUiRenderer.progressBar(context, textRenderer, 190, 168, 412, 18, payload.totalContributed(),
+                payload.nextLevelContribution() == 0L ? Math.max(1L, payload.totalContributed()) : payload.nextLevelContribution(),
+                ElarionUiThemes.variant("default"));
+        muted(context, payload.members().size() + " of " + payload.memberCapacity() + " member places filled", 190, 192);
+        card(context, 34, 226, 184, 70, "Guild Leader", memberName(payload.leaderId()), "Guides the Guild");
+        card(context, 238, 226, 184, 70, "Membership", payload.members().size() + " / " + payload.memberCapacity(), "Capacity grows with levels");
+        card(context, 442, 226, 184, 70, "Next Milestone",
+                payload.nextLevelContribution() == 0L ? "Complete" : payload.nextLevelContribution() + " Sigils",
+                payload.nextLevelContribution() == 0L ? "All levels unlocked" : "Community contribution goal");
         renderInput(context, donation, "Sigils to donate", 34, 326, 258, Input.DONATION);
         boolean validDonation = donation.text().trim().matches("[1-9][0-9]*");
         button(context, mouseX, mouseY, 302, 326, 156, 24, "Donate Sigils", validDonation,
-                ElarionCivicUi.Tone.PRIMARY,
-                this::donate);
-        if (client != null && client.player != null && payload.leaderId().equals(client.player.getUuid())) {
-            button(context, mouseX, mouseY, 470, 326, 156, 24,
-                    payload.secret() ? "Make Public (50)" : "Make Secret (50)", true,
-                    ElarionCivicUi.Tone.NORMAL,
-                    () -> send("toggle_secret", null, Boolean.toString(!payload.secret()), new byte[0]));
-        }
+                ElarionCivicUi.Tone.PRIMARY, this::donate);
         if (client != null && client.player != null && !payload.leaderId().equals(client.player.getUuid())) {
-            button(context, mouseX, mouseY, 494, 326, 132, 24, "Leave Guild", true,
-                    ElarionCivicUi.Tone.DESTRUCTIVE, () -> send("leave", null, "", new byte[0]));
+            button(context, mouseX, mouseY, 470, 326, 156, 24, "Leave Guild", true,
+                    ElarionCivicUi.Tone.DESTRUCTIVE, () -> leaveConfirmation = true);
         }
     }
 
     private void renderMembers(DrawContext context, double mouseX, double mouseY) {
         sectionTitle(context, "Members", "members", 34, 112);
-        List<GuildScreenOpenPayload.Member> visible = window(payload.members(), 10);
-        int y = 140;
+        List<GuildScreenOpenPayload.Member> visible = window(payload.members(), 9);
+        ElarionCivicUi.headerShell(context, 34, 136, 592, 24, 0);
+        ElarionUiTypography.draw(context, textRenderer, "MEMBER", 44, 144, style.mutedColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, "REALM", 230, 144, style.mutedColor(), false);
+        ElarionUiTypography.draw(context, textRenderer, "JOINED", 370, 144, style.mutedColor(), false);
+        ElarionUiTypography.drawRight(context, textRenderer, "ROLE", 610, 144, style.mutedColor(), false);
+        int y = 164;
+        GuildScreenOpenPayload.Member dropdownMember = null;
+        int dropdownY = 0;
         for (GuildScreenOpenPayload.Member member : visible) {
             boolean leader = payload.leaderId().equals(member.id());
             ElarionCivicUi.rowSurface(context, 34, y, 592, 20, false, false, true);
-            String prefix = ElarionUiRenderer.ellipsize(textRenderer, member.name() + "  |  ", 150);
-            ElarionUiTypography.draw(context, textRenderer, prefix, 44, y + 6,
+            String name = ElarionUiRenderer.ellipsize(textRenderer, member.name(), 166);
+            ElarionUiTypography.draw(context, textRenderer, name, 44, y + 6,
                     leader ? style.titleColor() : style.textColor(), false);
-            int realmX = 44 + ElarionUiTypography.width(textRenderer, prefix);
-            String realm = ElarionUiRenderer.ellipsize(textRenderer, member.realm().displayName(), 86);
-            ElarionUiTypography.draw(context, textRenderer, realm, realmX, y + 6, member.realm().color(), false);
-            int joinedX = realmX + ElarionUiTypography.width(textRenderer, realm);
-            String joined = " | " + java.time.Instant.ofEpochMilli(member.joinedAt())
-                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+            String realm = ElarionUiRenderer.ellipsize(textRenderer, member.realm().displayName(), 120);
+            ElarionUiTypography.draw(context, textRenderer, realm, 230, y + 6, member.realm().color(), false);
+            String joined = java.time.Instant.ofEpochMilli(member.joinedAt())
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString();
             ElarionUiTypography.draw(context, textRenderer,
-                    ElarionUiRenderer.ellipsize(textRenderer, joined, Math.max(0, 322 - joinedX)), joinedX, y + 6,
+                    joined, 370, y + 6,
                     style.mutedColor(), false);
-            ElarionUiTypography.draw(context, textRenderer, leader ? "Leader" : roleLabel(member.role()),
-                    334, y + 6, style.mutedColor(), false);
+            String current = leader ? "Leader" : roleLabel(member.role());
             if (!leader && can(GuildPermission.ASSIGN_ROLES) && canManage(member)) {
-                String next = nextAssignableRole(member.role());
-                if (!next.isBlank()) button(context, mouseX, mouseY, 486, y + 1, 130, 18,
-                        "Set " + roleLabel(next), true, ElarionCivicUi.Tone.NORMAL,
-                        () -> send("assign_role", member.id(), next, new byte[0]));
-            }
-            if (!leader && client != null && client.player != null && payload.leaderId().equals(client.player.getUuid())) {
-                button(context, mouseX, mouseY, 392, y + 1, 84, 18, "Lead (25)", true,
-                        ElarionCivicUi.Tone.DESTRUCTIVE,
-                        () -> send("transfer_leadership", member.id(), "", new byte[0]));
+                button(context, mouseX, mouseY, 492, y + 1, 124, 18, current + " v", true,
+                        ElarionCivicUi.Tone.NORMAL, () -> roleDropdownMemberId = member.id());
+                if (member.id().equals(roleDropdownMemberId)) {
+                    dropdownMember = member;
+                    dropdownY = y + 20;
+                }
+            } else {
+                ElarionUiTypography.drawRight(context, textRenderer, current, 610, y + 6, style.mutedColor(), false);
             }
             y += 22;
         }
-        renderRange(context, payload.members().size(), 10);
+        if (dropdownMember != null) renderRoleDropdown(context, mouseX, mouseY, dropdownMember, dropdownY);
+        renderRange(context, payload.members().size(), 9);
     }
 
     private void renderAnnouncements(DrawContext context, double mouseX, double mouseY) {
@@ -273,8 +274,7 @@ public final class GuildScreen extends ElarionScreen {
             muted(context, "Only authorized roles can create new Guild roles.", 350, 150);
             return;
         }
-        renderInput(context, roleId, "Role ID", 350, 140, 128, Input.ROLE_ID);
-        renderInput(context, roleName, "Display name", 488, 140, 138, Input.ROLE_NAME);
+        renderInput(context, roleName, "Rank name", 350, 140, 276, Input.ROLE_NAME);
         int index = 0;
         for (GuildPermission permission : GuildPermission.values()) {
             int px = 350 + (index % 2) * 138;
@@ -286,7 +286,7 @@ public final class GuildScreen extends ElarionScreen {
                     () -> toggle(permission));
             index++;
         }
-        boolean valid = !roleId.text().trim().isBlank() && !roleName.text().trim().isBlank();
+        boolean valid = !roleName.text().trim().isBlank();
         boolean editing = !selectedRoleId.isBlank();
         button(context, mouseX, mouseY, 488, 326, 138, 24, editing ? "Save Role" : "Create Role", valid,
                 ElarionCivicUi.Tone.PRIMARY, editing ? this::updateRole : this::createRole);
@@ -310,13 +310,43 @@ public final class GuildScreen extends ElarionScreen {
     }
 
     private void renderFooter(DrawContext context) {
-        String text = feedback.isBlank()
-                ? "All changes are requests; the server validates membership, permissions, and revisions."
-                : feedback;
+        if (feedback.isBlank()) return;
+        String text = feedback;
         ElarionUiTypography.draw(context, textRenderer,
                 ElarionUiRenderer.ellipsize(textRenderer, text, 630), 24, FOOTER_Y + 7,
-                feedback.isBlank() ? style.mutedColor() : feedbackError ? style.errorColor() : style.feedbackColor(),
+                feedbackError ? style.errorColor() : style.feedbackColor(),
                 false);
+    }
+
+    private void renderRoleDropdown(DrawContext context, double mouseX, double mouseY,
+                                    GuildScreenOpenPayload.Member member, int y) {
+        List<GuildScreenOpenPayload.Role> choices = payload.roles().stream()
+                .filter(role -> !"owner".equals(role.id()) && role.position() > viewerPosition())
+                .sorted(java.util.Comparator.comparingInt(GuildScreenOpenPayload.Role::position)).toList();
+        int dropdownY = Math.min(y, 336 - choices.size() * 20);
+        for (GuildScreenOpenPayload.Role role : choices) {
+            button(context, mouseX, mouseY, 492, dropdownY, 124, 18, role.displayName(), true,
+                    role.id().equals(member.role()) ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.NORMAL,
+                    () -> {
+                        roleDropdownMemberId = null;
+                        send("assign_role", member.id(), role.id(), new byte[0]);
+                    });
+            dropdownY += 20;
+        }
+    }
+
+    private void renderLeaveConfirmation(DrawContext context, double mouseX, double mouseY) {
+        ElarionCivicUi.headerShell(context, 184, 152, 312, 118, 30);
+        ElarionUiTypography.drawCentered(context, textRenderer, "LEAVE GUILD?", 340, 170, style.titleColor(), true);
+        ElarionUiTypography.drawCentered(context, textRenderer, "You will lose access to its members and chat.",
+                340, 199, style.textColor(), false);
+        button(context, mouseX, mouseY, 202, 230, 124, 24, "Cancel", true,
+                ElarionCivicUi.Tone.NORMAL, () -> leaveConfirmation = false);
+        button(context, mouseX, mouseY, 354, 230, 124, 24, "Leave Guild", true,
+                ElarionCivicUi.Tone.DESTRUCTIVE, () -> {
+                    leaveConfirmation = false;
+                    send("leave", null, "", new byte[0]);
+                });
     }
 
     private void sectionTitle(DrawContext context, String title, String icon, int x, int y) {
@@ -370,7 +400,7 @@ public final class GuildScreen extends ElarionScreen {
 
     private void createRole() {
         String permissions = selectedPermissions.stream().map(Enum::name).sorted().collect(Collectors.joining(","));
-        send("create_role", null, roleId.text().trim() + "\n" + roleName.text().trim() + "\n" + permissions,
+        send("create_role", null, roleName.text().trim() + "\n" + permissions,
                 new byte[0]);
     }
 
@@ -411,7 +441,7 @@ public final class GuildScreen extends ElarionScreen {
 
     private void selectRole(GuildScreenOpenPayload.Role role) {
         if ("owner".equals(role.id()) || !can(GuildPermission.MANAGE_ROLES)) return;
-        selectedRoleId = role.id(); roleId.text(role.id()); roleName.text(role.displayName());
+        selectedRoleId = role.id(); roleName.text(role.displayName());
         selectedPermissions.clear();
         for (String permission : role.permissions()) try { selectedPermissions.add(GuildPermission.valueOf(permission)); } catch (IllegalArgumentException ignored) { }
     }
@@ -469,7 +499,7 @@ public final class GuildScreen extends ElarionScreen {
 
     private int visibleRows() {
         return switch (tab) {
-            case MEMBERS -> 10;
+            case MEMBERS -> 9;
             case ANNOUNCEMENTS -> 7;
             default -> 1;
         };
@@ -513,6 +543,15 @@ public final class GuildScreen extends ElarionScreen {
         if (button != 0) return false;
         double lx = layout.logicalX(mouseX);
         double ly = layout.logicalY(mouseY);
+        if (leaveConfirmation) {
+            if (inside(lx, ly, 202, 230, 124, 24)) { leaveConfirmation = false; return true; }
+            if (inside(lx, ly, 354, 230, 124, 24)) {
+                leaveConfirmation = false;
+                send("leave", null, "", new byte[0]);
+                return true;
+            }
+            return true;
+        }
         if (tab == Tab.EMBLEM && can(GuildPermission.REDRAW_ICON)) {
             if (iconCanvas.click((int) lx, (int) ly, 42, 142, 6)
                     || iconCanvas.selectPalette((int) lx, (int) ly, 262, 150, 22)) {
@@ -559,6 +598,14 @@ public final class GuildScreen extends ElarionScreen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            if (leaveConfirmation) {
+                leaveConfirmation = false;
+                return true;
+            }
+            if (roleDropdownMemberId != null) {
+                roleDropdownMemberId = null;
+                return true;
+            }
             close();
             return true;
         }

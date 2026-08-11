@@ -5,7 +5,6 @@ import com.yyz.yyzsbackpack.api.IBackpackSlots;
 import com.yyz.yyzsbackpack.api.IBackpackSlot;
 import com.yyz.yyzsbackpack.api.IBackpackData;
 import com.yyz.yyzsbackpack.api.IWeightSlots;
-import com.yyz.yyzsbackpack.api.provider.VanillaBackpackSlotProvider;
 import com.yyz.yyzsbackpack.api.provider.VanillaWeightSlotProvider;
 import com.yyz.yyzsbackpack.component.BackpackIdComponent;
 import com.yyz.yyzsbackpack.component.ModComponents;
@@ -28,7 +27,7 @@ public final class BackpackSlotHelper {
     private static final List<IWeightSlots> WEIGHT_PROVIDERS = new ArrayList<>();
 
     static {
-        SLOT_PROVIDERS.add(new VanillaBackpackSlotProvider()); // 默认注册
+        SLOT_PROVIDERS.add(new TrinketsBackpackSlotProvider());
         WEIGHT_PROVIDERS.add(new VanillaWeightSlotProvider());
     }
 
@@ -36,7 +35,18 @@ public final class BackpackSlotHelper {
      * 注册新的背包识别槽位提供者
      */
     public static void registerSlotProvider(IBackpackSlots provider) {
-        SLOT_PROVIDERS.add(provider);
+        if (provider != null) SLOT_PROVIDERS.add(provider);
+    }
+
+    /**
+     * Replaces the backpack source. Integrations use this to make an equipped
+     * accessory slot authoritative instead of treating inventory storage as
+     * an equipped backpack.
+     */
+    public static void setSlotProviders(List<IBackpackSlots> providers) {
+        SLOT_PROVIDERS.clear();
+        if (providers == null) return;
+        providers.stream().filter(java.util.Objects::nonNull).forEach(SLOT_PROVIDERS::add);
     }
 
     /**

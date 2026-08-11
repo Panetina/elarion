@@ -13,8 +13,11 @@ either owner's storage.
 The vendor patch is deliberately bounded: item-color registration moved from
 the common initializer to the client initializer because the official 1.21.1
 JAR references a client-only Fabric class while starting a dedicated server.
-No backpack behavior, capacity, UI, item ID, asset, protocol, or persistence
-contract changed.
+The Elarion vendor integration makes an equipped Trinkets slot authoritative:
+a backpack carried in normal inventory is inactive and invisible on the player.
+The same equipped stack drives opening, storage access, synchronization, and
+the player-model renderer. Unequipping it immediately removes that access and
+appearance; no parallel Elarion backpack state is stored.
 
 The canonical item IDs are:
 
@@ -69,5 +72,6 @@ and Economy settlement, not this addon.
 - `./gradlew verifyDistributionManifest`
 - Dedicated startup/reload: the vendored mod and Trinkets compatibility must
   load without environment, recipe, or mixin errors.
-- Live client: all four items appear in Creative, work from inventory and the
-  Trinkets back slot, and no crafting/smithing/dyeing result is available.
+- Live client: all four items appear in Creative, but activate and render only
+  while equipped in the Trinkets back slot; no crafting/smithing/dyeing result
+  is available.

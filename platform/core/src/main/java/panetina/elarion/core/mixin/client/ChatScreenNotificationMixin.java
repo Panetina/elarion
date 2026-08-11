@@ -50,6 +50,11 @@ public abstract class ChatScreenNotificationMixin {
     private void elarion$renderComposer(
             DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci
     ) {
+        // ChatHud is rendered in the same GUI pass. Give the interactive
+        // selector a foreground layer so its expanded choices never disappear
+        // behind recent messages.
+        context.getMatrices().push();
+        context.getMatrices().translate(0.0F, 0.0F, 500.0F);
         ElarionNotificationHud.renderOverChatScreen(context);
         MinecraftClient client = MinecraftClient.getInstance();
         ElarionUiStyle style = ElarionUiStyle.from(ElarionUiThemes.variant("default"));
@@ -60,21 +65,22 @@ public abstract class ChatScreenNotificationMixin {
                 current + (elarion$menuOpen ? "  ^" : "  v"),
                 elarion$inside(mouseX, mouseY, x, y, BUTTON_WIDTH, BUTTON_HEIGHT), false, true,
                 ElarionCivicUi.Tone.PRIMARY, style);
-        if (!elarion$menuOpen) return;
-
-        int rowY = y - ROW_HEIGHT;
-        for (ElarionChatChannel channel : ElarionChatChannelClientState.available()) {
-            boolean selected = channel == ElarionChatChannelClientState.selected();
-            ElarionCivicUi.compactActionButton(context, client.textRenderer, x, rowY,
-                    BUTTON_WIDTH, ROW_HEIGHT - 1, ElarionChatChannelClientState.label(channel),
-                    elarion$inside(mouseX, mouseY, x, rowY, BUTTON_WIDTH, ROW_HEIGHT - 1),
-                    selected, true, selected ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.NORMAL, style);
-            rowY -= ROW_HEIGHT;
+        if (elarion$menuOpen) {
+            int rowY = y - ROW_HEIGHT;
+            for (ElarionChatChannel channel : ElarionChatChannelClientState.available()) {
+                boolean selected = channel == ElarionChatChannelClientState.selected();
+                ElarionCivicUi.compactActionButton(context, client.textRenderer, x, rowY,
+                        BUTTON_WIDTH, ROW_HEIGHT - 1, ElarionChatChannelClientState.label(channel),
+                        elarion$inside(mouseX, mouseY, x, rowY, BUTTON_WIDTH, ROW_HEIGHT - 1),
+                        selected, true, selected ? ElarionCivicUi.Tone.PRIMARY : ElarionCivicUi.Tone.NORMAL, style);
+                rowY -= ROW_HEIGHT;
+            }
+            if (ElarionChatChannelClientState.selected() == ElarionChatChannel.PRIVATE) {
+                elarion$renderRecipients(context, client, style, x + BUTTON_WIDTH + 4, y - ROW_HEIGHT,
+                        mouseX, mouseY);
+            }
         }
-        if (ElarionChatChannelClientState.selected() == ElarionChatChannel.PRIVATE) {
-            elarion$renderRecipients(context, client, style, x + BUTTON_WIDTH + 4, y - ROW_HEIGHT,
-                    mouseX, mouseY);
-        }
+        context.getMatrices().pop();
     }
 
     private void elarion$renderRecipients(

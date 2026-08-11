@@ -48,18 +48,20 @@ Runtime:
   management screen for members.
 - Creation terms and physical-inventory affordability are server-authored. The player never
   enters a storage ID; Guilds generates a collision-safe internal ID.
-- The management surface contains Overview, Members, News, Invites, Roles, and
+- The management surface contains Overview, Members, News, Roles, and
   Emblem tabs. Viewer permissions and at most 32 eligible online invite targets
   are projected by the server; all mutations are revalidated by `GuildService`.
 - An online invitation opens a small central Accept/Deny prompt. It is only a
   client presentation of a server-created invite: the decision payload contains
   the guild ID and the server revalidates membership, inviter, expiry and
-  permissions. The persistent notification action remains the fallback.
+  permissions. It deliberately creates no duplicate notification-tab entry.
 - Hold Sneak and right-click a nearby player for Core's contextual menu. Guilds
   contributes `Invite to Guild` only when the actor has its canonical `INVITE`
   permission and the target has no membership; the Guild service validates the
   same invariants again before creating the invite.
-- Successful membership exit closes the stale screen. Snapshot refreshes update
+- A non-leader must confirm leaving in a central Accept/Deny modal before the
+  leave request is sent. Successful membership exit closes the stale screen.
+  Snapshot refreshes update
   the current screen in place so the selected tab is preserved.
 
 ## Related Systems

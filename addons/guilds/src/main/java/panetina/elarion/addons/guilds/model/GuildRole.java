@@ -17,6 +17,9 @@ public record GuildRole(String id, String displayName, int position, Set<GuildPe
             case "officer" -> 2;
             case "recruiter" -> 3;
             case "member" -> 4;
+            case "veteran" -> 5;
+            case "initiate" -> 6;
+            case "newcomer" -> 7;
             default -> 100;
         };
     }

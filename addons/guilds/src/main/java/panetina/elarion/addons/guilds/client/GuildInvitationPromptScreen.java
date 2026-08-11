@@ -47,7 +47,7 @@ public final class GuildInvitationPromptScreen extends ElarionScreen {
         ElarionUiTypography.drawCentered(context, textRenderer,
                 invitation.guildName() + " [" + invitation.guildTag() + "]", LOGICAL_WIDTH / 2, 76,
                 style.titleColor(), false);
-        ElarionUiTypography.drawCentered(context, textRenderer, "You can also decide later from your notifications.",
+        ElarionUiTypography.drawCentered(context, textRenderer, "Choose now.",
                 LOGICAL_WIDTH / 2, 101, style.mutedColor(), false);
         ElarionCivicUi.compactActionButton(context, textRenderer, 42, 119, 105, 24, "Deny",
                 inside(lx, ly, 42, 119, 105, 24), false, !submitted, ElarionCivicUi.Tone.NORMAL, style);

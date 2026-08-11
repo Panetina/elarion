@@ -140,6 +140,9 @@ public record GuildRecord(
                 "owner", new GuildRole("owner", "Leader", 1, Set.of(GuildPermission.values())),
                 "officer", new GuildRole("officer", "Officer", 2, Set.of(GuildPermission.INVITE, GuildPermission.REMOVE_MEMBER, GuildPermission.ASSIGN_ROLES, GuildPermission.PUBLISH_ANNOUNCEMENTS)),
                 "recruiter", new GuildRole("recruiter", "Recruiter", 3, Set.of(GuildPermission.INVITE)),
-                "member", new GuildRole("member", "Member", 4, Set.of()));
+                "member", new GuildRole("member", "Member", 4, Set.of()),
+                "veteran", new GuildRole("veteran", "Veteran", 5, Set.of()),
+                "initiate", new GuildRole("initiate", "Initiate", 6, Set.of()),
+                "newcomer", new GuildRole("newcomer", "Newcomer", 7, Set.of()));
     }
 }

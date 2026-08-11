@@ -21,7 +21,7 @@ public final class ElarionBackpacksAddon implements ElarionAddon {
                 removeBackpackRecipes(server.getRecipeManager());
             }
         });
-        LOGGER.info("Elarion Backpacks initialized; Yyz backpack crafting is disabled");
+        LOGGER.info("Elarion Backpacks initialized; equipped Trinkets backpacks are active and crafting is disabled");
     }
 
     static int removeBackpackRecipes(RecipeManager recipes) {

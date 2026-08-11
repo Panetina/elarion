@@ -322,24 +322,26 @@ public final class ElarionGuildsAddon implements ElarionAddon {
 
 
     private static void createRole(GuildService guilds, ServerPlayerEntity player, String encoded) {
-        RoleSubmission submission = parseRoleSubmission(encoded);
-        guilds.createRole(player, submission.id(), submission.name(), submission.permissions());
+        RoleSubmission submission = parseRoleSubmission(encoded, true);
+        guilds.createRole(player, submission.name(), submission.permissions());
     }
 
     private static void updateRole(GuildService guilds, ServerPlayerEntity player, String encoded) {
-        RoleSubmission submission = parseRoleSubmission(encoded);
+        RoleSubmission submission = parseRoleSubmission(encoded, false);
         guilds.updateRole(player, submission.id(), submission.name(), submission.permissions());
     }
 
-    static RoleSubmission parseRoleSubmission(String encoded) {
+    static RoleSubmission parseRoleSubmission(String encoded, boolean creating) {
         String[] fields = encoded == null ? new String[0] : encoded.split("\\n", -1);
-        if (fields.length != 3) throw new IllegalArgumentException("Role submission is incomplete.");
+        int expected = creating ? 2 : 3;
+        if (fields.length != expected) throw new IllegalArgumentException("Rank submission is incomplete.");
         java.util.EnumSet<GuildPermission> permissions = java.util.EnumSet.noneOf(GuildPermission.class);
-        if (!fields[2].isBlank()) for (String raw : fields[2].split(",")) {
+        String rawPermissions = fields[expected - 1];
+        if (!rawPermissions.isBlank()) for (String raw : rawPermissions.split(",")) {
             try { permissions.add(GuildPermission.valueOf(raw)); }
             catch (IllegalArgumentException ignored) { throw new IllegalArgumentException("Unknown Guild permission."); }
         }
-        return new RoleSubmission(fields[0], fields[1], permissions);
+        return new RoleSubmission(creating ? "" : fields[0], fields[creating ? 0 : 1], permissions);
     }
 
     record RoleSubmission(String id, String name, java.util.Set<GuildPermission> permissions) {

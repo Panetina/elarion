@@ -174,22 +174,9 @@ public final class GuildService {
         save();
         api.history().record("guilds", "invite", actor.getUuid(), "guild", guild.id(),
                 realmOf(actor.getUuid()), java.util.Map.of("target", target.getUuid().toString()));
-        api.notifications().publishPersonal(
-                target.getUuid(),
-                ElarionNotificationCategory.PERSONAL,
-                "elarion_guilds",
-                "guild-invite",
-                "guild-invite:" + invite.key(),
-                "Guild Invitation",
-                actor.getGameProfile().getName() + " invited you to " + guild.displayName()
-                        + " [" + guild.tag() + "].",
-                "Invitation",
-                "item:minecraft:paper",
-                java.util.List.of(
-                        new ElarionNotificationAction("elarion_guilds:accept_invite", "Accept", true),
-                        new ElarionNotificationAction("elarion_guilds:decline_invite", "Decline", true)),
-                java.util.Map.of("guildId", guild.id(), "invitedBy", actor.getUuidAsString()),
-                invite.createdAt() + config.inviteLifetimeMillis());
+        // Invitations have one immediate, modal decision surface. Duplicating it
+        // in Core notifications makes the player decide twice and leaves stale
+        // actions after the prompt has already been handled.
         return invite;
     }
 
@@ -258,7 +245,7 @@ public final class GuildService {
         var existing = guild.progression().receipt(operationId);
         if (existing != null) return guild.withContribution(operationId, player.getUuid(), amount);
         var payment = ElarionEconomyApi.get().payPhysicalOnlyOnce(player,
-                new EconomyOperationKey("elarion_guilds:donation", operationId), EconomyAccount.BURN,
+                new EconomyOperationKey("elarion_guilds:donation", operationId), EconomyAccount.WORLDHEART_TREASURY,
                 amount, "Guild contribution: " + guild.id(), "guilds",
                 java.util.Map.of("guild", guild.id()));
         if (!payment.successful()) throw new IllegalArgumentException(payment.message());
@@ -365,18 +352,18 @@ public final class GuildService {
         return updated;
     }
 
-    public GuildRecord createRole(ServerPlayerEntity actor, String id, String name, Set<GuildPermission> permissions) {
+    /** Creates a rank from its player-facing name; the stable storage ID is server-generated. */
+    public GuildRecord createRole(ServerPlayerEntity actor, String name, Set<GuildPermission> permissions) {
         GuildRecord guild = requirePermissionGuild(actor.getUuid(), GuildPermission.MANAGE_ROLES);
-        String normalized = normalizeId(id);
-        if (normalized.isBlank() || normalized.length() > 24 || "owner".equals(normalized) || "member".equals(normalized)) {
-            throw new IllegalArgumentException("Role ID is invalid.");
-        }
-        if (guild.roles().size() >= 12 || guild.roles().containsKey(normalized)) throw new IllegalArgumentException("Role limit reached or ID already used.");
+        String displayName = normalizeName(name);
+        if (displayName.isBlank() || displayName.length() > 96) throw new IllegalArgumentException("Rank name is invalid.");
+        if (guild.roles().size() >= 12) throw new IllegalArgumentException("Guild rank limit reached.");
+        String normalized = nextRoleId(guild, displayName);
         Set<GuildPermission> allowed = permissions == null ? Set.of() : Set.copyOf(permissions);
         if (!effectivePermissions(guild, actor.getUuid()).containsAll(allowed)) throw new IllegalArgumentException("You cannot grant permissions you do not hold.");
         java.util.Map<String, GuildRole> roles = new java.util.LinkedHashMap<>(guild.roles());
         int position = roles.values().stream().mapToInt(GuildRole::position).max().orElse(0) + 1;
-        roles.put(normalized, new GuildRole(normalized, normalizeName(name), position, allowed));
+        roles.put(normalized, new GuildRole(normalized, displayName, position, allowed));
         GuildRecord updated = guild.withRoles(roles, guild.memberRoles());
         state.guilds.put(updated.id(), updated);
         save();
@@ -596,5 +583,17 @@ public final class GuildService {
 
     private static String normalizeName(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ");
+    }
+
+    private static String nextRoleId(GuildRecord guild, String displayName) {
+        String base = normalizeId(displayName).replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-+|-+$)", "");
+        if (base.isBlank()) base = "rank";
+        for (int suffix = 1; suffix <= 99; suffix++) {
+            String ending = suffix == 1 ? "" : "-" + suffix;
+            String id = base.substring(0, Math.min(base.length(), 24 - ending.length())) + ending;
+            if (!guild.roles().containsKey(id) && !"owner".equals(id) && !"member".equals(id)) return id;
+        }
+        throw new IllegalArgumentException("Could not allocate a stable rank ID.");
     }
 }
