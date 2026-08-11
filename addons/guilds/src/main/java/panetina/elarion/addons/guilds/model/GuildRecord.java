@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import panetina.elarion.core.model.ElarionPixelAsset32;
+import panetina.elarion.core.model.ElarionPixelAsset16;
 
 public record GuildRecord(
         String id,
@@ -49,7 +49,9 @@ public record GuildRecord(
         memberJoinedAt = Map.copyOf(normalizedJoinedAt);
         progression = progression == null ? GuildProgression.empty() : progression;
         announcements = announcements == null ? List.of() : List.copyOf(announcements);
-        iconPaletteIndices = new ElarionPixelAsset32(iconRevision, iconPaletteIndices).paletteIndices();
+        boolean legacyIcon = iconPaletteIndices != null && iconPaletteIndices.length == 1024;
+        iconPaletteIndices = new ElarionPixelAsset16(iconRevision, legacyIcon ? downsampleLegacyIcon(iconPaletteIndices) : iconPaletteIndices).paletteIndices();
+        if (legacyIcon && iconRevision < Long.MAX_VALUE) iconRevision++;
     }
 
     public GuildRecord(String id, String displayName, String tag, boolean tagHidden, UUID leaderId,
@@ -119,7 +121,7 @@ public record GuildRecord(
     }
 
     public GuildRecord withIcon(byte[] palette) {
-        ElarionPixelAsset32 icon = new ElarionPixelAsset32(iconRevision, iconPaletteIndices).revised(palette);
+        ElarionPixelAsset16 icon = new ElarionPixelAsset16(iconRevision, iconPaletteIndices).revised(palette);
         return new GuildRecord(id, displayName, tag, tagHidden, secret, leaderId, members, roles, memberRoles,
                 memberJoinedAt, progression, announcements, icon.revision(), icon.paletteIndices(), revision + 1L, createdAt);
     }
@@ -144,5 +146,23 @@ public record GuildRecord(
                 "veteran", new GuildRole("veteran", "Veteran", 5, Set.of()),
                 "initiate", new GuildRole("initiate", "Initiate", 6, Set.of()),
                 "newcomer", new GuildRole("newcomer", "Newcomer", 7, Set.of()));
+    }
+
+    /** Deterministically migrates a legacy 32x32 emblem by selecting each 2x2 block's dominant palette colour. */
+    private static byte[] downsampleLegacyIcon(byte[] legacy) {
+        byte[] migrated = new byte[ElarionPixelAsset16.PIXEL_COUNT];
+        for (int row = 0; row < ElarionPixelAsset16.HEIGHT; row++) {
+            for (int column = 0; column < ElarionPixelAsset16.WIDTH; column++) {
+                int[] counts = new int[ElarionPixelAsset16.PALETTE_SIZE];
+                for (int dy = 0; dy < 2; dy++) for (int dx = 0; dx < 2; dx++) {
+                    int value = Byte.toUnsignedInt(legacy[(row * 2 + dy) * 32 + column * 2 + dx]);
+                    if (value < counts.length) counts[value]++;
+                }
+                int chosen = 0;
+                for (int color = 1; color < counts.length; color++) if (counts[color] > counts[chosen]) chosen = color;
+                migrated[row * ElarionPixelAsset16.WIDTH + column] = (byte) chosen;
+            }
+        }
+        return migrated;
     }
 }

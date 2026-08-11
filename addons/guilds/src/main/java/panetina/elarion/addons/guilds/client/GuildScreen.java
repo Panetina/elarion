@@ -11,7 +11,7 @@ import panetina.elarion.addons.guilds.network.GuildScreenOpenPayload;
 import panetina.elarion.addons.guilds.network.GuildUiFeedbackPayload;
 import panetina.elarion.core.client.ui.ElarionCivicColors;
 import panetina.elarion.core.client.ui.ElarionCivicUi;
-import panetina.elarion.core.client.ui.ElarionPixelCanvas32;
+import panetina.elarion.core.client.ui.ElarionPixelCanvas16;
 import panetina.elarion.core.client.ui.ElarionScaledLayout;
 import panetina.elarion.core.client.ui.ElarionScreen;
 import panetina.elarion.core.client.ui.ElarionTextInput;
@@ -40,7 +40,7 @@ public final class GuildScreen extends ElarionScreen {
     private static final int TAB_GAP = 5;
 
     private GuildScreenOpenPayload payload;
-    private final ElarionPixelCanvas32 iconCanvas = new ElarionPixelCanvas32();
+    private final ElarionPixelCanvas16 iconCanvas = new ElarionPixelCanvas16();
     private final ElarionTextInput announcement = new ElarionTextInput(500, false);
     private final ElarionTextInput donation = new ElarionTextInput(10, false);
     private final ElarionTextInput roleId = new ElarionTextInput(24, false);
@@ -111,13 +111,13 @@ public final class GuildScreen extends ElarionScreen {
     }
 
     private void renderHeader(DrawContext context) {
-        iconCanvas.render(context, 18, 11, 1);
+        iconCanvas.render(context, 24, 9, 2);
         ElarionUiTypography.draw(context, textRenderer,
                 ElarionUiRenderer.ellipsize(textRenderer, payload.displayName(), 330),
-                60, 13, style.titleColor(), true);
+                66, 13, style.titleColor(), true);
         ElarionUiTypography.draw(context, textRenderer,
                 (payload.secret() ? "Secret Guild" : "Public Guild") + "  |  " + payload.members().size() + " members",
-                60, 31, style.mutedColor(), false);
+                66, 31, style.mutedColor(), false);
         ElarionUiTypography.drawRight(context, textRenderer, "Tag " + payload.tag(), 632, 20,
                 style.mutedColor(), false);
         ElarionCivicUi.closeButton(context, 646, 14, 16);
@@ -296,12 +296,12 @@ public final class GuildScreen extends ElarionScreen {
         sectionTitle(context, "Guild Emblem", "guild", 34, 112);
         if (!can(GuildPermission.REDRAW_ICON)) {
             muted(context, "Your Guild role cannot redraw the emblem.", 44, 150);
-            iconCanvas.render(context, 420, 144, 4);
+            iconCanvas.render(context, 420, 144, 8);
             return;
         }
-        iconCanvas.render(context, 42, 142, 6);
+        iconCanvas.render(context, 42, 142, 12);
         iconCanvas.renderPalette(context, 262, 150, 22);
-        muted(context, "Choose a colour, then paint the 32 x 32 canvas.", 262, 204);
+        muted(context, "Choose a colour, then paint the 16 x 16 canvas.", 262, 204);
         button(context, mouseX, mouseY, 262, 238, 142, 24, "Clear canvas", true,
                 ElarionCivicUi.Tone.MUTED, iconCanvas::clear);
         button(context, mouseX, mouseY, 262, 272, 142, 24, "Save emblem", true,
@@ -553,7 +553,7 @@ public final class GuildScreen extends ElarionScreen {
             return true;
         }
         if (tab == Tab.EMBLEM && can(GuildPermission.REDRAW_ICON)) {
-            if (iconCanvas.click((int) lx, (int) ly, 42, 142, 6)
+            if (iconCanvas.click((int) lx, (int) ly, 42, 142, 12)
                     || iconCanvas.selectPalette((int) lx, (int) ly, 262, 150, 22)) {
                 lastPaintX = (int) lx; lastPaintY = (int) ly;
                 return true;
@@ -574,7 +574,7 @@ public final class GuildScreen extends ElarionScreen {
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (button != 0 || tab != Tab.EMBLEM || !can(GuildPermission.REDRAW_ICON)) return false;
         int x = (int) layout.logicalX(mouseX), y = (int) layout.logicalY(mouseY);
-        if (lastPaintX != Integer.MIN_VALUE && iconCanvas.drag(lastPaintX, lastPaintY, x, y, 42, 142, 6)) {
+        if (lastPaintX != Integer.MIN_VALUE && iconCanvas.drag(lastPaintX, lastPaintY, x, y, 42, 142, 12)) {
             lastPaintX = x; lastPaintY = y;
             return true;
         }

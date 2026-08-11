@@ -25,7 +25,7 @@ public record GuildScreenActionPayload(String action, UUID target, String value,
                 String action = ElarionPacketCodecs.readString(buffer, 48);
                 UUID target = buffer.readBoolean() ? buffer.readUuid() : null;
                 String value = ElarionPacketCodecs.readString(buffer, 512);
-                int length = ElarionPacketCodecs.readBoundedCount(buffer, 1024);
+                int length = ElarionPacketCodecs.readBoundedCount(buffer, 256);
                 byte[] pixels = new byte[length];
                 buffer.readBytes(pixels);
                 return new GuildScreenActionPayload(action, target, value, pixels);
@@ -35,8 +35,8 @@ public record GuildScreenActionPayload(String action, UUID target, String value,
         action = action == null ? "" : action;
         value = value == null ? "" : value;
         iconPixels = iconPixels == null ? new byte[0] : iconPixels.clone();
-        if (iconPixels.length != 0 && iconPixels.length != 1024) {
-            throw new IllegalArgumentException("Guild icon payload must be blank or exactly 32x32 pixels.");
+        if (iconPixels.length != 0 && iconPixels.length != 256) {
+            throw new IllegalArgumentException("Guild icon payload must be blank or exactly 16x16 pixels.");
         }
     }
 

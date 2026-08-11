@@ -25,7 +25,7 @@ Guilds owns:
 - guild chat
 - guild runtime storage
 - secret-guild flag, bounded announcements, hierarchy-safe custom roles and
-  role assignments, member join timestamps, and a revisioned 32x32
+  role assignments, member join timestamps, and a revisioned 16x16
   fixed-palette Guild icon
 
 Guilds does not own:
@@ -186,7 +186,9 @@ intentionally not rendered in chat.
 ## Bridge Heraldry Fields
 
 Guild authority and membership projections include `iconRevision` and
-`iconPaletteBase64`. The palette value is the exact fixed 32×32 (1,024-byte)
+`iconPaletteBase64`. The palette value is the exact fixed 16×16 (256-byte)
 palette-index buffer encoded as Base64; bridge consumers cache by revision and
-must treat the Guild addon as canonical. Realm identity projections use the
-equivalent `heraldryRevision` and `heraldryPaletteBase64` fields.
+must treat the Guild addon as canonical. Legacy 32×32 Guild emblems are
+deterministically downsampled when loaded and receive a new revision. Realm
+identity projections keep their independent 32×32 `heraldryRevision` and
+`heraldryPaletteBase64` fields.

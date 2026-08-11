@@ -37,7 +37,7 @@ public record GuildScreenOpenPayload(
             }, buffer -> {
                 String id = ElarionPacketCodecs.readString(buffer, 64); String name = ElarionPacketCodecs.readString(buffer, 128);
                 String tag = ElarionPacketCodecs.readString(buffer, 32); boolean secret = buffer.readBoolean(); UUID leader = buffer.readUuid(); long revision = buffer.readLong(); int level = ElarionPacketCodecs.readBoundedCount(buffer, 64); long total = buffer.readLong(); int capacity = ElarionPacketCodecs.readBoundedCount(buffer, 4096); long next = buffer.readLong();
-                int iconLength = ElarionPacketCodecs.readBoundedCount(buffer, 1024); byte[] icon = new byte[iconLength]; buffer.readBytes(icon);
+                int iconLength = ElarionPacketCodecs.readBoundedCount(buffer, 256); byte[] icon = new byte[iconLength]; buffer.readBytes(icon);
                 int permissionCount = ElarionPacketCodecs.readBoundedCount(buffer, 8); List<String> permissions = new ArrayList<>(permissionCount);
                 for (int i = 0; i < permissionCount; i++) permissions.add(ElarionPacketCodecs.readString(buffer, 48));
                 int memberCount = ElarionPacketCodecs.readBoundedCount(buffer, 256); List<Member> members = new ArrayList<>(memberCount);
@@ -65,7 +65,7 @@ public record GuildScreenOpenPayload(
         roles = roles == null ? List.of() : List.copyOf(roles);
         announcements = announcements == null ? List.of() : List.copyOf(announcements);
         inviteCandidates = inviteCandidates == null ? List.of() : List.copyOf(inviteCandidates);
-        if ((iconPixels.length != 0 && iconPixels.length != 1024)
+        if ((iconPixels.length != 0 && iconPixels.length != 256)
                 || viewerPermissions.size() > 8 || members.size() > 256 || roles.size() > 12
                 || announcements.size() > 50 || inviteCandidates.size() > 32
                 || roles.stream().anyMatch(role -> role.permissions().size() > 8)) {

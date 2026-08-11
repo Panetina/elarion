@@ -100,4 +100,19 @@ class GuildRecordTest {
         assertTrue(secret.secret());
         assertEquals(guild.leaderId(), secret.leaderId());
     }
+
+    @Test
+    void migratesLegacy32By32EmblemsToARevisioned16By16Projection() {
+        UUID leader = UUID.randomUUID();
+        byte[] legacy = new byte[1024];
+        legacy[0] = 7;
+        legacy[1] = 7;
+        legacy[32] = 7;
+        GuildRecord guild = new GuildRecord("merc", "Mercury Guild", "MERC", false, false, leader,
+                Set.of(leader), null, null, null, null, null, 4L, legacy, 0L, 100L);
+
+        assertEquals(256, guild.iconPaletteIndices().length);
+        assertEquals(7, Byte.toUnsignedInt(guild.iconPaletteIndices()[0]));
+        assertEquals(5L, guild.iconRevision());
+    }
 }

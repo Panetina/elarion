@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 final class GuildScreenActionPayloadTest {
     @Test void roundTripsBoundedIconRedrawRequest() {
-        byte[] pixels = new byte[1024];
+        byte[] pixels = new byte[256];
         pixels[100] = 7;
         GuildScreenActionPayload payload = new GuildScreenActionPayload("redraw_icon", UUID.randomUUID(), "", pixels);
         PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
@@ -23,7 +23,7 @@ final class GuildScreenActionPayloadTest {
         assertArrayEquals(pixels, decoded.iconPixels());
     }
 
-    @Test void rejectsNon32By32IconPayload() {
+    @Test void rejectsNon16By16IconPayload() {
         assertThrows(IllegalArgumentException.class,
                 () -> new GuildScreenActionPayload("redraw_icon", null, "", new byte[12]));
     }
