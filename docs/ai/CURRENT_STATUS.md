@@ -74,8 +74,8 @@ detail.
 
 - The recoverable World Reset, Guild/Chat foundation, Backpacks integration,
   Government/tax/heraldry controls and NPC quest-marker projection are
-  integrated and tested on the current P0 integration branch. Their evidence
-  is in focused Git commits; remaining P0 work is listed in `TODO.md`.
+  integrated and tested on `master`. The divergent Desktop WIP is preserved in
+  Git backup history; remaining P0 work is listed in `TODO.md`.
 - Custom physical Chronicle libraries/books are future presentation consumers,
   not implemented storage. Their design remains in `PLAN.md` and
   `docs/systems/Chronicles.md`.

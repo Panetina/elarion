@@ -5,12 +5,6 @@ Active incomplete work only. Future ideas and deferred designs belong in
 
 ## Implementation
 
-### P0 Verification and Integration
-
-- Merge the independently verified integration branch only after reviewing the
-  preserved Desktop WIP and divergent local history; never force-push or reset
-  that WIP.
-
 ### Angling Release Gate
 
 Keep public fishing disabled until these parity gates pass:
