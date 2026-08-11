@@ -384,3 +384,10 @@ tasks.register('verifyAnglingPort') {
 test {
     useJUnitPlatform()
 }
+
+// Recipe serializers and their Fabric parity are still part of Angling's release
+// gate. Keep the foundation's authored recipe data in source for the authorized
+// port, but never package any Angling recipe before that gate is complete.
+processResources {
+    exclude 'data/elarion_angling/recipe/**'
+}
