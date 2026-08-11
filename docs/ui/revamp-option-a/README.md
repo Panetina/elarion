@@ -8,10 +8,20 @@ dark brown, subdued gold, compact pixel-art language. They are implementation
 references, not drop-in textures and not evidence that the depicted behavior
 already exists.
 
-Runtime asset production is tracked separately in
-`docs/ui/revamp-option-a/ASSET_PLAN.md`. Do not promote concept-board crops into
-game resources; generate and curate implementation-ready PNG assets per screen
-slice.
+Generate and curate implementation-ready PNG assets only in the screen slice
+that consumes them. Do not promote concept-board crops into game resources.
+
+### Runtime asset rules
+
+- Use screen-sized, reviewed batches; never a speculative asset dump.
+- Keep source/reference art in this directory until code consumes a final PNG.
+- Promote final assets into module resources through semantic shared catalogs,
+  not direct per-screen texture paths.
+- Keep pixel-readable fixed source sizes: 16x16 controls, 24x24 emphasized
+  controls, 32x32 semantic/row icons, 64x64 popup stamps, 128x128 or 192x192
+  optional portraits, and tileable or 9-slice chrome.
+- Preserve the civic brown/gold token language across domain screens. Assets
+  are a feature dependency, not a standalone production program.
 
 ## Reference Boards
 
