@@ -153,6 +153,12 @@ public final class GuildScreen extends ElarionScreen {
                 payload.totalContributed() + " Sigils contributed");
         String next = payload.nextLevelContribution() == 0L ? "Maximum level" : "Next: " + payload.nextLevelContribution() + " Sigils";
         card(context, 340, 232, 286, 76, "Members", payload.members().size() + " / " + payload.memberCapacity(), next);
+        if (payload.nextLevelContribution() > 0L) {
+            ElarionUiRenderer.progressBar(context, textRenderer, 350, 278, 266, 16,
+                    payload.totalContributed(), payload.nextLevelContribution(), ElarionUiThemes.variant("default"));
+        } else {
+            muted(context, "All configured Guild levels unlocked.", 350, 283);
+        }
         renderInput(context, donation, "Sigils to donate", 34, 326, 258, Input.DONATION);
         boolean validDonation = donation.text().trim().matches("[1-9][0-9]*");
         button(context, mouseX, mouseY, 302, 326, 156, 24, "Donate Sigils", validDonation,
