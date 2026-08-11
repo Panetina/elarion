@@ -56,6 +56,12 @@ loom {
             vmArg '-Dfabric-tag-conventions-v1.legacyTagWarning=SILENCED'
         }
 
+        server {
+            server()
+            name = 'Elarion Dev Server'
+            runDir = 'run'
+        }
+
         client {
             client()
             name = 'Elarion Generic Client'
