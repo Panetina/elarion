@@ -116,6 +116,17 @@ addons/angling-delight
 addons/atlas (current shell)
   -> Core shared UI primitives only
   -> no Economy, Government, Offering, Portal, NPC, storage, or bridge dependency
+
+addons/backpacks
+  -> Core addon lifecycle only
+  -> vendor/yyzsbackpack for item/container/UI truth
+  -> Trinkets for data-driven accessory slots and component state
+  -> no Economy or NPC dependency; future NPC catalogs reference item IDs only
+
+vendor/yyzsbackpack
+  -> Fabric API and bundled yyzsbackpackcompat
+  -> Trinkets is consumed by the bundled optional compatibility entrypoint
+  -> no Elarion domain or Core dependency
 ```
 
 ## Shared Infrastructure

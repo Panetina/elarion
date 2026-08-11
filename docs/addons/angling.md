@@ -282,6 +282,10 @@ metadata, caches, and unrelated local files.
 Both modules remain excluded from `rebuildExportMods`,
 `prepareLiveServerRelease`, and live deployment only because the Fabric port
 and gameplay implementation are incomplete.
+They are also excluded from the ordinary `:dev:runServer` and client runs so
+P0 smoke tests represent the release candidate. Use
+`-PincludeFoundationMods=true` only for an explicit Angling development run;
+that opt-in runtime is not release evidence.
 
 Once the technical port is complete, the modules may be included in canonical
 exports, SMP releases, and production deployment after all of the following

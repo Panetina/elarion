@@ -28,6 +28,7 @@ Tracked addon overview for admins and future wiki expansion.
 | Tablist | `Shell` | [Commands](../admin/commands.md) |
 | Underworld | `Implemented foundation`, `Banishment implemented`, `Manual visual verification needed` | [Commands](../admin/commands.md) |
 | Mounts | `Implemented V5 collection foundation`, `Focused tests passing` | [Commands](../admin/commands.md) |
+| Backpacks | `Implemented integration`, `Dedicated startup passed`, `Client interaction QA needed` | [Technical contract](../../docs/addons/backpacks.md) |
 | Voice Chat Hooks | `Shell` | [Commands](../admin/commands.md) |
 | Atlas | `Shell`, `M-key placeholder only` | [Technical design](../../docs/systems/Atlas.md) |
 

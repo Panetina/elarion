@@ -185,6 +185,16 @@
       "companionChecks": ["frozen source revision", "parity disposition", "server authority", "bounded hot paths", "Core catch truth", "release exclusion"]
     },
     {
+      "id": "backpacks",
+      "keywords": ["backpack", "trinket", "accessory", "chest back", "yyzsbackpack", "bag", "skin"],
+      "owner": "Yyz's Backpack for backpack item/container/UI truth; Trinkets for slots; addons/backpacks for Elarion acquisition policy",
+      "docs": ["docs/addons/backpacks.md", "docs/systems/Distribution.md", "docs/systems/Underworld.md"],
+      "sourceGlobs": ["addons/backpacks/src/main/java/**/*.java", "distribution/mods.json"],
+      "testGlobs": ["addons/backpacks/src/test/java/**/*.java"],
+      "commands": [".\\gradlew.bat :addons:backpacks:test :addons:backpacks:build"],
+      "companionChecks": ["no crafting/smithing/dyeing", "Creative availability", "Trinkets back-slot compatibility", "component preservation", "official-origin pins"]
+    },
+    {
       "id": "mounts",
       "keywords": ["mount", "wyvern", "flight", "geckolib", "collection preview", "rideable"],
       "owner": "addons/mounts",

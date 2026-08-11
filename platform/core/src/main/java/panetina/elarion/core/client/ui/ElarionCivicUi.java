@@ -162,6 +162,19 @@ public final class ElarionCivicUi {
         Tone safeTone = tone == null ? Tone.NORMAL : tone;
         int fill = actionFill(safeTone, hovered, enabled);
         int border = actionBorder(safeTone, enabled);
+        // Interactive green actions must remain a single clean surface. The
+        // generic beveled frame deliberately shades its four corners, which
+        // reads as black/yellow leftovers on compact chat and Guild controls.
+        if (safeTone == Tone.PRIMARY && enabled) {
+            context.fill(x, y, x + width, y + height, border);
+            context.fill(x + 2, y + 2, x + width - 2, y + height - 2, fill);
+            if (width > 6 && height > 6) {
+                context.fill(x + 3, y + 3, x + width - 3, y + 4, actionGloss(safeTone, true));
+                context.fill(x + 3, y + height - 4, x + width - 3, y + height - 3,
+                        ElarionCivicColors.BUTTON_BOTTOM_SHADE);
+            }
+            return;
+        }
         ElarionUiRenderer.beveledBox(context, x, y, width, height, fill, border, style);
         if (width > 6 && height > 6) {
             context.fill(x + 3, y + 2, x + width - 3, y + 3, actionGloss(safeTone, enabled));

@@ -1,31 +1,38 @@
+def includeFoundationMods = providers.gradleProperty('includeFoundationMods')
+        .map { it.toBoolean() }
+        .orElse(false)
+
+def developmentAddonPaths = [
+        ':addons:titles',
+        ':addons:realms',
+        ':addons:names',
+        ':addons:offerings',
+        ':addons:economy',
+        ':addons:portals',
+        ':addons:jail',
+        ':addons:underworld',
+        ':addons:worlds',
+        ':addons:voicechat-hooks',
+        ':addons:tablist',
+        ':addons:government',
+        ':addons:guilds',
+        ':addons:newspapers',
+        ':addons:security',
+        ':addons:optimization',
+        ':addons:npcs',
+        ':addons:mounts',
+        ':addons:quests',
+        ':addons:atlas',
+        ':addons:backpacks'
+]
+if (includeFoundationMods.get()) developmentAddonPaths.add(':addons:angling')
+
 dependencies {
     implementation(project(path: ':platform:core', configuration: 'namedElements')) {
         exclude group: 'net.fabricmc.fabric-api'
     }
 
-    [
-            ':addons:titles',
-            ':addons:realms',
-            ':addons:names',
-            ':addons:offerings',
-            ':addons:economy',
-            ':addons:portals',
-            ':addons:jail',
-            ':addons:underworld',
-            ':addons:worlds',
-            ':addons:voicechat-hooks',
-            ':addons:tablist',
-            ':addons:government',
-            ':addons:guilds',
-            ':addons:newspapers',
-            ':addons:security',
-            ':addons:optimization',
-            ':addons:npcs',
-            ':addons:mounts',
-            ':addons:quests',
-            ':addons:atlas',
-            ':addons:angling'
-    ].each { addonPath ->
+    developmentAddonPaths.each { addonPath ->
         implementation(project(path: addonPath, configuration: 'namedElements')) {
             exclude group: 'net.fabricmc.fabric-api'
         }

@@ -315,7 +315,7 @@ if ($BudgetTokens -gt $maximum) {
 
 $dirtyPaths = Get-DirtyPaths
 $candidates = @{}
-$terms = Get-SearchTerms -Text $Task
+$terms = @(Get-SearchTerms -Text $Task)
 $rgPath = Get-ExistingCommand -Names @('rg')
 $omissions = New-Object System.Collections.Generic.List[string]
 $routeCoverageInsufficient = $requiresBroadCoverage -and $selectedRoutes.Count -lt 2

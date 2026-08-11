@@ -51,6 +51,8 @@ Elarion is a Fabric 1.21.1 multi-module project. Core owns canonical server trut
   active mount session recovery.
 - `addons/atlas`: non-operational client shell that registers `M`, renders a
   data-free Elarion placeholder, and reserves future bounded map ownership.
+- `addons/backpacks`: Yyz's Backpack and Trinkets integration, server-side
+  non-crafting acquisition policy, and future accessory extension boundary.
 - `addons/jail`, `addons/newspapers`, `addons/voicechat-hooks`: shell or early
   integration points for future systems.
 
