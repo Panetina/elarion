@@ -100,6 +100,9 @@ the server charges it through Economy before updating Guild progression.
 Donation requests carry a UUID operation ID. Guilds keeps the most recent 128
 Guild receipt projections for bounded replay protection, while Economy retains
 the canonical idempotent payment receipt for the same operation key.
+Members show their Core-owned Realm display name in its configured Realm
+colour, alongside their role and join date. Guilds receives only that bounded
+presentation projection; it does not own or cache Realm identity.
 
 The default Guildmaster dialogue opens a Guild-services node. It exposes
 registration only to players outside a Guild; members can open their records;

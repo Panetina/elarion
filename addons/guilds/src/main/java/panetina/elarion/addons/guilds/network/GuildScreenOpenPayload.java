@@ -74,7 +74,7 @@ public record GuildScreenOpenPayload(
     }
     @Override public byte[] iconPixels() { return iconPixels.clone(); }
     public static GuildScreenOpenPayload from(
-            GuildRecord guild, java.util.function.Function<UUID, String> name, java.util.function.Function<UUID, String> realm,
+            GuildRecord guild, java.util.function.Function<UUID, String> name, java.util.function.Function<UUID, Realm> realm,
             GuildProgressionConfig progression, List<String> viewerPermissions, List<InviteCandidate> inviteCandidates
     ) {
         int level = progression.levelFor(guild.progression().totalContributed());
@@ -93,10 +93,17 @@ public record GuildScreenOpenPayload(
                 inviteCandidates == null ? List.of() : inviteCandidates.stream().limit(32).toList());
     }
     @Override public Id<? extends CustomPayload> getId() { return ID; }
-    public record Member(UUID id, String name, String realm, String role, long joinedAt) {
-        public Member { name = name == null ? "" : name; realm = realm == null ? "Unassigned" : realm; role = role == null ? "member" : role; }
-        void write(PacketByteBuf b) { b.writeUuid(id); ElarionPacketCodecs.writeString(b, name, 128); ElarionPacketCodecs.writeString(b, realm, 128); ElarionPacketCodecs.writeString(b, role, 32); b.writeLong(joinedAt); }
-        static Member read(PacketByteBuf b) { return new Member(b.readUuid(), ElarionPacketCodecs.readString(b, 128), ElarionPacketCodecs.readString(b, 128), ElarionPacketCodecs.readString(b, 32), b.readLong()); }
+    public record Member(UUID id, String name, Realm realm, String role, long joinedAt) {
+        public Member { name = name == null ? "" : name; realm = realm == null ? Realm.UNASSIGNED : realm; role = role == null ? "member" : role; }
+        void write(PacketByteBuf b) { b.writeUuid(id); ElarionPacketCodecs.writeString(b, name, 128); realm.write(b); ElarionPacketCodecs.writeString(b, role, 32); b.writeLong(joinedAt); }
+        static Member read(PacketByteBuf b) { return new Member(b.readUuid(), ElarionPacketCodecs.readString(b, 128), Realm.read(b), ElarionPacketCodecs.readString(b, 32), b.readLong()); }
+    }
+    /** Realm presentation is Core-authored and included only in this bounded Guild member projection. */
+    public record Realm(String displayName, int color) {
+        public static final Realm UNASSIGNED = new Realm("Unassigned", 0xFFB89552);
+        public Realm { displayName = displayName == null || displayName.isBlank() ? "Unassigned" : displayName; color = 0xFF000000 | (color & 0x00FFFFFF); }
+        void write(PacketByteBuf b) { ElarionPacketCodecs.writeString(b, displayName, 128); b.writeInt(color); }
+        static Realm read(PacketByteBuf b) { return new Realm(ElarionPacketCodecs.readString(b, 128), b.readInt()); }
     }
     public record Role(String id, String displayName, int position, List<String> permissions) {
         public Role { id = id == null ? "" : id; displayName = displayName == null ? "" : displayName; permissions = permissions == null ? List.of() : List.copyOf(permissions); }

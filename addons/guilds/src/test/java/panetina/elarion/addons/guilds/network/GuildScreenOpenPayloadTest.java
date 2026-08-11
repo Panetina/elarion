@@ -14,7 +14,8 @@ final class GuildScreenOpenPayloadTest {
         UUID leader = UUID.randomUUID();
         GuildScreenOpenPayload payload = new GuildScreenOpenPayload("ember", "Ember Court", "EMBER", false,
                 leader, 4L, 2, 250L, 15, 750L, new byte[0], List.of("INVITE", "EDIT_EMBLEM"),
-                List.of(new GuildScreenOpenPayload.Member(leader, "Aster", "Wilderness I", "owner", 5L)),
+                List.of(new GuildScreenOpenPayload.Member(leader, "Aster",
+                        new GuildScreenOpenPayload.Realm("Wilderness I", 0xFF55FF55), "owner", 5L)),
                 List.of(new GuildScreenOpenPayload.Role("scribe", "Scribe", 5, List.of("PUBLISH_ANNOUNCEMENTS"))),
                 List.of(new GuildScreenOpenPayload.Announcement("a", "Aster", "Welcome", 5L)),
                 List.of(new GuildScreenOpenPayload.InviteCandidate(UUID.randomUUID(), "Rowan")));

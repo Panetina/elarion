@@ -220,10 +220,13 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                         .map(citizen -> citizen.nickname().isBlank()
                                 ? citizen.lastKnownUsername() : citizen.nickname())
                         .orElse(id.toString());
-            java.util.function.Function<java.util.UUID, String> realmName = id -> api.citizens().find(id)
-                    .map(citizen -> citizen.realmId().isBlank() ? "Unassigned" : api.realm().realms().find(citizen.realmId())
-                            .map(api.realm().realms()::displayName).orElse(citizen.realmId()))
-                    .orElse("Unassigned");
+            java.util.function.Function<java.util.UUID, GuildScreenOpenPayload.Realm> realm = id -> api.citizens().find(id)
+                    .map(citizen -> citizen.realmId().isBlank() ? GuildScreenOpenPayload.Realm.UNASSIGNED
+                            : api.realm().realms().find(citizen.realmId())
+                            .map(definition -> new GuildScreenOpenPayload.Realm(
+                                    api.realm().realms().displayName(definition), realmColor(api.realm().realms().color(definition))))
+                            .orElse(new GuildScreenOpenPayload.Realm(citizen.realmId(), 0xFFB89552)))
+                    .orElse(GuildScreenOpenPayload.Realm.UNASSIGNED);
             java.util.List<String> permissions = guilds.permissionsFor(player.getUuid()).stream()
                     .map(Enum::name).sorted().toList();
             java.util.List<GuildScreenOpenPayload.InviteCandidate> candidates = permissions.contains(GuildPermission.INVITE.name())
@@ -240,7 +243,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
             ServerPlayNetworking.send(player, GuildScreenOpenPayload.from(
                     guild,
                     displayName,
-                    realmName,
+                    realm,
                     guilds.config().progression(),
                     permissions,
                     candidates));
@@ -299,6 +302,12 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         ServerPlayerEntity target = actor.getServer().getPlayerManager().getPlayer(targetId);
         if (target == null) throw new IllegalArgumentException("That player is no longer online.");
         return target;
+    }
+
+    private static int realmColor(String configuredColor) {
+        net.minecraft.util.Formatting color = net.minecraft.util.Formatting.byName(configuredColor);
+        Integer rgb = color == null ? null : color.getColorValue();
+        return 0xFF000000 | (rgb == null ? 0x00B89552 : rgb);
     }
 
     private static void handleDonation(ElarionApi api, GuildService guilds, ServerPlayerEntity player,

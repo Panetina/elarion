@@ -183,11 +183,18 @@ public final class GuildScreen extends ElarionScreen {
         for (GuildScreenOpenPayload.Member member : visible) {
             boolean leader = payload.leaderId().equals(member.id());
             ElarionCivicUi.rowSurface(context, 34, y, 592, 20, false, false, true);
-            String joined = member.realm() + " | Joined " + java.time.Instant.ofEpochMilli(member.joinedAt())
+            String prefix = ElarionUiRenderer.ellipsize(textRenderer, member.name() + "  |  ", 150);
+            ElarionUiTypography.draw(context, textRenderer, prefix, 44, y + 6,
+                    leader ? style.titleColor() : style.textColor(), false);
+            int realmX = 44 + ElarionUiTypography.width(textRenderer, prefix);
+            String realm = ElarionUiRenderer.ellipsize(textRenderer, member.realm().displayName(), 86);
+            ElarionUiTypography.draw(context, textRenderer, realm, realmX, y + 6, member.realm().color(), false);
+            int joinedX = realmX + ElarionUiTypography.width(textRenderer, realm);
+            String joined = " | " + java.time.Instant.ofEpochMilli(member.joinedAt())
                     .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
             ElarionUiTypography.draw(context, textRenderer,
-                    ElarionUiRenderer.ellipsize(textRenderer, member.name() + "  |  " + joined, 278), 44, y + 6,
-                    leader ? style.titleColor() : style.textColor(), false);
+                    ElarionUiRenderer.ellipsize(textRenderer, joined, Math.max(0, 322 - joinedX)), joinedX, y + 6,
+                    style.mutedColor(), false);
             ElarionUiTypography.draw(context, textRenderer, leader ? "Leader" : roleLabel(member.role()),
                     334, y + 6, style.mutedColor(), false);
             if (!leader && can(GuildPermission.ASSIGN_ROLES) && canManage(member)) {
