@@ -53,6 +53,7 @@ public final class GuildScreen extends ElarionScreen {
     private ElarionScaledLayout layout;
     private ElarionUiStyle style;
     private String feedback = "";
+    private String selectedRoleId = "";
     private boolean feedbackError;
     private int scroll;
     private int lastPaintX = Integer.MIN_VALUE;
@@ -250,8 +251,9 @@ public final class GuildScreen extends ElarionScreen {
                     ElarionUiRenderer.ellipsize(textRenderer, "#" + role.position() + " " + role.displayName(), 110), 44, y + 7,
                     style.titleColor(), false);
             ElarionUiTypography.draw(context, textRenderer,
-                    ElarionUiRenderer.ellipsize(textRenderer, String.join(", ", role.permissions()), 150),
-                    164, y + 7, style.mutedColor(), false);
+                    role.id().equals(selectedRoleId) ? "Selected" : "Click to edit", 164, y + 7, style.mutedColor(), false);
+            GuildScreenOpenPayload.Role selected = role;
+            hits.add(new Hit(34, y, 292, 22, () -> selectRole(selected)));
             y += 24;
         }
         if (!can(GuildPermission.MANAGE_ROLES)) {
@@ -272,8 +274,9 @@ public final class GuildScreen extends ElarionScreen {
             index++;
         }
         boolean valid = !roleId.text().trim().isBlank() && !roleName.text().trim().isBlank();
-        button(context, mouseX, mouseY, 488, 326, 138, 24, "Create Role", valid,
-                ElarionCivicUi.Tone.PRIMARY, () -> createRole());
+        boolean editing = !selectedRoleId.isBlank();
+        button(context, mouseX, mouseY, 488, 326, 138, 24, editing ? "Save Role" : "Create Role", valid,
+                ElarionCivicUi.Tone.PRIMARY, editing ? this::updateRole : this::createRole);
     }
 
     private void renderEmblem(DrawContext context, double mouseX, double mouseY) {
@@ -386,6 +389,18 @@ public final class GuildScreen extends ElarionScreen {
         if (roles.isEmpty()) return "";
         int index = roles.indexOf(currentRole);
         return roles.get((index + 1 + roles.size()) % roles.size());
+    }
+
+    private void updateRole() {
+        String permissions = selectedPermissions.stream().map(Enum::name).sorted().collect(Collectors.joining(","));
+        send("update_role", null, selectedRoleId + "\n" + roleName.text().trim() + "\n" + permissions, new byte[0]);
+    }
+
+    private void selectRole(GuildScreenOpenPayload.Role role) {
+        if ("owner".equals(role.id()) || !can(GuildPermission.MANAGE_ROLES)) return;
+        selectedRoleId = role.id(); roleId.text(role.id()); roleName.text(role.displayName());
+        selectedPermissions.clear();
+        for (String permission : role.permissions()) try { selectedPermissions.add(GuildPermission.valueOf(permission)); } catch (IllegalArgumentException ignored) { }
     }
 
     private void donate() {

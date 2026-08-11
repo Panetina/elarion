@@ -150,6 +150,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                     sendInvitationPrompt(guilds, player, target);
                 }
                 case "create_role" -> createRole(guilds, player, payload.value());
+                case "update_role" -> updateRole(guilds, player, payload.value());
                 case "assign_role" -> assignRole(guilds, player, payload.target(), payload.value());
                 case "transfer_leadership" -> guilds.transfer(player, findOnlinePlayer(player, payload.target()));
                 case "toggle_secret" -> guilds.setSecret(player, Boolean.parseBoolean(payload.value()));
@@ -276,6 +277,14 @@ public final class ElarionGuildsAddon implements ElarionAddon {
             catch (IllegalArgumentException ignored) { throw new IllegalArgumentException("Unknown Guild permission."); }
         }
         guilds.createRole(player, fields[0], fields[1], permissions);
+    }
+
+    private static void updateRole(GuildService guilds, ServerPlayerEntity player, String encoded) {
+        String[] fields = encoded == null ? new String[0] : encoded.split("\\n", 3);
+        if (fields.length != 3) throw new IllegalArgumentException("Role submission is incomplete.");
+        java.util.EnumSet<GuildPermission> permissions = java.util.EnumSet.noneOf(GuildPermission.class);
+        if (!fields[2].isBlank()) for (String raw : fields[2].split(",")) permissions.add(GuildPermission.valueOf(raw));
+        guilds.updateRole(player, fields[0], fields[1], permissions);
     }
 
     private static void assignRole(GuildService guilds, ServerPlayerEntity player, java.util.UUID target, String roleId) {

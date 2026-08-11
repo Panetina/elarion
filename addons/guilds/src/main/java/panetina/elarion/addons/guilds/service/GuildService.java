@@ -522,6 +522,21 @@ public final class GuildService {
         return updated;
     }
 
+    public GuildRecord updateRole(ServerPlayerEntity actor, String id, String name, Set<GuildPermission> permissions) {
+        GuildRecord guild = requirePermissionGuild(actor.getUuid(), GuildPermission.MANAGE_ROLES);
+        String roleId = normalizeId(id);
+        GuildRole current = guild.roles().get(roleId);
+        if (current == null || "owner".equals(roleId)) throw new IllegalArgumentException("That role cannot be edited.");
+        if (rolePosition(guild, actor.getUuid()) >= current.position()) throw new IllegalArgumentException("You may only edit ranks below your own.");
+        Set<GuildPermission> allowed = permissions == null ? Set.of() : Set.copyOf(permissions);
+        if (!effectivePermissions(guild, actor.getUuid()).containsAll(allowed)) throw new IllegalArgumentException("You cannot grant permissions you do not hold.");
+        java.util.Map<String, GuildRole> roles = new java.util.LinkedHashMap<>(guild.roles());
+        roles.put(roleId, new GuildRole(roleId, normalizeName(name), current.position(), allowed));
+        GuildRecord updated = guild.withRoles(roles, guild.memberRoles());
+        state.guilds.put(updated.id(), updated); save(); webProjections.publishActive(updated);
+        return updated;
+    }
+
     private static int rolePosition(GuildRecord guild, UUID playerId) {
         if (guild.leaderId().equals(playerId)) return 1;
         String roleId = guild.memberRoles().getOrDefault(playerId, "member");
