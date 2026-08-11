@@ -665,13 +665,14 @@ tasks.register('syncDevClientMods') {
     dependsOn 'syncDevRuntimeMods'
 }
 
-// The root launch wrappers have both tasks as dependencies. Dependencies have
-// no implicit sibling order, so Loom could otherwise start scanning a client
-// directory while syncDevRuntimeMods is replacing its managed jars.
+// Direct IntelliJ task launches must be self-sufficient too. Dependencies have
+// no implicit sibling order, so Loom may not scan a client/server directory
+// while syncDevRuntimeMods is replacing its managed jars.
 gradle.projectsEvaluated {
     def runtimeSync = tasks.named('syncDevRuntimeMods')
     ['runClient', 'runClientOne', 'runClientTwo', 'runServer'].each { taskName ->
         project(':dev').tasks.named(taskName).configure {
+            dependsOn(runtimeSync)
             mustRunAfter(runtimeSync)
         }
     }
