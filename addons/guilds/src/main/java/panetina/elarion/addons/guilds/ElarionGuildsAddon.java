@@ -175,6 +175,10 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                         .map(citizen -> citizen.nickname().isBlank()
                                 ? citizen.lastKnownUsername() : citizen.nickname())
                         .orElse(id.toString());
+            java.util.function.Function<java.util.UUID, String> realmName = id -> api.citizens().find(id)
+                    .map(citizen -> citizen.realmId().isBlank() ? "Unassigned" : api.realm().realms().find(citizen.realmId())
+                            .map(api.realm().realms()::displayName).orElse(citizen.realmId()))
+                    .orElse("Unassigned");
             java.util.List<String> permissions = guilds.permissionsFor(player.getUuid()).stream()
                     .map(Enum::name).sorted().toList();
             java.util.List<GuildScreenOpenPayload.InviteCandidate> candidates = permissions.contains(GuildPermission.INVITE.name())
@@ -191,6 +195,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
             ServerPlayNetworking.send(player, GuildScreenOpenPayload.from(
                     guild,
                     displayName,
+                    realmName,
                     guilds.config().progression(),
                     permissions,
                     candidates));

@@ -74,7 +74,7 @@ public record GuildScreenOpenPayload(
     }
     @Override public byte[] iconPixels() { return iconPixels.clone(); }
     public static GuildScreenOpenPayload from(
-            GuildRecord guild, java.util.function.Function<UUID, String> name,
+            GuildRecord guild, java.util.function.Function<UUID, String> name, java.util.function.Function<UUID, String> realm,
             GuildProgressionConfig progression, List<String> viewerPermissions, List<InviteCandidate> inviteCandidates
     ) {
         int level = progression.levelFor(guild.progression().totalContributed());
@@ -86,17 +86,17 @@ public record GuildScreenOpenPayload(
                                 .thenComparingLong(id -> guild.memberJoinedAt().getOrDefault(id, guild.createdAt()))
                                 .thenComparing(UUID::toString))
                         .limit(256)
-                        .map(id -> new Member(id, name.apply(id), guild.memberRoles().getOrDefault(id, "member"), guild.memberJoinedAt().getOrDefault(id, guild.createdAt())))
+                        .map(id -> new Member(id, name.apply(id), realm.apply(id), guild.memberRoles().getOrDefault(id, "member"), guild.memberJoinedAt().getOrDefault(id, guild.createdAt())))
                         .toList(),
                 guild.roles().values().stream().sorted(java.util.Comparator.comparingInt(GuildRole::position)).limit(12).map(Role::from).toList(),
                 guild.announcements().stream().limit(50).map(value -> new Announcement(value.id(), name.apply(value.authorId()), value.body(), value.createdAt())).toList(),
                 inviteCandidates == null ? List.of() : inviteCandidates.stream().limit(32).toList());
     }
     @Override public Id<? extends CustomPayload> getId() { return ID; }
-    public record Member(UUID id, String name, String role, long joinedAt) {
-        public Member { name = name == null ? "" : name; role = role == null ? "member" : role; }
-        void write(PacketByteBuf b) { b.writeUuid(id); ElarionPacketCodecs.writeString(b, name, 128); ElarionPacketCodecs.writeString(b, role, 32); b.writeLong(joinedAt); }
-        static Member read(PacketByteBuf b) { return new Member(b.readUuid(), ElarionPacketCodecs.readString(b, 128), ElarionPacketCodecs.readString(b, 32), b.readLong()); }
+    public record Member(UUID id, String name, String realm, String role, long joinedAt) {
+        public Member { name = name == null ? "" : name; realm = realm == null ? "Unassigned" : realm; role = role == null ? "member" : role; }
+        void write(PacketByteBuf b) { b.writeUuid(id); ElarionPacketCodecs.writeString(b, name, 128); ElarionPacketCodecs.writeString(b, realm, 128); ElarionPacketCodecs.writeString(b, role, 32); b.writeLong(joinedAt); }
+        static Member read(PacketByteBuf b) { return new Member(b.readUuid(), ElarionPacketCodecs.readString(b, 128), ElarionPacketCodecs.readString(b, 128), ElarionPacketCodecs.readString(b, 32), b.readLong()); }
     }
     public record Role(String id, String displayName, int position, List<String> permissions) {
         public Role { id = id == null ? "" : id; displayName = displayName == null ? "" : displayName; permissions = permissions == null ? List.of() : List.copyOf(permissions); }

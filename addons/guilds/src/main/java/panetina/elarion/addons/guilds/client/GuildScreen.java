@@ -176,7 +176,7 @@ public final class GuildScreen extends ElarionScreen {
         for (GuildScreenOpenPayload.Member member : visible) {
             boolean leader = payload.leaderId().equals(member.id());
             ElarionCivicUi.rowSurface(context, 34, y, 592, 20, false, false, true);
-            String joined = "Joined " + java.time.Instant.ofEpochMilli(member.joinedAt())
+            String joined = member.realm() + " | Joined " + java.time.Instant.ofEpochMilli(member.joinedAt())
                     .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
             ElarionUiTypography.draw(context, textRenderer,
                     ElarionUiRenderer.ellipsize(textRenderer, member.name() + "  |  " + joined, 278), 44, y + 6,
