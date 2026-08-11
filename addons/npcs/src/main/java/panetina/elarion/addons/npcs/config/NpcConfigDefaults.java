@@ -412,20 +412,73 @@ public final class NpcConfigDefaults {
             root: welcome
             nodes:
               welcome:
-                text: "I can register a public or secret Guild, or open your existing Guild records. The Registrar will show the current charter fee before you confirm."
+                text: "I can register a public or secret Guild, or help a Guild leader with its charter."
                 sound: "minecraft:entity.villager.yes"
                 voice: ""
                 options:
-                  - id: open_registrar
+                  - id: guild_services
                     button-text: "Register or manage my Guild"
                     player-text: "I want to register or manage a Guild."
-                    actions:
-                      - type: "elarion_guilds:open_registrar"
-                    close: true
+                    next: guild_services
                   - id: charter
                     button-text: "What is a Guild charter?"
                     player-text: "What does a charter mean?"
                     next: charter
+              guild_services:
+                text: "State your Guild business. Charter changes are checked and charged only by the server."
+                sound: "minecraft:entity.villager.ambient"
+                voice: ""
+                options:
+                  - id: register
+                    button-text: "Register a Guild"
+                    player-text: "I want to register a new Guild."
+                    conditions:
+                      - type: "elarion_guilds:not_in_guild"
+                    actions:
+                      - type: "elarion_guilds:open_registrar"
+                    close: true
+                  - id: records
+                    button-text: "Open Guild records"
+                    player-text: "Show me my Guild records."
+                    conditions:
+                      - type: "elarion_guilds:in_guild"
+                    actions:
+                      - type: "elarion_guilds:open_guild_menu"
+                    close: true
+                  - id: toggle_visibility
+                    button-text: "Change Guild visibility (50 Sigils)"
+                    player-text: "Change my Guild's public visibility."
+                    conditions:
+                      - type: "elarion_guilds:guild_leader"
+                    actions:
+                      - type: "elarion_guilds:toggle_secret"
+                  - id: transfer
+                    button-text: "Transfer Guild ownership (25 Sigils)"
+                    player-text: "I need to choose a new Guild leader."
+                    conditions:
+                      - type: "elarion_guilds:guild_leader"
+                    next: transfer
+                  - id: back
+                    button-text: "Back"
+                    player-text: "Back."
+                    next: welcome
+              transfer:
+                text: "Open your Guild records, then choose an eligible member in the Members tab. The server transfers leadership and charges 25 carried Sigils only after your selection."
+                sound: "minecraft:entity.villager.ambient"
+                voice: ""
+                options:
+                  - id: open_members
+                    button-text: "Choose a successor"
+                    player-text: "Show me the eligible Guild members."
+                    conditions:
+                      - type: "elarion_guilds:guild_leader"
+                    actions:
+                      - type: "elarion_guilds:open_guild_menu"
+                    close: true
+                  - id: back
+                    button-text: "Back"
+                    player-text: "Back."
+                    next: guild_services
               charter:
                 text: "A charter records your Guild's name and leadership. Secret Guilds remain hidden from public projections."
                 sound: "minecraft:entity.villager.ambient"

@@ -87,7 +87,10 @@ G
 `G` requests the server-authoritative Guild surface; non-members receive a
 read-only empty state. Guild creation is only available at the configured
 Registrar action. Its bounded server projection
-contains Overview, Members, News, Invites, Roles, and Emblem tabs.
+contains Overview, Members, News, Roles, and Emblem tabs. Invitations are
+issued through the Shift + right-click player action, not a duplicate screen
+tab. The context menu remains open when Shift is released and closes only on
+Escape, an action selection, or a click outside it.
 Client actions are requests: the server derives the player's Guild and checks
 the same service permission before leaving, inviting, assigning/creating a
 role, publishing an announcement, or redrawing the icon.
@@ -98,7 +101,16 @@ Donation requests carry a UUID operation ID. Guilds keeps the most recent 128
 Guild receipt projections for bounded replay protection, while Economy retains
 the canonical idempotent payment receipt for the same operation key.
 
-NPC dialogue may use the registry action `elarion_guilds:open_registrar`.
+The default Guildmaster dialogue opens a Guild-services node. It exposes
+registration only to players outside a Guild; members can open their records;
+and only the current leader sees visibility and ownership-transfer choices.
+Changing visibility toggles Secret/Public and charges 50 carried Sigils. The
+transfer path opens Members, where the leader explicitly selects a successor;
+the server then validates eligibility and charges 25 carried Sigils. These
+conditions and actions are registered as `elarion_guilds:not_in_guild`,
+`elarion_guilds:in_guild`, `elarion_guilds:guild_leader`,
+`elarion_guilds:open_registrar`, `elarion_guilds:open_guild_menu`, and
+`elarion_guilds:toggle_secret`.
 
 The Registrar receives the current creation fee, inventory Sigil count, currency name,
 and field bounds from the server. Players choose only the display name, public
@@ -160,7 +172,7 @@ Primary services:
 
 ## Current UI Contract
 
-The Registrar and six-tab management surface are implemented with shared Core
+The Registrar and five-tab management surface are implemented with shared Core
 theme, scaling, text-input, button, and fixed-palette canvas primitives. Invite
 candidates and viewer permissions are bounded server projections. Leaving a
 Guild explicitly closes the now-stale management screen. Guild emblems are

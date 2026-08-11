@@ -50,7 +50,10 @@ final class NpcBankPresentationMigrationTest {
         assertTrue(decoded instanceof Map<?, ?>, "Guildmaster dialogue must be valid YAML mapping");
         Map<?, ?> root = (Map<?, ?>) decoded;
         assertEquals("welcome", root.get("root"));
-        assertTrue(((Map<?, ?>) root.get("nodes")).containsKey("charter"));
+        Map<?, ?> nodes = (Map<?, ?>) root.get("nodes");
+        assertTrue(nodes.containsKey("charter"));
+        assertTrue(nodes.containsKey("guild_services"));
+        assertTrue(nodes.containsKey("transfer"));
     }
 
     @Test

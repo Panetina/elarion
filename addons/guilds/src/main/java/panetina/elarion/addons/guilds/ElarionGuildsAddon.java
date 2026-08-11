@@ -33,6 +33,7 @@ import panetina.elarion.core.model.ElarionChatChannel;
 import panetina.elarion.core.service.ElarionChatChannelRouter;
 import panetina.elarion.core.network.ChatChannelAvailabilityPayload;
 import panetina.elarion.core.registry.ActionType;
+import panetina.elarion.core.registry.ConditionType;
 import panetina.elarion.core.registry.RegistryExecutionResult;
 import panetina.elarion.core.registry.PlayerContextActionRegistry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -119,6 +120,31 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         }));
         api.registries().actions().register(new ActionType("elarion_guilds:open_registrar", "elarion_guilds",
                 "Open the Guild Registrar creation or management screen."));
+        api.registries().actions().register(new ActionType("elarion_guilds:open_guild_menu", "elarion_guilds",
+                "Open the caller's Guild records."));
+        api.registries().actions().register(new ActionType("elarion_guilds:toggle_secret", "elarion_guilds",
+                "Toggle the caller leader's Guild visibility for its configured fee."));
+        api.registries().conditions().register(new ConditionType("elarion_guilds:not_in_guild", "elarion_guilds",
+                "Passes when the player is not currently a Guild member."));
+        api.registries().conditions().register(new ConditionType("elarion_guilds:in_guild", "elarion_guilds",
+                "Passes when the player is currently a Guild member."));
+        api.registries().conditions().register(new ConditionType("elarion_guilds:guild_leader", "elarion_guilds",
+                "Passes when the player is the current Guild leader."));
+        api.registries().registerConditionHandler("elarion_guilds:not_in_guild", context -> {
+            java.util.UUID actorId = context.execution().actorId();
+            return actorId != null && guilds.guildFor(actorId).isEmpty()
+                    ? RegistryExecutionResult.ok() : RegistryExecutionResult.failure("player already has a Guild");
+        });
+        api.registries().registerConditionHandler("elarion_guilds:in_guild", context -> {
+            java.util.UUID actorId = context.execution().actorId();
+            return actorId != null && guilds.guildFor(actorId).isPresent()
+                    ? RegistryExecutionResult.ok() : RegistryExecutionResult.failure("player has no Guild");
+        });
+        api.registries().registerConditionHandler("elarion_guilds:guild_leader", context -> {
+            java.util.UUID actorId = context.execution().actorId();
+            return actorId != null && guilds.guildFor(actorId).map(guild -> actorId.equals(guild.leaderId())).orElse(false)
+                    ? RegistryExecutionResult.ok() : RegistryExecutionResult.failure("player is not the Guild leader");
+        });
         api.registries().registerActionHandler("elarion_guilds:open_registrar", context -> {
             ServerPlayerEntity player = context.execution().actor();
             if (player == null) return RegistryExecutionResult.failure("The Guild Registrar requires a player.");
@@ -126,6 +152,24 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                 if (guilds.guildFor(player.getUuid()).isPresent()) sendScreen(api, guilds, player);
                 else sendRegistrar(api, guilds, player);
             });
+        });
+        api.registries().registerActionHandler("elarion_guilds:open_guild_menu", context -> {
+            ServerPlayerEntity player = context.execution().actor();
+            if (player == null) return RegistryExecutionResult.failure("Guild records require a player.");
+            if (guilds.guildFor(player.getUuid()).isEmpty()) return RegistryExecutionResult.failure("You are not in a Guild.");
+            return RegistryExecutionResult.ok().withServerTask(() -> sendScreen(api, guilds, player));
+        });
+        api.registries().registerActionHandler("elarion_guilds:toggle_secret", context -> {
+            ServerPlayerEntity player = context.execution().actor();
+            if (player == null) return RegistryExecutionResult.failure("Guild management requires a player.");
+            try {
+                boolean secret = guilds.guildFor(player.getUuid()).orElseThrow(() ->
+                        new IllegalArgumentException("You are not in a Guild.")).secret();
+                guilds.setSecret(player, !secret);
+                return RegistryExecutionResult.ok(secret ? "Guild is now public." : "Guild is now secret.");
+            } catch (IllegalArgumentException exception) {
+                return RegistryExecutionResult.failure(exception.getMessage());
+            }
         });
         ServerPlayNetworking.registerGlobalReceiver(GuildScreenOpenRequestPayload.ID, (payload, context) ->
                 context.server().execute(() -> sendScreenOrEmpty(api, guilds, context.player())));
