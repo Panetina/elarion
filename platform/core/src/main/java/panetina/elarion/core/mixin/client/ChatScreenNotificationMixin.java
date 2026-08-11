@@ -59,7 +59,7 @@ public abstract class ChatScreenNotificationMixin {
         MinecraftClient client = MinecraftClient.getInstance();
         ElarionUiStyle style = ElarionUiStyle.from(ElarionUiThemes.variant("default"));
         int x = chatField.getX();
-        int y = chatField.getY() - 19;
+        int y = elarion$selectorY();
         String current = elarion$selectedLabel();
         ElarionCivicUi.compactActionButton(context, client.textRenderer, x, y, BUTTON_WIDTH, BUTTON_HEIGHT,
                 current + (elarion$menuOpen ? "  ^" : "  v"),
@@ -115,7 +115,7 @@ public abstract class ChatScreenNotificationMixin {
     ) {
         if (button != 0) return;
         int x = chatField.getX();
-        int y = chatField.getY() - 19;
+        int y = elarion$selectorY();
         if (elarion$inside(mouseX, mouseY, x, y, BUTTON_WIDTH, BUTTON_HEIGHT)) {
             elarion$menuOpen = !elarion$menuOpen;
             if (elarion$menuOpen && ElarionChatChannelClientState.selected() == ElarionChatChannel.PRIVATE) {
@@ -202,6 +202,16 @@ public abstract class ChatScreenNotificationMixin {
                 .map(ChatRecipientSnapshotPayload.Entry::nickname)
                 .findFirst().orElse("choose player");
         return "PM: " + recipient;
+    }
+
+    /**
+     * Brigadier suggestions are rendered immediately above the composer. Keep
+     * the channel affordance over chat history, but reserve a bounded column
+     * for command completion so it remains readable and clickable.
+     */
+    private int elarion$selectorY() {
+        int suggestionClearance = chatField.getText().startsWith("/") ? 124 : 0;
+        return Math.max(4, chatField.getY() - 19 - suggestionClearance);
     }
 
     private static boolean elarion$inside(

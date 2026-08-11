@@ -102,6 +102,10 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         ServerLifecycleEvents.SERVER_STARTED.register(guilds::bind);
         api.system().commands().registerAdminSubcommand(() -> GuildCommands.admin(guilds));
         api.identity().registerChatPrefixProvider(player -> guilds.tagFor(player.getUuid()));
+        api.identity().registerNameplateTitleProvider(player -> guilds.guildFor(player.getUuid())
+                .filter(guild -> !guild.secret())
+                .map(panetina.elarion.addons.guilds.model.GuildRecord::displayName)
+                .orElse(""));
         ElarionChatChannelRouter.register(ElarionChatChannel.GUILD, guilds::sendGuildMessage,
                 player -> guilds.guildFor(player.getUuid()).isPresent());
         api.registries().playerContextActions().register(new PlayerContextActionRegistry.Action(

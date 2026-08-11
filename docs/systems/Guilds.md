@@ -59,6 +59,12 @@ Runtime:
   contributes `Invite to Guild` only when the actor has its canonical `INVITE`
   permission and the target has no membership; the Guild service validates the
   same invariants again before creating the invite.
+- Core owns nameplate rendering and synchronization. Guilds contributes only a
+  public Guild display name, rendered above the player's name; secret Guilds
+  contribute no public nameplate identity.
+- The Core chat selector stays above chat history and moves above the command
+  completion area while the composer contains a command, so suggestions remain
+  clickable.
 - A non-leader must confirm leaving in a central Accept/Deny modal before the
   leave request is sent. Successful membership exit closes the stale screen.
   Snapshot refreshes update

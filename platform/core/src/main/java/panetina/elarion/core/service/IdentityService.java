@@ -27,6 +27,7 @@ public final class IdentityService {
     private final RealmService realms;
     private final TitleService titles;
     private final List<Function<ServerPlayerEntity, String>> chatPrefixProviders = new CopyOnWriteArrayList<>();
+    private final List<Function<ServerPlayerEntity, String>> nameplateTitleProviders = new CopyOnWriteArrayList<>();
     private final List<BiPredicate<String, ServerPlayerEntity>> authorityMarkerProviders = new CopyOnWriteArrayList<>();
     private RealmGovernanceService governance;
     private PlayerRestrictionService restrictions;
@@ -47,6 +48,11 @@ public final class IdentityService {
 
     public void registerChatPrefixProvider(Function<ServerPlayerEntity, String> provider) {
         if (provider != null) chatPrefixProviders.add(provider);
+    }
+
+    /** Adds bounded public presentation below a player's nameplate; Core keeps the wire/render contract. */
+    public void registerNameplateTitleProvider(Function<ServerPlayerEntity, String> provider) {
+        if (provider != null) nameplateTitleProviders.add(provider);
     }
 
     public void registerAuthorityMarkerProvider(BiPredicate<String, ServerPlayerEntity> provider) {
@@ -72,8 +78,12 @@ public final class IdentityService {
         if (authorityMarked) chatName.append(crown()).append(Text.literal(" "));
         chatName.append(Text.literal(baseName).formatted(color));
         if (!suffix.isBlank()) chatName.append(Text.literal(" " + suffix));
-        Text titleText = title != null && title.visibleUnderUsername()
-                ? Text.literal(title.displayName()).styled(style -> style.withColor(title.colorArgb() & 0x00FFFFFF))
+        String titleLabel = title != null && title.visibleUnderUsername() ? title.displayName() : "";
+        String contributorLabel = externalNameplateTitle(player);
+        String underName = contributorLabel.isBlank() ? titleLabel
+                : titleLabel.isBlank() ? contributorLabel : contributorLabel + " · " + titleLabel;
+        Text titleText = !underName.isBlank()
+                ? Text.literal(underName).styled(style -> style.withColor(title == null ? 0xE7C66D : title.colorArgb() & 0x00FFFFFF))
                 : Text.empty();
         Text leaderText = authorityMarked ? crown() : Text.empty();
         VisibilityScope scope = realm == null ? VisibilityScope.REALM : realm.visibilityScope();
@@ -83,6 +93,14 @@ public final class IdentityService {
         tabName.append(display.copy());
         return new PlayerIdentity(display, chatName, tabName, titleText, leaderText,
                 prefix, suffix, color, scope);
+    }
+
+    private String externalNameplateTitle(ServerPlayerEntity player) {
+        for (Function<ServerPlayerEntity, String> provider : nameplateTitleProviders) {
+            String value = provider.apply(player);
+            if (value != null && !value.isBlank()) return value.trim();
+        }
+        return "";
     }
 
     public boolean canSee(ServerPlayerEntity viewer, ServerPlayerEntity subject) {
