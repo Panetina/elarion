@@ -10,6 +10,7 @@
     "CraftingResultSlotMixin",
     "PlayerAdvancementTrackerMixin",
     "ServerCommandSourceMixin",
+    "StructureTemplatePaletteCacheMixin",
     "SuggestionsBuilderAccessor",
     "UserCacheAccessor"
   ],
