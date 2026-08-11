@@ -495,7 +495,7 @@ public final class NpcConfigDefaults {
                     player-text: "Back."
                     next: welcome
               transfer:
-                text: "Open your Guild records, then choose an eligible member in the Members tab. The server transfers leadership and charges 25 carried Sigils only after your selection."
+                text: "Choose the Guild member who will receive ownership. The server charges 25 carried Sigils only after your selection."
                 sound: "minecraft:entity.villager.ambient"
                 voice: ""
                 options:
@@ -505,7 +505,7 @@ public final class NpcConfigDefaults {
                     conditions:
                       - type: "elarion_guilds:guild_leader"
                     actions:
-                      - type: "elarion_guilds:open_guild_menu"
+                      - type: "elarion_guilds:choose_successor"
                     close: true
                   - id: back
                     button-text: "Back"

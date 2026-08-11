@@ -24,6 +24,7 @@ import panetina.elarion.addons.guilds.network.GuildUiFeedbackPayload;
 import panetina.elarion.addons.guilds.network.GuildInvitationPromptPayload;
 import panetina.elarion.addons.guilds.network.GuildInvitationDecisionPayload;
 import panetina.elarion.addons.guilds.network.GuildDonationPayload;
+import panetina.elarion.addons.guilds.network.GuildSuccessorOpenPayload;
 import panetina.elarion.addons.economy.api.ElarionEconomyApi;
 import panetina.elarion.core.api.ElarionAddon;
 import panetina.elarion.core.api.ElarionApi;
@@ -55,6 +56,7 @@ public final class ElarionGuildsAddon implements ElarionAddon {
         PayloadTypeRegistry.playS2C().register(GuildUiFeedbackPayload.ID, GuildUiFeedbackPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildEmptyScreenPayload.ID, GuildEmptyScreenPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(GuildInvitationPromptPayload.ID, GuildInvitationPromptPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(GuildSuccessorOpenPayload.ID, GuildSuccessorOpenPayload.CODEC);
         GuildService guilds = new GuildService(api, new GuildStorage(LOGGER), GuildConfigLoader.load());
         api.system().profiles().registerContributor(new GuildProfileContributor(guilds));
         GuildConfigDescriptors.register(api.system().configs(), guilds::config);
@@ -124,6 +126,8 @@ public final class ElarionGuildsAddon implements ElarionAddon {
                 "Open the caller's Guild records."));
         api.registries().actions().register(new ActionType("elarion_guilds:toggle_secret", "elarion_guilds",
                 "Toggle the caller leader's Guild visibility for its configured fee."));
+        api.registries().actions().register(new ActionType("elarion_guilds:choose_successor", "elarion_guilds",
+                "Open the current leader's server-authorized Guild successor selection."));
         api.registries().conditions().register(new ConditionType("elarion_guilds:not_in_guild", "elarion_guilds",
                 "Passes when the player is not currently a Guild member."));
         api.registries().conditions().register(new ConditionType("elarion_guilds:in_guild", "elarion_guilds",
@@ -170,6 +174,14 @@ public final class ElarionGuildsAddon implements ElarionAddon {
             } catch (IllegalArgumentException exception) {
                 return RegistryExecutionResult.failure(exception.getMessage());
             }
+        });
+        api.registries().registerActionHandler("elarion_guilds:choose_successor", context -> {
+            ServerPlayerEntity player = context.execution().actor();
+            if (player == null) return RegistryExecutionResult.failure("Guild management requires a player.");
+            var guild = guilds.guildFor(player.getUuid()).orElseThrow(() -> new IllegalArgumentException("You are not in a Guild."));
+            if (!player.getUuid().equals(guild.leaderId())) return RegistryExecutionResult.failure("Only the Guild leader can choose a successor.");
+            return RegistryExecutionResult.ok().withServerTask(() -> ServerPlayNetworking.send(player, new GuildSuccessorOpenPayload(guild.displayName(), guild.members().stream()
+                    .filter(id -> !id.equals(guild.leaderId())).sorted().map(id -> new GuildSuccessorOpenPayload.Candidate(id, api.citizens().find(id).map(c -> c.nickname().isBlank() ? c.lastKnownUsername() : c.nickname()).orElse(id.toString()))).toList())));
         });
         ServerPlayNetworking.registerGlobalReceiver(GuildScreenOpenRequestPayload.ID, (payload, context) ->
                 context.server().execute(() -> sendScreenOrEmpty(api, guilds, context.player())));

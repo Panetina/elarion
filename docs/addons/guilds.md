@@ -108,12 +108,13 @@ The default Guildmaster dialogue opens a Guild-services node. It exposes
 registration only to players outside a Guild; members can open their records;
 and only the current leader sees visibility and ownership-transfer choices.
 Changing visibility toggles Secret/Public and charges 50 carried Sigils. The
-transfer path opens Members, where the leader explicitly selects a successor;
-the server then validates eligibility and charges 25 carried Sigils. These
+transfer path opens a dedicated scrollable successor list containing only
+server-authorized Guild members; the server then validates eligibility and
+charges 25 carried Sigils. These
 conditions and actions are registered as `elarion_guilds:not_in_guild`,
 `elarion_guilds:in_guild`, `elarion_guilds:guild_leader`,
-`elarion_guilds:open_registrar`, `elarion_guilds:open_guild_menu`, and
-`elarion_guilds:toggle_secret`.
+`elarion_guilds:open_registrar`, `elarion_guilds:open_guild_menu`,
+`elarion_guilds:choose_successor`, and `elarion_guilds:toggle_secret`.
 
 The Registrar receives the current creation fee, inventory Sigil count, currency name,
 and field bounds from the server. Players choose only the display name, public

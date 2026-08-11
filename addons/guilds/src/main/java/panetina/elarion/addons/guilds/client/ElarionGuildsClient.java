@@ -14,6 +14,7 @@ import panetina.elarion.addons.guilds.network.GuildRegistrarOpenPayload;
 import panetina.elarion.addons.guilds.network.GuildScreenClosePayload;
 import panetina.elarion.addons.guilds.network.GuildUiFeedbackPayload;
 import panetina.elarion.addons.guilds.network.GuildInvitationPromptPayload;
+import panetina.elarion.addons.guilds.network.GuildSuccessorOpenPayload;
 
 /** Client entry point for the server-authoritative Guild management surface. */
 public final class ElarionGuildsClient implements ClientModInitializer {
@@ -44,6 +45,8 @@ public final class ElarionGuildsClient implements ClientModInitializer {
                 context.client().execute(() -> context.client().setScreen(new GuildEmptyScreen())));
         ClientPlayNetworking.registerGlobalReceiver(GuildInvitationPromptPayload.ID, (payload, context) ->
                 context.client().execute(() -> context.client().setScreen(new GuildInvitationPromptScreen(payload))));
+        ClientPlayNetworking.registerGlobalReceiver(GuildSuccessorOpenPayload.ID, (payload, context) ->
+                context.client().execute(() -> context.client().setScreen(new GuildSuccessorScreen(payload))));
         ClientPlayNetworking.registerGlobalReceiver(GuildScreenClosePayload.ID, (payload, context) ->
                 context.client().execute(() -> {
                     if (context.client().currentScreen instanceof GuildScreen) {
