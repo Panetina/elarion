@@ -105,6 +105,9 @@ public final class GuildService {
         if (state.guilds.values().stream().anyMatch(guild -> guild.tag().equals(normalizedTag))) {
             throw new IllegalArgumentException("Guild tag is already taken.");
         }
+        if (state.guilds.values().stream().anyMatch(guild -> guild.displayName().equalsIgnoreCase(cleanName))) {
+            throw new IllegalArgumentException("Guild name is already taken.");
+        }
         if (state.playerGuilds.containsKey(creator.getUuid())) {
             throw new IllegalArgumentException("You are already in a guild.");
         }

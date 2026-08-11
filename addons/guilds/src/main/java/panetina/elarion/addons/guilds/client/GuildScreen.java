@@ -136,7 +136,6 @@ public final class GuildScreen extends ElarionScreen {
             case OVERVIEW -> renderOverview(context, mouseX, mouseY);
             case MEMBERS -> renderMembers(context, mouseX, mouseY);
             case ANNOUNCEMENTS -> renderAnnouncements(context, mouseX, mouseY);
-            case INVITATIONS -> renderInvitations(context, mouseX, mouseY);
             case ROLES -> renderRoles(context, mouseX, mouseY);
             case EMBLEM -> renderEmblem(context, mouseX, mouseY);
         }
@@ -434,7 +433,6 @@ public final class GuildScreen extends ElarionScreen {
         return switch (tab) {
             case MEMBERS -> payload.members().size();
             case ANNOUNCEMENTS -> payload.announcements().size();
-            case INVITATIONS -> payload.inviteCandidates().size();
             default -> 0;
         };
     }
@@ -443,7 +441,6 @@ public final class GuildScreen extends ElarionScreen {
         return switch (tab) {
             case MEMBERS -> 10;
             case ANNOUNCEMENTS -> 7;
-            case INVITATIONS -> 9;
             default -> 1;
         };
     }
@@ -540,7 +537,7 @@ public final class GuildScreen extends ElarionScreen {
 
     private enum Tab {
         OVERVIEW("Overview"), MEMBERS("Members"), ANNOUNCEMENTS("News"),
-        INVITATIONS("Invites"), ROLES("Roles"), EMBLEM("Emblem");
+        ROLES("Roles"), EMBLEM("Emblem");
         private final String label;
         Tab(String label) { this.label = label; }
     }
