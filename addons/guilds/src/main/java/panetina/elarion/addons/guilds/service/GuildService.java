@@ -301,6 +301,7 @@ public final class GuildService {
         GuildRecord guild = guildFor(actor.getUuid()).orElseThrow(() -> new IllegalArgumentException("You are not in a guild."));
         if (!guild.leaderId().equals(actor.getUuid())) throw new IllegalArgumentException("Only the Guild leader may transfer ownership.");
         if (target == null || !guild.members().contains(target.getUuid())) throw new IllegalArgumentException("New leader must be a guild member.");
+        if (target.getUuid().equals(actor.getUuid())) throw new IllegalArgumentException("Choose another Guild member as successor.");
         var payment = ElarionEconomyApi.get().payPhysicalOnly(actor, 25L,
                 "Guild ownership transfer: " + guild.id(), "guilds");
         if (!payment.successful()) throw new IllegalArgumentException(payment.message());
