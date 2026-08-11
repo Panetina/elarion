@@ -37,6 +37,22 @@ public final class ElarionPixelCanvas32 {
         if (col < 0 || col >= 32 || row < 0 || row >= 32) return false;
         pixels[row * 32 + col] = (byte) selectedColor; return true;
     }
+    /** Paints every cell crossed by a drag, so fast mouse motion cannot leave gaps. */
+    public boolean drag(int fromX, int fromY, int toX, int toY, int x, int y, int pixelSize) {
+        int startColumn = (fromX - x) / pixelSize, startRow = (fromY - y) / pixelSize;
+        int endColumn = (toX - x) / pixelSize, endRow = (toY - y) / pixelSize;
+        boolean painted = false;
+        int steps = Math.max(Math.abs(endColumn - startColumn), Math.abs(endRow - startRow));
+        for (int step = 0; step <= steps; step++) {
+            int column = startColumn + (endColumn - startColumn) * step / Math.max(1, steps);
+            int row = startRow + (endRow - startRow) * step / Math.max(1, steps);
+            if (column >= 0 && column < 32 && row >= 0 && row < 32) {
+                pixels[row * 32 + column] = (byte) selectedColor;
+                painted = true;
+            }
+        }
+        return painted;
+    }
     public boolean selectPalette(int mouseX, int mouseY, int x, int y, int size) {
         int col = (mouseX - x) / size, row = (mouseY - y) / size;
         if (col < 0 || col >= 8 || row < 0 || row >= 2) return false;

@@ -55,6 +55,8 @@ public final class GuildScreen extends ElarionScreen {
     private String feedback = "";
     private boolean feedbackError;
     private int scroll;
+    private int lastPaintX = Integer.MIN_VALUE;
+    private int lastPaintY = Integer.MIN_VALUE;
 
     public GuildScreen(GuildScreenOpenPayload payload) {
         super(Text.literal("Guild"));
@@ -485,7 +487,10 @@ public final class GuildScreen extends ElarionScreen {
         double ly = layout.logicalY(mouseY);
         if (tab == Tab.EMBLEM && can(GuildPermission.REDRAW_ICON)) {
             if (iconCanvas.click((int) lx, (int) ly, 42, 142, 6)
-                    || iconCanvas.selectPalette((int) lx, (int) ly, 262, 150, 22)) return true;
+                    || iconCanvas.selectPalette((int) lx, (int) ly, 262, 150, 22)) {
+                lastPaintX = (int) lx; lastPaintY = (int) ly;
+                return true;
+            }
         }
         for (int index = hits.size() - 1; index >= 0; index--) {
             Hit hit = hits.get(index);
@@ -496,6 +501,23 @@ public final class GuildScreen extends ElarionScreen {
         }
         focus(Input.NONE);
         return true;
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (button != 0 || tab != Tab.EMBLEM || !can(GuildPermission.REDRAW_ICON)) return false;
+        int x = (int) layout.logicalX(mouseX), y = (int) layout.logicalY(mouseY);
+        if (lastPaintX != Integer.MIN_VALUE && iconCanvas.drag(lastPaintX, lastPaintY, x, y, 42, 142, 6)) {
+            lastPaintX = x; lastPaintY = y;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0) { lastPaintX = Integer.MIN_VALUE; lastPaintY = Integer.MIN_VALUE; }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
